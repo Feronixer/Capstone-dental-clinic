@@ -1,7 +1,8 @@
 @extends('layout.app')
 @section('content')
-<div class="login">
-    <form action="{{ url('/login') }}" method="post">
+
+<div>
+    <form action="{{ url('/register') }}" method="post">
         @csrf
         <div class="form-floating">
             <input type="email" class="form-control" id="floatingInput" placeholder="name@example.com" name="email">
@@ -10,6 +11,14 @@
         @error('email')
             <div class="alert alert-danger">{{ $message }}</div>
         @enderror
+         <div class="form-floating">
+            <input type="text" class="form-control" id="floatingInput" placeholder="Josh na hindi kyut" name="name">
+            <label for="floatingInput">Name</label>
+        </div>
+        @error('name')
+            <div class="alert alert-danger">{{ $message }}</div>
+        @enderror
+
         <div class="form-floating">
             <input type="password" class="form-control" id="floatingPassword" placeholder="Password" name="password">
             <label for="floatingPassword">Password</label>

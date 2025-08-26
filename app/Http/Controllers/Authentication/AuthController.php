@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Authentication;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -33,11 +34,22 @@ class AuthController extends Controller
     }
 
     public function register(Request $request) {
-        $credentila = $request->validate([
+        $credential = $request->validate([
             'name' => ['required','string'],
-            'email'=> ['required', 'email', 'string', 'unique'],
+            'email'=> ['required', 'email', 'string'],
             'password'=> ['required','string', 'min:8'],
         ]);
+
+        User::create([
+            'name'=> $request->name,
+            'email'=> $request->email,
+            'password'=> Hash::make($request->password),
+        ]);
+
+        return redirect()->route('login')->with('success','Success');
+    }
+    public function showRegisterForm(){
+        return view('admin.register');
     }
 
     public function logout(Request $request): RedirectResponse
