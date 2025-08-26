@@ -2,6 +2,9 @@
     --background-color: #ffffff;
     --header-color: #ffffff;
     --primary-color: #1d4ed8;
+    --button-color: #ffffff;
+    --text-color: #ffffff;
+    --footer-color: #2C3E50;
 }
 
 * {
@@ -70,4 +73,40 @@ header {
     padding: 6rem 0;
 }
 
+.btn-custom {
+    background: var(--button-color);
+}
 
+.top-header-announcement {
+    background-color: #1037a2;
+    text-align: center;
+    padding: 5px 0;
+}
+
+.top-header-announcement p {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--text-color);
+}
+
+footer {
+    background: var(--footer-color);
+    color: var(--text-color);
+    padding: 2rem 0;
+}
+
+.footer-container {
+    margin: 0 auto;
+    text-align: center;
+    padding: 2rem 0;
+}
+
+.footer-icon {
+    margin-top: 4px;
+}
+
+.footer-icon-item {
+    margin: 0 0.5rem;
+    text-decoration: none;
+    color: rgb(209, 201, 201);
+}
