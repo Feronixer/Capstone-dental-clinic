@@ -5,6 +5,7 @@
     --button-color: #ffffff;
     --text-color: #ffffff;
     --footer-color: #2C3E50;
+    --linear-bg: linear-gradient(to right, #007BFF, #00BFFF);
 }
 
 * {
@@ -110,3 +111,50 @@ footer {
     text-decoration: none;
     color: rgb(209, 201, 201);
 }
+
+
+/* Patient Dashboard CSS */
+.patient-header-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    width: 100%;
+    padding: 1rem 3rem;
+    background: var(--linear-bg);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.patient-header-container .navigation-menu ul li a {
+    color: #ffffff;
+    font-weight: 500;
+}
+
+.patient-header-container .logo img {
+    filter: brightness(0) invert(1);
+}
+
+.patient-header-container .btn-container button{
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: larger;
+    font-weight: 500;
+}
+
+.patient-header-container .btn-container a img{
+    border-radius: 100%;
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    text-decoration: underline;
+}
+
+.patient-header-container .btn-container{
+    display: flex;
+    width: 200px;
+    justify-content: end;
+    align-items: center;
+    gap: 1rem;
+    flex-direction: row;
+}
+
