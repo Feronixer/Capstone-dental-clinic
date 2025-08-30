@@ -1,6 +1,5 @@
 @extends('layout.patient.app')
 @section('content')
-
 <section class="container mt-5">
     <div class="row">
         <div class="col-md-4">
@@ -32,6 +31,5 @@
             </div>
         </div>
     </div>
-
 </section>
 @endsection

@@ -5,7 +5,9 @@
     --button-color: #ffffff;
     --text-color: #ffffff;
     --footer-color: #2C3E50;
+    --navigation-bar-color: #0D47A1;
     --linear-bg: linear-gradient(to right, #007BFF, #00BFFF);
+    --btn-color: rgb(6 144 177);
 }
 
 * {
@@ -30,6 +32,86 @@ header {
 
 .logo img{
     width: 150px;
+}
+
+.navigation-bar-container {
+    background: var(--navigation-bar-color);
+    width: 260px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+}
+
+.navigation-bar-container .logo {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.navigation-bar-container .logo a {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--text-color);
+    font-size: 1.1rem;
+    font-weight: 600;
+    gap: 1rem;
+}
+
+.navigation-bar-container .logo a i{
+    font-size: 1.5rem;
+}
+
+.navigation-bar {
+    padding: 0.8rem 0;
+    height: 100%;
+}
+
+.navigation-bar ul{
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.navigation-bar ul div:nth-of-type(2) {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.navigation-bar ul div li {
+    padding: 0.8rem 1.8rem;
+    color: var(--text-color);
+    text-decoration: none;
+    margin-bottom: 5px;
+}
+
+.navigation-bar ul div li a {
+    color: var(--text-color);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.navigation-bar ul div li a i{
+    margin-right: 0.5rem;
+}
+
+.navigation-bar ul div .active{
+    border-left: 3px solid rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.navigation-bar ul li:hover {
+    border-left: 3px solid rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .navigation-menu ul{
@@ -158,3 +240,78 @@ footer {
     flex-direction: row;
 }
 
+/* Login CSS */
+.login-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+    background-image: linear-gradient(#F1F5FA, #cffafe);
+    padding: 1.5rem;
+}
+
+.login-card {
+    display: flex;
+    width: 100%;
+    flex-direction: row;
+    overflow: hidden;
+    border-radius: 0.75rem;
+    opacity: 1;
+    max-width: 56rem;
+    background-color: var(--background-color);
+}
+
+.login-card-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 3rem;
+    width: 50%;
+}
+
+.login-card-content div img {
+    width: auto;
+    height: 3rem;
+    margin: 0 auto;
+}
+
+.login-card-image {
+    width: 50%;
+}
+
+.login-card-content form div input {
+    padding: 0.6rem;
+}
+
+.btn-custom-primary {
+    width: 100%;
+    padding: 0.6rem;
+    color: var(--text-color);
+    text-decoration: none;
+    border: none;
+    background-color: var(--btn-color);
+    border-radius: 7px;
+}
+
+.btn-custom-primary:hover {
+    background-color: #0b7285;
+    cursor: pointer;
+}
+
+.login-footer {
+    margin-top: 3rem;
+    text-align: center;
+    background: linear-gradient(#F1F5FA, #cffafe);
+}
+
+
+/* Resposive Design */
+@media screen and (max-width: 768px) {
+    .login-card-content {
+        width: 100%;
+    }
+    .login-card-image {
+        display: none;
+    }
+}
