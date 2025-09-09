@@ -22,15 +22,14 @@ class AuthController extends Controller
             'password' => ['required', 'min:8'],
 
         ]);
-
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            return redirect()->intended('dashboard');
+            return redirect()->route('admin-dashboard')->with('success','Login Successful');
         }
 
         return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
-        ])->onlyInput('email');
+            'error' => 'The provided credentials do not match our records.',
+        ]);
     }
 
     public function register(Request $request) {
@@ -45,7 +44,6 @@ class AuthController extends Controller
             'email'=> $request->email,
             'password'=> Hash::make($request->password),
         ]);
-
         return redirect()->route('login')->with('success','Success');
     }
     public function showRegisterForm(){
@@ -57,6 +55,28 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect('/');
+        return redirect('/login')->with('success','Logged out successfully');
+    }
+
+    public function addUser(Request $request)
+    {
+        $credential = $request->validate([
+            'username' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8',
+            'confirm_password' => 'required|string|same:password',
+            'role_id' => 'required|exists:roles,id'
+        ]);
+
+        User::create([
+            'username' => $credential['username'],
+            'name' => $credential['name'],
+            'email' => $credential['email'],
+            'password' => bcrypt($credential['password']),
+            'role_id' => $credential['role_id']
+        ]);
+
+        return redirect()->route('admin-account-management')->with('success', 'User added successfully.');
     }
 }

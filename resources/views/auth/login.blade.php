@@ -1,6 +1,12 @@
 @extends('layout.auth.app')
 @section('content')
 <section class="login-container">
+@if (session('success'))
+    <x-toast-message type="success" :message="session('success')" />
+@endif
+@if ($errors->has('error'))
+    <x-toast-message type="danger" :message="$errors->first('error')" />
+@endif
     <div class="login-card">
         <div class="login-card-content">
             <div class="text-center mb-4">
@@ -31,7 +37,7 @@
             </form>
         </div>
         <div class="login-card-image">
-            <img src="{{ asset('images/tooth.png') }}" alt="Tooth Image" class="img-fluid">
+            <img src="{{ asset('images/tooth.png') }}" alt="Tooth Image">
         </div>
     </div>
     <p class="text-center mt-4 text-secondary">

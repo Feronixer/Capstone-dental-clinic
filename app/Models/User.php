@@ -11,15 +11,24 @@ class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
-
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
+    public function info()
+    {
+        return $this->hasOne(UserInfo::class, 'user_id');
+    }
     /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
      */
     protected $fillable = [
+        'username',
         'name',
         'email',
+        'role_id',
         'password',
     ];
 

@@ -8,63 +8,67 @@
     <nav class="navigation-bar">
         <ul>
             <div>
-                <li>
-                    <a href="#">
+                <li class="{{ request()->routeIs('admin-dashboard') ? 'active' : '' }}">
+                    <a href="{{ route('admin-dashboard') }}">
                         <i class="bi bi-microsoft"></i>
                         Dashboard
                     </a>
                 </li>
-                <li>
-                    <a href="#">
+                <li class="{{ request()->routeIs('admin-account-management') ? 'active' : '' }}">
+                    <a href="{{ route('admin-account-management') }}">
                         <i class="bi bi-person-fill-gear"></i>
                         Account Management
                     </a>
                 </li>
-                <li>
-                    <a href="#">
+                <li class="{{ request()->routeIs('admin-appointment') ? 'active' : '' }}">
+                    <a href="{{ route('admin-appointment') }}">
                         <i class="bi bi-calendar4-week"></i>
                         Appointments
                     </a>
                 </li>
-                <li>
-                    <a href="#">
+                <li class="{{ request()->routeIs('admin-content-management') ? 'active' : '' }}">
+                    <a href="{{ route('admin-content-management') }}">
                         <i class="bi bi-folder-fill"></i>
                         Content Management
                     </a>
                 </li>
-                <li>
-                    <a href="#">
+                <li class="{{ request()->routeIs('admin-post-procedural') ? 'active' : '' }}">
+                    <a href="{{ route('admin-post-procedural') }}">
                         <i class="bi bi-file-earmark-post"></i>
                         Post-Procedural Form
                     </a>
                 </li>
-                <li>
-                    <a href="#">
+                <li class="{{ request()->routeIs('admin-toothtalk') ? 'active' : '' }}">
+                    <a href="{{ route('admin-toothtalk') }}">
                         <i class="bi bi-chat-left-text"></i>
                         Toothtalk
                     </a>
                 </li>
             </div>
             <div>
-                <li>
-                    <a href="#">
+                <li class="{{ request()->routeIs('admin-notification') ? 'active' : '' }}">
+                    <a href="{{ route('admin-notification') }}">
                         <i class="bi bi-bell"></i>
                         Notifications
                     </a>
                 </li>
-                <li>
-                    <a href="#">
+                <li class="{{ request()->routeIs('admin-profile') ? 'active' : '' }}">
+                    <a href="{{ route('admin-profile') }}">
                         <i class="bi bi-person"></i>
                         Profile
                     </a>
                 </li>
                 <li>
-                    <a href="#">
-                        <i class="bi bi-box-arrow-right"></i>
-                        Logout
-                    </a>
+                    <form action="{{ route('logout') }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-link text-light text-decoration-none">
+                            <i class="bi bi-box-arrow-right"></i>
+                            Logout
+                        </button>
+                    </form>
                 </li>
             </div>
         </ul>
     </nav>
 </aside>
+
