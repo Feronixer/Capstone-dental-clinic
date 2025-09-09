@@ -5,14 +5,14 @@ namespace App\Http\Controllers\Patient;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
-class DashboardController extends Controller
+class PatientRecord extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return view("patient.dashboard");
+        return view("patient.record");
     }
 
     /**
