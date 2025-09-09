@@ -11,15 +11,15 @@
 </head>
 <body>
     {{-- Top Header --}}
-    @include('layout.top-header')
+    @include('layout.staff.top-header')
 
     {{-- Header --}}
-    @include('layout.header')
+    @include('layout.staff.header')
 
     {{-- Section --}}
     @yield('content')
 
     {{-- Footer --}}
-    @include('layout.footer')
+    @include('layout.staff.footer')
 </body>
 </html>
