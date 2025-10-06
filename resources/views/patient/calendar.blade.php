@@ -1,7 +1,8 @@
 @extends('layout.patient.app')
 
-@section('content')
 
+
+@section('content')
 <div class="main-content-area">
     <aside class="left-sidebar">
         <div class="left-sidebar-card">
@@ -13,7 +14,8 @@
             </div>
             <div id="miniCalendarGrid" class="mini-calendar-grid"></div>
         </div>
-        <div id="appointmentDescriptionCard" class="left-sidebar-card description-card mt-6" style="display: none;">
+
+        <div id="appointmentDescriptionCard" class="left-sidebar-card description-card mt-3" style="display: none;">
             <h4>Description:</h4>
             <p id="appointmentDescriptionText">You have a follow-up appointment for this day.</p>
             <ul class="list-disc list-inside mt-2">
@@ -22,8 +24,24 @@
         </div>
     </aside>
 
-
-    <script>
+{{-- Rating modal (unchanged) --}}
+<div id="ratingModal" class="rating-modal-overlay" style="display:none;">
+    <div class="rating-modal-content">
+        <button id="closeRatingModalBtn" class="rating-close-btn">&times;</button>
+        <h2 class="rating-title">Rate our Service</h2>
+        <div id="starsRatingContainer" class="stars-container">
+            <span class="star" data-value="1"><i class="fas fa-star"></i><span class="star-number">1</span></span>
+            <span class="star" data-value="2"><i class="fas fa-star"></i><span class="star-number">2</span></span>
+            <span class="star" data-value="3"><i class="fas fa-star"></i><span class="star-number">3</span></span>
+            <span class="star" data-value="4"><i class="fas fa-star"></i><span class="star-number">4</span></span>
+            <span class="star" data-value="5"><i class="fas fa-star"></i><span class="star-number">5</span></span>
+        </div>
+        <input type="hidden" id="selectedRating" name="rating" value="0">
+        <button id="submitRatingBtn" class="submit-rating-btn" disabled>Submit Rating</button>
+        <p id="ratingMessage" class="mt-4 text-sm" style="display:none;"></p>
+    </div>
+</div>
+<script>
 
 	$(document).ready(function() {
 	    var date = new Date();
@@ -182,80 +200,31 @@
 	});
 
 </script>
-<style>
 
-	body {
-		text-align: center;
-		font-size: 14px;
-		font-family: 'Roboto', sans-serif;
-		background:url(http://www.digiphotohub.com/wp-content/uploads/2015/09/bigstock-Abstract-Blurred-Background-Of-92820527.jpg);
-		}
-
-	#wrap {
-		width: 1100px;
-		margin: 0 auto;
-		}
-
-	#external-events {
-		float: left;
-		width: 150px;
-		padding: 0 10px;
-		text-align: left;
-		}
-
-	#external-events h4 {
-		font-size: 16px;
-		margin-top: 0;
-		padding-top: 1em;
-		}
-
-	.external-event { /* try to mimick the look of a real event */
-		margin: 10px 0;
-		padding: 2px 4px;
-		background: #3366CC;
-		color: #fff;
-		font-size: .85em;
-		cursor: pointer;
-		}
-
-	#external-events p {
-		margin: 1.5em 0;
-		font-size: 11px;
-		color: #666;
-		}
-
-	#external-events p input {
-		margin: 0;
-		vertical-align: middle;
-		}
-
-	#calendar {
-/* 		float: right; */
-        margin: 0 auto;
-		width: 80rem;
-		background-color: #FFFFFF;
-		border-radius: 6px;
-        box-shadow: 0 1px 2px #C3C3C3;
-		-webkit-box-shadow: 0px 0px 21px 2px rgba(0,0,0,0.18);
--moz-box-shadow: 0px 0px 21px 2px rgba(0,0,0,0.18);
-box-shadow: 0px 0px 21px 2px rgba(0,0,0,0.18);
-		}
-
-</style>
-
+<div>
 <div id='wrap'>
 
 <div id='calendar'></div>
- <div id="rescheduleSection" class="reschedule-section mt-8" style="display: none;">
+
+<div style='clear:both'></div>
+
+</div>
+
+    <div id="wrap">
+        <div id="calendar"></div>
+
+        <div id="rescheduleSection" class="reschedule-section mt-4" style="display: none;">
             <div class="flex items-center mb-4">
                 <input type="checkbox" id="requestRescheduleCheckbox" class="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-3">
                 <label for="requestRescheduleCheckbox" class="text-lg font-medium text-gray-800">Request for Reschedule?</label>
             </div>
+
             <div id="rescheduleFormContainer" style="display: none;">
                 <div class="mb-4">
                     <label for="rescheduleReason" class="block text-sm font-medium text-gray-700 mb-1">State the Reason:</label>
                     <input type="text" id="rescheduleReason" name="rescheduleReason" class="form-input-underline">
                 </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div class="form-input-icon">
                         <label for="rescheduleDate" class="block text-sm font-medium text-gray-700 mb-1">Select Date:</label>
@@ -268,33 +237,13 @@ box-shadow: 0px 0px 21px 2px rgba(0,0,0,0.18);
                         <i class="fas fa-clock icon"></i>
                     </div>
                 </div>
+
                 <button id="submitRescheduleBtn" class="btn-submit-reschedule font-semibold rounded-md shadow-sm">Submit</button>
             </div>
         </div>
-</div>
-
-
-<div style='clear:both'></div>
-</div>
-
-
-<div id="ratingModal" class="rating-modal-overlay">
-    <div class="rating-modal-content">
-        <button id="closeRatingModalBtn" class="rating-close-btn">&times;</button>
-        <h2 class="rating-title">Rate our Service</h2>
-        <div id="starsRatingContainer" class="stars-container">
-            <span class="star" data-value="1"><i class="fas fa-star"></i><span class="star-number">1</span></span>
-            <span class="star" data-value="2"><i class="fas fa-star"></i><span class="star-number">2</span></span>
-            <span class="star" data-value="3"><i class="fas fa-star"></i><span class="star-number">3</span></span>
-            <span class="star" data-value="4"><i class="fas fa-star"></i><span class="star-number">4</span></span>
-            <span class="star" data-value="5"><i class="fas fa-star"></i><span class="star-number">5</span></span>
-        </div>
-        <input type="hidden" id="selectedRating" name="rating" value="0">
-        <button id="submitRatingBtn" class="submit-rating-btn" disabled>Submit Rating</button>
-        <p id="ratingMessage" class="mt-4 text-sm" style="display:none;"></p>
     </div>
 </div>
-
-
-
+</div>
+<script src="{{ asset('js/PatientCalendar.js') }}"></script>
 @endsection
+

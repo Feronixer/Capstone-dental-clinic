@@ -1,6 +1,6 @@
-<<<<<<< HEAD
+ HEAD
 import './bootstrap';
-=======
+
 document.addEventListener('DOMContentLoaded', function () {
     // --- State ---
     let currentMiniCalYear = 2025;
@@ -6413,4 +6413,4 @@ function HorizontalPositionCache(getElement) {
 ;;
 
 })(jQuery);
->>>>>>> 231552f78f3a13328a285a038385c4702eb0ef82
+ //231552f78f3a13328a285a038385c4702eb0ef82

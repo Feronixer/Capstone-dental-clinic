@@ -16,40 +16,64 @@ class AuthController extends Controller
         return view("auth.login");
     }
 
-    public function login(Request $request) {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required', 'min:8'],
+public function login(Request $request)
+{
+    $credentials = $request->validate([
+        'email'    => ['required', 'email'],
+        'password' => ['required', 'min:8'],
+    ]);
 
-        ]);
-        if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
-            return redirect()->route('admin-dashboard')->with('success','Login Successful');
+    if (Auth::attempt($credentials)) {
+        $request->session()->regenerate();
+
+        $user = Auth::user();
+
+        // ✅ Force change password BEFORE any dashboard redirects
+        if ($user->must_change_password) {
+            $request->session()->forget('url.intended');
+            return redirect()->route('password.change');
         }
 
-        return back()->withErrors([
-            'error' => 'The provided credentials do not match our records.',
-        ]);
+        // Role-based redirect
+        $home = $this->homeRouteFor($user);
+        if (!$home) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            return back()->withErrors(['error' => 'Your account has no valid role assigned.']);
+        }
+
+        $request->session()->forget('url.intended');
+        return redirect()->route($home)->with('success','Login Successful');
     }
 
-    public function register(Request $request) {
-        $credential = $request->validate([
-            'name' => ['required','string'],
-            'email'=> ['required', 'email', 'string'],
-            'password'=> ['required','string', 'min:8'],
-        ]);
+    return back()->withErrors([
+        'error' => 'The provided credentials do not match our records.',
+    ]);
+}
 
-        User::create([
-            'name'=> $request->name,
-            'email'=> $request->email,
-            'password'=> Hash::make($request->password),
-        ]);
-        return redirect()->route('login')->with('success','Success');
+/** Helpers (put in same controller) */
+protected function resolveRoleSlug(User $user): string
+{
+    $rel  = optional($user->role);
+    $slug = strtolower(trim($rel->slug ?? $rel->role ?? ''));
+    if ($slug === '') {
+        // adjust IDs if yours differ
+        $map = [1 => 'admin', 2 => 'staff', 3 => 'patient'];
+        $slug = strtolower(trim($map[$user->role_id] ?? ''));
     }
-    public function showRegisterForm(){
-        return view('admin.register');
-    }
+    return $slug;
+}
 
+protected function homeRouteFor(User $user): ?string
+{
+    return match ($this->resolveRoleSlug($user)) {
+        'admin'   => 'admin-dashboard',
+        'staff'   => 'staff-dashboard',
+        'patient' => 'patient-dashboard',
+        default   => null,
+    };
+}
     public function logout(Request $request): RedirectResponse
     {
         Auth::logout();

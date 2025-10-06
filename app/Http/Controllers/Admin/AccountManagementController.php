@@ -9,6 +9,7 @@ use App\Models\UserInfo;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use function PHPUnit\Framework\isEmpty;
+use Illuminate\Support\Facades\Auth;
 
 class AccountManagementController extends Controller
 {
@@ -28,6 +29,32 @@ class AccountManagementController extends Controller
         }
 
         return view("admin.account-management.view", compact('users', 'roles'));
+    }
+
+    public function login(Request $request)
+    {
+        $credentials = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required', 'min:8'],
+        ]);
+
+        if (Auth::attempt($credentials)) {
+            $request->session()->regenerate();
+
+            $user = Auth::user();
+            $role = optional($user->role)->role;
+
+            return match ($role) {
+            'Admin'   => redirect()->route('admin-dashboard')->with('success', 'Welcome, Admin!'),
+            'Staff'   => redirect()->route('staff-dashboard')->with('success', 'Welcome, Staff!'),
+            'Patient' => redirect()->route('patient-dashboard')->with('success', 'Welcome back!'),
+            default   => tap(Auth::logout(), function () use ($request) {
+                            $request->session()->invalidate();
+                            $request->session()->regenerateToken();
+                         }) ?? back()->withErrors(['error' => 'Your account has no valid role.']),
+            };
+        }
+        return back()->withErrors(['error' => 'The provided credentials do not match our records.']);
     }
 
 
@@ -62,7 +89,7 @@ class AccountManagementController extends Controller
 
         $roleId = (int) $request->role_id;
 
-        User::create([
+        $user = User::create([
             'role_id' => $roleId,
             'username' => $request->username,
             'name' => trim($request->first_name . ' ' . $request->middle_name . ' ' . $request->last_name),
@@ -83,6 +110,8 @@ class AccountManagementController extends Controller
             'created_at'=> Carbon::now(),
             'updated_at'=> Carbon::now(),
         ]);
+
+        Auth::login($user);
         return redirect()->route('admin-account-management')->with('success', 'User added successfully.');
     }
 
@@ -254,4 +283,20 @@ class AccountManagementController extends Controller
         ]);
     }
 
+
+public function updatePassword(Request $request)
+{
+    $request->validate([
+        'new_password' => 'required|min:8|confirmed',
+    ]);
+
+    $user = auth()->user();
+    $user->password = bcrypt($request->new_password);
+    $user->must_change_password = false;
+    $user->save();
+
+    return redirect()->route('patient-dashboard')->with('success', 'Password changed successfully!');
 }
+}
+
+

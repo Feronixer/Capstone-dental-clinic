@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\User;
 
 class PostProceduralController extends Controller
 {
@@ -12,12 +13,14 @@ class PostProceduralController extends Controller
      */
     public function index()
     {
-        return view("admin.post-procedural");
+        $patients = User::whereHas('role', function($q) {
+            $q->where('role', 'patient');
+        })->get();
+
+        return view("admin.post-procedural", compact('patients'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
+
     public function create()
     {
         //

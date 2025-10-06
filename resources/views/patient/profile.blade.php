@@ -7,13 +7,12 @@
         <div class="account-container">
             <aside class="profile-sidebar">
                 <img src="{{ asset('Assets/avatar.jpg') }}" alt="Profile Avatar" class="profile-avatar" onerror="this.onerror=null;this.src='{{ asset('images/avatar.jpg') }}';">
-                <button class="btn-change-photo">Change Photo <i class="fas fa-camera"></i></button>
                 <h2 class="profile-name">
 
                 </h2>
 
                 <button class="profile-action-btn" onclick="window.location.href='{{ url('changepass/ChangePassword') }}'">Change Password</button>
-                <a href="{{ url('patient/patient_login') }}"><button class="profile-action-btn logout">Log Out</button></a>
+                <a href="{{ url('login') }}"><button class="profile-action-btn logout">Log Out</button></a>
             </aside>
 
             <section class="profile-details-area">
