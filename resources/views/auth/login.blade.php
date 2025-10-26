@@ -32,7 +32,7 @@
                 </div>
                 <button type="submit" class="btn-custom-primary">Log In</button>
                 <div class="text-center mt-3">
-                    <a href="#" class="text-muted">Forgot Password?</a>
+                    <a href="{{ route('password.forgot') }}" class="text-muted">Forgot Password?</a>
                 </div>
             </form>
         </div>

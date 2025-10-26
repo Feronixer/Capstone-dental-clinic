@@ -4,11 +4,15 @@ namespace App\Http\Controllers\Authentication;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\PasswordResetToken;
+use App\Mail\PasswordResetMail;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Mail;
+use Carbon\Carbon;
 
 class AuthController extends Controller
 {
@@ -78,5 +82,128 @@ class AuthController extends Controller
         ]);
 
         return redirect()->route('admin-account-management')->with('success', 'User added successfully.');
+    }
+
+    /**
+     * Show forgot password form
+     */
+    public function showForgotPasswordForm()
+    {
+        return view('auth.forgot-password');
+    }
+
+    /**
+     * Send password reset verification code
+     */
+    public function sendResetCode(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email'
+        ], [
+            'email.exists' => 'The email address is not registered in our system.'
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        // Create or update password reset token
+        $passwordReset = PasswordResetToken::createOrUpdate($request->email);
+
+        try {
+            // Send email with verification code
+            Mail::to($user->email)->send(new PasswordResetMail($user, $passwordReset->token));
+
+            return redirect()->route('password.reset.verify', ['email' => $request->email])
+                ->with('success', 'A verification code has been sent to your email address.');
+        } catch (\Exception $e) {
+            \Log::error('Failed to send password reset email: ' . $e->getMessage());
+            return back()->withErrors(['error' => 'Failed to send verification code. Please try again.']);
+        }
+    }
+
+    /**
+     * Show password reset verification form
+     */
+    public function showResetVerifyForm(Request $request)
+    {
+        $email = $request->query('email');
+
+        if (!$email) {
+            return redirect()->route('password.forgot')->withErrors(['error' => 'Invalid request.']);
+        }
+
+        return view('auth.reset-verify', compact('email'));
+    }
+
+    /**
+     * Verify reset code and show new password form
+     */
+    public function verifyResetCode(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'verification_code' => 'required|string|size:6'
+        ]);
+
+        $passwordReset = PasswordResetToken::verifyToken($request->email, $request->verification_code);
+
+        if (!$passwordReset) {
+            return back()->withErrors(['verification_code' => 'Invalid or expired verification code.']);
+        }
+
+        // Store email in session for password reset
+        session(['reset_email' => $request->email]);
+
+        return redirect()->route('password.reset.form')
+            ->with('success', 'Verification successful. You can now set your new password.');
+    }
+
+    /**
+     * Show new password form
+     */
+    public function showResetForm()
+    {
+        if (!session('reset_email')) {
+            return redirect()->route('password.forgot')->withErrors(['error' => 'Session expired. Please request a new verification code.']);
+        }
+
+        return view('auth.reset-password');
+    }
+
+    /**
+     * Reset password
+     */
+    public function resetPassword(Request $request)
+    {
+        if (!session('reset_email')) {
+            return redirect()->route('password.forgot')->withErrors(['error' => 'Session expired. Please request a new verification code.']);
+        }
+
+        $request->validate([
+            'password' => 'required|string|min:8|confirmed',
+            'password_confirmation' => 'required'
+        ], [
+            'password.confirmed' => 'Password confirmation does not match.',
+            'password.min' => 'Password must be at least 8 characters long.'
+        ]);
+
+        $email = session('reset_email');
+        $user = User::where('email', $email)->first();
+
+        if (!$user) {
+            return redirect()->route('password.forgot')->withErrors(['error' => 'User not found.']);
+        }
+
+        // Update password
+        $user->update([
+            'password' => Hash::make($request->password)
+        ]);
+
+        // Delete the used token
+        PasswordResetToken::where('email', $email)->delete();
+
+        // Clear session
+        session()->forget('reset_email');
+
+        return redirect()->route('login')->with('success', 'Password reset successfully. You can now login with your new password.');
     }
 }

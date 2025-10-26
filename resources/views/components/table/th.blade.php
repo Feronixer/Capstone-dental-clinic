@@ -1,5 +1,4 @@
 @props(['column', 'label', 'center' => false])
-
 @php
     $isSorted = request('sort') === $column;
     $direction = request('direction') ?? 'asc';
