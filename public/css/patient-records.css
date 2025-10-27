@@ -1,0 +1,335 @@
+/* Patient Records Page Styles */
+
+.patient-records-container {
+    padding: 2rem;
+    background: #f8f9fa;
+    min-height: 100vh;
+}
+
+.page-header {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.stats-badge {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 50px;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+}
+
+/* Search Section */
+.search-section {
+    border: none;
+    border-radius: 10px;
+}
+
+.search-section .input-group-lg .form-control {
+    border-right: none;
+    font-size: 1rem;
+}
+
+.search-section .input-group-lg .input-group-text {
+    border-right: none;
+}
+
+.search-section .input-group-lg .btn {
+    border-radius: 0 0.5rem 0.5rem 0;
+}
+
+/* Patient List Card */
+.patient-list-card {
+    border: none;
+    border-radius: 10px;
+    max-height: calc(100vh - 300px);
+    overflow: hidden;
+}
+
+.patient-list-card .card-header {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    border-radius: 10px 10px 0 0;
+    padding: 1rem;
+}
+
+.patient-list {
+    max-height: calc(100vh - 360px);
+    overflow-y: auto;
+}
+
+.patient-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.patient-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.patient-list::-webkit-scrollbar-thumb {
+    background: #0d6efd;
+    border-radius: 10px;
+}
+
+.patient-list::-webkit-scrollbar-thumb:hover {
+    background: #0a58ca;
+}
+
+.patient-item {
+    border: none;
+    border-bottom: 1px solid #e9ecef;
+    padding: 1rem;
+    transition: all 0.3s ease;
+}
+
+.patient-item:hover {
+    background: #f8f9fa;
+    border-left: 4px solid #0d6efd;
+}
+
+.patient-item.active {
+    background: linear-gradient(90deg, #e7f1ff 0%, #ffffff 100%);
+    border-left: 4px solid #0d6efd;
+}
+
+.patient-item h6 {
+    color: #2c3e50;
+    margin-bottom: 0.25rem;
+}
+
+.patient-item small {
+    font-size: 0.8rem;
+}
+
+/* Patient Details Card */
+.patient-details-card {
+    border: none;
+    border-radius: 10px;
+    min-height: calc(100vh - 300px);
+}
+
+.patient-details-card .card-header {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    border-radius: 10px 10px 0 0;
+    padding: 1rem 1.5rem;
+}
+
+.patient-details-card .card-body {
+    max-height: calc(100vh - 360px);
+    overflow-y: auto;
+}
+
+.patient-details-card .card-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.patient-details-card .card-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.patient-details-card .card-body::-webkit-scrollbar-thumb {
+    background: #0d6efd;
+    border-radius: 10px;
+}
+
+/* Patient Info Header */
+.patient-info-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 1.5rem;
+    border-radius: 10px;
+    border-left: 5px solid #0d6efd;
+}
+
+.info-item {
+    padding: 0.5rem 0;
+    font-size: 0.9rem;
+}
+
+.info-item i {
+    width: 20px;
+}
+
+.patient-stats .stat-box {
+    border-radius: 10px;
+    transition: transform 0.3s ease;
+}
+
+.patient-stats .stat-box:hover {
+    transform: translateY(-2px);
+}
+
+.patient-stats h3 {
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+/* Tabs */
+.nav-tabs {
+    border-bottom: 2px solid #dee2e6;
+}
+
+.nav-tabs .nav-link {
+    border: none;
+    color: #6c757d;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.nav-tabs .nav-link:hover {
+    color: #0d6efd;
+    border-color: transparent;
+}
+
+.nav-tabs .nav-link.active {
+    color: #0d6efd;
+    background: white;
+    border-bottom: 3px solid #0d6efd;
+}
+
+/* Tab Content */
+.tab-content {
+    padding: 1.5rem 0;
+}
+
+/* Medical Record View */
+.medical-record-view h6 {
+    margin-bottom: 1rem;
+}
+
+.medical-record-view .alert-light {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    white-space: pre-wrap;
+}
+
+/* Visit History Cards */
+.visit-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 10px;
+}
+
+.visit-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.visit-details p {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.visit-details p:last-child {
+    margin-bottom: 0;
+}
+
+/* Progress Notes Cards */
+.note-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 10px;
+}
+
+.note-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.note-details p {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.note-details p:last-child {
+    margin-bottom: 0;
+}
+
+/* Appointment Cards */
+.appointment-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 10px;
+}
+
+.appointment-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Empty State */
+.empty-state {
+    padding: 3rem 1rem;
+}
+
+.empty-state i {
+    opacity: 0.3;
+}
+
+/* Badges */
+.badge {
+    font-weight: 600;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .patient-records-container {
+        padding: 1rem;
+    }
+
+    .page-header h2 {
+        font-size: 1.5rem;
+    }
+
+    .stats-badge {
+        font-size: 0.8rem;
+        padding: 0.5rem 1rem;
+    }
+
+    .patient-list-card,
+    .patient-details-card {
+        margin-bottom: 1rem;
+    }
+
+    .nav-tabs .nav-link {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .patient-records-container {
+        padding: 0;
+        background: white;
+    }
+
+    .search-section,
+    .page-header,
+    .patient-list-card {
+        display: none !important;
+    }
+
+    .patient-details-card {
+        border: none;
+        box-shadow: none;
+    }
+
+    .patient-details-card .card-header {
+        background: white !important;
+        color: black !important;
+        border-bottom: 2px solid #000;
+    }
+
+    .nav-tabs {
+        display: none;
+    }
+
+    .tab-content .tab-pane {
+        display: block !important;
+        opacity: 1 !important;
+    }
+}
+

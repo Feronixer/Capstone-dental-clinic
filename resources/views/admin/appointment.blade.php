@@ -519,39 +519,111 @@
 <div class="modal fade" id="blockTimeModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Block Off Time</h5>
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold" id="blockTimeModalTitle">Block of Time</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="blockTimeForm">
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="block_title" class="form-label">Title *</label>
-                        <input type="text" class="form-control" id="block_title" name="title" value="Blocked Time" required>
+                    <input type="hidden" id="block_time_id" name="id">
+
+                    <!-- Description Text -->
+                    <p class="text-muted small mb-3">
+                        Going on vacation? Taking some time off? Block off time on your calendar to prevent clients from booking appointments (existing appointments will remain on your calendar).
+                    </p>
+
+                    <!-- Block Off Time Header -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <label class="form-label fw-bold mb-0">BLOCK OFF TIME:</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="block_multiple_days" disabled>
+                            <label class="form-check-label text-muted" for="block_multiple_days">
+                                Block Multiple Days
+                            </label>
                     </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="block_start_time" class="form-label">Start Time *</label>
-                            <input type="datetime-local" class="form-control" id="block_start_time" name="start_time" required>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="block_end_time" class="form-label">End Time *</label>
-                            <input type="datetime-local" class="form-control" id="block_end_time" name="end_time" required>
+
+                    <!-- Time Selection -->
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label for="block_start_time" class="form-label">Start Time</label>
+                            <input type="time" class="form-control" id="block_start_time" name="start_time" required>
                         </div>
+                        <div class="col-6">
+                            <label for="block_end_time" class="form-label">End Time</label>
+                            <input type="time" class="form-control" id="block_end_time" name="end_time" required>
                     </div>
+                    </div>
+
+                    <!-- Date Selection -->
                     <div class="mb-3">
-                        <label for="block_description" class="form-label">Description</label>
-                        <textarea class="form-control" id="block_description" name="description" rows="3"></textarea>
+                        <label for="block_date" class="form-label">DATE</label>
+                        <input type="date" class="form-control" id="block_date" name="date" required>
                     </div>
+
+                    <!-- Repeat Button (Disabled) -->
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" disabled>
+                            <i class="bi bi-arrow-repeat me-1"></i>Repeat (Coming Soon)
+                        </button>
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="mb-3">
+                        <label for="block_description" class="form-label">Notes (Reason for blocking)</label>
+                        <textarea class="form-control" id="block_description" name="description" rows="4"
+                                  placeholder="e.g., Vacation, Holiday, Maintenance"></textarea>
+                    </div>
+
+                    <input type="hidden" id="block_title" name="title" value="Blocked Time">
                     <input type="hidden" name="type" value="blocked_time">
                     <input type="hidden" name="status" value="blocked">
                     <input type="hidden" name="color" value="#DC2626">
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-dark">Block Time</button>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success px-4" id="save-block-time-btn">
+                        <span id="save-block-btn-text">Create</span>
+                    </button>
+                    <button type="button" class="btn btn-danger px-4 ms-2" id="delete-block-time-btn" style="display: none;">
+                        <i class="bi bi-trash me-1"></i>Remove Blocked Time
+                    </button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Blocked Time Confirmation Modal -->
+<div class="modal fade" id="deleteBlockedTimeModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-4">
+                    <div class="mx-auto mb-3" style="width: 80px; height: 80px; background: linear-gradient(135deg, #ff6b6b, #ee5a52); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-exclamation-triangle text-white" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-2">Remove Blocked Time</h4>
+                    <p class="text-muted mb-0">Are you sure you want to remove this blocked time? This action cannot be undone.</p>
+                </div>
+                <div class="bg-light rounded p-3 mb-4">
+                    <div class="d-flex align-items-center justify-content-center">
+                        <i class="bi bi-clock text-danger me-2"></i>
+                        <span class="fw-medium" id="delete-block-info">Blocked time details will be shown here</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-danger" id="confirm-delete-block-btn">
+                    <i class="bi bi-trash me-1"></i>Remove Blocked Time
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -562,6 +634,67 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentDate = new Date({{ $currentYear }}, {{ $currentMonth - 1 }}, 1);
     let currentView = 'month';
     let appointments = @json($appointments);
+    let blockedTimes = @json($blockedTimes);
+
+    // Debug: Check appointments data
+    console.log('Appointments loaded:', appointments);
+    console.log('Blocked times loaded:', blockedTimes);
+
+    // Helper function to reload page while preserving the current month and year
+    function reloadWithCurrentMonth() {
+        const month = currentDate.getMonth() + 1; // JavaScript months are 0-indexed
+        const year = currentDate.getFullYear();
+        const url = new URL(window.location.href);
+        url.searchParams.set('month', month);
+        url.searchParams.set('year', year);
+        window.location.href = url.toString();
+    }
+
+    // Helper function to parse datetime strings as LOCAL time (not UTC)
+    const parseLocalDateTime = (datetimeStr) => {
+        // Handle null, undefined, or non-string values
+        if (!datetimeStr || typeof datetimeStr !== 'string') {
+            console.warn('Invalid datetime string:', datetimeStr);
+            return null;
+        }
+
+        try {
+            // Split the datetime string (format: YYYY-MM-DD HH:mm:ss)
+            const parts = datetimeStr.split(' ');
+            if (parts.length !== 2) {
+                console.warn('Invalid datetime format:', datetimeStr);
+                return null;
+            }
+
+            const [datePart, timePart] = parts;
+            const [year, month, day] = datePart.split('-').map(Number);
+            const [hours, minutes, seconds] = timePart.split(':').map(Number);
+
+            // Validate parsed values
+            if (isNaN(year) || isNaN(month) || isNaN(day) || isNaN(hours) || isNaN(minutes)) {
+                console.warn('Invalid datetime values:', datetimeStr);
+                return null;
+            }
+
+            // Create date object with local timezone (not UTC)
+            // Note: month is 0-indexed in JavaScript Date
+            return new Date(year, month - 1, day, hours, minutes, seconds || 0);
+        } catch (error) {
+            console.error('Error parsing datetime:', datetimeStr, error);
+            return null;
+        }
+    };
+
+    // Convert blocked times to format compatible with appointments for display
+    blockedTimes = blockedTimes.map(bt => ({
+        ...bt,
+        status: 'blocked',
+        reason_for_visit: bt.title,
+        notes: bt.notes
+    }));
+
+    // Merge for display purposes
+    let allCalendarItems = [...appointments, ...blockedTimes];
 
     // Initialize calendar
     setActiveButton(currentView);
@@ -753,6 +886,64 @@ document.addEventListener('DOMContentLoaded', function() {
         generateModalCalendar();
     });
 
+    // Function to disable blocked time slots
+    function updateTimeSlotAvailability(selectedDate) {
+        if (!selectedDate) {
+            // If no date selected, enable all time slots
+            document.querySelectorAll('input[name="time_slot"]').forEach(radio => {
+                radio.disabled = false;
+                radio.closest('.form-check').classList.remove('disabled', 'time-slot-blocked');
+            });
+            return;
+        }
+
+        // Parse selected date
+        const [year, month, day] = selectedDate.split('-').map(Number);
+        const selectedDateObj = new Date(year, month - 1, day);
+
+        // Find blocked times on the selected date
+        const blockedTimesOnDate = allCalendarItems.filter(apt => {
+            const aptDate = parseLocalDateTime(apt.start_datetime);
+            return apt.status === 'blocked' && aptDate.toDateString() === selectedDateObj.toDateString();
+        });
+
+        console.log('Blocked times on selected date:', blockedTimesOnDate);
+
+        // Check each time slot
+        document.querySelectorAll('input[name="time_slot"]').forEach(radio => {
+            if (radio.value === 'custom') {
+                return; // Don't disable custom time option
+            }
+
+            const [startTime, endTime] = radio.value.split('-');
+            const [startHours, startMinutes] = startTime.split(':').map(Number);
+            const [endHours, endMinutes] = endTime.split(':').map(Number);
+
+            const slotStart = new Date(year, month - 1, day, startHours, startMinutes);
+            const slotEnd = new Date(year, month - 1, day, endHours, endMinutes);
+
+            // Check if this time slot conflicts with any blocked time
+            const isBlocked = blockedTimesOnDate.some(blockedTime => {
+                const blockedStart = parseLocalDateTime(blockedTime.start_datetime);
+                const blockedEnd = parseLocalDateTime(blockedTime.end_datetime);
+
+                // Check if slot overlaps with blocked time
+                return (slotStart < blockedEnd && slotEnd > blockedStart);
+            });
+
+            if (isBlocked) {
+                radio.disabled = true;
+                radio.checked = false;
+                radio.closest('.form-check').classList.add('disabled', 'time-slot-blocked');
+                radio.closest('.form-check').title = 'This time slot is blocked';
+            } else {
+                radio.disabled = false;
+                radio.closest('.form-check').classList.remove('disabled', 'time-slot-blocked');
+                radio.closest('.form-check').title = '';
+            }
+        });
+    }
+
     document.getElementById('prev-month').addEventListener('click', function() {
         try {
         modalCurrentDate.setMonth(modalCurrentDate.getMonth() - 1);
@@ -806,6 +997,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function generateMonthView() {
         const calendarGrid = document.getElementById('month-calendar');
+        if (!calendarGrid) {
+            console.error('Calendar grid element not found!');
+            return;
+        }
+
+        console.log('Generating month view for:', currentDate);
         calendarGrid.classList.remove('d-none');
         calendarGrid.innerHTML = '';
 
@@ -824,6 +1021,7 @@ document.addEventListener('DOMContentLoaded', function() {
         startDate.setDate(startDate.getDate() - firstDay.getDay());
 
         // Generate calendar days
+        console.log('Generating 42 calendar days...');
         for (let i = 0; i < 42; i++) {
             const cellDate = new Date(startDate);
             cellDate.setDate(startDate.getDate() + i);
@@ -850,9 +1048,13 @@ document.addEventListener('DOMContentLoaded', function() {
             calendarGrid.appendChild(dayElement);
         }
 
+        console.log('Calendar days generated. Total children:', calendarGrid.children.length);
+
         // Update period display
-        document.getElementById('current-period').textContent =
-            currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        const periodElement = document.getElementById('current-period');
+        if (periodElement) {
+            periodElement.textContent = currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        }
     }
 
     function generateWeekView() {
@@ -932,16 +1134,16 @@ document.addEventListener('DOMContentLoaded', function() {
             timeContent.className = 'time-content';
 
             // Add appointments for this hour
-            const hourAppointments = appointments.filter(apt => {
-                const aptDate = new Date(apt.start_datetime);
+            const hourAppointments = allCalendarItems.filter(apt => {
+                const aptDate = parseLocalDateTime(apt.start_datetime);
                 return aptDate.toDateString() === currentDate.toDateString() &&
                        aptDate.getHours() === hour;
             });
 
             // Sort appointments by start time within the hour
             hourAppointments.sort((a, b) => {
-                const timeA = new Date(a.start_datetime);
-                const timeB = new Date(b.start_datetime);
+                const timeA = parseLocalDateTime(a.start_datetime);
+                const timeB = parseLocalDateTime(b.start_datetime);
                 return timeA - timeB;
             });
 
@@ -950,13 +1152,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 aptElement.className = `appointment-item ${apt.status.toLowerCase()}`;
 
                 // Format time
-                const aptTime = new Date(apt.start_datetime);
+                const aptTime = parseLocalDateTime(apt.start_datetime);
                 const timeString = aptTime.toLocaleTimeString('en-US', {
                     hour: '2-digit',
                     minute: '2-digit',
                     hour12: true
                 });
 
+                // Format end time
+                const endTime = parseLocalDateTime(apt.end_datetime);
+                const endTimeString = endTime.toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                });
+
+                // Check if this is a blocked time
+                if (apt.status === 'blocked') {
+                    const blockTitle = apt.reason_for_visit || 'Blocked Time';
+                    aptElement.textContent = `${timeString}-${endTimeString} ${blockTitle}`;
+                    aptElement.title = `Blocked Time: ${apt.notes || 'No reason provided'}`;
+                } else {
                 // Get patient name from the loaded relationship
                 let patientName = 'Unknown Patient';
                 if (apt.patient && apt.patient.info) {
@@ -966,16 +1182,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     patientName = apt.patient.name;
                 }
 
-                // Format end time
-                const endTime = new Date(apt.end_datetime);
-                const endTimeString = endTime.toLocaleTimeString('en-US', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: true
-                });
-
                 aptElement.textContent = `${timeString}-${endTimeString} ${patientName}`;
                 aptElement.title = `${patientName} - ${apt.service ? apt.service.service_name : 'No Service'} - ${apt.status}`;
+                }
+
                 aptElement.addEventListener('click', () => editAppointment(apt.id));
                 timeContent.appendChild(aptElement);
             });
@@ -996,15 +1206,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function addAppointmentsToDay(dayElement, date) {
-        const dayAppointments = appointments.filter(apt => {
-            const aptDate = new Date(apt.start_datetime);
+        const dayAppointments = allCalendarItems.filter(apt => {
+            const aptDate = parseLocalDateTime(apt.start_datetime);
+            // Skip appointments with invalid dates
+            if (!aptDate) return false;
             return aptDate.toDateString() === date.toDateString();
         });
 
         // Sort appointments by start time
         dayAppointments.sort((a, b) => {
-            const timeA = new Date(a.start_datetime);
-            const timeB = new Date(b.start_datetime);
+            const timeA = parseLocalDateTime(a.start_datetime);
+            const timeB = parseLocalDateTime(b.start_datetime);
+            // Handle null dates
+            if (!timeA || !timeB) return 0;
             return timeA - timeB;
         });
 
@@ -1013,13 +1227,27 @@ document.addEventListener('DOMContentLoaded', function() {
             aptElement.className = `appointment-item ${apt.status.toLowerCase()}`;
 
             // Format time
-            const aptTime = new Date(apt.start_datetime);
+            const aptTime = parseLocalDateTime(apt.start_datetime);
             const timeString = aptTime.toLocaleTimeString('en-US', {
                 hour: '2-digit',
                 minute: '2-digit',
                 hour12: true
             });
 
+            // Format end time
+            const endTime = parseLocalDateTime(apt.end_datetime);
+            const endTimeString = endTime.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
+
+            // Check if this is a blocked time
+            if (apt.status === 'blocked') {
+                const blockTitle = apt.reason_for_visit || 'Blocked Time';
+                aptElement.textContent = `${timeString}-${endTimeString} ${blockTitle}`;
+                aptElement.title = `Blocked Time: ${apt.notes || 'No reason provided'}`;
+            } else {
             // Get patient name from the loaded relationship
             let patientName = 'Unknown Patient';
             if (apt.patient && apt.patient.info) {
@@ -1029,16 +1257,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 patientName = apt.patient.name;
             }
 
-            // Format end time
-            const endTime = new Date(apt.end_datetime);
-            const endTimeString = endTime.toLocaleTimeString('en-US', {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
-            });
-
             aptElement.textContent = `${timeString}-${endTimeString} ${patientName}`;
             aptElement.title = `${patientName} - ${apt.service ? apt.service.service_name : 'No Service'} - ${apt.status}`;
+            }
+
             aptElement.addEventListener('click', () => editAppointment(apt.id));
             dayElement.appendChild(aptElement);
         });
@@ -1082,6 +1304,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const aptDate = new Date(apt.start_datetime);
                     const selectedDateObj = new Date(selectedDate);
                     return apt.patient_id == appointmentData.patient_id &&
+                           apt.status !== 'blocked' &&
                            aptDate.toDateString() === selectedDateObj.toDateString();
                 });
 
@@ -1149,12 +1372,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 const duration = parseInt(selectedService.getAttribute('data-duration')) || 30;
                 const newAppointmentEnd = new Date(newAppointmentStart.getTime() + (duration * 60000));
 
-                // Check for time overlaps with existing appointments on the same date
-                const overlappingAppointment = appointments.find(apt => {
+                // Check for time overlaps with existing appointments and blocked times on the same date
+                const overlappingItem = allCalendarItems.find(apt => {
                     const aptDate = new Date(apt.start_datetime);
                     const selectedDateObj = new Date(selectedDate);
 
-                    // Only check appointments on the same date
+                    // Only check items on the same date
                     if (aptDate.toDateString() !== selectedDateObj.toDateString()) {
                         return false;
                     }
@@ -1162,12 +1385,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     const existingStart = new Date(apt.start_datetime);
                     const existingEnd = new Date(apt.end_datetime);
 
-                    // Check if the new appointment overlaps with existing appointment
+                    // Check if the new appointment overlaps with existing item
                     return (newAppointmentStart < existingEnd && newAppointmentEnd > existingStart);
                 });
 
-                if (overlappingAppointment) {
-                    showFieldError('time-slots-list', 'This time slot conflicts with an existing appointment');
+                if (overlappingItem) {
+                    const conflictType = overlappingItem.status === 'blocked' ? 'blocked time' : 'appointment';
+                    showFieldError('time-slots-list', `This time slot conflicts with an existing ${conflictType}`);
                     isValid = false;
                 }
 
@@ -1245,8 +1469,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add a delay to simulate processing time
         const delay = 500; // 2 seconds delay
 
-        // Convert to full datetime
-        const startDateTime = new Date(`${selectedDate}T${startTime}:00`);
+        // Create datetime string in local format (YYYY-MM-DD HH:mm:ss) to avoid timezone conversion
+        const startDateTimeStr = `${selectedDate} ${startTime}:00`;
 
         // Get service and duration information
         const selectedService = serviceSelect.options[serviceSelect.selectedIndex];
@@ -1256,7 +1480,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const appointmentPayload = {
             patient_id: appointmentData.patient_id,
             service_id: appointmentData.service_name,
-            start_datetime: startDateTime.toISOString(),
+            start_datetime: startDateTimeStr,
             duration_minutes: parseInt(duration),
             status: 'Pending',
             notes: appointmentData.notes,
@@ -1280,29 +1504,25 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Response status:', response.status);
             console.log('Response ok:', response.ok);
 
-            // Check if response is ok
-            if (!response.ok) {
-                console.error('Response not ok:', response.status, response.statusText);
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            // Try to parse JSON
-            return response.text().then(text => {
-                console.log('Raw response text:', text);
-                try {
-                    return JSON.parse(text);
-                } catch (e) {
-                    console.error('JSON parse error:', e);
-                    console.error('Response text:', text);
-                    throw new Error('Invalid JSON response');
-                }
+            // Parse JSON regardless of status to get error messages
+            return response.json().then(data => ({
+                ok: response.ok,
+                status: response.status,
+                data: data
+            })).catch(e => {
+                // If JSON parsing fails, return text response
+                return response.text().then(text => ({
+                    ok: response.ok,
+                    status: response.status,
+                    data: {success: false, message: text || 'Invalid response format'}
+                }));
             });
         })
-        .then(data => {
+        .then(({ok, status, data}) => {
             console.log('Parsed response data:', data);
 
             // Check if data exists and has success property
-            if (data && typeof data === 'object' && data.success === true) {
+            if (ok && data && typeof data === 'object' && data.success === true) {
                 const successMessage = isUpdate ?
                     (data.message || 'Appointment rescheduled successfully!') :
                     (data.message || 'Appointment created successfully!');
@@ -1310,20 +1530,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Close modal after a short delay
                 setTimeout(() => {
                     bootstrap.Modal.getInstance(document.getElementById('appointmentModal')).hide();
-                location.reload();
+                    reloadWithCurrentMonth();
                 }, 1500);
-            } else if (data && typeof data === 'object' && data.success === false) {
-                // Handle explicit failure response
-                console.error('Appointment operation failed:', data);
-                const errorMessage = isUpdate ?
-                    'Error rescheduling appointment: ' + (data.message || 'Unknown error') :
-                    'Error creating appointment: ' + (data.message || 'Unknown error');
+            } else if (!ok || (data && typeof data === 'object' && data.success === false)) {
+                // Handle validation errors or other errors
+                let errorMessage = 'Unknown error occurred';
+
+                if (data.message) {
+                    errorMessage = data.message;
+                } else if (data.errors) {
+                    // If there are field-specific errors, show the first one
+                    const firstError = Object.values(data.errors)[0];
+                    errorMessage = Array.isArray(firstError) ? firstError[0] : firstError;
+                }
+
+                console.error('Appointment operation failed:', errorMessage);
                 showValidationMessage(errorMessage, 'error');
             } else {
                 // Handle unexpected response format - but if we got here, the request succeeded
                 console.warn('Unexpected response format, but request succeeded:', data);
-                console.warn('Data type:', typeof data);
-                console.warn('Success property:', data?.success);
 
                 // Since the appointment was created/updated successfully in the database,
                 // we'll treat this as a success
@@ -1331,14 +1556,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 showValidationMessage(successMessage, 'success');
                 setTimeout(() => {
                     bootstrap.Modal.getInstance(document.getElementById('appointmentModal')).hide();
-                    location.reload();
+                    reloadWithCurrentMonth();
                 }, 1500);
             }
         })
         .catch(error => {
             console.error('Fetch error:', error);
-            const errorMessage = isUpdate ? 'Error rescheduling appointment. Please try again.' : 'Error creating appointment. Please try again.';
-            showValidationMessage(errorMessage, 'error');
+            showValidationMessage('Network error. Please try again.', 'error');
         })
         .finally(() => {
             // Reset button state
@@ -1351,37 +1575,327 @@ document.addEventListener('DOMContentLoaded', function() {
     function saveBlockTime() {
         const formData = new FormData(document.getElementById('blockTimeForm'));
         const blockData = Object.fromEntries(formData.entries());
+        const blockId = document.getElementById('block_time_id').value;
+        const isUpdate = blockId && blockId !== '';
 
-        fetch('/admin/appointment', {
-            method: 'POST',
+        console.log('Block time data (before combining):', blockData);
+
+        // Get date and time fields
+        let date = blockData.date;
+        const startTime = blockData.start_time;
+        const endTime = blockData.end_time;
+
+        // If updating (editing), date field might be hidden, so get it from the stored value
+        if (isUpdate && !date) {
+            date = document.getElementById('block_date').value;
+        }
+
+        if (!date) {
+            showValidationMessage('Date is required', 'error');
+            return;
+        }
+
+        // Create datetime strings in ISO format to avoid timezone issues
+        // Format: YYYY-MM-DDTHH:mm:ss
+        const startDateTimeStr = `${date}T${startTime}:00`;
+        const endDateTimeStr = `${date}T${endTime}:00`;
+
+        // Create Date objects to validate
+        const startDateTime = new Date(startDateTimeStr);
+        const endDateTime = new Date(endDateTimeStr);
+
+        // Validate that end time is after start time
+        if (endDateTime <= startDateTime) {
+            showValidationMessage('End time must be after start time', 'error');
+            return;
+        }
+
+        // Convert to format that backend expects (without timezone conversion)
+        blockData.start_time = startDateTimeStr.replace('T', ' ');
+        blockData.end_time = endDateTimeStr.replace('T', ' ');
+
+        // Remove the separate date field as it's no longer needed
+        delete blockData.date;
+
+        console.log('Block time data (after combining):', blockData);
+        console.log('Start DateTime:', blockData.start_time);
+        console.log('End DateTime:', blockData.end_time);
+        console.log('Is update:', isUpdate, 'Block ID:', blockId);
+
+        // Determine URL and method for blocked times
+        const url = isUpdate ? `/admin/blocked-time/${blockId}` : '/admin/blocked-time';
+        const method = isUpdate ? 'PUT' : 'POST';
+
+        // Add _method for Laravel PUT requests
+        if (isUpdate) {
+            blockData._method = 'PUT';
+        }
+
+        // Show loading state
+        const submitBtn = document.getElementById('save-block-time-btn');
+        const btnText = document.getElementById('save-block-btn-text');
+        const originalText = btnText.textContent;
+        submitBtn.disabled = true;
+        btnText.textContent = 'Saving...';
+
+        fetch(url, {
+            method: 'POST', // Always POST, Laravel will handle _method
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json'
             },
             body: JSON.stringify(blockData)
         })
         .then(response => response.json())
         .then(data => {
+            console.log('Block time response:', data);
             if (data.success) {
-                location.reload();
+                // Close modal
+                bootstrap.Modal.getInstance(document.getElementById('blockTimeModal')).hide();
+
+                // Show success message
+                const message = isUpdate ? 'Blocked time updated successfully!' : 'Time blocked successfully!';
+                showValidationMessage(message, 'success');
+
+                // Reload page after delay
+                setTimeout(() => {
+                    reloadWithCurrentMonth();
+                }, 1500);
+            } else {
+                showValidationMessage(data.message || 'Error blocking time', 'error');
             }
+        })
+        .catch(error => {
+            console.error('Error blocking time:', error);
+            showValidationMessage('Error blocking time. Please try again.', 'error');
+        })
+        .finally(() => {
+            // Reset button state
+            btnText.textContent = originalText;
+            submitBtn.disabled = false;
         });
     }
 
+    // Delete block time functionality - show custom confirmation modal
+    document.getElementById('delete-block-time-btn').addEventListener('click', function() {
+        const blockId = this.getAttribute('data-block-id');
+        if (!blockId) return;
+
+        showDeleteBlockConfirmation(blockId);
+    });
+
+    // Confirm delete blocked time
+    document.getElementById('confirm-delete-block-btn').addEventListener('click', function() {
+        const blockId = this.getAttribute('data-block-id');
+        if (!blockId) return;
+
+        deleteBlockTime(blockId);
+    });
+
+    function showDeleteBlockConfirmation(blockId) {
+        console.log('Showing delete confirmation for block ID:', blockId);
+
+        // Find the blocked time to show details
+        const blockedTime = blockedTimes.find(bt => bt.id == blockId);
+        if (!blockedTime) {
+            showValidationMessage('Blocked time not found', 'error');
+            return;
+        }
+
+        // Parse datetime strings as LOCAL time to avoid timezone conversion
+        const startDateTime = parseLocalDateTime(blockedTime.start_datetime);
+        const endDateTime = parseLocalDateTime(blockedTime.end_datetime);
+
+        // Format date and time for display
+        const formattedDate = startDateTime.toLocaleDateString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+        });
+
+        const formattedStartTime = startDateTime.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        });
+
+        const formattedEndTime = endDateTime.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        });
+
+        // Update the confirmation modal content
+        document.getElementById('delete-block-info').textContent =
+            `${formattedDate} - ${formattedStartTime} to ${formattedEndTime}`;
+
+        // Store block ID for confirmation
+        document.getElementById('confirm-delete-block-btn').setAttribute('data-block-id', blockId);
+
+        // Close the edit modal and show confirmation modal
+        bootstrap.Modal.getInstance(document.getElementById('blockTimeModal')).hide();
+
+        // Show confirmation modal after a short delay
+        setTimeout(() => {
+            new bootstrap.Modal(document.getElementById('deleteBlockedTimeModal')).show();
+        }, 300);
+    }
+
+    function deleteBlockTime(blockId) {
+        console.log('Deleting block time:', blockId);
+
+        // Show loading state
+        const deleteBtn = document.getElementById('confirm-delete-block-btn');
+        const originalText = deleteBtn.innerHTML;
+        deleteBtn.disabled = true;
+        deleteBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Deleting...';
+
+        fetch(`/admin/blocked-time/${blockId}/delete`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Delete response:', data);
+            if (data.success) {
+                // Close confirmation modal
+                bootstrap.Modal.getInstance(document.getElementById('deleteBlockedTimeModal')).hide();
+
+                // Show success message
+                showValidationMessage('Blocked time deleted successfully!', 'success');
+
+                // Reload page
+                setTimeout(() => {
+                    reloadWithCurrentMonth();
+                }, 1500);
+            } else {
+                showValidationMessage(data.message || 'Error deleting blocked time', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting blocked time:', error);
+            showValidationMessage('Error deleting blocked time. Please try again.', 'error');
+        })
+        .finally(() => {
+            // Reset button state
+            deleteBtn.innerHTML = originalText;
+            deleteBtn.disabled = false;
+        });
+    }
+
+    // Flag to track if we're editing a blocked time
+    let isEditingBlockedTime = false;
+
+    // Reset block time modal when opening for new block
+    document.getElementById('blockTimeModal').addEventListener('show.bs.modal', function(event) {
+        // Only reset if we're NOT editing an existing blocked time
+        if (!isEditingBlockedTime) {
+            // Reset form for new block time
+            document.getElementById('block_time_id').value = '';
+            document.getElementById('block_title').value = 'Blocked Time';
+            document.getElementById('block_description').value = '';
+            document.getElementById('block_date').value = '';
+            document.getElementById('block_start_time').value = '';
+            document.getElementById('block_end_time').value = '';
+            document.getElementById('blockTimeModalTitle').textContent = 'Block of Time';
+            document.getElementById('save-block-btn-text').textContent = 'Create';
+            document.getElementById('delete-block-time-btn').style.display = 'none';
+
+            // Show all fields for new block and remove readonly
+            const dateField = document.getElementById('block_date');
+            dateField.removeAttribute('readonly');
+            dateField.classList.remove('bg-light');
+            dateField.closest('.mb-3').style.display = 'block';
+            document.querySelector('.d-flex.justify-content-between.align-items-center').style.display = 'flex';
+            document.querySelector('.btn.btn-outline-secondary.btn-sm').parentElement.style.display = 'block';
+        }
+    });
+
+    // Reset the editing flag when modal is closed
+    document.getElementById('blockTimeModal').addEventListener('hidden.bs.modal', function() {
+        isEditingBlockedTime = false;
+    });
+
     function editAppointment(id) {
         console.log('Edit appointment called with ID:', id);
-        console.log('Available appointments:', appointments);
+        console.log('Available calendar items:', allCalendarItems);
 
-        // Find appointment and show details
-        const appointment = appointments.find(apt => apt.id == id);
-        console.log('Found appointment:', appointment);
+        // Find item (appointment or blocked time)
+        const item = allCalendarItems.find(apt => apt.id == id);
+        console.log('Found item:', item);
 
-        if (appointment) {
-            showAppointmentDetails(appointment);
+        if (item) {
+            // Check if this is a blocked time
+            if (item.status === 'blocked') {
+                showBlockTimeDetails(item);
         } else {
-            console.error('Appointment not found with ID:', id);
-            showValidationMessage('Appointment not found', 'error');
+                showAppointmentDetails(item);
+            }
+        } else {
+            console.error('Calendar item not found with ID:', id);
+            showValidationMessage('Calendar item not found', 'error');
         }
+    }
+
+    function showBlockTimeDetails(blockTime) {
+        console.log('Showing block time details for EDITING:', blockTime);
+
+        // Set flag to prevent modal reset
+        isEditingBlockedTime = true;
+
+        // Populate the block time modal for editing
+        document.getElementById('block_time_id').value = blockTime.id;
+        document.getElementById('block_title').value = blockTime.reason_for_visit || 'Blocked Time';
+        document.getElementById('block_description').value = blockTime.notes || '';
+
+        // Parse datetime strings as LOCAL time to avoid timezone conversion
+        const startDate = parseLocalDateTime(blockTime.start_datetime);
+        const endDate = parseLocalDateTime(blockTime.end_datetime);
+
+        // Format date: YYYY-MM-DD
+        const formatDate = (date) => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+
+        // Format time: HH:mm
+        const formatTime = (date) => {
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${hours}:${minutes}`;
+        };
+
+        document.getElementById('block_date').value = formatDate(startDate);
+        document.getElementById('block_start_time').value = formatTime(startDate);
+        document.getElementById('block_end_time').value = formatTime(endDate);
+
+        // Keep date field visible but readonly when editing, hide other elements
+        const dateField = document.getElementById('block_date');
+        dateField.setAttribute('readonly', true);
+        dateField.classList.add('bg-light');
+        document.querySelector('.d-flex.justify-content-between.align-items-center').style.display = 'none';
+        document.querySelector('.btn.btn-outline-secondary.btn-sm').parentElement.style.display = 'none';
+
+        // Update modal title and buttons
+        document.getElementById('blockTimeModalTitle').textContent = 'Edit Blocked Off Time';
+        document.getElementById('save-block-btn-text').textContent = 'Save Changes';
+        document.getElementById('delete-block-time-btn').style.display = 'inline-block';
+        document.getElementById('delete-block-time-btn').setAttribute('data-block-id', blockTime.id);
+
+        // Show the modal
+        console.log('Opening modal in EDIT mode for blocked time ID:', blockTime.id);
+        new bootstrap.Modal(document.getElementById('blockTimeModal')).show();
     }
 
     function showAppointmentDetails(appointment) {
@@ -1403,9 +1917,9 @@ document.addEventListener('DOMContentLoaded', function() {
             serviceName = appointment.service.service_name;
         }
 
-        // Format dates and times
-        const startDateTime = new Date(appointment.start_datetime);
-        const endDateTime = new Date(appointment.end_datetime);
+        // Parse datetime strings as LOCAL time to avoid timezone conversion
+        const startDateTime = parseLocalDateTime(appointment.start_datetime);
+        const endDateTime = parseLocalDateTime(appointment.end_datetime);
 
         const formattedDate = startDateTime.toLocaleDateString('en-US', {
             weekday: 'long',
@@ -1640,6 +2154,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                     month: month,
                                     day: day
                                 });
+
+                                // Update time slot availability based on blocked times
+                                updateTimeSlotAvailability(dateString);
                             }
                         });
                     }
@@ -1807,9 +2324,9 @@ document.addEventListener('DOMContentLoaded', function() {
             patientName = appointment.patient.name;
         }
 
-        // Format appointment details
-        const startDateTime = new Date(appointment.start_datetime);
-        const endDateTime = new Date(appointment.end_datetime);
+        // Parse datetime strings as LOCAL time to avoid timezone conversion
+        const startDateTime = parseLocalDateTime(appointment.start_datetime);
+        const endDateTime = parseLocalDateTime(appointment.end_datetime);
 
         const formattedDate = startDateTime.toLocaleDateString('en-US', {
             weekday: 'short',
@@ -1926,7 +2443,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Reload the page to update the calendar
                 setTimeout(() => {
                     console.log('Reloading page...');
-                    location.reload();
+                    reloadWithCurrentMonth();
                 }, 1500);
             } else {
                 console.log('Delete failed:', data.message);
@@ -1981,8 +2498,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Set notes (read-only display)
         document.getElementById('reschedule_notes').textContent = appointment.notes || 'None';
 
-        // Set the appointment date
-        const appointmentDate = new Date(appointment.start_datetime);
+        // Parse appointment date as LOCAL time to avoid timezone conversion
+        const appointmentDate = parseLocalDateTime(appointment.start_datetime);
         rescheduleModalCurrentDate = new Date(appointmentDate);
         generateRescheduleModalCalendar();
 
@@ -1990,7 +2507,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const year = appointmentDate.getFullYear();
         const month = String(appointmentDate.getMonth() + 1).padStart(2, '0');
         const day = String(appointmentDate.getDate()).padStart(2, '0');
-        document.getElementById('reschedule_selected_date').value = `${year}-${month}-${day}`;
+        const selectedDate = `${year}-${month}-${day}`;
+        document.getElementById('reschedule_selected_date').value = selectedDate;
+
+        // Update time slot availability based on blocked times
+        updateRescheduleTimeSlotAvailability(selectedDate);
 
         // Set time slot based on start time
         const startTime = appointmentDate.toTimeString().slice(0, 5); // HH:MM format
@@ -2126,6 +2647,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Update selected date input
                     const selectedDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                     document.getElementById('reschedule_selected_date').value = selectedDate;
+
+                    // Update time slot availability based on blocked times
+                    updateRescheduleTimeSlotAvailability(selectedDate);
                 }
             });
 
@@ -2140,6 +2664,66 @@ document.addEventListener('DOMContentLoaded', function() {
             emptyDay.className = 'calendar-day other-month';
             calendarGrid.appendChild(emptyDay);
         }
+    }
+
+    // Function to update reschedule time slot availability based on blocked times
+    function updateRescheduleTimeSlotAvailability(selectedDate) {
+        if (!selectedDate) {
+            // If no date selected, enable all time slots
+            document.querySelectorAll('input[name="reschedule_time_slot"]').forEach(radio => {
+                radio.disabled = false;
+                radio.closest('.form-check').classList.remove('disabled', 'time-slot-blocked');
+            });
+            return;
+        }
+
+        // Parse selected date
+        const [year, month, day] = selectedDate.split('-').map(Number);
+        const selectedDateObj = new Date(year, month - 1, day);
+
+        // Find blocked times on the selected date
+        const blockedTimesOnDate = allCalendarItems.filter(apt => {
+            const aptDate = parseLocalDateTime(apt.start_datetime);
+            return apt.status === 'blocked' && aptDate && aptDate.toDateString() === selectedDateObj.toDateString();
+        });
+
+        console.log('Reschedule - Blocked times on selected date:', blockedTimesOnDate);
+
+        // Check each time slot
+        document.querySelectorAll('input[name="reschedule_time_slot"]').forEach(radio => {
+            if (radio.value === 'custom') {
+                return; // Don't disable custom time option
+            }
+
+            const [startTime, endTime] = radio.value.split('-');
+            const [startHours, startMinutes] = startTime.split(':').map(Number);
+            const [endHours, endMinutes] = endTime.split(':').map(Number);
+
+            const slotStart = new Date(year, month - 1, day, startHours, startMinutes);
+            const slotEnd = new Date(year, month - 1, day, endHours, endMinutes);
+
+            // Check if this time slot conflicts with any blocked time
+            const isBlocked = blockedTimesOnDate.some(blockedTime => {
+                const blockedStart = parseLocalDateTime(blockedTime.start_datetime);
+                const blockedEnd = parseLocalDateTime(blockedTime.end_datetime);
+
+                if (!blockedStart || !blockedEnd) return false;
+
+                // Check if slot overlaps with blocked time
+                return (slotStart < blockedEnd && slotEnd > blockedStart);
+            });
+
+            if (isBlocked) {
+                radio.disabled = true;
+                radio.checked = false;
+                radio.closest('.form-check').classList.add('disabled', 'time-slot-blocked');
+                radio.closest('.form-check').title = 'This time slot is blocked';
+            } else {
+                radio.disabled = false;
+                radio.closest('.form-check').classList.remove('disabled', 'time-slot-blocked');
+                radio.closest('.form-check').title = '';
+            }
+        });
     }
 
     // Reschedule modal navigation
@@ -2232,11 +2816,14 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        // Create datetime string in local format (YYYY-MM-DD HH:mm:ss) to avoid timezone conversion
+        const startDateTimeStr = `${selectedDate} ${startTime}:00`;
+
         // Prepare data for update
         const updateData = {
             patient_id: appointment.patient_id,
             service_id: appointment.service_id,
-            start_datetime: `${selectedDate} ${startTime}:00`,
+            start_datetime: startDateTimeStr,
             duration_minutes: appointment.duration_minutes,
             status: appointment.status,
             notes: appointment.notes,
@@ -2266,15 +2853,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('Reschedule response status:', response.status);
                 console.log('Reschedule response ok:', response.ok);
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                return response.json();
+                // Parse JSON regardless of status to get error messages
+                return response.json().then(data => ({
+                    ok: response.ok,
+                    status: response.status,
+                    data: data
+                }));
             })
-            .then(data => {
+            .then(({ok, status, data}) => {
                 console.log('Reschedule response data:', data);
-                if (data && data.success) {
+
+                if (ok && data.success) {
                     // Close the reschedule modal
                     bootstrap.Modal.getInstance(document.getElementById('rescheduleModal')).hide();
 
@@ -2283,16 +2872,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     // Reload the page to update the calendar
                     setTimeout(() => {
-                        location.reload();
+                        reloadWithCurrentMonth();
                     }, 1500);
                 } else {
-                    const errorMessage = data?.message || data?.errors || 'Unknown error occurred';
-                    showRescheduleValidationMessage('Error rescheduling appointment: ' + errorMessage, 'error');
+                    // Handle validation errors or other errors
+                    let errorMessage = 'Unknown error occurred';
+
+                    if (data.message) {
+                        errorMessage = data.message;
+                    } else if (data.errors) {
+                        // If there are field-specific errors, show the first one
+                        const firstError = Object.values(data.errors)[0];
+                        errorMessage = Array.isArray(firstError) ? firstError[0] : firstError;
+                    }
+
+                    console.log('Error message:', errorMessage);
+                    showRescheduleValidationMessage(errorMessage, 'error');
                 }
             })
             .catch(error => {
                 console.error('Error rescheduling appointment:', error);
-                showRescheduleValidationMessage('Error rescheduling appointment. Please try again.', 'error');
+                showRescheduleValidationMessage('Network error. Please try again.', 'error');
             })
             .finally(() => {
                 // Reset button state

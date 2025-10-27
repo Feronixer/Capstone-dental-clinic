@@ -16,14 +16,23 @@ class Appointment extends Model
         'status',
         'notes',
         'reason_for_visit',
-        'is_new_patient'
+        'is_new_patient',
+        'rating',
+        'patient_feedback',
+        'rated_at',
+        'rescheduled_at',
+        'original_datetime'
     ];
 
     protected $casts = [
         'start_datetime' => 'datetime',
         'end_datetime' => 'datetime',
         'is_new_patient' => 'boolean',
-        'duration_minutes' => 'integer'
+        'duration_minutes' => 'integer',
+        'rating' => 'integer',
+        'rated_at' => 'datetime',
+        'rescheduled_at' => 'datetime',
+        'original_datetime' => 'datetime'
     ];
 
     public function patient(): BelongsTo

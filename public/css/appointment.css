@@ -51,7 +51,15 @@
     background: #f8f9fa;
 }
 
-/* Other month styles removed for modal calendar */
+/* Other month styling */
+.calendar-day.other-month {
+    background: #f8f9fa;
+    opacity: 0.6;
+}
+
+.calendar-day.other-month .day-number {
+    color: #6c757d;
+}
 
 .calendar-day.today {
     background: #e3f2fd;
@@ -323,6 +331,27 @@
 .time-slots-list .form-check.selected .form-check-label {
     color: white !important;
     font-weight: 600;
+}
+
+/* Blocked/disabled time slot styling */
+.time-slots-list .form-check.disabled,
+.time-slots-list .form-check.time-slot-blocked {
+    background-color: #f8d7da !important;
+    cursor: not-allowed !important;
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.time-slots-list .form-check.disabled .form-check-label,
+.time-slots-list .form-check.time-slot-blocked .form-check-label {
+    color: #721c24 !important;
+    text-decoration: line-through;
+    cursor: not-allowed !important;
+}
+
+.time-slots-list .form-check.disabled:hover,
+.time-slots-list .form-check.time-slot-blocked:hover {
+    background-color: #f8d7da !important;
 }
 
 /* Radio buttons are hidden, so no need for input-specific styles */

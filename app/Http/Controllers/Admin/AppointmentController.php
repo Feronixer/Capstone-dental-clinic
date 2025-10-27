@@ -9,6 +9,7 @@ use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Carbon\Carbon;
+use App\Services\MailService;
 
 class AppointmentController extends Controller
 {
@@ -20,10 +21,37 @@ class AppointmentController extends Controller
         $currentMonth = request('month', Carbon::now()->month);
         $currentYear = request('year', Carbon::now()->year);
 
+        // Get only regular appointments (exclude blocked status)
         $appointments = Appointment::whereMonth('start_datetime', $currentMonth)
             ->whereYear('start_datetime', $currentYear)
+            ->where('status', '!=', 'blocked')
             ->with(['patient.info', 'service'])
-            ->get();
+            ->get()
+            ->map(function($appointment) {
+                // Format dates as 'Y-m-d H:i:s' string without timezone to avoid JS conversion
+                $data = $appointment->toArray();
+                $data['start_datetime'] = $appointment->start_datetime->format('Y-m-d H:i:s');
+                $data['end_datetime'] = $appointment->end_datetime->format('Y-m-d H:i:s');
+                return $data;
+            });
+
+        // Get blocked times separately and format dates for local timezone display
+        $blockedTimes = \App\Models\BlockedTime::whereMonth('start_datetime', $currentMonth)
+            ->whereYear('start_datetime', $currentYear)
+            ->get()
+            ->map(function($blockedTime) {
+                // Format dates as 'Y-m-d H:i:s' string without timezone to avoid JS conversion
+                return [
+                    'id' => $blockedTime->id,
+                    'title' => $blockedTime->title,
+                    'start_datetime' => $blockedTime->start_datetime->format('Y-m-d H:i:s'),
+                    'end_datetime' => $blockedTime->end_datetime->format('Y-m-d H:i:s'),
+                    'duration_minutes' => $blockedTime->duration_minutes,
+                    'notes' => $blockedTime->notes,
+                    'created_at' => $blockedTime->created_at,
+                    'updated_at' => $blockedTime->updated_at,
+                ];
+            });
 
         $patients = User::whereHas('info', function($query) {
             $query->where('role_id', 3); // Assuming role_id 3 is for patients
@@ -45,7 +73,7 @@ class AppointmentController extends Controller
 
         $services = Service::active()->orderBy('service_name')->get();
 
-        return view("admin.appointment", compact('appointments', 'patients', 'staff', 'services', 'currentMonth', 'currentYear'));
+        return view("admin.appointment", compact('appointments', 'blockedTimes', 'patients', 'staff', 'services', 'currentMonth', 'currentYear'));
     }
 
     /**
@@ -53,12 +81,20 @@ class AppointmentController extends Controller
      */
     public function getAppointments(Request $request): JsonResponse
     {
-        $start = Carbon::parse($request->start);
-        $end = Carbon::parse($request->end);
+        // Parse in Asia/Manila timezone to avoid UTC conversion
+        $start = Carbon::parse($request->start, 'Asia/Manila');
+        $end = Carbon::parse($request->end, 'Asia/Manila');
 
         $appointments = Appointment::whereBetween('start_datetime', [$start, $end])
             ->with(['patient.info', 'service'])
-            ->get();
+            ->get()
+            ->map(function($appointment) {
+                // Format dates as 'Y-m-d H:i:s' string without timezone
+                $data = $appointment->toArray();
+                $data['start_datetime'] = $appointment->start_datetime->format('Y-m-d H:i:s');
+                $data['end_datetime'] = $appointment->end_datetime->format('Y-m-d H:i:s');
+                return $data;
+            });
 
         return response()->json($appointments);
     }
@@ -75,6 +111,7 @@ class AppointmentController extends Controller
             \Log::info('Content type:', ['content_type' => $request->header('Content-Type')]);
             \Log::info('Accept header:', ['accept' => $request->header('Accept')]);
 
+            // Regular appointment validation
             $request->validate([
                 'patient_id' => 'required|exists:users,id',
                 'service_id' => 'nullable|exists:services,id',
@@ -87,7 +124,8 @@ class AppointmentController extends Controller
             ]);
 
             // Additional validation: Check if patient already has appointment on same date
-            $startDateTime = Carbon::parse($request->start_datetime);
+            // Parse in Asia/Manila timezone to avoid UTC conversion
+            $startDateTime = Carbon::parse($request->start_datetime, 'Asia/Manila');
             $appointmentDate = $startDateTime->toDateString();
 
             $existingAppointment = Appointment::where('patient_id', $request->patient_id)
@@ -105,6 +143,21 @@ class AppointmentController extends Controller
             // Additional validation: Check for time overlaps
             $endDateTime = $startDateTime->copy()->addMinutes($request->duration_minutes ?? 30);
 
+            // Check for overlaps with blocked times
+            $overlappingBlockedTime = \App\Models\BlockedTime::where(function($query) use ($startDateTime, $endDateTime) {
+                $query->where('start_datetime', '<', $endDateTime)
+                      ->where('end_datetime', '>', $startDateTime);
+            })->first();
+
+            if ($overlappingBlockedTime) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This time slot conflicts with a blocked time',
+                    'errors' => ['start_datetime' => ['This time slot conflicts with a blocked time']]
+                ], 422);
+            }
+
+            // Check for overlaps with other appointments
             $overlappingAppointment = Appointment::where(function($query) use ($startDateTime, $endDateTime) {
                 $query->where(function($q) use ($startDateTime, $endDateTime) {
                     // New appointment starts before existing ends AND new appointment ends after existing starts
@@ -131,6 +184,14 @@ class AppointmentController extends Controller
             $appointment = Appointment::create($appointmentData);
 
             \Log::info('Appointment created successfully:', ['id' => $appointment->id]);
+
+            // Send confirmation email to patient
+            try {
+                MailService::sendAppointmentEmail('initial_confirmation', $appointment->load(['patient.info', 'service']));
+            } catch (\Exception $e) {
+                \Log::error('Failed to send confirmation email:', ['error' => $e->getMessage()]);
+                // Don't fail the appointment creation if email fails
+            }
 
             // Always return JSON for POST requests to this endpoint
             return response()->json([
@@ -176,6 +237,7 @@ class AppointmentController extends Controller
         try {
             $appointment = Appointment::findOrFail($id);
 
+            // Regular appointment validation
             $request->validate([
                 'patient_id' => 'required|exists:users,id',
                 'service_id' => 'nullable|exists:services,id',
@@ -188,13 +250,70 @@ class AppointmentController extends Controller
             ]);
 
             // Calculate end_datetime based on start_datetime and duration
-            $startDateTime = Carbon::parse($request->start_datetime);
+            // Parse in Asia/Manila timezone to avoid UTC conversion
+            $startDateTime = Carbon::parse($request->start_datetime, 'Asia/Manila');
             $endDateTime = $startDateTime->copy()->addMinutes($request->duration_minutes ?? 30);
+
+            // Check for overlaps with blocked times
+            $overlappingBlockedTime = \App\Models\BlockedTime::where(function($query) use ($startDateTime, $endDateTime) {
+                $query->where('start_datetime', '<', $endDateTime)
+                      ->where('end_datetime', '>', $startDateTime);
+            })->first();
+
+            if ($overlappingBlockedTime) {
+                if ($request->ajax() || $request->wantsJson() || $request->header('Accept') === 'application/json') {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'This time slot conflicts with a blocked time',
+                        'errors' => ['start_datetime' => ['This time slot conflicts with a blocked time']]
+                    ], 422);
+                }
+                return redirect()->back()->withErrors(['start_datetime' => 'This time slot conflicts with a blocked time']);
+            }
+
+            // Check for overlaps with other appointments (excluding current one)
+            $overlappingAppointment = Appointment::where('id', '!=', $id)
+                ->where(function($query) use ($startDateTime, $endDateTime) {
+                    $query->where('start_datetime', '<', $endDateTime)
+                          ->where('end_datetime', '>', $startDateTime);
+                })->first();
+
+            if ($overlappingAppointment) {
+                if ($request->ajax() || $request->wantsJson() || $request->header('Accept') === 'application/json') {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'This time slot conflicts with another appointment',
+                        'errors' => ['start_datetime' => ['This time slot conflicts with another appointment']]
+                    ], 422);
+                }
+                return redirect()->back()->withErrors(['start_datetime' => 'This time slot conflicts with another appointment']);
+            }
 
             $appointmentData = $request->all();
             $appointmentData['end_datetime'] = $endDateTime;
 
+            // Check if datetime changed (rescheduling)
+            $isRescheduling = $appointment->start_datetime->ne($startDateTime);
+
+            // If rescheduling, track the original datetime and set rescheduled_at timestamp
+            if ($isRescheduling) {
+                // Only set original_datetime if it hasn't been set before (first reschedule)
+                if (!$appointment->original_datetime) {
+                    $appointmentData['original_datetime'] = $appointment->start_datetime;
+                }
+                $appointmentData['rescheduled_at'] = now();
+            }
+
             $appointment->update($appointmentData);
+
+            // Send rescheduling email if datetime changed
+            if ($isRescheduling) {
+                try {
+                    MailService::sendAppointmentEmail('rescheduling', $appointment->load(['patient.info', 'service']));
+                } catch (\Exception $e) {
+                    \Log::error('Failed to send rescheduling email:', ['error' => $e->getMessage()]);
+                }
+            }
 
             // Always return JSON for AJAX requests or when Accept header includes JSON
             if ($request->ajax() || $request->wantsJson() || $request->header('Accept') === 'application/json') {
@@ -238,6 +357,13 @@ class AppointmentController extends Controller
         try {
             $appointment = Appointment::findOrFail($id);
             \Log::info('Found appointment:', ['appointment' => $appointment]);
+
+            // Send cancellation email before deleting
+            try {
+                MailService::sendAppointmentEmail('cancellation', $appointment->load(['patient.info', 'service']));
+            } catch (\Exception $e) {
+                \Log::error('Failed to send cancellation email:', ['error' => $e->getMessage()]);
+            }
 
             $appointment->delete();
             \Log::info('Appointment deleted successfully');

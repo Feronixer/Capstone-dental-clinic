@@ -1,10 +1,29 @@
 <aside class="navigation-bar-container">
-    <div class="logo">
-        <a href="#">
-            <i class="bi bi-shield-shaded"></i>
-            <span>Admin Panel</span>
+
+
+    <!-- User Profile Section -->
+    <div class="user-profile-section">
+        <a href="{{ route('admin-profile') }}" class="user-profile-link">
+            <div class="user-profile-avatar">
+                @if(Auth::user()->profile_picture)
+                    <img src="{{ asset('storage/' . Auth::user()->profile_picture) }}" alt="Profile Picture">
+                @else
+                    <img src="{{ asset('images/avatar.jpg') }}" alt="Default Avatar">
+                @endif
+            </div>
+            <div class="user-profile-info">
+                <div class="user-profile-name">{{ Auth::user()->name }}</div>
+                <div class="user-profile-role">
+                    @if(Auth::user()->role)
+                        {{ Auth::user()->role->role }}
+                    @else
+                        Administrator
+                    @endif
+                </div>
+            </div>
         </a>
     </div>
+
     <nav class="navigation-bar">
         <ul>
             <div>
@@ -30,6 +49,12 @@
                     <a href="{{ route('admin-content-management') }}">
                         <i class="bi bi-folder-fill"></i>
                         Content Management
+                    </a>
+                </li>
+                <li class="{{ request()->routeIs('admin-patient-records') ? 'active' : '' }}">
+                    <a href="{{ route('admin-patient-records') }}">
+                        <i class="bi bi-file-medical-fill"></i>
+                        Patient Record Access
                     </a>
                 </li>
                 <li class="{{ request()->routeIs('admin-post-procedural') ? 'active' : '' }}">

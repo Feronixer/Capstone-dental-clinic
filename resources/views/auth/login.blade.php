@@ -34,6 +34,12 @@
                 <div class="text-center mt-3">
                     <a href="{{ route('password.forgot') }}" class="text-muted">Forgot Password?</a>
                 </div>
+                <hr class="my-3">
+                <div class="text-center">
+                    <a href="{{ route('staff.login') }}" class="text-primary">
+                        <i class="bi bi-shield-lock me-1"></i>Staff Portal Login
+                    </a>
+                </div>
             </form>
         </div>
         <div class="login-card-image">

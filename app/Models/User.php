@@ -15,9 +15,20 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Role::class);
     }
+
     public function info()
     {
         return $this->hasOne(UserInfo::class, 'user_id');
+    }
+
+    public function appointments()
+    {
+        return $this->hasMany(Appointment::class, 'patient_id');
+    }
+
+    public function patientRecords()
+    {
+        return $this->hasMany(PatientRecord::class, 'user_id');
     }
     /**
      * The attributes that are mass assignable.
@@ -30,6 +41,7 @@ class User extends Authenticatable
         'email',
         'role_id',
         'password',
+        'profile_picture',
     ];
 
     /**
