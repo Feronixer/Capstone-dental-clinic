@@ -108,6 +108,10 @@ Route::middleware(['auth'])->group(function(): void{
     Route::post('/admin/post-procedural/progress-notes', [PostProceduralController::class,'storeProgressNote']);
     Route::delete('/admin/post-procedural/progress-notes/{id}', [PostProceduralController::class,'destroyProgressNote']);
     Route::get('/admin/toothtalk', [ToothTalkController::class,'index'])->name('admin-toothtalk');
+    Route::post('/admin/toothtalk/settings', [ToothTalkController::class,'saveSettings'])->name('admin-toothtalk.settings.save');
+    Route::post('/admin/toothtalk/faq', [ToothTalkController::class,'storeFaq'])->name('admin-toothtalk.faq.store');
+    Route::put('/admin/toothtalk/faq/{id}', [ToothTalkController::class,'updateFaq'])->name('admin-toothtalk.faq.update');
+    Route::delete('/admin/toothtalk/faq/{id}', [ToothTalkController::class,'destroyFaq'])->name('admin-toothtalk.faq.delete');
     Route::get('/admin/notifications', [AdminNotificationController::class,'index'])->name('admin-notification');
     Route::get('/admin/profile', [ProfileController::class,'index'])->name('admin-profile');
     Route::post('/admin/profile/update', [ProfileController::class,'update'])->name('admin-profile.update');

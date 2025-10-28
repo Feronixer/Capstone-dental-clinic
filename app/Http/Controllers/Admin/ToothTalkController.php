@@ -3,63 +3,82 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ChatbotFaq;
+use App\Models\ChatbotSetting;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class ToothTalkController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(): View
     {
-        return view("admin.toothtalk");
+        $setting = ChatbotSetting::first() ?? ChatbotSetting::create([
+            'enabled' => true,
+            'welcome_message' => '',
+            'quick_intents' => [],
+        ]);
+        $faqs = ChatbotFaq::orderBy('order')->get();
+        return view('admin.toothtalk', compact('setting', 'faqs'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function saveSettings(Request $request): RedirectResponse
     {
-        //
+        $data = $request->validate([
+            'enabled' => ['nullable'],
+            'welcome_message' => ['required', 'string', 'max:255'],
+            'quick_intents' => ['nullable', 'array'],
+            'quick_intents.*.label' => ['required_with:quick_intents', 'string', 'max:60'],
+            'quick_intents.*.value' => ['required_with:quick_intents', 'string', 'max:255'],
+        ]);
+
+        $setting = ChatbotSetting::first();
+        if (!$setting) { $setting = new ChatbotSetting(); }
+        $setting->enabled = (bool) $request->boolean('enabled');
+        $setting->welcome_message = $data['welcome_message'];
+        $setting->quick_intents = $data['quick_intents'] ?? [];
+        $setting->save();
+
+        return back()->with('success', 'Chatbot settings saved.');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function storeFaq(Request $request): RedirectResponse
     {
-        //
+        $data = $request->validate([
+            'question' => ['required','string','max:255'],
+            'answer' => ['required','string'],
+            'is_active' => ['nullable'],
+        ]);
+        $nextOrder = (int) ChatbotFaq::max('order') + 1;
+        ChatbotFaq::create([
+            'question' => $data['question'],
+            'answer' => $data['answer'],
+            'is_active' => $request->boolean('is_active'),
+            'order' => $nextOrder,
+        ]);
+        return back()->with('success', 'FAQ added.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function updateFaq(Request $request, int $id): RedirectResponse
     {
-        //
+        $faq = ChatbotFaq::findOrFail($id);
+        $data = $request->validate([
+            'question' => ['required','string','max:255'],
+            'answer' => ['required','string'],
+            'is_active' => ['nullable'],
+        ]);
+        $faq->update([
+            'question' => $data['question'],
+            'answer' => $data['answer'],
+            'is_active' => $request->boolean('is_active'),
+        ]);
+        return back()->with('success', 'FAQ updated.');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function destroyFaq(int $id): RedirectResponse
     {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        $faq = ChatbotFaq::findOrFail($id);
+        $faq->delete();
+        return back()->with('success', 'FAQ deleted.');
     }
 }

@@ -620,6 +620,169 @@
                 gap: 2rem;
             }
         }
+
+        /* Chatbot */
+        .chatbot-toggle-btn {
+            position: fixed;
+            right: 24px;
+            bottom: 24px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #2196F3;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(33,150,243,0.4);
+            cursor: pointer;
+            z-index: 1000;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        }
+
+        .chatbot-toggle-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 36px rgba(33,150,243,0.45);
+            background: #1976D2;
+        }
+
+        .chatbot-widget {
+            position: fixed;
+            right: 24px;
+            bottom: 92px;
+            width: 340px;
+            max-width: calc(100vw - 32px);
+            border-radius: 16px;
+            background: #ffffff;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            overflow: hidden;
+            display: none;
+            flex-direction: column;
+            z-index: 1000;
+        }
+
+        .chatbot-widget.open { display: flex; }
+
+        .chatbot-header {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            color: #fff;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chatbot-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+        }
+
+        .chatbot-title .badge-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #A5D6A7;
+            box-shadow: 0 0 0 4px rgba(165,214,167,0.25);
+        }
+
+        .chatbot-body {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 12px;
+        }
+
+        .chatbot-messages {
+            height: 280px;
+            overflow-y: auto;
+            padding-right: 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border-bottom: 1px solid #eef2f5;
+        }
+
+        .message {
+            max-width: 82%;
+            padding: 10px 12px;
+            border-radius: 14px;
+            font-size: 0.92rem;
+            line-height: 1.35rem;
+        }
+
+        .message.bot {
+            background: #f5f9ff;
+            color: #0d47a1;
+            border: 1px solid #e3f2fd;
+            align-self: flex-start;
+        }
+
+        .message.user {
+            background: #2196F3;
+            color: #fff;
+            align-self: flex-end;
+        }
+
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .chip {
+            background: #e3f2fd;
+            color: #1976D2;
+            border: 1px solid #bbdefb;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.1s ease;
+        }
+
+        .chip:hover { background: #d2e9fb; transform: translateY(-1px); }
+
+        .chatbot-input {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 0 0;
+        }
+
+        .chatbot-input input[type="text"] {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid #dfe7ef;
+            border-radius: 10px;
+            outline: none;
+            transition: border 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .chatbot-input input[type="text"]:focus {
+            border: 1px solid #90caf9;
+            box-shadow: 0 0 0 3px rgba(144,202,249,0.25);
+        }
+
+        .send-btn {
+            background: #2196F3;
+            color: #fff;
+            border: none;
+            padding: 10px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .send-btn:hover { background: #1976D2; }
+
+        @media (max-width: 480px) {
+            .chatbot-widget { right: 16px; left: 16px; width: auto; }
+            .chatbot-messages { height: 240px; }
+        }
     </style>
 </head>
 <body>
@@ -903,5 +1066,157 @@
             </div>
         </div>
     </footer>
+
+    @if(!empty($chatbotSetting) && $chatbotSetting->enabled)
+    <!-- Chatbot Toggle Button -->
+    <div id="chatbot-toggle" class="chatbot-toggle-btn" aria-label="Open chat" title="Chat with us">
+        <i class="bi bi-chat-dots-fill" style="font-size: 1.4rem;"></i>
+    </div>
+
+    <!-- Chatbot Widget -->
+    <div id="chatbot" class="chatbot-widget" role="dialog" aria-modal="false" aria-labelledby="chatbotTitle">
+        <div class="chatbot-header">
+            <div class="chatbot-title">
+                <span class="badge-dot"></span>
+                <span id="chatbotTitle">ToothTalk Assistant</span>
+            </div>
+            <button id="chatbot-close" class="send-btn" aria-label="Close chat" title="Close" style="background:#ffffff22;border:1px solid #ffffff33;">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="chatbot-body">
+            <div id="chatbot-messages" class="chatbot-messages" aria-live="polite"></div>
+            <div class="chips" id="chatbot-chips"></div>
+            <div class="chatbot-input">
+                <input id="chatbot-input" type="text" placeholder="Ask about services, hours, pricing..." autocomplete="off" />
+                <button id="chatbot-send" class="send-btn" aria-label="Send message">
+                    <i class="bi bi-send-fill"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            const toggleBtn = document.getElementById('chatbot-toggle');
+            const widget = document.getElementById('chatbot');
+            const closeBtn = document.getElementById('chatbot-close');
+            const messagesEl = document.getElementById('chatbot-messages');
+            const inputEl = document.getElementById('chatbot-input');
+            const sendBtn = document.getElementById('chatbot-send');
+            const chipsEl = document.getElementById('chatbot-chips');
+
+            const quickIntents = {!! json_encode($chatbotSetting->quick_intents ?? []) !!};
+
+            const faqRaw = @json($chatbotFaqs ?? []);
+            const faqPairs = (faqRaw || []).map(function(f){
+                return { q: (f.question || ''), a: (f.answer || '') };
+            });
+
+            function scrollToBottom() {
+                messagesEl.scrollTop = messagesEl.scrollHeight;
+            }
+
+            function addMessage(text, sender) {
+                const div = document.createElement('div');
+                div.className = 'message ' + (sender === 'user' ? 'user' : 'bot');
+                div.textContent = text;
+                messagesEl.appendChild(div);
+                scrollToBottom();
+            }
+
+            function normalize(s) {
+                return String(s)
+                    .toLowerCase()
+                    .replace(/&nbsp;/g, ' ')
+                    .replace(/[^a-z0-9\s]/g, '')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+            }
+
+            // Use only database FAQs - no hardcoded answers
+
+            const stopWords = new Set(['the','a','an','is','are','do','i','you','we','how','what','where','when','why','to','for','of','and','or','in','on','at','with','get','does','it','this','that','about']);
+
+            function tokenize(text) {
+                return normalize(text).split(' ').filter(w => w && !stopWords.has(w));
+            }
+
+            function overlapScore(aTokens, bTokens) {
+                const a = new Set(aTokens);
+                const b = new Set(bTokens);
+                let inter = 0;
+                a.forEach(t => { if (b.has(t)) inter++; });
+                const union = a.size + b.size - inter || 1;
+                return { inter, jaccard: inter / union };
+            }
+
+            // Precompute FAQ tokens
+            const faqIndexed = (faqPairs || []).map(p => ({ q: p.q, a: p.a, tokens: tokenize(p.q || '') }));
+
+            function getBotReply(query) {
+                const q = normalize(query);
+                const qTokens = tokenize(q);
+                // 1) Fuzzy match FAQs by token overlap
+                let best = { score: 0, inter: 0, a: null };
+                for (const item of faqIndexed) {
+                    if (!item.tokens.length) continue;
+                    const { inter, jaccard } = overlapScore(qTokens, item.tokens);
+                    const score = inter >= 2 ? jaccard + 0.1 : jaccard; // slight boost if >=2 overlapping keywords
+                    if (score > best.score) best = { score, inter, a: item.a };
+                }
+                if (best.a && (best.score >= 0.25 || best.inter >= 2)) return best.a;
+
+                // 2) Fallback generic message
+                return 'Thanks for your message! Please check our FAQs or ask a specific question.';
+            }
+
+            function sendUserMessage(text) {
+                if (!text.trim()) return;
+                addMessage(text.trim(), 'user');
+                setTimeout(() => addMessage(getBotReply(text), 'bot'), 300);
+            }
+
+            function renderChips() {
+                chipsEl.innerHTML = '';
+                quickIntents.forEach(intent => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'chip';
+                    btn.textContent = intent.label;
+                    btn.addEventListener('click', () => sendUserMessage(intent.value));
+                    chipsEl.appendChild(btn);
+                });
+            }
+
+            function openChat() {
+                widget.classList.add('open');
+                widget.setAttribute('aria-hidden', 'false');
+                if (!messagesEl.dataset.welcomed) {
+                    addMessage(@json($chatbotSetting->welcome_message ?: 'Welcome! How can I help today?'), 'bot');
+                    renderChips();
+                    messagesEl.dataset.welcomed = '1';
+                }
+                inputEl.focus();
+            }
+
+            function closeChat() {
+                widget.classList.remove('open');
+                widget.setAttribute('aria-hidden', 'true');
+            }
+
+            toggleBtn.addEventListener('click', () => {
+                if (widget.classList.contains('open')) closeChat(); else openChat();
+            });
+            closeBtn.addEventListener('click', closeChat);
+            sendBtn.addEventListener('click', () => {
+                const v = inputEl.value; inputEl.value = ''; sendUserMessage(v);
+            });
+            inputEl.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') { const v = inputEl.value; inputEl.value = ''; sendUserMessage(v); }
+            });
+        })();
+    </script>
+    @endif
 </body>
 </html>
