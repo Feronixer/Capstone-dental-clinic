@@ -28,7 +28,32 @@ class AuthController extends Controller
         ]);
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            return redirect()->route('admin-dashboard')->with('success','Login Successful');
+
+            // Get authenticated user
+            $user = Auth::user();
+
+            // Redirect based on role
+            // role_id: 1 = Admin, 2 = Staff, 3 = Patient
+            switch ($user->role_id) {
+                case 1:
+                    // Admin: System oversight, reporting, user management, chatbot logs
+                    return redirect()->route('admin-dashboard')->with('success', 'Welcome Admin!');
+
+                case 2:
+                    // Staff: Patient loads, appointments monitoring, patient management
+                    return redirect()->route('staff-dashboard')->with('success', 'Welcome Staff!');
+
+                case 3:
+                    // Patient: Personal appointments and records
+                    return redirect()->route('patient-home')->with('success', 'Welcome!');
+
+                default:
+                    // Fallback for unknown roles
+                    Auth::logout();
+                    return back()->withErrors([
+                        'error' => 'Invalid user role. Please contact administrator.',
+                    ]);
+            }
         }
 
         return back()->withErrors([

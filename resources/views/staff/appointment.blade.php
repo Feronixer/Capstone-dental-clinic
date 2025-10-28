@@ -1,4 +1,4 @@
-@extends('layout.admin.app')
+﻿@extends('layout.staff.app')
 @section('content')
 <link rel="stylesheet" href="{{ asset('css/appointment.css') }}">
 <div class="container-fluid px-4 py-4">
@@ -1491,7 +1491,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Add delay before making the request
         setTimeout(() => {
-            const url = isUpdate ? `/admin/appointment/${appointmentId}` : '/admin/appointment';
+            const url = isUpdate ? `/staff/appointment/${appointmentId}` : '/staff/appointment';
             const method = isUpdate ? 'PUT' : 'POST';
 
             fetch(url, {
@@ -2020,7 +2020,7 @@ document.addEventListener('DOMContentLoaded', function() {
         resultsContainer.innerHTML = '<div class="text-muted p-2">Loading...</div>';
         resultsContainer.style.display = 'block';
 
-        fetch(`/admin/appointment/search/patients?query=${encodeURIComponent(query)}`, {
+        fetch(`/staff/appointment/search/patients?query=${encodeURIComponent(query)}`, {
             method: 'GET',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -2099,7 +2099,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const daysInMonth = lastDay.getDate();
             const firstDayOfWeek = firstDay.getDay(); // 0 = Sunday, 1 = Monday, etc.
 
-            // Generate calendar grid (6 weeks × 7 days = 42 cells)
+            // Generate calendar grid (6 weeks Ã— 7 days = 42 cells)
         for (let i = 0; i < 42; i++) {
             const dayElement = document.createElement('div');
             dayElement.className = 'calendar-day';
@@ -2403,7 +2403,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const originalText = deleteBtn.innerHTML;
         deleteBtn.disabled = true;
 
-        const deleteUrl = `/admin/appointment/${appointmentId}/delete`;
+        const deleteUrl = `/staff/appointment/${appointmentId}/delete`;
         console.log('Final Delete URL:', deleteUrl);
         console.log('=== END DEBUG ===');
 
@@ -2850,7 +2850,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Add delay
         setTimeout(() => {
-            fetch(`/admin/appointment/${appointmentId}`, {
+            fetch(`/staff/appointment/${appointmentId}`, {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -2933,3 +2933,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endsection
+

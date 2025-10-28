@@ -26,6 +26,33 @@ class PostProceduralController extends Controller
     }
 
     /**
+     * Get all patient records (API endpoint for AJAX)
+     */
+    public function getRecords()
+    {
+        try {
+            $records = PatientRecord::with(['user.info', 'appointment.service'])
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'records' => $records
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error fetching patient records', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error loading records: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Get patient record details
      */
     public function getPatientRecord($id)
@@ -351,9 +378,50 @@ class PostProceduralController extends Controller
      */
     public function storePatientHistory(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'patient_record_id' => 'required|exists:patient_records,id',
+        try {
+            \Log::info('Store Patient History Request', $request->all());
+
+            // Allow both workflows: with patient_id (new) or patient_record_id (existing)
+            $validator = Validator::make($request->all(), [
+            'patient_id' => 'required_without:patient_record_id|exists:users,id',
+            'patient_record_id' => 'required_without:patient_id|exists:patient_records,id',
             'visit_date' => 'required|date',
+            // Dental History
+            'previous_dentist' => 'nullable|string',
+            'last_dental_visit' => 'nullable|date',
+            'treatment_done' => 'nullable|string',
+            // Medical History
+            'physician_name' => 'nullable|string',
+            'physician_specialty' => 'nullable|string',
+            'physician_office_address' => 'nullable|string',
+            'physician_contact' => 'nullable|string',
+            // Health Questions
+            'good_health' => 'nullable|string',
+            'under_treatment' => 'nullable|string',
+            'treatment_condition' => 'nullable|string',
+            'serious_illness' => 'nullable|string',
+            'illness_details' => 'nullable|string',
+            'been_hospitalized' => 'nullable|string',
+            'hospitalization_reason' => 'nullable|string',
+            'taking_drugs' => 'nullable|string',
+            'medications' => 'nullable|string',
+            'tobacco_use' => 'nullable|string',
+            'alcohol_use' => 'nullable|string',
+            'recreational_drugs' => 'nullable|string',
+            // Allergies
+            'allergy_anesthesia' => 'nullable|boolean',
+            'allergy_sulfa' => 'nullable|boolean',
+            'allergy_antibiotics' => 'nullable|boolean',
+            'allergy_aspirin' => 'nullable|boolean',
+            'allergy_analgesics' => 'nullable|boolean',
+            'allergy_latex' => 'nullable|boolean',
+            'food_allergy_details' => 'nullable|string',
+            'other_allergy_details' => 'nullable|string',
+            // For Women
+            'is_pregnant' => 'nullable|string',
+            'is_nursing' => 'nullable|string',
+            'birth_control' => 'nullable|string',
+            // Procedure Details
             'procedure_performed' => 'nullable|string',
             'materials_used' => 'nullable|string',
             'anesthesia_used' => 'nullable|string',
@@ -363,22 +431,110 @@ class PostProceduralController extends Controller
         ]);
 
         if ($validator->fails()) {
+            \Log::error('Patient History Validation failed', $validator->errors()->toArray());
             return response()->json([
                 'success' => false,
+                'message' => 'Validation failed: ' . $validator->errors()->first(),
                 'errors' => $validator->errors()
             ], 422);
         }
 
+        // Get or find patient_record_id
+        $patientRecordId = $request->patient_record_id;
+
+        // If patient_id is provided instead, find or create patient record
+        if ($request->patient_id && !$patientRecordId) {
+            $patientRecord = PatientRecord::firstOrCreate(
+                ['user_id' => $request->patient_id],
+                [
+                    'patient_number' => 'P' . str_pad($request->patient_id, 6, '0', STR_PAD_LEFT),
+                    'sent_to_patient' => true
+                ]
+            );
+            $patientRecordId = $patientRecord->id;
+        }
+
+        // Create or update patient history
         $history = PatientHistory::updateOrCreate(
-            ['id' => $request->id],
-            $request->all()
+            ['id' => $request->id], // If id exists, update; otherwise create
+            [
+            'patient_record_id' => $patientRecordId,
+            'visit_date' => $request->visit_date,
+            // Dental History
+            'previous_dentist' => $request->previous_dentist,
+            'last_dental_visit' => $request->last_dental_visit,
+            'treatment_done' => $request->treatment_done,
+            // Medical History
+            'physician_name' => $request->physician_name,
+            'physician_specialty' => $request->physician_specialty,
+            'physician_office_address' => $request->physician_office_address,
+            'physician_contact' => $request->physician_contact,
+            // Health Questions
+            'good_health' => $request->good_health,
+            'under_treatment' => $request->under_treatment,
+            'treatment_condition' => $request->treatment_condition,
+            'serious_illness' => $request->serious_illness,
+            'illness_details' => $request->illness_details,
+            'been_hospitalized' => $request->been_hospitalized,
+            'hospitalization_reason' => $request->hospitalization_reason,
+            'taking_drugs' => $request->taking_drugs,
+            'medications' => $request->medications,
+            'tobacco_use' => $request->tobacco_use,
+            'alcohol_use' => $request->alcohol_use,
+            'recreational_drugs' => $request->recreational_drugs,
+            // Allergies
+            'allergy_anesthesia' => $request->allergy_anesthesia ?? 0,
+            'allergy_sulfa' => $request->allergy_sulfa ?? 0,
+            'allergy_antibiotics' => $request->allergy_antibiotics ?? 0,
+            'allergy_aspirin' => $request->allergy_aspirin ?? 0,
+            'allergy_analgesics' => $request->allergy_analgesics ?? 0,
+            'allergy_latex' => $request->allergy_latex ?? 0,
+            'food_allergy_details' => $request->food_allergy_details,
+            'other_allergy_details' => $request->other_allergy_details,
+            // For Women
+            'is_pregnant' => $request->is_pregnant,
+            'is_nursing' => $request->is_nursing,
+            'birth_control' => $request->birth_control,
+            // Procedure Details
+            'procedure_performed' => $request->procedure_performed,
+            'materials_used' => $request->materials_used,
+            'anesthesia_used' => $request->anesthesia_used,
+            'complications' => $request->complications,
+            'post_operative_instructions' => $request->post_operative_instructions,
+            'follow_up_notes' => $request->follow_up_notes,
+            // Automatically send to patient
+            'sent_to_patient' => true,
+            'sent_at' => now()
+        ]
         );
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Patient history saved successfully',
-            'data' => $history
-        ]);
+        // Also mark the parent patient record as sent
+        $patientRecord = PatientRecord::find($patientRecordId);
+        if ($patientRecord) {
+            $patientRecord->update([
+                'sent_to_patient' => true,
+                'sent_at' => now()
+            ]);
+        }
+
+            \Log::info('Patient history saved successfully', ['history_id' => $history->id]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Patient history saved and sent to patient successfully',
+                'data' => $history
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error saving patient history', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error saving patient history: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -448,13 +604,30 @@ class PostProceduralController extends Controller
      */
     public function destroyPatientHistory($id)
     {
-        $history = PatientHistory::findOrFail($id);
-        $history->delete();
+        try {
+            \Log::info('Delete Patient History Request', ['history_id' => $id]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Patient history deleted successfully'
-        ]);
+            $history = PatientHistory::findOrFail($id);
+            $history->delete();
+
+            \Log::info('Patient history deleted successfully', ['history_id' => $id]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Patient history deleted successfully'
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error deleting patient history', [
+                'history_id' => $id,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error deleting patient history: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

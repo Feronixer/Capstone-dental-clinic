@@ -51,12 +51,6 @@
                         Content Management
                     </a>
                 </li>
-                <li class="{{ request()->routeIs('admin-patient-records') ? 'active' : '' }}">
-                    <a href="{{ route('admin-patient-records') }}">
-                        <i class="bi bi-file-medical-fill"></i>
-                        Patient Record Access
-                    </a>
-                </li>
                 <li class="{{ request()->routeIs('admin-post-procedural') ? 'active' : '' }}">
                     <a href="{{ route('admin-post-procedural') }}">
                         <i class="bi bi-file-earmark-post"></i>
@@ -84,7 +78,7 @@
                     </a>
                 </li>
                 <li>
-                    <form action="{{ route('logout') }}" method="POST">
+                    <form action="{{ route('admin.logout') }}" method="POST">
                         @csrf
                         <button type="submit" class="btn btn-link text-light text-decoration-none">
                             <i class="bi bi-box-arrow-right"></i>

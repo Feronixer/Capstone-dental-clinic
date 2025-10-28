@@ -34,11 +34,18 @@
                 <div class="text-center mt-3">
                     <a href="{{ route('password.forgot') }}" class="text-muted">Forgot Password?</a>
                 </div>
-                <hr class="my-3">
-                <div class="text-center">
-                    <a href="{{ route('staff.login') }}" class="text-primary">
-                        <i class="bi bi-shield-lock me-1"></i>Staff Portal Login
-                    </a>
+                <hr class="my-4">
+                <div class="row g-2">
+                    <div class="col-6">
+                        <a href="{{ route('admin.login') }}" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-shield-fill-check me-1"></i>Admin
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="{{ route('staff.login') }}" class="btn btn-outline-secondary w-100">
+                            <i class="bi bi-shield-lock me-1"></i>Staff
+                        </a>
+                    </div>
                 </div>
             </form>
         </div>

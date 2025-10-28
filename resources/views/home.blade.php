@@ -1,20 +1,907 @@
-@extends('layout.app')
-@section('content')
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToothTalk - Premium Dental Care</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<section class="home-container">
-    <div class="home-content">
-        <img src="{{ asset('images/hero.jpg') }}" alt="logo-banner">
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Navigation Bar */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 3rem;
+            background: transparent;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2196F3;
+        }
+
+        .logo-icon {
+            width: 45px;
+            height: 45px;
+            background: #2196F3;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.3rem;
+            font-weight: 800;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            font-size: 0.95rem;
+        }
+
+        .nav-btn.primary {
+            background: #2196F3;
+            color: white;
+        }
+
+        .nav-btn.primary:hover {
+            background: #1976D2;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+        }
+
+        .nav-btn.secondary {
+            background: white;
+            color: #2196F3;
+            border: 2px solid #2196F3;
+        }
+
+        .nav-btn.secondary:hover {
+            background: #e3f2fd;
+            transform: translateY(-2px);
+        }
+
+        /* Hero Section */
+        .hero-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 3rem 3rem;
+            gap: 3rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .hero-content {
+            flex: 1;
+            max-width: 600px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(33, 150, 243, 0.1);
+            color: #2196F3;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: #263238;
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-title .highlight {
+            color: #2196F3;
+        }
+
+        .hero-description {
+            font-size: 1.1rem;
+            color: #546e7a;
+            line-height: 1.7;
+            margin-bottom: 2rem;
+        }
+
+        .patient-login-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.7rem;
+            background: #2196F3;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 30px;
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            margin-bottom: 3rem;
+        }
+
+        .patient-login-btn:hover {
+            background: #1976D2;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(33, 150, 243, 0.3);
+        }
+
+        .staff-admin-section {
+            margin-top: 2rem;
+        }
+
+        .staff-admin-section h3 {
+            font-size: 0.9rem;
+            color: #78909c;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .login-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .login-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.7rem;
+            padding: 0.9rem 1.8rem;
+            border-radius: 30px;
+            border: none;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .login-btn.staff {
+            background: #1e88e5;
+            color: white;
+        }
+
+        .login-btn.staff:hover {
+            background: #1976d2;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(30, 136, 229, 0.3);
+        }
+
+        .login-btn.admin {
+            background: #455a64;
+            color: white;
+        }
+
+        .login-btn.admin:hover {
+            background: #37474f;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(69, 90, 100, 0.3);
+        }
+
+        /* Hero Card */
+        .hero-card {
+            flex: 1;
+            max-width: 550px;
+            position: relative;
+        }
+
+        .main-card {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            border-radius: 30px;
+            padding: 3rem;
+            min-height: 450px;
+            box-shadow: 0 20px 60px rgba(33, 150, 243, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .main-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .card-title {
+            color: white;
+            font-size: 1.4rem;
+            font-weight: 700;
+            text-align: center;
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+        }
+
+        .feature-card {
+            position: absolute;
+            background: white;
+            border-radius: 20px;
+            padding: 1.3rem 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            max-width: 250px;
+            z-index: 10;
+        }
+
+        .feature-card.top {
+            top: 2rem;
+            right: -2rem;
+        }
+
+        .feature-card.bottom {
+            bottom: 8rem;
+            right: -2rem;
+        }
+
+        .feature-icon {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2196F3;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+
+        .feature-text h4 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #263238;
+            margin-bottom: 0.3rem;
+        }
+
+        .feature-text p {
+            font-size: 0.85rem;
+            color: #78909c;
+            line-height: 1.4;
+        }
+
+        @media (max-width: 1024px) {
+            .hero-section {
+                flex-direction: column;
+                padding: 2rem;
+            }
+
+            .hero-title {
+                font-size: 2.5rem;
+            }
+
+            .feature-card {
+                position: relative;
+                right: auto;
+                top: auto;
+                bottom: auto;
+                margin-bottom: 1rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 1rem;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .hero-title {
+                font-size: 2rem;
+            }
+
+            .login-buttons {
+                flex-direction: column;
+            }
+        }
+
+        /* Services Section */
+        .services-section {
+            padding: 5rem 3rem;
+            background: white;
+        }
+
+        .services-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .services-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #263238;
+            text-align: center;
+            margin-bottom: 1rem;
+            letter-spacing: 1px;
+        }
+
+        .services-description {
+            text-align: center;
+            color: #546e7a;
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 3rem;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .service-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .service-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 40px rgba(33, 150, 243, 0.2);
+        }
+
+        .service-icon-box {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            padding: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 140px;
+        }
+
+        .service-icon-box i {
+            font-size: 3rem;
+            color: white;
+        }
+
+        .service-content {
+            padding: 1.5rem;
+            background: white;
+        }
+
+        .service-content h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #263238;
+            margin-bottom: 0.8rem;
+        }
+
+        .service-content p {
+            font-size: 0.9rem;
+            color: #78909c;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 1024px) {
+            .services-section {
+                padding: 4rem 2rem;
+            }
+
+            .services-grid {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 1.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .services-section {
+                padding: 3rem 1rem;
+            }
+
+            .services-title {
+                font-size: 2rem;
+            }
+
+            .services-description {
+                font-size: 0.9rem;
+            }
+
+            .services-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .service-icon-box {
+                padding: 2rem;
+                height: 120px;
+            }
+
+            .service-icon-box i {
+                font-size: 2.5rem;
+            }
+        }
+
+        /* Footer Section */
+        .footer {
+            background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+            color: white;
+            padding: 4rem 3rem 2rem;
+        }
+
+        .footer-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+
+        .footer-about h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .footer-about .footer-logo {
+            width: 35px;
+            height: 35px;
+            background: white;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #2196F3;
+            font-size: 1rem;
+            font-weight: 800;
+        }
+
+        .footer-about p {
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.7;
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-social {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .footer-social a {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+        }
+
+        .footer-social a:hover {
+            background: white;
+            color: #2196F3;
+            transform: translateY(-3px);
+        }
+
+        .footer-section h4 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1.2rem;
+        }
+
+        .footer-section ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-section ul li a {
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .footer-section ul li a:hover {
+            color: white;
+            padding-left: 0.5rem;
+        }
+
+        .footer-section ul li a i {
+            font-size: 0.9rem;
+        }
+
+        .footer-contact p {
+            color: rgba(255, 255, 255, 1);
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            line-height: 1.5;
+            font-size: 0.95rem;
+        }
+
+        .footer-contact p i {
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            width: 24px;
+            text-align: center;
+            color: #FFA726;
+        }
+
+        .footer-contact p span {
+            flex: 1;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            padding-top: 2rem;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .footer-bottom p {
+            margin: 0;
+        }
+
+        @media (max-width: 1024px) {
+            .footer-content {
+                grid-template-columns: 1fr 1fr;
+                gap: 2rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .footer {
+                padding: 3rem 1.5rem 1.5rem;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="logo">
+            <div class="logo-icon">TT</div>
+            <span>ToothTalk</span>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url('/') }}" class="nav-btn primary">
+                <i class="bi bi-house-door-fill"></i>
+                Home
+            </a>
+            <a href="#" class="nav-btn secondary">
+                <i class="bi bi-megaphone-fill"></i>
+                Announcements
+            </a>
+            <a href="#" class="nav-btn secondary">
+                <i class="bi bi-info-circle-fill"></i>
+                About Us
+            </a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <!-- Left Content -->
+        <div class="hero-content">
+            <div class="badge">
+                <i class="bi bi-stars"></i>
+                Premium Dental Care Since 2005
+            </div>
+
+            <h1 class="hero-title">
+                Have confidence<br>in your <span class="highlight">SMILE</span> in<br>no time!
+            </h1>
+
+            <p class="hero-description">
+                Experience world-class dental care with cutting-edge technology and a compassionate team dedicated to your oral health and beautiful smile.
+            </p>
+
+            <a href="{{ route('login') }}" class="patient-login-btn">
+                <i class="bi bi-person-circle"></i>
+                Patient Login
+            </a>
+
+            <div class="staff-admin-section">
+                <h3>Staff & Admin Access</h3>
+                <div class="login-buttons">
+                    <a href="{{ route('staff.login') }}" class="login-btn staff">
+                        <i class="bi bi-person-badge-fill"></i>
+                        Staff Login
+                    </a>
+                    <a href="{{ route('admin.login') }}" class="login-btn admin">
+                        <i class="bi bi-shield-fill-check"></i>
+                        Admin Login
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Card -->
+        <div class="hero-card">
+            <div class="main-card">
+                <div class="feature-card top">
+                    <div class="feature-icon">
+                        <i class="bi bi-heart-pulse-fill"></i>
+                    </div>
+                    <div class="feature-text">
+                        <h4>Pain-Free</h4>
+                        <p>Advanced anesthesia</p>
     </div>
-    <div class="home-body">
-        <h2>Have confidence in your <span>SMILE</span> in no time!</h2>
-        <p>If you are seeking for your follow up care</p>
-        <a href="#" class="btn btn-custom">Sign in with your patient account</a>
+    </div>
+
+                <div class="feature-card bottom">
+                    <div class="feature-icon">
+                        <i class="bi bi-shield-fill-check"></i>
+                    </div>
+                    <div class="feature-text">
+                        <h4>Sterile</h4>
+                        <p>Highest safety standards</p>
+                    </div>
+                </div>
+
+                <h2 class="card-title">Advanced Dental Clinic Environment</h2>
+            </div>
     </div>
 </section>
 
-<section class="home-video-container">
-    <div class="video-content">
+    <!-- Services Section -->
+    <section class="services-section">
+        <div class="services-container">
+            <h2 class="services-title">OUR SERVICES</h2>
+            <p class="services-description">
+                We offer a comprehensive range of premium dental services using the latest<br>
+                technology and techniques to ensure optimal oral health and beautiful smiles.
+            </p>
 
+            <div class="services-grid">
+                <!-- Service Card 1 -->
+                <div class="service-card">
+                    <div class="service-icon-box">
+                        <i class="bi bi-heart-pulse-fill"></i>
+                    </div>
+                    <div class="service-content">
+                        <h3>Cosmetic Dentistry</h3>
+                        <p>Teeth whitening, veneers, bonding, and smile makeovers to transform your smile and confidence.</p>
+                    </div>
+                </div>
+
+                <!-- Service Card 2 -->
+                <div class="service-card">
+                    <div class="service-icon-box">
+                        <i class="bi bi-lightning-charge-fill"></i>
+                    </div>
+                    <div class="service-content">
+                        <h3>Laser Dentistry</h3>
+                        <p>Minimally invasive laser treatments for precise care and faster recovery.</p>
+                    </div>
+                </div>
+
+                <!-- Service Card 3 -->
+                <div class="service-card">
+                    <div class="service-icon-box">
+                        <i class="bi bi-bandaid-fill"></i>
+                    </div>
+                    <div class="service-content">
+                        <h3>Oral Surgery</h3>
+                        <p>Expert surgical care including wisdom teeth removal and dental implants.</p>
+                    </div>
+                </div>
+
+                <!-- Service Card 4 -->
+                <div class="service-card">
+                    <div class="service-icon-box">
+                        <i class="bi bi-clipboard2-pulse-fill"></i>
+                    </div>
+                    <div class="service-content">
+                        <h3>Periodontics</h3>
+                        <p>Specialized care for gums and supporting structures for optimal oral health.</p>
+                    </div>
+                </div>
+
+                <!-- Service Card 5 -->
+                <div class="service-card">
+                    <div class="service-icon-box">
+                        <i class="bi bi-clipboard2-check-fill"></i>
+                    </div>
+                    <div class="service-content">
+                        <h3>Restoration & Filling</h3>
+                        <p>High quality dental fillings and restorations to repair damaged teeth.</p>
+                    </div>
+                </div>
+
+                <!-- Service Card 6 -->
+                <div class="service-card">
+                    <div class="service-icon-box">
+                        <i class="bi bi-capsule-pill"></i>
+                    </div>
+                    <div class="service-content">
+                        <h3>Tooth Extraction</h3>
+                        <p>Safe and comfortable tooth removal procedures.</p>
+                    </div>
+                </div>
+
+                <!-- Service Card 7 -->
+                <div class="service-card">
+                    <div class="service-icon-box">
+                        <i class="bi bi-activity"></i>
+                    </div>
+                    <div class="service-content">
+                        <h3>Root Canal Treatment</h3>
+                        <p>Advanced root canal therapy to save infected teeth.</p>
+                    </div>
+                </div>
+
+                <!-- Service Card 8 -->
+                <div class="service-card">
+                    <div class="service-icon-box">
+                        <i class="bi bi-gem"></i>
+                    </div>
+                    <div class="service-content">
+                        <h3>Dental Crowns</h3>
+                        <p>Various crown options including porcelain, Emax, and zirconia for durable restoration.</p>
+                    </div>
+                </div>
+
+                <!-- Service Card 9 -->
+                <div class="service-card">
+                    <div class="service-icon-box">
+                        <i class="bi bi-grid-3x3-gap-fill"></i>
+                    </div>
+                    <div class="service-content">
+                        <h3>Dentures</h3>
+                        <p>Custom-fit flexible and traditional dentures for natural looking results.</p>
+                    </div>
+                </div>
+            </div>
     </div>
 </section>
-@endsection
+
+    <!-- Footer Section -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-content">
+                <!-- About Section -->
+                <div class="footer-about">
+                    <h3>
+                        <span class="footer-logo">TT</span>
+                        ToothTalk
+                    </h3>
+                    <p>
+                        Premium dental care services since 2005. We're committed to providing world-class dental treatments with cutting-edge technology and compassionate care.
+                    </p>
+                    <div class="footer-social">
+                        <a href="#" aria-label="Facebook">
+                            <i class="bi bi-facebook"></i>
+                        </a>
+                        <a href="#" aria-label="Twitter">
+                            <i class="bi bi-twitter"></i>
+                        </a>
+                        <a href="#" aria-label="Instagram">
+                            <i class="bi bi-instagram"></i>
+                        </a>
+                        <a href="#" aria-label="LinkedIn">
+                            <i class="bi bi-linkedin"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Quick Links -->
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="{{ url('/') }}"><i class="bi bi-chevron-right"></i> Home</a></li>
+                        <li><a href="#"><i class="bi bi-chevron-right"></i> About Us</a></li>
+                        <li><a href="#"><i class="bi bi-chevron-right"></i> Services</a></li>
+                        <li><a href="#"><i class="bi bi-chevron-right"></i> Announcements</a></li>
+                        <li><a href="{{ route('login') }}"><i class="bi bi-chevron-right"></i> Patient Portal</a></li>
+                    </ul>
+                </div>
+
+                <!-- Services -->
+                <div class="footer-section">
+                    <h4>Our Services</h4>
+                    <ul>
+                        <li><a href="#"><i class="bi bi-chevron-right"></i> Cosmetic Dentistry</a></li>
+                        <li><a href="#"><i class="bi bi-chevron-right"></i> Laser Dentistry</a></li>
+                        <li><a href="#"><i class="bi bi-chevron-right"></i> Oral Surgery</a></li>
+                        <li><a href="#"><i class="bi bi-chevron-right"></i> Periodontics</a></li>
+                        <li><a href="#"><i class="bi bi-chevron-right"></i> Dental Crowns</a></li>
+                    </ul>
+                </div>
+
+                <!-- Contact Info -->
+                <div class="footer-section footer-contact">
+                    <h4>Contact Info</h4>
+                    <p>
+                        <i class="bi bi-geo-alt-fill"></i>
+                        <span>Policarpio St. Gen. T. de Leon Valenzuela City</span>
+                    </p>
+                    <p>
+                        <i class="bi bi-telephone-fill"></i>
+                        <span>(555) 123-4567</span>
+                    </p>
+                    <p>
+                        <i class="bi bi-envelope-fill"></i>
+                        <span>info@toothtalk.com</span>
+                    </p>
+                    <p>
+                        <i class="bi bi-clock-fill"></i>
+                        <span>Mon-Fri: 8am-6pm, Sat: 9am-2pm</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Footer Bottom -->
+            <div class="footer-bottom">
+                <p>&copy; {{ date('Y') }} ToothTalk Dental Clinic. All rights reserved. | Designed with <i class="bi bi-heart-fill" style="color: #ff5252;"></i> for healthy smiles</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,4 +1,4 @@
-@extends('layout.admin.app')
+@extends('layout.staff.app')
 @section('content')
 <link rel="stylesheet" href="{{ asset('css/patient-records.css') }}">
 
@@ -152,7 +152,7 @@ function searchPatients() {
     `;
 
     // Fetch patients
-    fetch(`/admin/patient-records/search?query=${encodeURIComponent(query)}&status=${status}`)
+    fetch(`/staff/patient-records/search?query=${encodeURIComponent(query)}&status=${status}`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -234,7 +234,7 @@ function viewPatient(patientId) {
     `;
 
     // Fetch patient details
-    fetch(`/admin/patient-records/${patientId}`)
+    fetch(`/staff/patient-records/${patientId}`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -589,4 +589,5 @@ function printPatientRecord() {
 </style>
 
 @endsection
+
 

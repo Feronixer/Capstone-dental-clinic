@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Staff;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -18,7 +18,7 @@ class PatientRecordAccessController extends Controller
     {
         $totalPatients = User::where('role_id', 3)->count();
 
-        return view('admin.patient-records', compact('totalPatients'));
+        return view('staff.patient-records', compact('totalPatients'));
     }
 
     /**
@@ -165,4 +165,5 @@ class PatientRecordAccessController extends Controller
         ]);
     }
 }
+
 

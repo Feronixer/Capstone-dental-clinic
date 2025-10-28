@@ -42,8 +42,8 @@ class StaffAuthController extends Controller
             ])->withInput($request->only('username'));
         }
 
-        // Check if user is staff (role_id 1 or 2)
-        if (!in_array($user->role_id, [1, 2])) {
+        // Check if user is staff (role_id = 2 ONLY)
+        if ($user->role_id !== 2) {
             return back()->withErrors([
                 'error' => 'Access denied. This portal is for staff members only.',
             ])->withInput($request->only('username'));
@@ -56,7 +56,7 @@ class StaffAuthController extends Controller
             // Log successful staff login
             \Log::info("Staff member '{$user->username}' logged in successfully");
 
-            return redirect()->route('admin-dashboard')->with('success', 'Welcome back, ' . $user->name . '!');
+            return redirect()->route('staff-dashboard')->with('success', 'Welcome back, Staff!');
         }
 
         return back()->withErrors([
@@ -81,9 +81,9 @@ class StaffAuthController extends Controller
             'email' => 'required|email'
         ]);
 
-        // Find user by email and verify they are staff
+        // Find user by email and verify they are staff (role_id = 2 only)
         $user = User::where('email', $request->email)
-            ->whereIn('role_id', [1, 2])
+            ->where('role_id', 2)
             ->first();
 
         if (!$user) {
@@ -120,9 +120,9 @@ class StaffAuthController extends Controller
             return redirect()->route('staff.password.forgot')->withErrors(['error' => 'Invalid request.']);
         }
 
-        // Verify this email belongs to a staff member
+        // Verify this email belongs to a staff member (role_id = 2 only)
         $user = User::where('email', $email)
-            ->whereIn('role_id', [1, 2])
+            ->where('role_id', 2)
             ->first();
 
         if (!$user) {

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Authentication\AuthController;
 use App\Http\Controllers\Authentication\StaffAuthController;
+use App\Http\Controllers\Authentication\AdminAuthController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\AccountManagementController;
@@ -11,13 +12,15 @@ use App\Http\Controllers\Admin\PostProceduralController;
 use App\Http\Controllers\Admin\ToothTalkController;
 use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\Admin\ProfileController;
-use App\Http\Controllers\Admin\PatientRecordAccessController;
+use App\Http\Controllers\Staff\PatientRecordAccessController;
 use App\Http\Controllers\Patient\DashboardController as PatientDashboardController;
 use App\Http\Controllers\Patient\CalendarController;
 use App\Http\Controllers\Patient\ProfileController as PatientProfileController;
 use App\Http\Controllers\Patient\PatientRecord;
 use App\Http\Controllers\Patient\AnnouncementController;
 use App\Http\Controllers\Staff\StaffDashboard;
+use App\Http\Controllers\Staff\PostProceduralController as StaffPostProceduralController;
+use App\Http\Controllers\Staff\AccountManagementController as StaffAccountManagementController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -35,6 +38,16 @@ Route::get('/reset-password/verify', [AuthController::class, 'showResetVerifyFor
 Route::post('/reset-password/verify', [AuthController::class, 'verifyResetCode'])->name('password.reset.verify.submit');
 Route::get('/reset-password', [AuthController::class, 'showResetForm'])->name('password.reset.form');
 Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.reset');
+
+// Admin Authentication Routes
+Route::get('/admin/login', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
+Route::post('/admin/login', [AdminAuthController::class, 'login'])->name('admin.login.submit');
+Route::get('/admin/forgot-password', [AdminAuthController::class, 'showForgotPasswordForm'])->name('admin.password.forgot');
+Route::post('/admin/forgot-password', [AdminAuthController::class, 'sendResetCode'])->name('admin.password.reset.send');
+Route::get('/admin/reset-password/verify', [AdminAuthController::class, 'showResetVerifyForm'])->name('admin.password.reset.verify');
+Route::post('/admin/reset-password/verify', [AdminAuthController::class, 'verifyResetCode'])->name('admin.password.reset.verify.submit');
+Route::get('/admin/reset-password', [AdminAuthController::class, 'showResetForm'])->name('admin.password.reset.form');
+Route::post('/admin/reset-password', [AdminAuthController::class, 'resetPassword'])->name('admin.password.reset');
 
 // Staff Authentication Routes
 Route::get('/staff/login', [StaffAuthController::class, 'showLoginForm'])->name('staff.login');
@@ -81,6 +94,7 @@ Route::middleware(['auth'])->group(function(): void{
     Route::get('/admin/content-management/patient-appointments/{patientId}', [ContentManagementController::class,'getPatientAppointments'])->name('admin-content-management.patient-appointments');
     Route::post('/admin/content-management/send-patient-email', [ContentManagementController::class,'sendPatientEmail'])->name('admin-content-management.send-patient-email');
     Route::get('/admin/post-procedural', [PostProceduralController::class,'index'])->name('admin-post-procedural');
+    Route::get('/admin/post-procedural/records', [PostProceduralController::class,'getRecords']);
     Route::get('/admin/post-procedural/patient-record/{id}', [PostProceduralController::class,'getPatientRecord']);
     Route::get('/admin/post-procedural/patient-record-by-user/{userId}', [PostProceduralController::class,'getPatientRecordByUser']);
     Route::post('/admin/post-procedural/patient-record/store', [PostProceduralController::class,'storePatientRecord']);
@@ -100,11 +114,11 @@ Route::middleware(['auth'])->group(function(): void{
     Route::post('/admin/profile/update-picture', [ProfileController::class,'updateProfilePicture'])->name('admin-profile.update-picture');
     Route::post('/admin/profile/update-password', [ProfileController::class,'updatePassword'])->name('admin-profile.update-password');
 
-    // Patient Record Access Routes
-    Route::get('/admin/patient-records', [PatientRecordAccessController::class,'index'])->name('admin-patient-records');
-    Route::get('/admin/patient-records/search', [PatientRecordAccessController::class,'searchPatients'])->name('admin-patient-records.search');
-    Route::get('/admin/patient-records/{id}', [PatientRecordAccessController::class,'getPatientDetails'])->name('admin-patient-records.details');
-    Route::get('/admin/patient-records/{id}/export', [PatientRecordAccessController::class,'exportPatientRecord'])->name('admin-patient-records.export');
+    // Staff Patient Record Access Routes (Staff Only)
+    Route::get('/staff/patient-records', [PatientRecordAccessController::class,'index'])->name('staff-patient-records');
+    Route::get('/staff/patient-records/search', [PatientRecordAccessController::class,'searchPatients'])->name('staff-patient-records.search');
+    Route::get('/staff/patient-records/{id}', [PatientRecordAccessController::class,'getPatientDetails'])->name('staff-patient-records.details');
+    Route::get('/staff/patient-records/{id}/export', [PatientRecordAccessController::class,'exportPatientRecord'])->name('staff-patient-records.export');
 
     // Test Email Route (for development/testing)
     Route::get('/admin/test-email', function() {
@@ -155,14 +169,78 @@ Route::middleware(['auth'])->group(function(): void{
         }
     })->name('admin.test-email');
 
-    //Logout Route
+    // Staff Post-Procedural Routes
+    Route::get('/staff/post-procedural', [StaffPostProceduralController::class,'index'])->name('staff-post-procedural');
+    Route::get('/staff/post-procedural/patient-record/{id}', [StaffPostProceduralController::class,'getPatientRecord']);
+    Route::get('/staff/post-procedural/patient-record-by-user/{userId}', [StaffPostProceduralController::class,'getPatientRecordByUser']);
+    Route::post('/staff/post-procedural/patient-record/store', [StaffPostProceduralController::class,'storePatientRecord']);
+    Route::delete('/staff/post-procedural/patient-record/{id}', [StaffPostProceduralController::class,'destroyPatientRecord']);
+    Route::get('/staff/post-procedural/search-patients', [StaffPostProceduralController::class,'searchPatients']);
+    Route::post('/staff/post-procedural/send-to-patient', [StaffPostProceduralController::class,'sendToPatient']);
+    Route::get('/staff/post-procedural/patient-history/{id}', [StaffPostProceduralController::class,'getPatientHistory']);
+    Route::post('/staff/post-procedural/patient-history', [StaffPostProceduralController::class,'storePatientHistory']);
+    Route::delete('/staff/post-procedural/patient-history/{id}', [StaffPostProceduralController::class,'destroyPatientHistory']);
+    Route::get('/staff/post-procedural/progress-notes/{id}', [StaffPostProceduralController::class,'getProgressNotes']);
+    Route::post('/staff/post-procedural/progress-notes', [StaffPostProceduralController::class,'storeProgressNote']);
+    Route::delete('/staff/post-procedural/progress-notes/{id}', [StaffPostProceduralController::class,'destroyProgressNote']);
+
+    //Logout Routes
     Route::post('/logout', [AuthController::class,'logout'])->name('logout');
+    Route::post('/admin/logout', [AdminAuthController::class,'logout'])->name('admin.logout');
     Route::post('/staff/logout', [StaffAuthController::class,'logout'])->name('staff.logout');
+
+    // Patient Routes
+    Route::get('/patient/home', [CalendarController::class, 'index'])->name('patient-home');
+    Route::get('/patient/calendar', [CalendarController::class, 'index'])->name('patient-calendar');
+    Route::get('/patient/profile', [PatientProfileController::class, 'index'])->name('patient-profile');
+    Route::get('/patient/record', [PatientRecord::class, 'index'])->name('patient-record');
+    Route::get('/patient/record/{id}', [PatientRecord::class, 'show'])->name('patient-record.show');
+    Route::get('/patient/record/{id}/download', [PatientRecord::class, 'download'])->name('patient-record.download');
+    Route::get('/patient/records/all', [PatientRecord::class, 'getRecords'])->name('patient-records.all');
+    Route::get('/patient/history/{id}', [PatientRecord::class, 'showHistory'])->name('patient-history.show');
+    Route::get('/patient/history/{id}/download', [PatientRecord::class, 'downloadHistory'])->name('patient-history.download');
+    Route::get('/patient/progress-note/{id}', [PatientRecord::class, 'showProgressNote'])->name('patient-progress-note.show');
+    Route::get('/patient/announcement', [AnnouncementController::class, 'index'])->name('patient-announcement');
+    Route::post('/patient/logout', [AuthController::class,'logout'])->name('patient.logout');
+
+    Route::get('/staff/dashboard',[StaffDashboard::class, 'index'])->name('staff-dashboard');
+
+    // Staff Account Management Routes (Patient accounts only)
+    Route::get('/staff/account-management', [StaffAccountManagementController::class,'index'])->name('staff-account-management');
+    Route::post('/staff/account-management', [StaffAccountManagementController::class,'store']);
+    Route::put('/staff/account-management/users/{user}', [StaffAccountManagementController::class,'update'])->name('staff.users.update');
+    Route::get('/staff/account-management/users/{id}', [StaffAccountManagementController::class, 'show'])->name('staff.users.show');
+    Route::delete('/staff/account-management/users/{id}', [StaffAccountManagementController::class, 'destroy'])->name('staff.users.delete');
+    Route::post('/staff/account-management/users/change-password/{id}', [StaffAccountManagementController::class,'changePasswword']);
+
+    // Staff Appointment Routes (No delete permission)
+    Route::get('/staff/appointment', [App\Http\Controllers\Staff\AppointmentController::class,'index'])->name('staff-appointment');
+    Route::get('/staff/appointment/appointments', [App\Http\Controllers\Staff\AppointmentController::class,'getAppointments'])->name('staff-appointment.get');
+    Route::post('/staff/appointment', [App\Http\Controllers\Staff\AppointmentController::class,'store'])->name('staff-appointment.store');
+    Route::get('/staff/appointment/{id}', [App\Http\Controllers\Staff\AppointmentController::class,'show'])->name('staff-appointment.show');
+    Route::put('/staff/appointment/{id}', [App\Http\Controllers\Staff\AppointmentController::class,'update'])->name('staff-appointment.update');
+    Route::patch('/staff/appointment/{id}/status', [App\Http\Controllers\Staff\AppointmentController::class,'updateStatus'])->name('staff-appointment.status');
+    Route::get('/staff/appointment/search/patients', [App\Http\Controllers\Staff\AppointmentController::class,'searchPatients'])->name('staff-appointment.search-patients');
+
+    // Staff Content Management Routes (No delete permission for services)
+    Route::get('/staff/content-management', [App\Http\Controllers\Staff\ContentManagementController::class,'index'])->name('staff-content-management');
+    Route::post('/staff/content-management/announcement', [App\Http\Controllers\Staff\ContentManagementController::class,'updateAnnouncement'])->name('staff-content-management.announcement.update');
+    Route::post('/staff/content-management/service', [App\Http\Controllers\Staff\ContentManagementController::class,'storeService'])->name('staff-content-management.service.store');
+    Route::put('/staff/content-management/service/{id}', [App\Http\Controllers\Staff\ContentManagementController::class,'updateService'])->name('staff-content-management.service.update');
+    Route::post('/staff/content-management/mail-template/{type}', [App\Http\Controllers\Staff\ContentManagementController::class,'updateMailTemplate'])->name('staff-content-management.mail-template.update');
+    Route::get('/staff/content-management/patients-with-appointments', [App\Http\Controllers\Staff\ContentManagementController::class,'getPatientsWithAppointments'])->name('staff-content-management.patients-with-appointments');
+    Route::get('/staff/content-management/patient-appointments/{patientId}', [App\Http\Controllers\Staff\ContentManagementController::class,'getPatientAppointments'])->name('staff-content-management.patient-appointments');
+    Route::post('/staff/content-management/send-patient-email', [App\Http\Controllers\Staff\ContentManagementController::class,'sendPatientEmail'])->name('staff-content-management.send-patient-email');
+
+    // Staff Profile Routes
+    Route::get('/staff/profile', [App\Http\Controllers\Staff\ProfileController::class,'index'])->name('staff-profile');
+    Route::post('/staff/profile/update', [App\Http\Controllers\Staff\ProfileController::class,'update'])->name('staff-profile.update');
+    Route::post('/staff/profile/update-picture', [App\Http\Controllers\Staff\ProfileController::class,'updateProfilePicture'])->name('staff-profile.update-picture');
+    Route::post('/staff/profile/update-password', [App\Http\Controllers\Staff\ProfileController::class,'updatePassword'])->name('staff-profile.update-password');
+
+    // Staff Notification Routes
+    Route::get('/staff/notifications', [App\Http\Controllers\Staff\NotificationController::class,'index'])->name('staff-notification');
+
+    // Staff ToothTalk Routes
+    Route::get('/staff/toothtalk', [App\Http\Controllers\Staff\ToothTalkController::class,'index'])->name('staff-toothtalk');
 });
-
-
-Route::get('/patient/calendar', [CalendarController::class, 'index'])->name('patient-calendar'  );
-Route::get('/patient/profile', [PatientProfileController::class, 'index'])->name('patient-profile');
-Route::get('/patient/record', [PatientRecord::class, 'index'])->name('patient-record');
-Route::get('/patient/announcement', [AnnouncementController::class, 'index'])->name('patient-announcement');
-Route::get('/staff/dashboard',[StaffDashboard::class, 'index'])->name('staff-dashboard');

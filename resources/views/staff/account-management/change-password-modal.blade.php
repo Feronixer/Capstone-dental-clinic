@@ -1,0 +1,40 @@
+<div class="modal fade" id="changePasswordModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="changePasswordForm">
+                @csrf
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="changePasswordModalLabel">Change Password</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="user_id" id="modalChangePasswordUserId">
+                    {{-- Password --}}
+                    <div class="form-floating mb-3">
+                        <input name="password" type="password"
+                               id="floatingPassword"
+                               placeholder="Enter password"
+                               class="form-control form-control-sm">
+                        <label for="floatingPassword">New Password</label>
+                        <div class="invalid-feedback"></div>
+                    </div>
+
+                    {{-- Confirm Password --}}
+                    <div class="form-floating">
+                        <input name="confirm_password" type="password"
+                               id="floatingConfirmPassword"
+                               placeholder="Confirm password"
+                               class="form-control form-control-sm">
+                        <label for="floatingConfirmPassword">Confirm Password</label>
+                        <div class="invalid-feedback"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-success">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+

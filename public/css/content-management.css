@@ -16,10 +16,39 @@
     --shadow-lg: 0 10px 25px rgba(37, 99, 235, 0.15);
 }
 
-body {
+html {
+    overflow-y: scroll !important;
+    scrollbar-gutter: stable !important;
+}
+
+body.admin-body {
     background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
     font-size: 14px;
     min-height: 100vh;
+    max-height: 100vh;
+    overflow: hidden !important;
+    display: flex !important;
+}
+
+/* Preserve navigation font size */
+body.admin-body .navigation-bar-container {
+    font-size: 16px !important;
+}
+
+body.admin-body main {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    width: 100%;
+    flex: 1;
+}
+
+/* Lock navigation sidebar width */
+body.admin-body .navigation-bar-container {
+    width: 260px !important;
+    min-width: 260px !important;
+    max-width: 260px !important;
+    flex-shrink: 0 !important;
+    flex-grow: 0 !important;
 }
 
 .container-fluid {

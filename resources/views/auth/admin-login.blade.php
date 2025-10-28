@@ -13,19 +13,19 @@
                 <img src="{{ asset('images/logo-2.png') }}" alt="Logo" class="login-logo mb-3">
                 <h2 class="fw-bold">JValera Dental Clinic</h2>
                 <p class="text-secondary">
-                    <i class="bi bi-shield-lock-fill me-1"></i>Staff Portal
+                    <i class="bi bi-shield-fill-check me-1 text-primary"></i><strong>Administrator Portal</strong>
                 </p>
             </div>
-            <form action="{{ route('staff.login.submit') }}" method="POST">
+            <form action="{{ route('admin.login.submit') }}" method="POST">
                 @csrf
                 <div class="mb-3">
                     <label for="username" class="form-label">Username</label>
                     <div class="input-group">
-                        <span class="input-group-text">
-                            <i class="bi bi-person-badge"></i>
+                        <span class="input-group-text bg-primary text-white">
+                            <i class="bi bi-person-badge-fill"></i>
                         </span>
                         <input type="text" class="form-control @error('username') is-invalid @enderror"
-                               name="username" placeholder="Enter your username" value="{{ old('username') }}" required>
+                               name="username" placeholder="Enter admin username" value="{{ old('username') }}" required autofocus>
                     </div>
                     @error('username')
                         <p class="text-danger mt-1">* {{ $message }}</p>
@@ -34,37 +34,37 @@
                 <div class="mb-4">
                     <label for="password" class="form-label">Password</label>
                     <div class="input-group">
-                        <span class="input-group-text">
+                        <span class="input-group-text bg-primary text-white">
                             <i class="bi bi-lock-fill"></i>
                         </span>
                         <input type="password" class="form-control @error('password') is-invalid @enderror"
-                               name="password" id="staffPassword" placeholder="Enter your password" required>
-                        <button class="btn btn-outline-secondary" type="button" id="toggleStaffPassword">
-                            <i class="bi bi-eye" id="toggleStaffIcon"></i>
+                               name="password" id="password" placeholder="Enter your password" required>
+                        <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                            <i class="bi bi-eye" id="toggleIcon"></i>
                         </button>
                     </div>
                     @error('password')
                         <p class="text-danger mt-1">* {{ $message }}</p>
                     @enderror
                 </div>
-                <button type="submit" class="btn-custom-primary">
-                    <i class="bi bi-box-arrow-in-right me-2"></i>Staff Log In
+                <button type="submit" class="btn-custom-primary w-100 bg-primary border-primary">
+                    <i class="bi bi-shield-lock me-2"></i>Administrator Login
                 </button>
                 <div class="text-center mt-3">
-                    <a href="{{ route('staff.password.forgot') }}" class="text-muted">
+                    <a href="{{ route('admin.password.forgot') }}" class="text-muted">
                         <i class="bi bi-key me-1"></i>Forgot Password?
                     </a>
                 </div>
                 <hr class="my-4">
                 <div class="row g-2">
                     <div class="col-6">
-                        <a href="{{ route('admin.login') }}" class="btn btn-outline-primary w-100">
-                            <i class="bi bi-shield-fill-check me-1"></i>Admin
+                        <a href="{{ route('staff.login') }}" class="btn btn-outline-secondary w-100">
+                            <i class="bi bi-shield-lock me-1"></i>Staff Login
                         </a>
                     </div>
                     <div class="col-6">
                         <a href="{{ route('login') }}" class="btn btn-outline-success w-100">
-                            <i class="bi bi-person me-1"></i>Patient
+                            <i class="bi bi-person me-1"></i>Patient Login
                         </a>
                     </div>
                 </div>
@@ -81,10 +81,9 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Toggle password visibility
-    const togglePassword = document.getElementById('toggleStaffPassword');
-    const passwordInput = document.getElementById('staffPassword');
-    const toggleIcon = document.getElementById('toggleStaffIcon');
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+    const toggleIcon = document.getElementById('toggleIcon');
 
     if (togglePassword) {
         togglePassword.addEventListener('click', function() {
