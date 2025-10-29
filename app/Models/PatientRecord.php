@@ -76,4 +76,10 @@ class PatientRecord extends Model
     {
         return $this->hasMany(ProgressNote::class);
     }
+
+    // Scope: filter records by user id
+    public function scopeForUser($query, int $userId)
+    {
+        return $query->where('user_id', $userId);
+    }
 }

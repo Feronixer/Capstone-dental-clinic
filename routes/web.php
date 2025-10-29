@@ -111,15 +111,18 @@ Route::middleware(['auth'])->group(function(): void{
     Route::get('/admin/post-procedural', [PostProceduralController::class,'index'])->name('admin-post-procedural');
     Route::get('/admin/post-procedural/records', [PostProceduralController::class,'getRecords']);
     Route::get('/admin/post-procedural/patient-record-by-user/{userId}', [PostProceduralController::class,'getPatientRecordByUser']);
+    Route::get('/admin/post-procedural/patient-record/{recordId}', [PostProceduralController::class,'getPatientRecord']);
     Route::post('/admin/post-procedural/patient-record/store', [PostProceduralController::class,'storePatientRecord']);
     Route::delete('/admin/post-procedural/patient-record/{id}', [PostProceduralController::class,'destroyPatientRecord']);
     Route::get('/admin/post-procedural/search-patients', [PostProceduralController::class,'searchPatients']);
     Route::post('/admin/post-procedural/send-to-patient', [PostProceduralController::class,'sendToPatient']);
     Route::get('/admin/post-procedural/patient-history/{id}', [PostProceduralController::class,'getPatientHistory']);
     Route::post('/admin/post-procedural/patient-history', [PostProceduralController::class,'storePatientHistory']);
+    Route::put('/admin/post-procedural/patient-history/{id}', [PostProceduralController::class,'updatePatientHistory']);
     Route::delete('/admin/post-procedural/patient-history/{id}', [PostProceduralController::class,'destroyPatientHistory']);
     Route::get('/admin/post-procedural/progress-notes/{id}', [PostProceduralController::class,'getProgressNotes']);
     Route::post('/admin/post-procedural/progress-notes', [PostProceduralController::class,'storeProgressNote']);
+    Route::put('/admin/post-procedural/progress-notes/{id}', [PostProceduralController::class,'updateProgressNote']);
     Route::post('/admin/post-procedural/store-progress-notes', [PostProceduralController::class,'storeProgressNotes']);
     Route::delete('/admin/post-procedural/progress-notes/{id}', [PostProceduralController::class,'destroyProgressNote']);
     Route::get('/admin/toothtalk', [ToothTalkController::class,'index'])->name('admin-toothtalk');

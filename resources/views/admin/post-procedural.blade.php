@@ -63,70 +63,16 @@
                         <thead class="table-light">
                             <tr>
                                 <th style="width: 5%;" class="text-center">ID</th>
-                                <th style="width: 15%;">Patient Name</th>
-                                <th style="width: 15%;">Treatment</th>
+                                <th style="width: 20%;">Patient Name</th>
+                                <th style="width: 15%;" class="text-center">Treatment</th>
                                 <th style="width: 15%;" class="text-center">Patient Information Record</th>
                                 <th style="width: 15%;" class="text-center">Patient History</th>
                                 <th style="width: 15%;" class="text-center">Progress Notes</th>
-                                <th style="width: 20%;" class="text-center">Action</th>
+                                <th style="width: 15%;" class="text-center">Action</th>
                             </tr>
                         </thead>
                         <tbody id="recordsTableBody">
-                            @forelse($records as $record)
-                            <tr>
-                                <td class="text-center">{{ $loop->iteration }}</td>
-                                <td>
-                                    @if($record->user && $record->user->info)
-                                        {{ $record->user->info->first_name }} {{ $record->user->info->last_name }}
-                                    @else
-                                        <span class="text-muted">N/A</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    @if($record->appointment && $record->appointment->service)
-                                        {{ $record->appointment->service->service_name }}
-                                    @elseif($record->user && $record->user->appointments()->exists())
-                                        @php
-                                            $latestAppointment = $record->user->appointments()->with('service')->latest('start_datetime')->first();
-                                        @endphp
-                                        @if($latestAppointment && $latestAppointment->service)
-                                            {{ $latestAppointment->service->service_name }}
-                                        @else
-                                            <span class="text-muted">N/A</span>
-                                        @endif
-                                    @else
-                                        <span class="text-muted">N/A</span>
-                                    @endif
-                                </td>
-                                <td class="text-center">
-                                    <!-- Actions removed -->
-                                </td>
-                                <td class="text-center">
-                                    <!-- Actions removed -->
-                                </td>
-                                <td class="text-center">
-                                    <!-- Actions removed -->
-                                </td>
-                                <td class="text-center">
-                                    <button type="button" class="btn btn-dark btn-sm" onclick="clearAllFiles({{ $record->id }})" style="border-radius: 20px; padding: 5px 15px;">
-                                        Clear All Files
-                                    </button>
-                                    <button type="button" class="btn btn-danger btn-sm" onclick="removeRecord({{ $record->id }})" style="border-radius: 20px; padding: 5px 15px;">
-                                        Remove
-                                    </button>
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="7" class="text-center py-5">
-                                    <div class="text-muted">
-                                        <i class="bi bi-inbox" style="font-size: 3rem;"></i>
-                                        <p class="mt-3 mb-0">No patient records found</p>
-                                        <small>Click on "Patient Record" tab to create a new record</small>
-                                    </div>
-                                </td>
-                            </tr>
-                            @endforelse
+                            <!-- Records will be loaded via JavaScript -->
                         </tbody>
                     </table>
                 </div>
@@ -176,6 +122,7 @@
                             <i class="bi bi-search position-absolute" style="left: 15px; top: 50%; transform: translateY(-50%); color: #0d6efd; font-size: 1.2rem;"></i>
                             <div id="patientNameSearchResults" class="search-results-dropdown"></div>
                         </div>
+                        <input type="hidden" id="selectedPatientId">
                     </div>
 
                     <!-- Selected Patient Info Alert (Hidden by default) -->
@@ -308,36 +255,7 @@
                             <textarea class="form-control" id="otherNotes" rows="6"
                                       style="resize: none; border: 2px solid #dee2e6; border-radius: 8px;"></textarea>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold mb-2" style="color: #0a4275; font-size: 1rem;">
-                                <i class="bi bi-send-fill me-2"></i>Send to Patient:
-                            </label>
-                            <div class="sent-to-box p-3" style="background: linear-gradient(135deg, #e7f1ff 0%, #f8f9fa 100%); border: 2px solid #0d6efd; border-radius: 12px; height: 100%;">
-                                <small class="text-muted d-block mb-2" style="font-size: 0.75rem;">
-                                    <i class="bi bi-info-circle-fill me-1"></i>Record will be automatically sent to this patient
-                                </small>
-                                <div class="position-relative mb-3">
-                                    <input type="text" class="form-control" id="patientSearchInput"
-                                           placeholder="Search patient to send record..." autocomplete="off"
-                                           style="border: 2px solid #dee2e6; border-radius: 8px; padding-right: 48px;">
-                                    <button type="button" class="btn btn-sm btn-primary search-icon-btn" onclick="triggerPatientSearch()"
-                                            style="border-radius: 6px;">
-                                        <i class="bi bi-search"></i>
-                                    </button>
-                                    <div id="patientSearchResults" class="search-results-dropdown"></div>
-                                </div>
-                                <input type="hidden" id="selectedPatientId">
-                                <div id="selectedPatientDisplay" class="mb-3 d-none">
-                                    <div class="alert alert-success mb-0 py-2" style="border-radius: 8px;">
-                                        <small><i class="bi bi-check-circle-fill me-1"></i><span id="selectedPatientText"></span></small>
-                                    </div>
-                                </div>
-                                <button type="button" class="btn btn-primary w-100" onclick="sendRecordToPatient()"
-                                        style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); border: none; border-radius: 8px; padding: 10px; font-weight: 600;">
-                                    <i class="bi bi-send-fill me-2"></i>SEND TO PATIENT
-                                </button>
-                            </div>
-                        </div>
+                        <!-- Removed Send to Patient UI: auto-send on save -->
                     </div>
 
                     <!-- Form Actions -->
@@ -521,25 +439,14 @@
                         </div>
                     </div>
 
-                    <!-- Send to Patient Section -->
+                    <!-- Save Progress Notes (auto-sent to patient on save) -->
                     <div class="card mb-4" style="border: 2px solid #17a2b8; border-radius: 12px; background: linear-gradient(135deg, #f8fdfe 0%, #f0fbfc 100%);">
                         <div class="card-body">
                             <div class="row align-items-end">
-                                <div class="col-md-8">
-                                    <label class="form-label fw-bold text-info">
-                                        <i class="bi bi-send me-2"></i>Send to:
-                                    </label>
-                                    <div class="position-relative">
-                                        <input type="text" class="form-control form-control-lg" id="progressNoteSendToPatient" readonly
-                                               placeholder="Patient will be auto-selected..."
-                                               style="border: 2px solid #17a2b8; border-radius: 8px; background: white;">
-                                        <i class="bi bi-person-check position-absolute" style="right: 15px; top: 50%; transform: translateY(-50%); color: #17a2b8; font-size: 1.2rem;"></i>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
+                                <div class="col-md-12">
                                     <button type="button" class="btn btn-info btn-lg w-100" id="sendProgressNoteBtn"
                                             style="border-radius: 10px; font-weight: 600; padding: 0.75rem;">
-                                        <i class="bi bi-send-fill me-2"></i>SEND
+                                        <i class="bi bi-floppy-fill me-2"></i>Save Progress Notes
                                     </button>
                                 </div>
                             </div>
@@ -653,6 +560,7 @@
     </div>
 </div>
 
+
 <!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-sm">
@@ -723,49 +631,94 @@ function renderPatientRecords(records) {
         return;
     }
 
-    tbody.innerHTML = records.map(record => {
-        // Use the standardized format fields
-        const patientName = record.patient_name || '<span class="text-muted">N/A</span>';
-        const username = record.username || '<span class="text-muted">N/A</span>';
-
-        // Treatment/Related Info based on record type
-        let treatment = '<span class="text-muted">N/A</span>';
-        if (record.type === 'patient_record') {
-            // For patient records, check if there's service info in the data object
-            if (record.data && record.data.appointment && record.data.appointment.service) {
-                treatment = record.data.appointment.service.service_name;
-            } else {
-                treatment = record.related_info || '<span class="text-muted">N/A</span>';
-            }
-        } else {
-            // For history and progress notes, show related info
-            treatment = record.related_info || '<span class="text-muted">N/A</span>';
+    // Group records by patient (using patient_name as key)
+    const groupedRecords = {};
+    records.forEach(record => {
+        const key = record.patient_name || 'Unknown';
+        if (!groupedRecords[key]) {
+            groupedRecords[key] = {
+                patient_name: record.patient_name || 'N/A',
+                username: record.username || 'N/A',
+                patient_number: record.patient_number || 'N/A',
+                treatment: 'N/A',
+                patient_record: null,
+                patient_history: null,
+                progress_notes: null,
+                created_at: record.created_at,
+                user_id: record.user_id || record.data?.user_id || null
+            };
         }
 
-        const createdDate = new Date(record.created_at).toLocaleDateString('en-US', {
+        // Update treatment from patient_record if available
+        if (record.type === 'patient_record') {
+            groupedRecords[key].treatment = record.data?.appointment?.service?.service_name || record.related_info || 'N/A';
+            groupedRecords[key].patient_record = record;
+            groupedRecords[key].user_id = record.user_id || record.data?.user_id || groupedRecords[key].user_id;
+        } else if (record.type === 'patient_history') {
+            groupedRecords[key].patient_history = record;
+        } else if (record.type === 'progress_notes') {
+            groupedRecords[key].progress_notes = record;
+        }
+    });
+
+    // Convert to array and sort by creation date
+    const patientGroups = Object.values(groupedRecords).sort((a, b) =>
+        new Date(b.created_at) - new Date(a.created_at)
+    );
+
+    tbody.innerHTML = patientGroups.map((group, index) => {
+        const patientName = group.patient_name || '<span class="text-muted">N/A</span>';
+        const username = group.username || '<span class="text-muted">N/A</span>';
+        const treatment = group.treatment || '<span class="text-muted">N/A</span>';
+        const patientNumber = group.patient_number || '<span class="text-muted">N/A</span>';
+
+        // Get record IDs for each type - use the main patient record ID for all views
+        const recordId = group.patient_record?.id || group.patient_record?.patient_record_id || group.user_id || 'N/A';
+        const historyId = recordId; // Use same ID for history
+        const notesId = recordId; // Use same ID for notes
+
+        const createdDate = new Date(group.created_at).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'short',
             day: 'numeric'
         });
 
-        const statusBadge = record.sent_to_patient
-            ? '<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Sent</span>'
-            : '<span class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i>Pending</span>';
-
         return `
             <tr>
-                <td><span class="badge bg-primary">${record.id}</span></td>
-                <td class="fw-medium">${patientName}</td>
-                <td>${username}</td>
-                <td>${treatment}</td>
-                <td><small class="text-muted"><i class="bi bi-calendar-event me-1"></i>${createdDate}</small></td>
-                <td>${statusBadge}</td>
-                <td class="text-center">
-                    <div class="btn-group btn-group-sm">
-                        <button class="btn btn-outline-danger" onclick="confirmDeleteRecordByType(${record.id}, '${record.type}')" title="Delete">
-                            <i class="bi bi-trash"></i>
-                        </button>
+                <td class="text-center">${index + 1}</td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px; font-size: 14px;">
+                            ${patientName.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                            <div class="fw-semibold">${patientName}</div>
+                            <small class="text-muted">@${username}</small>
+                        </div>
                     </div>
+                </td>
+                <td class="text-center">
+                    <span class="badge bg-info">${treatment}</span>
+                </td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="openEditRecordModal(${recordId})" ${recordId === 'N/A' ? 'disabled' : ''}>
+                        <i class="bi bi-pencil-square me-1"></i>Edit
+                    </button>
+                </td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-outline-info" onclick="openEditHistoryModal(${historyId})" ${historyId === 'N/A' ? 'disabled' : ''}>
+                        <i class="bi bi-pencil-square me-1"></i>Edit
+                    </button>
+                </td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="openEditNotesModal(${notesId})" ${notesId === 'N/A' ? 'disabled' : ''}>
+                        <i class="bi bi-pencil-square me-1"></i>Edit
+                    </button>
+                </td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeRecord(${recordId})" ${recordId === 'N/A' ? 'disabled' : ''}>
+                        <i class="bi bi-trash me-1"></i>Delete
+                    </button>
                 </td>
             </tr>
         `;
@@ -796,44 +749,78 @@ function showNotification(message, type = 'info') {
         top: 20px;
         right: 20px;
         z-index: 9999;
-        min-width: 300px;
+        min-width: 350px;
         max-width: 500px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        border: none;
+        border-radius: 12px;
+        font-weight: 500;
+        padding: 16px 20px;
+        backdrop-filter: blur(10px);
         animation: slideInRight 0.3s ease-out;
     `;
 
     // Set icon based on type
     let icon = '';
+    let bgColor = '';
+    let textColor = '';
+    let borderColor = '';
+
     switch(type) {
         case 'success':
-            icon = '<i class="bi bi-check-circle-fill me-2"></i>';
+            icon = '<i class="bi bi-check-circle-fill me-2" style="font-size: 1.1rem;"></i>';
+            bgColor = 'rgba(25, 135, 84, 0.1)';
+            textColor = '#0f5132';
+            borderColor = 'rgba(25, 135, 84, 0.2)';
             break;
         case 'error':
         case 'danger':
-            icon = '<i class="bi bi-x-circle-fill me-2"></i>';
+            icon = '<i class="bi bi-x-circle-fill me-2" style="font-size: 1.1rem;"></i>';
+            bgColor = 'rgba(220, 53, 69, 0.1)';
+            textColor = '#842029';
+            borderColor = 'rgba(220, 53, 69, 0.2)';
             break;
         case 'warning':
-            icon = '<i class="bi bi-exclamation-triangle-fill me-2"></i>';
+            icon = '<i class="bi bi-exclamation-triangle-fill me-2" style="font-size: 1.1rem;"></i>';
+            bgColor = 'rgba(255, 193, 7, 0.1)';
+            textColor = '#664d03';
+            borderColor = 'rgba(255, 193, 7, 0.2)';
             break;
         case 'info':
-            icon = '<i class="bi bi-info-circle-fill me-2"></i>';
+        default:
+            icon = '<i class="bi bi-info-circle-fill me-2" style="font-size: 1.1rem;"></i>';
+            bgColor = 'rgba(13, 202, 240, 0.1)';
+            textColor = '#055160';
+            borderColor = 'rgba(13, 202, 240, 0.2)';
             break;
     }
 
+    notification.style.backgroundColor = bgColor;
+    notification.style.color = textColor;
+    notification.style.borderLeft = `4px solid ${borderColor}`;
+
     notification.innerHTML = `
-        ${icon}
-        <span>${message}</span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <div class="d-flex align-items-center">
+            ${icon}
+            <span style="flex: 1; line-height: 1.4;">${message}</span>
+            <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="alert" style="margin-left: 10px; opacity: 0.7;"></button>
+        </div>
     `;
 
     // Add to body
     document.body.appendChild(notification);
 
-    // Auto-remove after 5 seconds
+    // Auto-remove after 6 seconds
     setTimeout(() => {
-        notification.classList.remove('show');
-        setTimeout(() => notification.remove(), 300);
-    }, 5000);
+        if (notification.parentNode) {
+            notification.style.animation = 'slideOutRight 0.3s ease-in';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 300);
+        }
+    }, 6000);
 }
 
 // Add animation keyframes
@@ -849,6 +836,16 @@ if (!document.getElementById('notification-styles')) {
             to {
                 transform: translateX(0);
                 opacity: 1;
+            }
+        }
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
             }
         }
     `;
@@ -1015,86 +1012,70 @@ if (detailsModal) {
 }
 
 
-// Clear all files for a patient record
-function clearAllFiles(recordId) {
-    if (!confirm('Are you sure you want to clear all files for this patient record? This will remove the Patient Information Record, Patient History, and Progress Notes.')) {
-        return;
-    }
-
-    if (!confirm('This action cannot be undone. Are you absolutely sure?')) {
-        return;
-    }
-
-    // Show loading state
-    const btn = event.target;
-    const originalText = btn.textContent;
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Clearing...';
-
-    // Delete patient histories
-    fetch(`/admin/post-procedural/patient-history/${recordId}`, {
-        method: 'DELETE',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-        }
-    })
-    .then(() => {
-        // Delete progress notes
-        return fetch(`/admin/post-procedural/progress-notes/${recordId}`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            }
-        });
-    })
-    .then(() => {
-        alert('All files cleared successfully');
-        location.reload();
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        btn.disabled = false;
-        btn.textContent = originalText;
-        alert('Failed to clear all files');
-    });
-}
 
 // Remove patient record
 function removeRecord(recordId) {
-    if (!confirm('Are you sure you want to remove this patient record? This will delete the Patient Information Record and all associated data.')) {
-        return;
-    }
-
-    if (!confirm('This action cannot be undone. Are you absolutely sure?')) {
-        return;
-    }
-
-    // Show loading state
-    const btn = event.target;
-    const originalText = btn.textContent;
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Removing...';
-
-    fetch(`/admin/post-procedural/patient-record/${recordId}`, {
-        method: 'DELETE',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+    showConfirmModal(
+        'Delete Patient Record',
+        'Are you sure you want to permanently delete this patient record?<br><br><strong>This will remove:</strong><br>• Patient Information Record<br>• All Patient History entries<br>• All Progress Notes<br>• All associated data<br><br><span class="text-danger"><i class="bi bi-exclamation-triangle me-1"></i>This action cannot be undone!</span>',
+        {
+            confirmText: 'Yes, Delete All',
+            confirmClass: 'btn-danger',
+            cancelText: 'Cancel',
+            icon: 'bi-trash'
         }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Patient record removed successfully');
-            location.reload();
-        } else {
-            throw new Error(data.message || 'Failed to remove record');
+    ).then(confirmed => {
+        if (confirmed) {
+            // Show loading state
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Deleting...';
+
+            // Delete all related data in sequence
+            Promise.all([
+                // Delete patient histories
+                fetch(`/admin/post-procedural/patient-history/${recordId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    }
+                }),
+                // Delete progress notes
+                fetch(`/admin/post-procedural/progress-notes/${recordId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    }
+                }),
+                // Delete patient record
+                fetch(`/admin/post-procedural/patient-record/${recordId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    }
+                })
+            ])
+            .then(responses => {
+                // Check if all requests were successful
+                const allSuccessful = responses.every(response => response.ok);
+                if (allSuccessful) {
+                    showNotification('Patient record and all associated data deleted successfully!', 'success');
+                    loadPatientRecords();
+                } else {
+                    throw new Error('Some deletions failed');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Failed to delete patient record: ' + error.message, 'error');
+            })
+            .finally(() => {
+                // Restore button state
+                btn.disabled = false;
+                btn.textContent = originalText;
+            });
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        btn.disabled = false;
-        btn.textContent = originalText;
-        alert('Failed to remove patient record: ' + error.message);
     });
 }
 
@@ -1296,22 +1277,22 @@ function renderPatientInfoForm(record) {
             <!-- Home Address -->
             <div class="mb-3">
                 <label class="form-label fw-bold" style="color: #2c3e50;">Home Address</label>
-                <input type="text" class="form-control" name="home_address" value="${record.home_address || ''}" style="border: 1px solid #ced4da;">
+                <input type="text" class="form-control" id="homeAddress" name="home_address" value="${record.home_address || ''}" style="border: 1px solid #ced4da;">
             </div>
 
             <!-- Date of birth, Age, Sex, Nickname -->
             <div class="row g-3 mb-3">
                 <div class="col-md-3">
                     <label class="form-label fw-bold" style="color: #2c3e50;">Date of birth</label>
-                    <input type="date" class="form-control" name="date_of_birth" value="${record.date_of_birth || ''}" style="border: 1px solid #ced4da;">
+                    <input type="date" class="form-control" id="dateOfBirth" name="date_of_birth" value="${record.date_of_birth ? formatDateForInput(record.date_of_birth) : ''}" style="border: 1px solid #ced4da;">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label fw-bold" style="color: #2c3e50;">Age <span class="text-muted fw-normal" style="font-size: 0.75rem;">(auto-calculated)</span></label>
-                    <input type="number" class="form-control" name="age" value="${record.age || ''}" readonly style="background: #e9ecef; border: 1px solid #ced4da;">
+                    <input type="number" class="form-control" id="age" name="age" value="${record.age || ''}" readonly style="background: #e9ecef; border: 1px solid #ced4da;">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label fw-bold" style="color: #2c3e50;">Sex</label>
-                    <select class="form-select" name="sex" style="border: 1px solid #ced4da;">
+                    <select class="form-select" id="sex" name="sex" style="border: 1px solid #ced4da;">
                         <option value="" ${!record.sex ? 'selected' : ''}>Select...</option>
                         <option value="Male" ${record.sex === 'Male' ? 'selected' : ''}>Male</option>
                         <option value="Female" ${record.sex === 'Female' ? 'selected' : ''}>Female</option>
@@ -1319,7 +1300,7 @@ function renderPatientInfoForm(record) {
                 </div>
                 <div class="col-md-3">
                     <label class="form-label fw-bold" style="color: #2c3e50;">Nickname</label>
-                    <input type="text" class="form-control" name="nickname" value="${record.nickname || ''}" style="border: 1px solid #ced4da;">
+                    <input type="text" class="form-control" id="nickname" name="nickname" value="${record.nickname || ''}" style="border: 1px solid #ced4da;">
                 </div>
             </div>
 
@@ -1327,15 +1308,15 @@ function renderPatientInfoForm(record) {
             <div class="row g-3 mb-4">
                 <div class="col-md-4">
                     <label class="form-label fw-bold" style="color: #2c3e50;">Religion</label>
-                    <input type="text" class="form-control" name="religion" value="${record.religion || ''}" style="border: 1px solid #ced4da;">
+                    <input type="text" class="form-control" id="religion" name="religion" value="${record.religion || ''}" style="border: 1px solid #ced4da;">
                 </div>
                 <div class="col-md-4">
                     <label class="form-label fw-bold" style="color: #2c3e50;">Occupation</label>
-                    <input type="text" class="form-control" name="occupation" value="${record.occupation || ''}" style="border: 1px solid #ced4da;">
+                    <input type="text" class="form-control" id="occupation" name="occupation" value="${record.occupation || ''}" style="border: 1px solid #ced4da;">
                 </div>
                 <div class="col-md-4">
                     <label class="form-label fw-bold" style="color: #2c3e50;">Contact</label>
-                    <input type="text" class="form-control" name="contact" value="${record.contact || ''}" style="border: 1px solid #ced4da;">
+                    <input type="text" class="form-control" id="contact" name="contact" value="${record.contact || ''}" style="border: 1px solid #ced4da;">
                 </div>
             </div>
 
@@ -1346,16 +1327,16 @@ function renderPatientInfoForm(record) {
                 </h6>
                 <div class="mb-3">
                     <label class="form-label fw-bold" style="color: #2c3e50;">Parent/Guardian's Name</label>
-                    <input type="text" class="form-control" name="guardian_name" value="${record.guardian_name || ''}" style="border: 1px solid #ced4da;">
+                    <input type="text" class="form-control" id="guardianName" name="guardian_name" value="${record.guardian_name || ''}" style="border: 1px solid #ced4da;">
                 </div>
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label fw-bold" style="color: #2c3e50;">Contact No.</label>
-                        <input type="text" class="form-control" name="guardian_contact" value="${record.guardian_contact || ''}" style="border: 1px solid #ced4da;">
+                        <input type="text" class="form-control" id="guardianContact" name="guardian_contact" value="${record.guardian_contact || ''}" style="border: 1px solid #ced4da;">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-bold" style="color: #2c3e50;">Occupation</label>
-                        <input type="text" class="form-control" name="guardian_occupation" value="${record.guardian_occupation || ''}" style="border: 1px solid #ced4da;">
+                        <input type="text" class="form-control" id="guardianOccupation" name="guardian_occupation" value="${record.guardian_occupation || ''}" style="border: 1px solid #ced4da;">
                     </div>
                 </div>
             </div>
@@ -1363,7 +1344,7 @@ function renderPatientInfoForm(record) {
             <!-- Other Notes -->
             <div class="mb-3">
                 <label class="form-label fw-bold" style="color: #2c3e50;">Other Notes:</label>
-                <textarea class="form-control" name="notes" rows="3" style="border: 1px solid #ced4da;">${record.notes || ''}</textarea>
+                <textarea class="form-control" id="notes" name="notes" rows="3" style="border: 1px solid #ced4da;">${record.notes || ''}</textarea>
             </div>
 
             <!-- Patient Assignment Info (Hidden) -->
@@ -2590,6 +2571,236 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// Helper: open modal with tabs populated (same design as sections)
+function openDetailsTabsModal(activeTab) {
+    const modalEl = document.getElementById('detailsModal');
+    if (!modalEl) return;
+
+    // Show tabs layout, hide inline edit mode, hide Save button
+    const tabsEl = document.getElementById('modalTabs');
+    const viewMode = document.getElementById('viewModeContent');
+    const editMode = document.getElementById('editModeContent');
+    const saveBtn = document.getElementById('saveBtn');
+
+    if (tabsEl) tabsEl.classList.remove('d-none');
+    if (viewMode) viewMode.classList.remove('d-none');
+    if (editMode) editMode.innerHTML = '';
+    if (saveBtn) saveBtn.style.display = 'none';
+
+    const titleEl = document.getElementById('modalTitle');
+    if (titleEl) titleEl.innerHTML = '<i class="bi bi-file-medical me-2"></i>Patient Details';
+
+    // Activate requested tab
+    const tabId = activeTab === 'history' ? 'patient-history-tab' : activeTab === 'notes' ? 'progress-notes-tab' : 'patient-record-tab';
+    const tabBtn = document.getElementById(tabId);
+    if (tabBtn) {
+        const tab = new bootstrap.Tab(tabBtn);
+        tab.show();
+    }
+
+    new bootstrap.Modal(modalEl).show();
+}
+
+// Load all sections for a record and show in tabs
+function loadAndShowRecordTabs(recordId, activeTab = 'record') {
+    // Clear previous content
+    const pr = document.getElementById('patient-record-content');
+    const ph = document.getElementById('patient-history-content');
+    const pn = document.getElementById('progress-notes-content');
+    if (pr) pr.innerHTML = '<div class="p-3 text-muted">Loading record...</div>';
+    if (ph) ph.innerHTML = '<div class="p-3 text-muted">Loading history...</div>';
+    if (pn) pn.innerHTML = '<div class="p-3 text-muted">Loading notes...</div>';
+
+    // Fetch all in parallel
+    Promise.all([
+        fetch(`/admin/post-procedural/patient-record/${recordId}`).then(r => r.json()).catch(() => null),
+        fetch(`/admin/post-procedural/patient-history/${recordId}`).then(r => r.json()).catch(() => null),
+        fetch(`/admin/post-procedural/progress-notes/${recordId}`).then(r => r.json()).catch(() => null)
+    ]).then(([recordRes, historyRes, notesRes]) => {
+        try {
+            // Be resilient to various response shapes
+            const record = (recordRes && (recordRes.data || recordRes.record || recordRes.patient_record)) || (typeof recordRes === 'object' ? recordRes : null);
+            if (pr) {
+                if (record) {
+                    // Render the full Patient Record form layout and make it read-only to match section design
+                    pr.innerHTML = renderPatientInfoForm(record);
+                    // Populate fields with existing data
+                    try { if (typeof populateFormWithData === 'function') populateFormWithData(record); } catch (e) { /* ignore */ }
+                    // Make all inputs read-only/disabled inside this tab
+                    makeContainerReadOnly(pr);
+                } else {
+                    pr.innerHTML = '<div class="p-3 text-danger">Unable to load patient record.</div>';
+                }
+            }
+        } catch (e) {
+            if (pr) pr.innerHTML = '<div class="p-3 text-danger">Error rendering patient record.</div>';
+        }
+
+        try {
+            const histories = (historyRes && (historyRes.data || historyRes.histories)) || (Array.isArray(historyRes) ? historyRes : []);
+            if (ph) {
+                const list = Array.isArray(histories) ? histories : [];
+                if (list.length > 0) {
+                    // Render the same full medical history form and fill with the latest record
+                    const latest = list[0] || {};
+                    ph.innerHTML = renderMedicalHistoryFormOnly();
+                    try { if (typeof populateMedicalHistoryFormWithData === 'function') populateMedicalHistoryFormWithData(ph, latest); } catch (e) { /* ignore */ }
+                    makeContainerReadOnly(ph);
+                } else {
+                    // Fallback to view list if no single history exists
+                    ph.innerHTML = renderPatientHistoryView([]);
+                }
+            }
+        } catch (e) {
+            if (ph) ph.innerHTML = '<div class="p-3 text-danger">Error rendering patient history.</div>';
+        }
+
+        try {
+            const notes = notesRes && (notesRes.data || []);
+            if (pn) {
+                pn.innerHTML = renderProgressNotesView(notes || []);
+            }
+        } catch (e) {
+            if (pn) pn.innerHTML = '<div class="p-3 text-danger">Error rendering progress notes.</div>';
+        }
+
+        openDetailsTabsModal(activeTab);
+    }).catch(err => {
+        console.error('Error loading modal data:', err);
+        showNotification('Error loading patient details', 'danger');
+    });
+}
+
+// Button handlers to open modal with correct active tab
+function viewPatientRecordTab(recordId) {
+    loadAndShowRecordTabs(recordId, 'record');
+}
+function viewPatientHistoryTab(recordId) {
+    loadAndShowRecordTabs(recordId, 'history');
+}
+function viewProgressNotesTab(recordId) {
+    loadAndShowRecordTabs(recordId, 'notes');
+}
+
+
+
+
+
+// Utility: make all inputs in a container read-only/disabled for view mode
+function makeContainerReadOnly(container) {
+    if (!container) return;
+    container.querySelectorAll('input, textarea, select, button').forEach(el => {
+        const tag = el.tagName.toLowerCase();
+        if (tag === 'button') {
+            // Hide action buttons within the rendered form when viewing
+            el.style.display = 'none';
+            return;
+        }
+        if (tag === 'select') {
+            el.disabled = true;
+        } else if (tag === 'input' || tag === 'textarea') {
+            // Keep visual style but prevent editing
+            el.readOnly = true;
+            // Also disable interactive inputs like checkboxes/radios/date
+            if (['checkbox', 'radio', 'date', 'time', 'datetime-local'].includes(el.type)) {
+                el.disabled = true;
+            }
+        }
+        // Subtle visual cue for read-only state
+        el.classList.add('bg-light');
+    });
+}
+
+// Helper function to format date for HTML date input (YYYY-MM-DD)
+function formatDateForInput(dateString) {
+    if (!dateString) return '';
+    try {
+        // Handle various date formats including ISO with timezone
+        let date;
+        if (typeof dateString === 'string') {
+            // Remove timezone info if present and parse
+            const cleanDate = dateString.split('T')[0]; // Get just the date part
+            date = new Date(cleanDate + 'T00:00:00'); // Add time to avoid timezone issues
+        } else {
+            date = new Date(dateString);
+        }
+
+        if (isNaN(date.getTime())) {
+            return '';
+        }
+
+        const formatted = date.toISOString().split('T')[0];
+        return formatted;
+    } catch (e) {
+        return '';
+    }
+}
+
+// Fill the Patient Medical History form inputs with a history object
+function populateMedicalHistoryFormWithData(container, h) {
+    if (!container || !h) return;
+    const q = (name) => container.querySelector(`[name="${name}"]`);
+
+    // Dental history
+    if (q('previous_dentist')) q('previous_dentist').value = h.previous_dentist || '';
+    if (q('last_dental_visit')) q('last_dental_visit').value = h.last_dental_visit ? formatDateForInput(h.last_dental_visit) : '';
+    if (q('treatment_done')) q('treatment_done').value = h.treatment_done || '';
+
+    // Medical history
+    if (q('physician_name')) q('physician_name').value = h.physician_name || '';
+    if (q('physician_specialty')) q('physician_specialty').value = h.physician_specialty || '';
+    if (q('physician_office_address')) q('physician_office_address').value = h.physician_office_address || '';
+    if (q('physician_contact')) q('physician_contact').value = h.physician_contact || '';
+
+    // Health questions
+    const setRadio = (name, val) => {
+        if (val === undefined || val === null) return;
+        const normalized = typeof val === 'string' ? val.toLowerCase() : (val === true ? 'yes' : val === false ? 'no' : String(val).toLowerCase());
+        const input = container.querySelector(`input[name="${name}"][value="${normalized}"]`);
+        if (input) input.checked = true;
+    };
+    setRadio('good_health', h.good_health);
+    setRadio('under_treatment', h.under_treatment);
+    if (q('treatment_condition')) q('treatment_condition').value = h.treatment_condition || '';
+    setRadio('serious_illness', h.serious_illness);
+    if (q('illness_details')) q('illness_details').value = h.illness_details || '';
+    setRadio('been_hospitalized', h.been_hospitalized);
+    if (q('hospitalization_reason')) q('hospitalization_reason').value = h.hospitalization_reason || '';
+    setRadio('taking_drugs', h.taking_drugs);
+    if (q('medications')) q('medications').value = h.medications || '';
+    if (q('tobacco_use')) q('tobacco_use').value = h.tobacco_use || '';
+    if (q('alcohol_use')) q('alcohol_use').value = h.alcohol_use || '';
+    if (q('recreational_drugs')) q('recreational_drugs').value = h.recreational_drugs || '';
+
+    // Allergies (checkboxes + details)
+    const setCheck = (name, val) => {
+        const cb = q(name);
+        if (cb) cb.checked = !!(val === 1 || val === true || val === '1' || (typeof val === 'string' && val.toLowerCase() === 'yes'));
+    };
+    setCheck('allergy_anesthesia', h.allergy_anesthesia);
+    setCheck('allergy_sulfa', h.allergy_sulfa);
+    setCheck('allergy_antibiotics', h.allergy_antibiotics);
+    setCheck('allergy_aspirin', h.allergy_aspirin);
+    setCheck('allergy_analgesics', h.allergy_analgesics);
+    setCheck('allergy_latex', h.allergy_latex);
+    if (q('food_allergy_details')) q('food_allergy_details').value = h.food_allergy_details || '';
+    if (q('other_allergy_details')) q('other_allergy_details').value = h.other_allergy_details || '';
+
+    // For women
+    setRadio('is_pregnant', h.is_pregnant);
+    setRadio('is_nursing', h.is_nursing);
+    setRadio('birth_control', h.birth_control);
+
+    // Procedure details
+    if (q('visit_date')) q('visit_date').value = h.visit_date ? formatDateForInput(h.visit_date) : '';
+    if (q('anesthesia_used')) q('anesthesia_used').value = h.anesthesia_used || '';
+    if (q('procedure_performed')) q('procedure_performed').value = h.procedure_performed || '';
+    if (q('materials_used')) q('materials_used').value = h.materials_used || '';
+    if (q('complications')) q('complications').value = h.complications || '';
+    if (q('post_operative_instructions')) q('post_operative_instructions').value = h.post_operative_instructions || '';
+    if (q('follow_up_notes')) q('follow_up_notes').value = h.follow_up_notes || '';
+}
+
 // Legacy functions kept for modal compatibility (auto-assign now)
 function searchPatients(searchTerm) {
     // Not used anymore - patient is automatically assigned
@@ -3117,6 +3328,27 @@ function populateFormWithData(record) {
     const form = document.getElementById('patientInfoForm');
     if (!form) return;
 
+    // Set basic fields
+    if (document.getElementById('homeAddress')) document.getElementById('homeAddress').value = record.home_address || '';
+
+    // Set date of birth
+    const dateOfBirthElement = document.getElementById('dateOfBirth');
+    if (dateOfBirthElement) {
+        const formattedDate = record.date_of_birth ? formatDateForInput(record.date_of_birth) : '';
+        dateOfBirthElement.value = formattedDate;
+    }
+
+    if (document.getElementById('age')) document.getElementById('age').value = record.age || '';
+    if (document.getElementById('sex')) document.getElementById('sex').value = record.sex || '';
+    if (document.getElementById('nickname')) document.getElementById('nickname').value = record.nickname || '';
+    if (document.getElementById('religion')) document.getElementById('religion').value = record.religion || '';
+    if (document.getElementById('occupation')) document.getElementById('occupation').value = record.occupation || '';
+    if (document.getElementById('contact')) document.getElementById('contact').value = record.contact || '';
+    if (document.getElementById('guardianName')) document.getElementById('guardianName').value = record.guardian_name || '';
+    if (document.getElementById('guardianContact')) document.getElementById('guardianContact').value = record.guardian_contact || '';
+    if (document.getElementById('guardianOccupation')) document.getElementById('guardianOccupation').value = record.guardian_occupation || '';
+    if (document.getElementById('notes')) document.getElementById('notes').value = record.notes || '';
+
     // Parse health questions
     let healthQuestions = {};
     try {
@@ -3186,7 +3418,7 @@ function savePatientRecordFromTab() {
         guardian_name: document.getElementById('guardianName').value,
         guardian_contact: document.getElementById('guardianContact').value,
         guardian_occupation: document.getElementById('guardianOccupation').value,
-        notes: document.getElementById('otherNotes').value
+        notes: document.getElementById('notes').value
     };
 
     // Check if patient is selected in "Sent to"
@@ -3257,7 +3489,7 @@ function sendRecordToPatient() {
         guardian_name: document.getElementById('guardianName').value,
         guardian_contact: document.getElementById('guardianContact').value,
         guardian_occupation: document.getElementById('guardianOccupation').value,
-        notes: document.getElementById('otherNotes').value,
+        notes: document.getElementById('notes').value,
         sent_to_patient: true
     };
 
@@ -3468,7 +3700,9 @@ async function addNewPatientHistory(recordId) {
             loadPatientRecords();
 
             // Refresh modal to show new history
-            editPatientInfo(window.currentEditingRecordId);
+            if (typeof editPatientInfo === 'function') {
+                editPatientInfo(window.currentEditingRecordId);
+            }
         } else {
             showNotification('Failed to add patient history: ' + (result.message || 'Unknown error'), 'error');
         }
@@ -3566,7 +3800,9 @@ async function savePatientHistory(historyId, recordId) {
             loadPatientRecords();
 
             // Refresh modal to show updated history
-            editPatientInfo(recordId);
+            if (typeof editPatientInfo === 'function') {
+                editPatientInfo(recordId);
+            }
         } else {
             showNotification('Failed to update patient history: ' + (result.message || 'Unknown error'), 'error');
         }
@@ -3609,7 +3845,9 @@ async function deletePatientHistory(historyId) {
             loadPatientRecords();
 
             // Refresh modal to show updated history
-            editPatientInfo(window.currentEditingRecordId);
+            if (typeof editPatientInfo === 'function') {
+                editPatientInfo(window.currentEditingRecordId);
+            }
         } else {
             showNotification('Failed to delete patient history: ' + (result.message || 'Unknown error'), 'error');
         }
@@ -3658,7 +3896,9 @@ function addNewProgressNote(recordId) {
             loadPatientRecords();
 
             // Refresh modal to show new note
-            editPatientInfo(window.currentEditingRecordId);
+            if (typeof editPatientInfo === 'function') {
+                editPatientInfo(window.currentEditingRecordId);
+            }
         } else {
             showNotification('Failed to add progress note', 'error');
         }
@@ -3699,7 +3939,7 @@ function saveProgressNote(noteId, recordId) {
             loadPatientRecords();
 
             // Refresh modal to show updated note
-            if (window.currentEditingRecordId) {
+            if (window.currentEditingRecordId && typeof editPatientInfo === 'function') {
                 editPatientInfo(window.currentEditingRecordId);
             }
         } else {
@@ -3737,7 +3977,9 @@ async function deleteProgressNote(noteId) {
             loadPatientRecords();
 
             // Refresh modal to show updated notes
-            editPatientInfo(window.currentEditingRecordId);
+            if (typeof editPatientInfo === 'function') {
+                editPatientInfo(window.currentEditingRecordId);
+            }
         } else {
             showNotification('Failed to delete progress note', 'error');
         }
@@ -4793,7 +5035,10 @@ async function saveMedicalHistoryFormFromTab() {
     const formData = new FormData(form);
 
     // Determine if we're in modal context (editing a patient) or standalone tab
-    const isModalContext = window.currentEditingRecordId && document.getElementById('detailsModal').classList.contains('show');
+    const isModalContext = !!(window.currentEditingRecordId && (
+        (document.getElementById('detailsModal') && document.getElementById('detailsModal').classList.contains('show')) ||
+        (document.getElementById('editHistoryModal') && document.getElementById('editHistoryModal').classList.contains('show'))
+    ));
 
     // Validate patient is selected (only for standalone tab, not modal)
     if (!isModalContext && (!selectedHistoryPatient || !selectedHistoryPatient.id)) {
@@ -4890,9 +5135,12 @@ async function saveMedicalHistoryFormFromTab() {
 
             // If in modal context, refresh the patient info to show new history
             if (isModalContext) {
-                editPatientInfo(window.currentEditingRecordId);
+                if (typeof editPatientInfo === 'function') {
+                    editPatientInfo(window.currentEditingRecordId);
+                }
                 // Switch to Patient History tab to show the new record
-                document.getElementById('patient-history-tab').click();
+                const historyTab = document.getElementById('patient-history-tab');
+                if (historyTab) historyTab.click();
             } else {
                 // Standalone tab - clear the form WITHOUT confirmation (skipConfirmation = true)
                 clearMedicalHistoryForm(true);
@@ -5703,6 +5951,351 @@ function initializeProgressNotesSearch() {
                 showNotification('❌ Error sending progress notes', 'danger');
             });
         });
+    }
+}
+
+// Utility: create and show a Bootstrap modal dynamically
+function createAndShowModal(modalId, title, bodyHtml, footerHtml, dialogClass = '') {
+    // Remove existing modal if present
+    const existing = document.getElementById(modalId);
+    if (existing) existing.remove();
+
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = `
+        <div class="modal fade" id="${modalId}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog ${dialogClass}">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">${title}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body" id="${modalId}-body">
+                        ${bodyHtml || ''}
+                    </div>
+                    <div class="modal-footer" id="${modalId}-footer">
+                        ${footerHtml || ''}
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    document.body.appendChild(wrapper.firstElementChild);
+    const modalEl = document.getElementById(modalId);
+    const modal = new bootstrap.Modal(modalEl);
+    modal.show();
+    return modal;
+}
+
+// Utility: make all inputs editable within container
+function makeContainerEditable(container) {
+    if (!container) return;
+    container.querySelectorAll('input, select, textarea, button').forEach(el => {
+        el.removeAttribute('readonly');
+        el.removeAttribute('disabled');
+    });
+}
+
+// Open separate edit modal: Patient Record
+function openEditRecordModal(recordId) {
+    if (!recordId || recordId === 'N/A') return;
+    window.currentEditingRecordId = recordId;
+
+    const loading = '<div class="text-center p-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 text-muted">Loading Patient Record...</p></div>';
+    const modal = createAndShowModal('editRecordModal', 'Edit Patient Information Record', loading, `
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="save-record-btn">Save Changes</button>
+    `, 'modal-xl');
+
+    fetch(`/admin/post-procedural/patient-record/${recordId}`)
+        .then(r => r.json())
+        .then(res => {
+            const container = document.getElementById('editRecordModal-body');
+            if (res && res.success && res.data) {
+                const record = res.data;
+                if (typeof renderPatientInfoForm === 'function') {
+                    container.innerHTML = renderPatientInfoForm(record);
+                } else {
+                    container.innerHTML = '<div class="alert alert-info">Form renderer missing. Please fill from main tab.</div>';
+                }
+                makeContainerEditable(container);
+
+                const saveBtn = document.getElementById('save-record-btn');
+                if (saveBtn && typeof savePatientRecordForm === 'function') {
+                    saveBtn.onclick = async function() {
+                        await savePatientRecordForm(() => {
+                            modal.hide();
+                            loadPatientRecords();
+                        });
+                    };
+                }
+            } else {
+                container.innerHTML = '<div class="alert alert-danger">Unable to load patient record.</div>';
+            }
+        })
+        .catch(() => {
+            const container = document.getElementById('editRecordModal-body');
+            if (container) container.innerHTML = '<div class="alert alert-danger">Error loading patient record.</div>';
+        });
+}
+
+// Open separate edit modal: Patient History
+function openEditHistoryModal(recordId) {
+    if (!recordId || recordId === 'N/A') return;
+    window.currentEditingRecordId = recordId;
+
+    const loading = '<div class="text-center p-4"><div class="spinner-border text-info" role="status"></div><p class="mt-2 text-muted">Loading Patient History...</p></div>';
+    const modal = createAndShowModal('editHistoryModal', 'Edit Patient History', loading, `
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-info text-white" id="save-history-btn">Save Changes</button>
+    `, 'modal-xl');
+
+    fetch(`/admin/post-procedural/patient-history/${recordId}`)
+        .then(r => r.json())
+        .then(res => {
+            const container = document.getElementById('editHistoryModal-body');
+            // Always render the form skeleton
+            if (typeof renderMedicalHistoryFormOnly === 'function') {
+                // Temporarily rename the page container to avoid duplicate-id targeting
+                const pageContainer = document.getElementById('medicalHistoryFormContainer');
+                if (pageContainer) pageContainer.id = 'medicalHistoryFormContainer__page';
+
+                // Create modal-local container with the expected id
+                container.innerHTML = '<div id="medicalHistoryFormContainer"></div>';
+                renderMedicalHistoryFormOnly();
+
+                // After rendering, rename modal container to avoid future collisions and restore page id
+                const modalInner = document.getElementById('medicalHistoryFormContainer');
+                if (modalInner) modalInner.id = 'medicalHistoryFormContainer__modal';
+                if (pageContainer) pageContainer.id = 'medicalHistoryFormContainer';
+            } else {
+                container.innerHTML = '<div class="alert alert-info">Form renderer missing. Please fill from main tab.</div>';
+            }
+
+            // Hide the form's action buttons since we have modal buttons
+            const formActionButtons = container.querySelector('.mt-4.pt-3');
+            if (formActionButtons) {
+                formActionButtons.style.display = 'none';
+            }
+
+            // Populate if data exists
+            const histories = (res && res.data) ? (Array.isArray(res.data) ? res.data : [res.data]) : [];
+            const latest = histories[0] || {};
+            if (typeof populateMedicalHistoryFormWithData === 'function') {
+                const inner = container; // scope within modal
+                populateMedicalHistoryFormWithData(inner, latest);
+            }
+
+            makeContainerEditable(container);
+
+            const saveBtn = document.getElementById('save-history-btn');
+            if (saveBtn) {
+                saveBtn.onclick = async function() {
+                    // Get the form data
+                    const form = document.getElementById('medicalHistoryForm');
+                    if (!form) {
+                        showNotification('Form not found', 'error');
+                        return;
+                    }
+
+                    const formData = new FormData(form);
+
+                    // Check if we have existing history data to update
+                    const hasExistingHistory = histories.length > 0;
+                    const historyId = hasExistingHistory ? histories[0].id : null;
+
+                    // Build the data object
+                    const data = {
+                        patient_record_id: recordId,
+                        visit_date: formData.get('visit_date'),
+                        // Dental History
+                        previous_dentist: formData.get('previous_dentist'),
+                        last_dental_visit: formData.get('last_dental_visit'),
+                        treatment_done: formData.get('treatment_done'),
+                        // Medical History
+                        physician_name: formData.get('physician_name'),
+                        physician_specialty: formData.get('physician_specialty'),
+                        physician_office_address: formData.get('physician_office_address'),
+                        physician_contact: formData.get('physician_contact'),
+                        // Health questions
+                        good_health: formData.get('good_health'),
+                        under_treatment: formData.get('under_treatment'),
+                        treatment_condition: formData.get('treatment_condition'),
+                        serious_illness: formData.get('serious_illness'),
+                        illness_details: formData.get('illness_details'),
+                        been_hospitalized: formData.get('been_hospitalized'),
+                        hospitalization_reason: formData.get('hospitalization_reason'),
+                        taking_drugs: formData.get('taking_drugs'),
+                        medications: formData.get('medications'),
+                        tobacco_use: formData.get('tobacco_use'),
+                        alcohol_use: formData.get('alcohol_use'),
+                        recreational_drugs: formData.get('recreational_drugs'),
+                        // Allergies
+                        allergy_anesthesia: formData.get('allergy_anesthesia') ? 1 : 0,
+                        allergy_sulfa: formData.get('allergy_sulfa') ? 1 : 0,
+                        allergy_antibiotics: formData.get('allergy_antibiotics') ? 1 : 0,
+                        allergy_aspirin: formData.get('allergy_aspirin') ? 1 : 0,
+                        allergy_analgesics: formData.get('allergy_analgesics') ? 1 : 0,
+                        allergy_latex: formData.get('allergy_latex') ? 1 : 0,
+                        food_allergy_details: formData.get('food_allergy_details'),
+                        other_allergy_details: formData.get('other_allergy_details'),
+                        // For women
+                        is_pregnant: formData.get('is_pregnant'),
+                        is_nursing: formData.get('is_nursing'),
+                        birth_control: formData.get('birth_control'),
+                        // Procedure details
+                        anesthesia_used: formData.get('anesthesia_used'),
+                        procedure_performed: formData.get('procedure_performed'),
+                        materials_used: formData.get('materials_used'),
+                        complications: formData.get('complications'),
+                        post_operative_instructions: formData.get('post_operative_instructions'),
+                        follow_up_notes: formData.get('follow_up_notes')
+                    };
+
+                    try {
+                        let response;
+                        if (hasExistingHistory && historyId) {
+                            // Update existing history
+                            response = await fetch(`/admin/post-procedural/patient-history/${historyId}`, {
+                                method: 'PUT',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                                },
+                                body: JSON.stringify(data)
+                            });
+                        } else {
+                            // Create new history
+                            response = await fetch('/admin/post-procedural/patient-history', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                                },
+                                body: JSON.stringify(data)
+                            });
+                        }
+
+                        const result = await response.json();
+                        if (result.success) {
+                            showNotification(hasExistingHistory ? 'Patient history updated successfully!' : 'Patient history saved successfully!', 'success');
+                            modal.hide();
+                            loadPatientRecords();
+                        } else {
+                            showNotification('Failed to save patient history: ' + (result.message || 'Unknown error'), 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error saving patient history:', error);
+                        showNotification('Error saving patient history', 'error');
+                    }
+                };
+            }
+        })
+        .catch(() => {
+            const container = document.getElementById('editHistoryModal-body');
+            if (container) container.innerHTML = '<div class="alert alert-danger">Error loading patient history.</div>';
+        });
+}
+
+// Open separate edit modal: Progress Notes
+function openEditNotesModal(recordId) {
+    if (!recordId || recordId === 'N/A') return;
+    window.currentEditingRecordId = recordId;
+
+    const formHtml = `
+        <form id="edit-notes-form">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Date</label>
+                    <input type="date" class="form-control" name="note_date" required>
+                </div>
+                <div class="col-md-8">
+                    <label class="form-label">Description</label>
+                    <input type="text" class="form-control" name="progress_description" placeholder="Description">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Treatment Response</label>
+                    <input type="text" class="form-control" name="treatment_response" placeholder="Response">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Next Steps</label>
+                    <input type="text" class="form-control" name="next_steps" placeholder="Next steps">
+                </div>
+            </div>
+        </form>`;
+
+    const modal = createAndShowModal('editNotesModal', 'Edit Progress Notes', formHtml, `
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-secondary" id="save-notes-btn">Save Note</button>
+    `, 'modal-lg');
+
+    // Preload latest note values and check if we have existing notes
+    let existingNotes = [];
+    let latestNoteId = null;
+
+    fetch(`/admin/post-procedural/progress-notes/${recordId}`)
+        .then(r => r.json())
+        .then(res => {
+            existingNotes = (res && res.data) ? (Array.isArray(res.data) ? res.data : [res.data]) : [];
+            const latest = existingNotes[0] || {};
+            latestNoteId = latest.id || null;
+
+            const form = document.getElementById('edit-notes-form');
+            form.note_date.value = latest.note_date ? formatDateForInput(latest.note_date) : '';
+            form.progress_description.value = latest.progress_description || '';
+            form.treatment_response.value = latest.treatment_response || '';
+            form.next_steps.value = latest.next_steps || '';
+        })
+        .catch(() => {});
+
+    const saveBtn = document.getElementById('save-notes-btn');
+    if (saveBtn) {
+        saveBtn.onclick = async function() {
+            const form = document.getElementById('edit-notes-form');
+            const payload = {
+                patient_record_id: recordId,
+                note_date: form.note_date.value,
+                progress_description: form.progress_description.value,
+                treatment_response: form.treatment_response.value,
+                next_steps: form.next_steps.value
+            };
+
+            try {
+                let res;
+                if (existingNotes.length > 0 && latestNoteId) {
+                    // Update existing note
+                    res = await fetch(`/admin/post-procedural/progress-notes/${latestNoteId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                } else {
+                    // Create new note
+                    res = await fetch('/admin/post-procedural/progress-notes', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                }
+
+                const json = await res.json();
+                if (json && json.success) {
+                    showNotification(existingNotes.length > 0 ? 'Progress note updated successfully!' : 'Progress note saved successfully!', 'success');
+                    modal.hide();
+                    loadPatientRecords();
+                } else {
+                    showNotification('Failed to save note', 'error');
+                }
+            } catch (e) {
+                showNotification('Error saving note', 'error');
+            }
+        };
     }
 }
 

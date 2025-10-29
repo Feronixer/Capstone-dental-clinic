@@ -32,9 +32,15 @@ class PostProceduralController extends Controller
     public function getRecords()
     {
         try {
-            $patientRecords = PatientRecord::with(['user.info', 'appointment.service'])->get()->map([$this, 'mapPatientRecord']);
-            $patientHistories = PatientHistory::with(['patientRecord.user.info'])->get()->map([$this, 'mapPatientHistory']);
-            $progressNotes = ProgressNote::with(['patientRecord.user.info'])->get()->map([$this, 'mapProgressNote']);
+            $patientRecords = PatientRecord::with(['user.info', 'appointment.service'])->get()->map(function($record) {
+                return $this->mapPatientRecord($record);
+            });
+            $patientHistories = PatientHistory::with(['patientRecord.user.info'])->get()->map(function($history) {
+                return $this->mapPatientHistory($history);
+            });
+            $progressNotes = ProgressNote::with(['patientRecord.user.info'])->get()->map(function($note) {
+                return $this->mapProgressNote($note);
+            });
 
             $allRecords = $patientRecords->concat($patientHistories)->concat($progressNotes)->sortByDesc('created_at')->values();
 
@@ -428,6 +434,35 @@ class PostProceduralController extends Controller
     }
 
     /**
+     * Get patient record by record ID
+     */
+    public function getPatientRecord($recordId)
+    {
+        try {
+            $record = PatientRecord::with(['user.info', 'appointment.service', 'progressNotes', 'patientHistories'])
+                ->find($recordId);
+
+            if ($record) {
+                return response()->json([
+                    'success' => true,
+                    'data' => $record
+                ]);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Patient record not found'
+            ], 404);
+        } catch (\Exception $e) {
+            \Log::error('Error fetching patient record: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching patient record'
+            ], 500);
+        }
+    }
+
+    /**
      * Get patient history
      */
     public function getPatientHistory($recordId)
@@ -613,6 +648,146 @@ class PostProceduralController extends Controller
         }
     }
 
+    public function updatePatientHistory(Request $request, $id)
+    {
+        try {
+            \Log::info('Update Patient History Request', $request->all());
+
+            $validator = Validator::make($request->all(), [
+                'patient_record_id' => 'required|exists:patient_records,id',
+                'visit_date' => 'required|date',
+                // Dental History
+                'previous_dentist' => 'nullable|string|max:255',
+                'last_dental_visit' => 'nullable|date',
+                'treatment_done' => 'nullable|string',
+                // Medical History
+                'physician_name' => 'nullable|string|max:255',
+                'physician_specialty' => 'nullable|string|max:255',
+                'physician_office_address' => 'nullable|string',
+                'physician_contact' => 'nullable|string|max:20',
+                // Health questions
+                'good_health' => 'nullable|in:yes,no',
+                'under_treatment' => 'nullable|in:yes,no',
+                'treatment_condition' => 'nullable|string',
+                'serious_illness' => 'nullable|in:yes,no',
+                'illness_details' => 'nullable|string',
+                'been_hospitalized' => 'nullable|in:yes,no',
+                'hospitalization_reason' => 'nullable|string',
+                'taking_drugs' => 'nullable|in:yes,no',
+                'medications' => 'nullable|string',
+                'tobacco_use' => 'nullable|in:yes,no',
+                'alcohol_use' => 'nullable|in:yes,no',
+                'recreational_drugs' => 'nullable|in:yes,no',
+                // Allergies
+                'allergy_anesthesia' => 'nullable|boolean',
+                'allergy_sulfa' => 'nullable|boolean',
+                'allergy_antibiotics' => 'nullable|boolean',
+                'allergy_aspirin' => 'nullable|boolean',
+                'allergy_analgesics' => 'nullable|boolean',
+                'allergy_latex' => 'nullable|boolean',
+                'food_allergy_details' => 'nullable|string',
+                'other_allergy_details' => 'nullable|string',
+                // For women
+                'is_pregnant' => 'nullable|in:yes,no',
+                'is_nursing' => 'nullable|in:yes,no',
+                'birth_control' => 'nullable|in:yes,no',
+                // Procedure details
+                'anesthesia_used' => 'nullable|string',
+                'procedure_performed' => 'nullable|string',
+                'materials_used' => 'nullable|string',
+                'complications' => 'nullable|string',
+                'post_operative_instructions' => 'nullable|string',
+                'follow_up_notes' => 'nullable|string'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['success' => false, 'message' => 'Validation failed', 'errors' => $validator->errors()], 422);
+            }
+
+            $patientHistory = PatientHistory::findOrFail($id);
+
+            $patientHistory->update([
+                'patient_record_id' => $request->patient_record_id,
+                'visit_date' => $request->visit_date,
+                // Dental History
+                'previous_dentist' => $request->previous_dentist,
+                'last_dental_visit' => $request->last_dental_visit,
+                'treatment_done' => $request->treatment_done,
+                // Medical History
+                'physician_name' => $request->physician_name,
+                'physician_specialty' => $request->physician_specialty,
+                'physician_office_address' => $request->physician_office_address,
+                'physician_contact' => $request->physician_contact,
+                // Health questions
+                'good_health' => $request->good_health,
+                'under_treatment' => $request->under_treatment,
+                'treatment_condition' => $request->treatment_condition,
+                'serious_illness' => $request->serious_illness,
+                'illness_details' => $request->illness_details,
+                'been_hospitalized' => $request->been_hospitalized,
+                'hospitalization_reason' => $request->hospitalization_reason,
+                'taking_drugs' => $request->taking_drugs,
+                'medications' => $request->medications,
+                'tobacco_use' => $request->tobacco_use,
+                'alcohol_use' => $request->alcohol_use,
+                'recreational_drugs' => $request->recreational_drugs,
+                // Allergies
+                'allergy_anesthesia' => $request->allergy_anesthesia ?? 0,
+                'allergy_sulfa' => $request->allergy_sulfa ?? 0,
+                'allergy_antibiotics' => $request->allergy_antibiotics ?? 0,
+                'allergy_aspirin' => $request->allergy_aspirin ?? 0,
+                'allergy_analgesics' => $request->allergy_analgesics ?? 0,
+                'allergy_latex' => $request->allergy_latex ?? 0,
+                'food_allergy_details' => $request->food_allergy_details,
+                'other_allergy_details' => $request->other_allergy_details,
+                // For Women
+                'is_pregnant' => $request->is_pregnant,
+                'is_nursing' => $request->is_nursing,
+                'birth_control' => $request->birth_control,
+                // Procedure Details
+                'procedure_performed' => $request->procedure_performed,
+                'materials_used' => $request->materials_used,
+                'anesthesia_used' => $request->anesthesia_used,
+                'complications' => $request->complications,
+                'post_operative_instructions' => $request->post_operative_instructions,
+                'follow_up_notes' => $request->follow_up_notes,
+                // Automatically send to patient
+                'sent_to_patient' => true,
+                'sent_at' => now()
+            ]);
+
+            // Also mark the parent patient record as sent
+            $patientRecord = PatientRecord::find($request->patient_record_id);
+            if ($patientRecord) {
+                $patientRecord->update([
+                    'sent_to_patient' => true,
+                    'sent_at' => now()
+                ]);
+            }
+
+            \Log::info('Patient history updated successfully', ['history_id' => $patientHistory->id]);
+
+            // Send notification to patient about history update
+            try {
+                if ($patientRecord) {
+                    NotificationService::recordUpdated($patientRecord->user_id, 'medical history');
+                }
+            } catch (\Exception $e) {
+                \Log::error('Failed to send history update notification:', ['error' => $e->getMessage()]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Patient history updated and sent to patient successfully',
+                'data' => $patientHistory
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Error updating patient history: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Error updating patient history: ' . $e->getMessage()], 500);
+        }
+    }
+
     /**
      * Get progress notes
      */
@@ -638,8 +813,7 @@ class PostProceduralController extends Controller
             'note_date' => 'required|date',
             'progress_description' => 'required|string',
             'treatment_response' => 'nullable|string',
-            'next_steps' => 'nullable|string',
-            'status' => 'required|in:ongoing,completed,followup_needed'
+            'next_steps' => 'nullable|string'
         ]);
 
         if ($validator->fails()) {
@@ -669,6 +843,54 @@ class PostProceduralController extends Controller
             'message' => 'Progress note saved successfully',
             'data' => $note
         ]);
+    }
+
+    public function updateProgressNote(Request $request, $id)
+    {
+        try {
+            \Log::info('Update Progress Note Request', $request->all());
+
+            $validator = Validator::make($request->all(), [
+                'patient_record_id' => 'required|exists:patient_records,id',
+                'note_date' => 'required|date',
+                'progress_description' => 'required|string',
+                'treatment_response' => 'nullable|string',
+                'next_steps' => 'nullable|string'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $note = ProgressNote::findOrFail($id);
+            $note->update($request->all());
+
+            // Send notification to patient about progress note update
+            try {
+                $record = PatientRecord::find($request->input('patient_record_id'));
+                if ($record) {
+                    NotificationService::recordUpdated($record->user_id, 'progress note');
+                }
+            } catch (\Exception $e) {
+                \Log::error('Failed to send progress note notification:', ['error' => $e->getMessage()]);
+            }
+
+            \Log::info('Progress note updated successfully', ['note_id' => $note->id]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Progress note updated successfully',
+                'data' => $note
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Error updating progress note: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Error updating progress note: ' . $e->getMessage()], 500);
+        }
     }
 
     /**

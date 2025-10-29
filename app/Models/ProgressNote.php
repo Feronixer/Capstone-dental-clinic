@@ -19,9 +19,28 @@ class ProgressNote extends Model
         'note_date' => 'date'
     ];
 
+    // Expose computed attributes in JSON
+    protected $appends = [
+        'user_id'
+    ];
+
     // Relationships
     public function patientRecord()
     {
         return $this->belongsTo(PatientRecord::class);
+    }
+
+    // Convenience: get the owning user's id via patient record
+    public function getUserIdAttribute(): ?int
+    {
+        return $this->patientRecord ? $this->patientRecord->user_id : null;
+    }
+
+    // Scope: filter progress notes by user id
+    public function scopeForUser($query, int $userId)
+    {
+        return $query->whereHas('patientRecord', function ($q) use ($userId) {
+            $q->where('user_id', $userId);
+        });
     }
 }
