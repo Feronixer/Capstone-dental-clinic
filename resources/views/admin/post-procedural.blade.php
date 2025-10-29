@@ -701,19 +701,31 @@ function renderPatientRecords(records) {
                     <span class="badge bg-info">${treatment}</span>
                 </td>
                 <td class="text-center">
-                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="openEditRecordModal(${recordId})" ${recordId === 'N/A' ? 'disabled' : ''}>
-                        <i class="bi bi-pencil-square me-1"></i>Edit
-                    </button>
+                    ${group.patient_record ? `
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="openEditRecordModal(${recordId})">
+                            <i class="bi bi-pencil-square me-1"></i>Edit
+                        </button>
+                    ` : `
+                        <span class="badge bg-light text-muted" style="border:1px solid #ced4da;">No data created</span>
+                    `}
                 </td>
                 <td class="text-center">
-                    <button type="button" class="btn btn-sm btn-outline-info" onclick="openEditHistoryModal(${historyId})" ${historyId === 'N/A' ? 'disabled' : ''}>
-                        <i class="bi bi-pencil-square me-1"></i>Edit
-                    </button>
+                    ${group.patient_history ? `
+                        <button type="button" class="btn btn-sm btn-outline-info" onclick="openEditHistoryModal(${historyId})">
+                            <i class="bi bi-pencil-square me-1"></i>Edit
+                        </button>
+                    ` : `
+                        <span class="badge bg-light text-muted" style="border:1px solid #ced4da;">No data created</span>
+                    `}
                 </td>
                 <td class="text-center">
-                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="openEditNotesModal(${notesId})" ${notesId === 'N/A' ? 'disabled' : ''}>
-                        <i class="bi bi-pencil-square me-1"></i>Edit
-                    </button>
+                    ${group.progress_notes ? `
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="openEditNotesModal(${notesId})">
+                            <i class="bi bi-pencil-square me-1"></i>Edit
+                        </button>
+                    ` : `
+                        <span class="badge bg-light text-muted" style="border:1px solid #ced4da;">No data created</span>
+                    `}
                 </td>
                 <td class="text-center">
                     <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeRecord(${recordId})" ${recordId === 'N/A' ? 'disabled' : ''}>
@@ -731,7 +743,7 @@ function confirmDeleteRecordByType(id, type) {
     if (type === 'patient_record') {
         confirmDeleteRecord(id);
     } else {
-        alert('Please delete history and progress notes from the patient record view.');
+        showNotification('Please delete history and progress notes from the patient record view.', 'warning');
     }
 }
 
@@ -1032,43 +1044,73 @@ function removeRecord(recordId) {
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Deleting...';
 
-            // Delete all related data in sequence
-            Promise.all([
-                // Delete patient histories
-                fetch(`/admin/post-procedural/patient-history/${recordId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                    }
-                }),
-                // Delete progress notes
-                fetch(`/admin/post-procedural/progress-notes/${recordId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                    }
-                }),
-                // Delete patient record
-                fetch(`/admin/post-procedural/patient-record/${recordId}`, {
+            // Delete all related data - handle each deletion separately
+            const deletePromises = [];
+            let deletedCount = 0;
+            let totalAttempts = 0;
+
+            // Helper function to attempt deletion and handle 404 gracefully
+            const attemptDelete = (url, type) => {
+                totalAttempts++;
+                return fetch(url, {
                     method: 'DELETE',
                     headers: {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                     }
                 })
-            ])
-            .then(responses => {
-                // Check if all requests were successful
-                const allSuccessful = responses.every(response => response.ok);
-                if (allSuccessful) {
-                    showNotification('Patient record and all associated data deleted successfully!', 'success');
+                .then(response => {
+                    // Consider success ONLY when HTTP status is 200
+                    if (response.status === 200) {
+                        deletedCount++;
+                        console.log(`${type} deleted successfully (200)`);
+                        return { success: true, type, status: 200 };
+                    }
+                    // Treat 404 (not found) and 204 (no content) as skipped (neither success nor failure)
+                    if (response.status === 404 || response.status === 204) {
+                        console.log(`${type} not found or already deleted (status ${response.status}) - skipping`);
+                        return { success: false, type, skipped: true, status: response.status };
+                    }
+                    // Any other status is a failure
+                    console.warn(`${type} delete returned status ${response.status}`);
+                    return { success: false, type, status: response.status };
+                })
+                .catch(error => {
+                    console.error(`Error deleting ${type}:`, error);
+                    return { success: false, type, error: error.message };
+                });
+            };
+
+            // Attempt to delete each type of record
+            deletePromises.push(attemptDelete(`/admin/post-procedural/patient-history/${recordId}`, 'Patient History'));
+            deletePromises.push(attemptDelete(`/admin/post-procedural/progress-notes/${recordId}`, 'Progress Notes'));
+            deletePromises.push(attemptDelete(`/admin/post-procedural/patient-record/${recordId}`, 'Patient Record'));
+
+            // Wait for all deletion attempts to complete
+            Promise.allSettled(deletePromises)
+            .then(results => {
+                const successes = results.filter(r => r.value && r.value.success && r.value.status === 200);
+                const failures = results.filter(r => r.value && !r.value.success && !r.value.skipped);
+                const skipped = results.filter(r => r.value && r.value.skipped);
+
+                const successText = successes.length > 0 ? `Deleted: ${successes.map(r => r.value.type).join(', ')}` : '';
+                const failedText = failures.length > 0 ? `Failed: ${failures.map(r => r.value ? r.value.type : 'Unknown').join(', ')}` : '';
+                const skippedText = skipped.length > 0 && successes.length === 0 && failures.length === 0 ? 'No records to delete for this patient' : '';
+
+                let message = '';
+                if (successText) message += successText;
+                if (failedText) message += (message ? ' • ' : '') + failedText;
+                if (!message && skippedText) message = skippedText;
+
+                const type = failures.length > 0 ? 'danger' : (successes.length > 0 ? 'success' : 'info');
+                if (message) showNotification(message, type);
+
+                if (successes.length > 0) {
                     loadPatientRecords();
-                } else {
-                    throw new Error('Some deletions failed');
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
-                showNotification('Failed to delete patient record: ' + error.message, 'error');
+                console.error('Unexpected error during deletion:', error);
+                showNotification('An unexpected error occurred during deletion', 'error');
             })
             .finally(() => {
                 // Restore button state
@@ -2858,6 +2900,13 @@ async function savePatientRecordForm(callback) {
         data.user_id = currentPatientRecord.user_id;
     }
 
+    // Check if user_id is present, if not show error
+    if (!data.user_id) {
+        showNotification('Please search and select a patient first using the patient name search above', 'error');
+        if (callback) callback();
+        return;
+    }
+
     console.log('Saving record for user_id:', data.user_id);
 
     // Handle health questions
@@ -2975,7 +3024,7 @@ function triggerPatientSearch() {
     console.log('Manual search triggered for:', searchTerm);
 
     if (searchTerm.length < 2) {
-        alert('Please enter at least 2 characters to search');
+        showNotification('Please enter at least 2 characters to search', 'warning');
         return;
     }
 
@@ -3096,6 +3145,27 @@ function selectPatientForRecord(patientData) {
     if (patientData.contact_number) {
         document.getElementById('contact').value = patientData.contact_number;
     }
+
+    // Set currentPatientRecord for save functions
+    currentPatientRecord = {
+        id: null, // New record
+        user_id: patientData.id,
+        user: {
+            id: patientData.id,
+            username: username,
+            info: {
+                first_name: firstName,
+                last_name: lastName,
+                middle_name: '',
+                home_address: patientData.home_address || '',
+                birthdate: patientData.birthdate || '',
+                sex: patientData.sex || '',
+                religion: patientData.religion || '',
+                occupation: patientData.occupation || '',
+                phone: patientData.contact_number || ''
+            }
+        }
+    };
 
     // Auto-populate "Sent to" section
     document.getElementById('patientSearchInput').value = `${username} - ${firstName} ${lastName}`;
@@ -3273,14 +3343,14 @@ function loadPatientRecordIntoForm(userId, username, fullName) {
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Failed to load patient record');
+            showNotification('Failed to load patient record', 'error');
         });
 }
 
 function createNewPatientRecord() {
     const searchValue = document.getElementById('patientRecordSearch').value;
     if (!searchValue || !currentPatientRecord) {
-        alert('Please search and select a patient first using the search box above');
+        showNotification('Please search and select a patient first using the search box above', 'warning');
         return;
     }
 
@@ -3405,27 +3475,47 @@ function populateFormWithData(record) {
 }
 
 function savePatientRecordFromTab() {
-    // Collect form data
-    const data = {
-        home_address: document.getElementById('homeAddress').value,
-        date_of_birth: document.getElementById('dateOfBirth').value,
-        age: document.getElementById('age').value,
-        sex: document.getElementById('sex').value,
-        nickname: document.getElementById('nickname').value,
-        religion: document.getElementById('religion').value,
-        occupation: document.getElementById('occupation').value,
-        contact: document.getElementById('contact').value,
-        guardian_name: document.getElementById('guardianName').value,
-        guardian_contact: document.getElementById('guardianContact').value,
-        guardian_occupation: document.getElementById('guardianOccupation').value,
-        notes: document.getElementById('notes').value
+    // Helper function to safely get element value
+    const getElementValue = (id) => {
+        const element = document.getElementById(id);
+        return element ? element.value : '';
     };
 
-    // Check if patient is selected in "Sent to"
-    const selectedPatientId = document.getElementById('selectedPatientId').value;
-    if (selectedPatientId) {
-        data.user_id = selectedPatientId;
-        data.sent_to_patient = true;
+    // Collect form data with null checks
+    const data = {
+        home_address: getElementValue('homeAddress'),
+        date_of_birth: getElementValue('dateOfBirth'),
+        age: getElementValue('age'),
+        sex: getElementValue('sex'),
+        nickname: getElementValue('nickname'),
+        religion: getElementValue('religion'),
+        occupation: getElementValue('occupation'),
+        contact: getElementValue('contact'),
+        guardian_name: getElementValue('guardianName'),
+        guardian_contact: getElementValue('guardianContact'),
+        guardian_occupation: getElementValue('guardianOccupation'),
+        notes: getElementValue('notes')
+    };
+
+    // Check if patient is selected in "Sent to" or from patient name search
+    const selectedPatientIdElement = document.getElementById('selectedPatientId');
+    const selectedPatientId = selectedPatientIdElement ? selectedPatientIdElement.value : '';
+
+    // Get user_id from either selectedPatientId or currentPatientRecord
+    let userId = selectedPatientId;
+    if (!userId && currentPatientRecord && currentPatientRecord.user_id) {
+        userId = currentPatientRecord.user_id;
+    }
+
+    if (userId) {
+        data.user_id = userId;
+        if (selectedPatientId) {
+            data.sent_to_patient = true;
+        }
+    } else {
+        // If no patient is selected, show error
+        showNotification('Please search and select a patient first using the patient name search above', 'error');
+        return;
     }
 
     console.log('Saving patient record with data:', data);
@@ -3443,9 +3533,9 @@ function savePatientRecordFromTab() {
         console.log('Save response:', result);
         if (result.success) {
             if (selectedPatientId) {
-                alert('âœ… Record saved and sent to patient successfully!');
+                showNotification('Record saved and sent to patient successfully!', 'success');
             } else {
-                alert('âœ… Record saved successfully!');
+                showNotification('Record saved successfully!', 'success');
             }
             clearPatientRecordForm(true); // Skip confirmation after successful save
             loadPatientRecords(); // Reload the records table
@@ -3457,39 +3547,46 @@ function savePatientRecordFromTab() {
                 const firstError = Object.values(result.errors)[0];
                 errorMessage = Array.isArray(firstError) ? firstError[0] : firstError;
             }
-            alert('âŒ Error: ' + errorMessage);
+            showNotification('Error: ' + errorMessage, 'error');
         }
     })
     .catch(error => {
         console.error('Error saving record:', error);
-        alert('âŒ An error occurred while saving the record: ' + error.message);
+        showNotification('An error occurred while saving the record: ' + error.message, 'error');
     });
 }
 
 // Send record to patient
 function sendRecordToPatient() {
-    const selectedPatientId = document.getElementById('selectedPatientId').value;
+    // Helper function to safely get element value
+    const getElementValue = (id) => {
+        const element = document.getElementById(id);
+        return element ? element.value : '';
+    };
+
+    const selectedPatientIdElement = document.getElementById('selectedPatientId');
+    const selectedPatientId = selectedPatientIdElement ? selectedPatientIdElement.value : '';
 
     if (!selectedPatientId) {
-        alert('Please search and select a patient first');
+        showNotification('Please search and select a patient first', 'warning');
         return;
     }
 
     // Collect form data and save with patient assignment
     const data = {
         user_id: selectedPatientId,
-        home_address: document.getElementById('homeAddress').value,
-        date_of_birth: document.getElementById('dateOfBirth').value,
-        age: document.getElementById('age').value,
-        sex: document.getElementById('sex').value,
-        nickname: document.getElementById('nickname').value,
-        religion: document.getElementById('religion').value,
-        occupation: document.getElementById('occupation').value,
-        contact: document.getElementById('contact').value,
-        guardian_name: document.getElementById('guardianName').value,
-        guardian_contact: document.getElementById('guardianContact').value,
-        guardian_occupation: document.getElementById('guardianOccupation').value,
-        notes: document.getElementById('notes').value,
+        home_address: getElementValue('homeAddress'),
+        date_of_birth: getElementValue('dateOfBirth'),
+        age: getElementValue('age'),
+        sex: getElementValue('sex'),
+        nickname: getElementValue('nickname'),
+        religion: getElementValue('religion'),
+        occupation: getElementValue('occupation'),
+        contact: getElementValue('contact'),
+        guardian_name: getElementValue('guardianName'),
+        guardian_contact: getElementValue('guardianContact'),
+        guardian_occupation: getElementValue('guardianOccupation'),
+        notes: getElementValue('notes'),
         sent_to_patient: true
     };
 
@@ -3508,7 +3605,7 @@ function sendRecordToPatient() {
         console.log('Send response:', result);
         if (result.success) {
             const patientText = document.getElementById('selectedPatientText').textContent;
-            alert(`âœ… Record successfully sent to ${patientText}!`);
+            showNotification(`Record successfully sent to ${patientText}!`, 'success');
             clearPatientRecordForm(true); // Skip confirmation after successful send
         } else {
             let errorMessage = 'Failed to send record';
@@ -3518,12 +3615,12 @@ function sendRecordToPatient() {
                 const firstError = Object.values(result.errors)[0];
                 errorMessage = Array.isArray(firstError) ? firstError[0] : firstError;
             }
-            alert('âŒ Error: ' + errorMessage);
+            showNotification('Error: ' + errorMessage, 'error');
         }
     })
     .catch(error => {
         console.error('Error sending record:', error);
-        alert('âŒ An error occurred while sending the record: ' + error.message);
+        showNotification('An error occurred while sending the record: ' + error.message, 'error');
     });
 }
 
@@ -3541,35 +3638,51 @@ async function clearPatientRecordForm(skipConfirmation = false) {
     }
 
     {
+        // Helper function to safely set element value
+        const setElementValue = (id, value) => {
+            const element = document.getElementById(id);
+            if (element) element.value = value;
+        };
+
+        const setElementHTML = (id, html) => {
+            const element = document.getElementById(id);
+            if (element) element.innerHTML = html;
+        };
+
+        const addClass = (id, className) => {
+            const element = document.getElementById(id);
+            if (element) element.classList.add(className);
+        };
+
         // Hide selected patient alert
-        document.getElementById('selectedPatientInfoAlert').classList.add('d-none');
+        addClass('selectedPatientInfoAlert', 'd-none');
 
         // Clear patient name search
-        document.getElementById('patientNameSearch').value = '';
-        document.getElementById('patientNameSearchResults').innerHTML = '';
+        setElementValue('patientNameSearch', '');
+        setElementHTML('patientNameSearchResults', '');
 
         // Clear all form fields
-        document.getElementById('lastName').value = '';
-        document.getElementById('givenName').value = '';
-        document.getElementById('middleName').value = '';
-        document.getElementById('homeAddress').value = '';
-        document.getElementById('dateOfBirth').value = '';
-        document.getElementById('age').value = '';
-        document.getElementById('sex').value = '';
-        document.getElementById('nickname').value = '';
-        document.getElementById('religion').value = '';
-        document.getElementById('occupation').value = '';
-        document.getElementById('contact').value = '';
-        document.getElementById('guardianName').value = '';
-        document.getElementById('guardianContact').value = '';
-        document.getElementById('guardianOccupation').value = '';
-        document.getElementById('otherNotes').value = '';
+        setElementValue('lastName', '');
+        setElementValue('givenName', '');
+        setElementValue('middleName', '');
+        setElementValue('homeAddress', '');
+        setElementValue('dateOfBirth', '');
+        setElementValue('age', '');
+        setElementValue('sex', '');
+        setElementValue('nickname', '');
+        setElementValue('religion', '');
+        setElementValue('occupation', '');
+        setElementValue('contact', '');
+        setElementValue('guardianName', '');
+        setElementValue('guardianContact', '');
+        setElementValue('guardianOccupation', '');
+        setElementValue('otherNotes', '');
 
         // Reset "Sent to" section
-        document.getElementById('patientSearchInput').value = '';
-        document.getElementById('selectedPatientId').value = '';
-        document.getElementById('selectedPatientDisplay').classList.add('d-none');
-        document.getElementById('patientSearchResults').innerHTML = '';
+        setElementValue('patientSearchInput', '');
+        setElementValue('selectedPatientId', '');
+        addClass('selectedPatientDisplay', 'd-none');
+        setElementHTML('patientSearchResults', '');
 
         currentPatientRecord = null;
 
