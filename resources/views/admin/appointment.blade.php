@@ -835,15 +835,18 @@ document.addEventListener('DOMContentLoaded', function() {
         // Get current date in Philippines timezone
         const today = new Date();
         const phToday = new Date(today.toLocaleString("en-US", {timeZone: "Asia/Manila"}));
-        const month = phToday.getMonth() + 1; // JavaScript months are 0-indexed
-        const year = phToday.getFullYear();
 
-        // Reload page with today's month, year, and preserve current view
+        // Update current date to today and regenerate calendar without reloading the page
+        currentDate = new Date(phToday.getFullYear(), phToday.getMonth(), phToday.getDate());
+
+        // Update URL params without reload
         const url = new URL(window.location.href);
-        url.searchParams.set('month', month);
-        url.searchParams.set('year', year);
-        url.searchParams.set('view', currentView); // Preserve the current view
-        window.location.href = url.toString();
+        url.searchParams.set('month', currentDate.getMonth() + 1);
+        url.searchParams.set('year', currentDate.getFullYear());
+        url.searchParams.set('view', currentView);
+        window.history.pushState({}, '', url);
+
+        generateCalendar();
     });
 
     // Appointment form handling
@@ -1065,6 +1068,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function navigatePeriod(direction) {
         console.log('Navigate Period:', direction, 'Current View:', currentView, 'Current Date:', currentDate);
 
+        // Adjust current date based on active view
         if (currentView === 'month') {
             currentDate.setMonth(currentDate.getMonth() + direction);
         } else if (currentView === 'week') {
@@ -1073,17 +1077,15 @@ document.addEventListener('DOMContentLoaded', function() {
             currentDate.setDate(currentDate.getDate() + direction);
         }
 
-        // Reload page with the new month, year, and view to fetch correct data
-        const month = currentDate.getMonth() + 1; // JavaScript months are 0-indexed
-        const year = currentDate.getFullYear();
-        console.log('Navigating to:', month, '/', year, 'View:', currentView);
-
+        // Update URL params without reloading the page
         const url = new URL(window.location.href);
-        url.searchParams.set('month', month);
-        url.searchParams.set('year', year);
-        url.searchParams.set('view', currentView); // Preserve the current view
-        console.log('New URL:', url.toString());
-        window.location.href = url.toString();
+        url.searchParams.set('month', currentDate.getMonth() + 1);
+        url.searchParams.set('year', currentDate.getFullYear());
+        url.searchParams.set('view', currentView);
+        window.history.pushState({}, '', url);
+
+        // Re-render the calendar in-place
+        generateCalendar();
     }
 
     function generateCalendar() {
@@ -2162,9 +2164,9 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('change-status-btn').setAttribute('data-appointment-id', appointment.id);
         document.getElementById('reschedule-appointment-btn').setAttribute('data-appointment-id', appointment.id);
 
-        // Disable reschedule button if appointment is completed or cancelled
+        // Disable reschedule button if appointment is confirmed, completed, or cancelled
         const rescheduleBtn = document.getElementById('reschedule-appointment-btn');
-        if (appointment.status.toLowerCase() === 'completed' || appointment.status.toLowerCase() === 'cancelled') {
+        if (['confirmed', 'completed', 'cancelled'].includes(appointment.status.toLowerCase())) {
             rescheduleBtn.disabled = true;
             rescheduleBtn.style.opacity = '0.5';
             rescheduleBtn.style.cursor = 'not-allowed';
