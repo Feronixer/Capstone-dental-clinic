@@ -53,6 +53,12 @@ class AdminAuthController extends Controller
         if (Auth::attempt(['username' => $request->username, 'password' => $request->password])) {
             $request->session()->regenerate();
 
+            // Check if admin must change password (first-time login)
+            if ($user->must_change_password) {
+                \Log::info("Administrator '{$user->username}' requires password change");
+                return redirect()->route('admin.password.change')->with('info', 'Please change your password to continue.');
+            }
+
             // Log successful admin login
             \Log::info("Administrator '{$user->username}' logged in successfully");
 
@@ -62,6 +68,50 @@ class AdminAuthController extends Controller
         return back()->withErrors([
             'error' => 'Invalid credentials. Please try again.',
         ])->withInput($request->only('username'));
+    }
+
+    /**
+     * Show change password form
+     */
+    public function showChangePasswordForm()
+    {
+        return view('auth.admin-change-password');
+    }
+
+    /**
+     * Handle password change
+     */
+    public function changePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => ['required'],
+            'new_password' => ['required', 'min:8', 'confirmed'],
+        ]);
+
+        $user = Auth::user();
+
+        // Verify user is admin
+        if ($user->role_id !== 1) {
+            return redirect()->route('admin.login')->withErrors([
+                'error' => 'Unauthorized access.',
+            ]);
+        }
+
+        // Verify current password
+        if (!Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors([
+                'current_password' => 'The current password is incorrect.',
+            ]);
+        }
+
+        // Update password and reset must_change_password flag
+        $user->password = Hash::make($request->new_password);
+        $user->must_change_password = false;
+        $user->save();
+
+        \Log::info("Administrator '{$user->username}' changed password successfully");
+
+        return redirect()->route('admin-dashboard')->with('success', 'Password changed successfully!');
     }
 
     /**

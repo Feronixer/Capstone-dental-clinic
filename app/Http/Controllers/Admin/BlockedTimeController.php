@@ -11,11 +11,29 @@ use Carbon\Carbon;
 class BlockedTimeController extends Controller
 {
     /**
+     * Clean up expired blocked times (where end_datetime has passed)
+     */
+    protected function cleanupExpiredBlockedTimes()
+    {
+        $now = Carbon::now('Asia/Manila');
+        $deleted = BlockedTime::where('end_datetime', '<', $now)->delete();
+
+        if ($deleted > 0) {
+            \Log::info("Cleaned up {$deleted} expired blocked time(s)");
+        }
+
+        return $deleted;
+    }
+
+    /**
      * Store a newly created blocked time.
      */
     public function store(Request $request)
     {
         try {
+            // Clean up expired blocked times first
+            $this->cleanupExpiredBlockedTimes();
+
             \Log::info('Blocked time creation request:', $request->all());
 
             $request->validate([
@@ -98,6 +116,9 @@ class BlockedTimeController extends Controller
     public function update(Request $request, string $id)
     {
         try {
+            // Clean up expired blocked times first
+            $this->cleanupExpiredBlockedTimes();
+
             $blockedTime = BlockedTime::findOrFail($id);
 
             $request->validate([
@@ -174,6 +195,9 @@ class BlockedTimeController extends Controller
     public function destroy(string $id)
     {
         try {
+            // Clean up expired blocked times first
+            $this->cleanupExpiredBlockedTimes();
+
             $blockedTime = BlockedTime::findOrFail($id);
             \Log::info('Found blocked time:', ['blocked_time' => $blockedTime]);
 

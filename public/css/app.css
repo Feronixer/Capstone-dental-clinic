@@ -769,7 +769,6 @@ footer {
  * Docs & License: http://arshaw.com/fullcalendar/
  * (c) 2013 Adam Shaw
  */
- @import url('https://fonts.googleapis.com/css?family=Roboto:100,100i,300,300i,400,400i,500,500i,700,700i,900,900i');
 td.fc-day {
 
 background:#FFF !important;
@@ -1973,4 +1972,41 @@ table.fc-header{
     .announcement-text {
         font-size: 1rem;
     }
+}
+
+/* Notification Badge */
+.notification-badge {
+    position: relative;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.25rem 0.5rem;
+    border-radius: 50%;
+    min-width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.5);
+    animation: shake-notification 0.5s 10;
+    z-index: 10;
+    margin-left: 0.25rem;
+}
+
+@keyframes shake-notification {
+    0%, 100% {
+        transform: translateX(0) rotate(0deg);
+    }
+    10%, 30%, 50%, 70%, 90% {
+        transform: translateX(-2px) rotate(-5deg);
+    }
+    20%, 40%, 60%, 80% {
+        transform: translateX(2px) rotate(5deg);
+    }
+}
+
+/* Pause animation on hover */
+.navigation-bar li a:hover .notification-badge {
+    animation: none;
 }

@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\User;
 use App\Models\Service;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Carbon\Carbon;
 use App\Services\MailService;
+use App\Services\NotificationService;
 
 class AppointmentController extends Controller
 {
@@ -18,13 +20,21 @@ class AppointmentController extends Controller
      */
     public function index()
     {
+        // Clean up expired blocked times
+        $now = Carbon::now('Asia/Manila');
+        \App\Models\BlockedTime::where('end_datetime', '<', $now)->delete();
+
         $currentMonth = request('month', Carbon::now()->month);
         $currentYear = request('year', Carbon::now()->year);
 
-        // Get only regular appointments (exclude blocked status)
-        $appointments = Appointment::whereMonth('start_datetime', $currentMonth)
-            ->whereYear('start_datetime', $currentYear)
-            ->where('status', '!=', 'blocked')
+        // Create date range to cover the current month and adjacent months (for week/day views that span months)
+        $startDate = Carbon::create($currentYear, $currentMonth, 1)->startOfMonth()->subMonth();
+        $endDate = Carbon::create($currentYear, $currentMonth, 1)->endOfMonth()->addMonth();
+
+        // Get only regular appointments (exclude blocked and cancelled status)
+        // Fetch appointments for current month + previous and next months to cover week/day views
+        $appointments = Appointment::whereBetween('start_datetime', [$startDate, $endDate])
+            ->whereNotIn('status', ['blocked', 'Cancelled'])
             ->with(['patient.info', 'service'])
             ->get()
             ->map(function($appointment) {
@@ -36,8 +46,10 @@ class AppointmentController extends Controller
             });
 
         // Get blocked times separately and format dates for local timezone display
-        $blockedTimes = \App\Models\BlockedTime::whereMonth('start_datetime', $currentMonth)
-            ->whereYear('start_datetime', $currentYear)
+        // Only get blocked times that haven't expired yet (end_datetime is in the future or ongoing)
+        $now = Carbon::now('Asia/Manila');
+        $blockedTimes = \App\Models\BlockedTime::whereBetween('start_datetime', [$startDate, $endDate])
+            ->where('end_datetime', '>=', $now) // Only get blocked times that haven't ended yet
             ->get()
             ->map(function($blockedTime) {
                 // Format dates as 'Y-m-d H:i:s' string without timezone to avoid JS conversion
@@ -193,6 +205,13 @@ class AppointmentController extends Controller
                 // Don't fail the appointment creation if email fails
             }
 
+            // Send notification to patient
+            try {
+                NotificationService::appointmentConfirmed($appointment);
+            } catch (\Exception $e) {
+                \Log::error('Failed to send notification:', ['error' => $e->getMessage()]);
+            }
+
             // Always return JSON for POST requests to this endpoint
             return response()->json([
                 'success' => true,
@@ -222,11 +241,25 @@ class AppointmentController extends Controller
     {
         $appointment = Appointment::with(['patient.info', 'service'])->findOrFail($id);
 
-        if (request()->ajax()) {
-            return response()->json($appointment);
+        // Ensure service relationship is loaded
+        if ($appointment->service_id && !$appointment->relationLoaded('service')) {
+            $appointment->load('service');
         }
 
-        return view('admin.appointment.show', compact('appointment'));
+        // Always return JSON for AJAX requests
+        if (request()->ajax() || request()->wantsJson() || request()->expectsJson()) {
+            // Format dates as 'Y-m-d H:i:s' string without timezone to avoid JS conversion
+            $data = $appointment->toArray();
+            $data['start_datetime'] = $appointment->start_datetime->format('Y-m-d H:i:s');
+            $data['end_datetime'] = $appointment->end_datetime->format('Y-m-d H:i:s');
+            return response()->json($data);
+        }
+
+        // For non-AJAX requests, return JSON as well (since we don't have a show view)
+        $data = $appointment->toArray();
+        $data['start_datetime'] = $appointment->start_datetime->format('Y-m-d H:i:s');
+        $data['end_datetime'] = $appointment->end_datetime->format('Y-m-d H:i:s');
+        return response()->json($data);
     }
 
     /**
@@ -294,6 +327,7 @@ class AppointmentController extends Controller
 
             // Check if datetime changed (rescheduling)
             $isRescheduling = $appointment->start_datetime->ne($startDateTime);
+            $oldDateTime = $appointment->start_datetime->copy();
 
             // If rescheduling, track the original datetime and set rescheduled_at timestamp
             if ($isRescheduling) {
@@ -306,12 +340,18 @@ class AppointmentController extends Controller
 
             $appointment->update($appointmentData);
 
-            // Send rescheduling email if datetime changed
+            // Send rescheduling email and notification if datetime changed
             if ($isRescheduling) {
                 try {
                     MailService::sendAppointmentEmail('rescheduling', $appointment->load(['patient.info', 'service']));
                 } catch (\Exception $e) {
                     \Log::error('Failed to send rescheduling email:', ['error' => $e->getMessage()]);
+                }
+
+                try {
+                    NotificationService::appointmentRescheduled($appointment, $oldDateTime);
+                } catch (\Exception $e) {
+                    \Log::error('Failed to send rescheduling notification:', ['error' => $e->getMessage()]);
                 }
             }
 
@@ -381,6 +421,13 @@ class AppointmentController extends Controller
                 \Log::error('Failed to send cancellation email:', ['error' => $e->getMessage()]);
             }
 
+            // Send cancellation notification
+            try {
+                NotificationService::appointmentCancelled($appointment);
+            } catch (\Exception $e) {
+                \Log::error('Failed to send cancellation notification:', ['error' => $e->getMessage()]);
+            }
+
             $appointment->delete();
             \Log::info('Appointment deleted successfully');
 
@@ -405,22 +452,119 @@ class AppointmentController extends Controller
      */
     public function updateStatus(Request $request, string $id)
     {
-        $appointment = Appointment::findOrFail($id);
+        try {
+            $appointment = Appointment::with(['patient.info', 'service'])->findOrFail($id);
 
-        $request->validate([
-            'status' => 'required|in:Pending,Confirmed,Completed,Cancelled'
-        ]);
+            // Get the old status before updating
+            $oldStatus = $appointment->status;
 
-        $appointment->update(['status' => $request->status]);
+            $validated = $request->validate([
+                'status' => 'required|in:Pending,Confirmed,Completed,Cancelled',
+                'notes' => 'nullable|string|max:500'
+            ]);
 
-        if ($request->ajax()) {
+            // Validate status transitions
+            $validTransitions = [
+                'Pending' => ['Confirmed', 'Cancelled'],
+                'Confirmed' => ['Completed', 'Cancelled'],
+                'Completed' => [], // Completed appointments cannot change status
+                'Cancelled' => [] // Cancelled appointments cannot change status
+            ];
+
+            if (!in_array($validated['status'], $validTransitions[$oldStatus] ?? [])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Cannot change status from {$oldStatus} to {$validated['status']}"
+                ], 422);
+            }
+
+            // Additional validation: Only allow "Completed" status if appointment date is today
+            if ($validated['status'] === 'Completed') {
+                $appointmentDate = Carbon::parse($appointment->start_datetime)->timezone('Asia/Manila')->startOfDay();
+                $today = Carbon::now('Asia/Manila')->startOfDay();
+
+                if (!$appointmentDate->isSameDay($today)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Appointments can only be marked as Completed on the day of the appointment'
+                    ], 422);
+                }
+            }
+
+            // Update appointment status
+            $appointment->update(['status' => $validated['status']]);
+
+            // Add status change note if provided
+            if (!empty($validated['notes'])) {
+                $currentNotes = $appointment->notes ?? '';
+                $statusChangeNote = "\n\n[" . now()->format('Y-m-d H:i') . "] Status changed to {$validated['status']}: {$validated['notes']}";
+                $appointment->update(['notes' => $currentNotes . $statusChangeNote]);
+            }
+
+            // Send notification to patient
+            try {
+                $patientName = $appointment->patient->info ?
+                    trim($appointment->patient->info->first_name . ' ' . $appointment->patient->info->last_name) :
+                    $appointment->patient->name;
+
+                $serviceName = $appointment->service ? $appointment->service->service_name : $appointment->reason_for_visit;
+                $appointmentDate = $appointment->start_datetime->format('F j, Y \a\t g:i A');
+
+                $notificationMessages = [
+                    'Confirmed' => "Your appointment for {$serviceName} on {$appointmentDate} has been confirmed.",
+                    'Completed' => "Your appointment for {$serviceName} on {$appointmentDate} has been marked as completed.",
+                    'Cancelled' => "Your appointment for {$serviceName} on {$appointmentDate} has been cancelled."
+                ];
+
+                Notification::create([
+                    'user_id' => $appointment->patient_id,
+                    'type' => 'appointment_status',
+                    'title' => "Appointment {$validated['status']}",
+                    'message' => $notificationMessages[$validated['status']] ?? "Your appointment status has been updated to {$validated['status']}.",
+                    'icon' => $validated['status'] === 'Confirmed' ? 'bi-check-circle' :
+                             ($validated['status'] === 'Cancelled' ? 'bi-x-circle' : 'bi-info-circle'),
+                    'data' => json_encode([
+                        'appointment_id' => $appointment->id,
+                        'old_status' => $oldStatus,
+                        'new_status' => $validated['status'],
+                        'service' => $serviceName,
+                        'date' => $appointmentDate
+                    ])
+                ]);
+            } catch (\Exception $e) {
+                \Log::error('Failed to send status change notification:', ['error' => $e->getMessage()]);
+            }
+
+            \Log::info('Appointment status updated:', [
+                'appointment_id' => $id,
+                'old_status' => $oldStatus,
+                'new_status' => $validated['status'],
+                'updated_by' => auth()->id()
+            ]);
+
             return response()->json([
                 'success' => true,
-                'appointment' => $appointment->load(['patient', 'staff'])
+                'message' => "Appointment status updated to {$validated['status']} successfully",
+                'appointment' => $appointment->fresh()->load(['patient.info', 'service'])
             ]);
-        }
 
-        return redirect()->route('admin-appointment')->with('success', 'Appointment status updated successfully.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Error updating appointment status:', [
+                'appointment_id' => $id,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating status: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function searchPatients(Request $request)

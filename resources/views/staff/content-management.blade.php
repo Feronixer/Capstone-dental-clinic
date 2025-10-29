@@ -127,11 +127,64 @@
                     </form>
                 </div>
             </div>
+    </div>
+</div>
+
+<!-- Top Header Ticker Section -->
+<div class="row mb-5">
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white border-bottom">
+                <h5 class="mb-0 text-primary fw-bold">Top Header Ticker Notification</h5>
+            </div>
+            <div class="card-body">
+                <form id="tickerForm">
+                    @csrf
+                    <div class="row">
+                        <div class="col-md-10">
+                            <div class="mb-3">
+                                <label for="tickerText" class="form-label fw-bold">Ticker Message</label>
+                                <input type="text" class="form-control" id="tickerText" name="ticker_text"
+                                       value="{{ $announcement->ticker_text ?? 'The clinic will be closed on April 27, 2025 for regular maintenance. Emergency services will be available.' }}" required>
+                                <small class="text-muted">This message will scroll across the top of the patient portal</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="mb-3">
+                                <label for="showTicker" class="form-label fw-bold">Display</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="showTicker" name="show_ticker"
+                                           {{ ($announcement->show_ticker ?? true) ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="showTicker">Show Ticker</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="alert alert-info mb-3">
+                                <i class="bi bi-info-circle me-2"></i>
+                                <strong>Preview:</strong>
+                                <div class="mt-2 p-2 bg-warning bg-opacity-10 rounded">
+                                    <i class="bi bi-megaphone-fill me-2"></i>
+                                    <strong>Announcement:</strong> <span id="tickerPreview">{{ $announcement->ticker_text ?? 'The clinic will be closed on April 27, 2025 for regular maintenance. Emergency services will be available.' }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bi bi-check-circle me-1"></i>UPDATE TICKER
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
+</div>
 
-    <!-- Services Section -->
-    <div class="row mb-5">
+<!-- Services Section -->
+<div class="row mb-5">
         <div class="col-12">
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
@@ -556,6 +609,43 @@ document.getElementById('announcementImage').addEventListener('change', function
         };
         reader.readAsDataURL(file);
     }
+});
+
+// Ticker Form Handler
+document.getElementById('tickerForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+    const data = {
+        ticker_text: formData.get('ticker_text'),
+        show_ticker: document.getElementById('showTicker').checked
+    };
+
+    fetch('/staff/content-management/ticker', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Ticker notification updated successfully!', 'success');
+        } else {
+            showToast('Error updating ticker: ' + (data.message || 'Unknown error'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Error updating ticker', 'error');
+    });
+});
+
+// Ticker preview update
+document.getElementById('tickerText').addEventListener('input', function(e) {
+    document.getElementById('tickerPreview').textContent = e.target.value;
 });
 
 // Add Service Form Handler

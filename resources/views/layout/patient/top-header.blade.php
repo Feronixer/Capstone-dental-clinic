@@ -1,9 +1,15 @@
+@php
+    $announcement = \App\Models\Announcement::first();
+    $showTicker = $announcement && $announcement->show_ticker && $announcement->ticker_text;
+@endphp
+
+@if($showTicker)
 <div class="top-header-bar">
     <div class="announcement-ticker">
         <i class="bi bi-megaphone-fill me-2"></i>
         <div class="announcement-content">
             <span class="announcement-text">
-                <strong>Announcement:</strong> The clinic will be closed on April 27, 2025 for regular maintenance. Emergency services will be available.
+                <strong>Announcement:</strong> {{ $announcement->ticker_text }}
             </span>
         </div>
         <button class="close-announcement" onclick="this.parentElement.style.display='none'">
@@ -11,6 +17,7 @@
         </button>
     </div>
 </div>
+@endif
 
 <style>
 .top-header-bar {

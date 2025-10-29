@@ -18,7 +18,9 @@ class AnnouncementSeeder extends Seeder
             [
                 'title' => 'Welcome to JValera Dental Clinic',
                 'content' => 'We are committed to providing excellent dental care services. Book your appointment today!',
-                'is_active' => true
+                'is_active' => true,
+                'ticker_text' => 'The clinic will be closed on April 27, 2025 for regular maintenance. Emergency services will be available.',
+                'show_ticker' => true
             ]
         );
     }

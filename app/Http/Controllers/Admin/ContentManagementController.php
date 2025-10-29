@@ -73,6 +73,41 @@ class ContentManagementController extends Controller
     }
 
     /**
+     * Update ticker notification
+     */
+    public function updateTicker(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'ticker_text' => 'required|string',
+            'show_ticker' => 'boolean'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $announcement = Announcement::first();
+
+        if (!$announcement) {
+            $announcement = new Announcement();
+        }
+
+        $announcement->ticker_text = $request->input('ticker_text');
+        $announcement->show_ticker = $request->input('show_ticker', true);
+        $announcement->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Ticker notification updated successfully',
+            'data' => $announcement
+        ]);
+    }
+
+    /**
      * Store a new service
      */
     public function storeService(Request $request)

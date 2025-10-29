@@ -779,6 +779,45 @@
 
         .send-btn:hover { background: #1976D2; }
 
+        /* Typing Indicator */
+        .typing-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 10px 14px;
+            background: #E3F2FD;
+            border-radius: 16px;
+            margin-bottom: 8px;
+            max-width: fit-content;
+        }
+
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #2196F3;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.5;
+            }
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
+        }
+
         @media (max-width: 480px) {
             .chatbot-widget { right: 16px; left: 16px; width: auto; }
             .chatbot-messages { height: 240px; }
@@ -1125,6 +1164,22 @@
                 scrollToBottom();
             }
 
+            function showTypingIndicator() {
+                const typingDiv = document.createElement('div');
+                typingDiv.className = 'typing-indicator';
+                typingDiv.id = 'typing-indicator';
+                typingDiv.innerHTML = '<span></span><span></span><span></span>';
+                messagesEl.appendChild(typingDiv);
+                scrollToBottom();
+            }
+
+            function hideTypingIndicator() {
+                const indicator = document.getElementById('typing-indicator');
+                if (indicator) {
+                    indicator.remove();
+                }
+            }
+
             function normalize(s) {
                 return String(s)
                     .toLowerCase()
@@ -1174,7 +1229,17 @@
             function sendUserMessage(text) {
                 if (!text.trim()) return;
                 addMessage(text.trim(), 'user');
-                setTimeout(() => addMessage(getBotReply(text), 'bot'), 300);
+
+                // Show typing indicator
+                showTypingIndicator();
+
+                // Simulate bot thinking time (1-2 seconds)
+                const typingDelay = 1000 + Math.random() * 1000;
+
+                setTimeout(() => {
+                    hideTypingIndicator();
+                    addMessage(getBotReply(text), 'bot');
+                }, typingDelay);
             }
 
             function renderChips() {
@@ -1193,8 +1258,13 @@
                 widget.classList.add('open');
                 widget.setAttribute('aria-hidden', 'false');
                 if (!messagesEl.dataset.welcomed) {
-                    addMessage(@json($chatbotSetting->welcome_message ?: 'Welcome! How can I help today?'), 'bot');
-                    renderChips();
+                    // Show typing indicator before welcome message
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage(@json($chatbotSetting->welcome_message ?: 'Welcome! How can I help today?'), 'bot');
+                        renderChips();
+                    }, 800);
                     messagesEl.dataset.welcomed = '1';
                 }
                 inputEl.focus();

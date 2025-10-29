@@ -32,6 +32,11 @@ class AuthController extends Controller
             // Get authenticated user
             $user = Auth::user();
 
+            // Check if user must change password (first-time login)
+            if ($user->must_change_password) {
+                return redirect()->route('password.change')->with('info', 'Please change your password to continue.');
+            }
+
             // Redirect based on role
             // role_id: 1 = Admin, 2 = Staff, 3 = Patient
             switch ($user->role_id) {
@@ -59,6 +64,41 @@ class AuthController extends Controller
         return back()->withErrors([
             'error' => 'The provided credentials do not match our records.',
         ]);
+    }
+
+    /**
+     * Show change password form
+     */
+    public function showChangePasswordForm()
+    {
+        return view('auth.change-password');
+    }
+
+    /**
+     * Handle password change
+     */
+    public function changePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => ['required'],
+            'new_password' => ['required', 'min:8', 'confirmed'],
+        ]);
+
+        $user = Auth::user();
+
+        // Verify current password
+        if (!Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors([
+                'current_password' => 'The current password is incorrect.',
+            ]);
+        }
+
+        // Update password and reset must_change_password flag
+        $user->password = Hash::make($request->new_password);
+        $user->must_change_password = false;
+        $user->save();
+
+        return redirect()->route('patient-home')->with('success', 'Password changed successfully!');
     }
 
     public function register(Request $request) {

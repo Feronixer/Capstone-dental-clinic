@@ -32,48 +32,52 @@
 
             <!-- Form List Section (Table) -->
             <div class="content-section" id="form-list-section">
-                <div class="section-controls mb-4">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5 class="mb-0 fw-bold text-primary">Patient Records</h5>
-                            <small class="text-muted">View and manage all patient records</small>
-                        </div>
-                        <div class="input-group" style="max-width: 300px;">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="mb-0">Show</label>
+                        <select class="form-select form-select-sm" id="entriesPerPage" style="width: 80px;">
+                            <option value="5" selected>5</option>
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                        <label class="mb-0">entries</label>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-primary" id="filterBtn">
+                            <i class="bi bi-funnel"></i> Filter By
+                        </button>
+                        <div class="input-group" style="width: 250px;">
                             <span class="input-group-text bg-white">
                                 <i class="bi bi-search"></i>
                             </span>
-                            <input type="text" class="form-control" id="searchInput" placeholder="Search records...">
+                            <input type="text" class="form-control form-control-sm" id="searchInput" placeholder="Search">
                         </div>
                     </div>
                 </div>
 
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle">
+                    <table class="table table-bordered table-hover align-middle">
                         <thead class="table-light">
                             <tr>
-                                <th style="width: 10%;">Patient ID</th>
-                                <th style="width: 20%;">Patient Name</th>
-                                <th style="width: 15%;">Username</th>
+                                <th style="width: 5%;" class="text-center">ID</th>
+                                <th style="width: 15%;">Patient Name</th>
                                 <th style="width: 15%;">Treatment</th>
-                                <th style="width: 20%;">Date Created</th>
-                                <th style="width: 10%;">Status</th>
-                                <th style="width: 10%;" class="text-center">Actions</th>
+                                <th style="width: 15%;" class="text-center">Patient Information Record</th>
+                                <th style="width: 15%;" class="text-center">Patient History</th>
+                                <th style="width: 15%;" class="text-center">Progress Notes</th>
+                                <th style="width: 20%;" class="text-center">Action</th>
                             </tr>
                         </thead>
                         <tbody id="recordsTableBody">
                             @forelse($records as $record)
                             <tr>
-                                <td><span class="badge bg-primary">{{ $record->id }}</span></td>
-                                <td class="fw-medium">
+                                <td class="text-center">{{ $loop->iteration }}</td>
+                                <td>
                                     @if($record->user && $record->user->info)
                                         {{ $record->user->info->first_name }} {{ $record->user->info->last_name }}
-                                    @else
-                                        <span class="text-muted">N/A</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    @if($record->user)
-                                        {{ $record->user->username }}
                                     @else
                                         <span class="text-muted">N/A</span>
                                     @endif
@@ -86,9 +90,7 @@
                                             $latestAppointment = $record->user->appointments()->with('service')->latest('start_datetime')->first();
                                         @endphp
                                         @if($latestAppointment && $latestAppointment->service)
-                                            <span class="text-muted" title="Latest appointment service">
-                                                {{ $latestAppointment->service->service_name }}
-                                            </span>
+                                            {{ $latestAppointment->service->service_name }}
                                         @else
                                             <span class="text-muted">N/A</span>
                                         @endif
@@ -96,35 +98,22 @@
                                         <span class="text-muted">N/A</span>
                                     @endif
                                 </td>
-                                <td>
-                                    <small class="text-muted">
-                                        <i class="bi bi-calendar3 me-1"></i>
-                                        {{ $record->created_at->format('M d, Y') }}
-                                    </small>
-                                </td>
-                                <td>
-                                    @if($record->sent_to_patient)
-                                        <span class="badge bg-success">
-                                            <i class="bi bi-check-circle me-1"></i>Sent
-                                        </span>
-                                    @else
-                                        <span class="badge bg-warning">
-                                            <i class="bi bi-clock me-1"></i>Pending
-                                        </span>
-                                    @endif
+                                <td class="text-center">
+                                    <!-- Actions removed -->
                                 </td>
                                 <td class="text-center">
-                                    <div class="btn-group btn-group-sm" role="group">
-                                        <button type="button" class="btn btn-outline-primary" onclick="viewPatientInfo({{ $record->id }})" title="View">
-                                            <i class="bi bi-eye"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-outline-success" onclick="editPatientInfo({{ $record->id }})" title="Edit">
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-outline-danger" onclick="deleteRecord({{ $record->id }})" title="Delete">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </div>
+                                    <!-- Actions removed -->
+                                </td>
+                                <td class="text-center">
+                                    <!-- Actions removed -->
+                                </td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-dark btn-sm" onclick="clearAllFiles({{ $record->id }})" style="border-radius: 20px; padding: 5px 15px;">
+                                        Clear All Files
+                                    </button>
+                                    <button type="button" class="btn btn-danger btn-sm" onclick="removeRecord({{ $record->id }})" style="border-radius: 20px; padding: 5px 15px;">
+                                        Remove
+                                    </button>
                                 </td>
                             </tr>
                             @empty
@@ -140,6 +129,16 @@
                             @endforelse
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div class="text-muted">
+                        Showing {{ $records->firstItem() ?? 0 }} to {{ $records->lastItem() ?? 0 }} of {{ $records->total() }} entries
+                    </div>
+                    <nav>
+                        {{ $records->links('pagination::bootstrap-5') }}
+                    </nav>
                 </div>
             </div>
 
@@ -439,9 +438,113 @@
 
             <!-- Progress Notes Section -->
             <div class="content-section d-none" id="progress-notes-section">
-                <div class="section-message">
-                    <i class="bi bi-journal-text"></i>
-                    <p>Click "Edit" on a patient from the Form List to view their progress notes</p>
+                <div class="form-header mb-4" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); color: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(23, 162, 184, 0.2);">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-journal-text me-2"></i>Progress Notes
+                    </h5>
+                    <p class="mb-0 mt-1" style="font-size: 0.9rem; opacity: 0.95;">Document patient treatment progress and observations</p>
+                </div>
+
+                <!-- Patient Selection -->
+                <div class="card mb-4" style="border: 2px solid #17a2b8; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+                    <div class="card-header" style="background: linear-gradient(135deg, #e7f9fc 0%, #d0f4fa 100); border-bottom: 2px solid #17a2b8;">
+                        <h6 class="mb-0 fw-bold text-info">
+                            <i class="bi bi-person-circle me-2"></i>Select Patient
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="position-relative mt-2">
+                            <input type="text" class="form-control form-control-lg patient-search-input" id="progressNotePatientSearch"
+                                   placeholder="Start typing patient name or username..." autocomplete="off"
+                                   style="border: 2px solid #17a2b8; border-radius: 8px; padding-left: 45px;">
+                            <i class="bi bi-search position-absolute" style="left: 15px; top: 50%; transform: translateY(-50%); color: #17a2b8; font-size: 1.2rem;"></i>
+                            <div id="progressNotePatientSearchResults" class="search-results-dropdown"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Selected Patient Info Alert -->
+                <div id="selectedProgressNotePatientAlert" class="alert alert-info d-none mb-4" style="background: linear-gradient(135deg, #e7f9fc 0%, #d0f4fa 100%); border: 1px solid #17a2b8; border-radius: 8px;">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-check-circle-fill text-success me-2" style="font-size: 1.5rem;"></i>
+                        <div>
+                            <strong style="color: #0c5460;">Patient Selected:</strong>
+                            <span id="selectedProgressNotePatientText" class="ms-2"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Progress Notes Table -->
+                <div id="progressNotesTableContainer">
+                    <div class="card mb-4" style="border: 2px solid #17a2b8; border-radius: 12px;">
+                        <div class="card-header" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); color: white;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 fw-bold">
+                                    <i class="bi bi-table me-2"></i>Progress Notes History
+                                </h6>
+                                <button type="button" class="btn btn-sm btn-light" id="addProgressNoteRowBtn">
+                                    <i class="bi bi-plus-circle me-1"></i>Add Row
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-bordered mb-0" id="progressNotesTable">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th style="width: 15%;">DATE</th>
+                                            <th style="width: 25%;">Progress Note</th>
+                                            <th style="width: 20%;">Oral Hygiene</th>
+                                            <th style="width: 25%;">Conformed Practices</th>
+                                            <th style="width: 15%;" class="text-center">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="progressNotesTableBody">
+                                        <!-- Rows will be added dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Other Notes Section -->
+                    <div class="card mb-4" style="border: 2px solid #17a2b8; border-radius: 12px;">
+                        <div class="card-header" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); color: white;">
+                            <h6 class="mb-0 fw-bold">
+                                <i class="bi bi-chat-left-text me-2"></i>Other Notes
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <textarea class="form-control" id="progressNoteOtherNotes" rows="5"
+                                      placeholder="Enter any additional observations, recommendations, or follow-up instructions..."
+                                      style="border: 2px solid #e0e0e0; border-radius: 8px;"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Send to Patient Section -->
+                    <div class="card mb-4" style="border: 2px solid #17a2b8; border-radius: 12px; background: linear-gradient(135deg, #f8fdfe 0%, #f0fbfc 100%);">
+                        <div class="card-body">
+                            <div class="row align-items-end">
+                                <div class="col-md-8">
+                                    <label class="form-label fw-bold text-info">
+                                        <i class="bi bi-send me-2"></i>Send to:
+                                    </label>
+                                    <div class="position-relative">
+                                        <input type="text" class="form-control form-control-lg" id="progressNoteSendToPatient" readonly
+                                               placeholder="Patient will be auto-selected..."
+                                               style="border: 2px solid #17a2b8; border-radius: 8px; background: white;">
+                                        <i class="bi bi-person-check position-absolute" style="right: 15px; top: 50%; transform: translateY(-50%); color: #17a2b8; font-size: 1.2rem;"></i>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <button type="button" class="btn btn-info btn-lg w-100" id="sendProgressNoteBtn"
+                                            style="border-radius: 10px; font-weight: 600; padding: 0.75rem;">
+                                        <i class="bi bi-send-fill me-2"></i>SEND
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -570,6 +673,21 @@
 </div>
 
 <script>
+// Debounce utility function
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(event) {
+        const context = this;
+        const args = arguments;
+        const later = () => {
+            clearTimeout(timeout);
+            func.apply(context, args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
 let recordToDelete = null;
 
 // Load Patient Records Function
@@ -606,15 +724,23 @@ function renderPatientRecords(records) {
     }
 
     tbody.innerHTML = records.map(record => {
-        const patientName = record.user && record.user.info
-            ? `${record.user.info.first_name} ${record.user.info.last_name}`
-            : '<span class="text-muted">N/A</span>';
+        // Use the standardized format fields
+        const patientName = record.patient_name || '<span class="text-muted">N/A</span>';
+        const username = record.username || '<span class="text-muted">N/A</span>';
 
-        const username = record.user ? record.user.username : '<span class="text-muted">N/A</span>';
-
-        const treatment = record.appointment && record.appointment.service
-            ? record.appointment.service.service_name
-            : '<span class="text-muted">N/A</span>';
+        // Treatment/Related Info based on record type
+        let treatment = '<span class="text-muted">N/A</span>';
+        if (record.type === 'patient_record') {
+            // For patient records, check if there's service info in the data object
+            if (record.data && record.data.appointment && record.data.appointment.service) {
+                treatment = record.data.appointment.service.service_name;
+            } else {
+                treatment = record.related_info || '<span class="text-muted">N/A</span>';
+            }
+        } else {
+            // For history and progress notes, show related info
+            treatment = record.related_info || '<span class="text-muted">N/A</span>';
+        }
 
         const createdDate = new Date(record.created_at).toLocaleDateString('en-US', {
             year: 'numeric',
@@ -636,13 +762,7 @@ function renderPatientRecords(records) {
                 <td>${statusBadge}</td>
                 <td class="text-center">
                     <div class="btn-group btn-group-sm">
-                        <button class="btn btn-outline-primary" onclick="viewPatientInfo(${record.id})" title="View">
-                            <i class="bi bi-eye"></i>
-                        </button>
-                        <button class="btn btn-outline-success" onclick="editPatientInfo(${record.id})" title="Edit">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        <button class="btn btn-outline-danger" onclick="confirmDeleteRecord(${record.id})" title="Delete">
+                        <button class="btn btn-outline-danger" onclick="confirmDeleteRecordByType(${record.id}, '${record.type}')" title="Delete">
                             <i class="bi bi-trash"></i>
                         </button>
                     </div>
@@ -650,6 +770,16 @@ function renderPatientRecords(records) {
             </tr>
         `;
     }).join('');
+}
+
+
+function confirmDeleteRecordByType(id, type) {
+    // Only allow deleting patient records directly
+    if (type === 'patient_record') {
+        confirmDeleteRecord(id);
+    } else {
+        alert('Please delete history and progress notes from the patient record view.');
+    }
 }
 
 // Notification System
@@ -837,6 +967,11 @@ document.querySelectorAll('.nav-item').forEach(item => {
         if (section === 'patient-history') {
             initializePatientHistoryForm();
         }
+
+        // Initialize progress notes when Progress Notes tab is shown
+        if (section === 'progress-notes') {
+            initializeProgressNotesSearch();
+        }
     });
 });
 
@@ -879,187 +1014,93 @@ if (detailsModal) {
     });
 }
 
-// View patient info with tabs
-function viewPatientInfo(id) {
-    // Show tabs, hide edit content
-    document.getElementById('modalTabs').classList.remove('d-none');
-    document.getElementById('viewModeContent').classList.remove('d-none');
-    document.getElementById('editModeContent').classList.add('d-none');
-    document.getElementById('editModeContent').innerHTML = '';
-    document.getElementById('saveBtn').style.display = 'none';
 
-    // Fetch all data
-    Promise.all([
-        fetch(`/admin/post-procedural/patient-record/${id}`).then(r => r.json()),
-        fetch(`/admin/post-procedural/patient-history/${id}`).then(r => r.json()),
-        fetch(`/admin/post-procedural/progress-notes/${id}`).then(r => r.json())
-    ])
-    .then(([recordData, historyData, notesData]) => {
-        if (recordData.success) {
-            const patientName = recordData.data.user?.info ?
-                `${recordData.data.user.info.first_name} ${recordData.data.user.info.last_name}` :
-                recordData.data.user?.name || 'Patient';
+// Clear all files for a patient record
+function clearAllFiles(recordId) {
+    if (!confirm('Are you sure you want to clear all files for this patient record? This will remove the Patient Information Record, Patient History, and Progress Notes.')) {
+        return;
+    }
 
-            document.getElementById('modalTitle').innerHTML = `<i class="bi bi-file-medical me-2"></i>Patient Details - ${patientName}`;
+    if (!confirm('This action cannot be undone. Are you absolutely sure?')) {
+        return;
+    }
 
-            // Load Patient Record tab
-            document.getElementById('patient-record-content').innerHTML = renderPatientInfo(recordData.data);
+    // Show loading state
+    const btn = event.target;
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Clearing...';
 
-            // Load Patient History tab
-            if (historyData.success && historyData.data && historyData.data.length > 0) {
-                document.getElementById('patient-history-content').innerHTML = renderPatientHistoryView(historyData.data);
-            } else {
-                document.getElementById('patient-history-content').innerHTML = `
-                    <div class="text-center py-5 text-muted">
-                        <i class="bi bi-clock-history" style="font-size: 3rem; opacity: 0.3;"></i>
-                        <p class="mt-3 mb-0">No patient history records found</p>
-                        <small>History will appear here once procedures are recorded</small>
-                    </div>
-                `;
+    // Delete patient histories
+    fetch(`/admin/post-procedural/patient-history/${recordId}`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        }
+    })
+    .then(() => {
+        // Delete progress notes
+        return fetch(`/admin/post-procedural/progress-notes/${recordId}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
             }
+        });
+    })
+    .then(() => {
+        alert('All files cleared successfully');
+        location.reload();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        btn.disabled = false;
+        btn.textContent = originalText;
+        alert('Failed to clear all files');
+    });
+}
 
-            // Load Progress Notes tab
-            if (notesData.success && notesData.data && notesData.data.length > 0) {
-                document.getElementById('progress-notes-content').innerHTML = renderProgressNotesView(notesData.data);
-            } else {
-                document.getElementById('progress-notes-content').innerHTML = `
-                    <div class="text-center py-5 text-muted">
-                        <i class="bi bi-journal-text" style="font-size: 3rem; opacity: 0.3;"></i>
-                        <p class="mt-3 mb-0">No progress notes found</p>
-                        <small>Progress notes will appear here once added</small>
-                    </div>
-                `;
-            }
+// Remove patient record
+function removeRecord(recordId) {
+    if (!confirm('Are you sure you want to remove this patient record? This will delete the Patient Information Record and all associated data.')) {
+        return;
+    }
 
-            // Reset to first tab
-            document.getElementById('patient-record-tab').click();
+    if (!confirm('This action cannot be undone. Are you absolutely sure?')) {
+        return;
+    }
 
-            // Show modal
-            new bootstrap.Modal(document.getElementById('detailsModal')).show();
+    // Show loading state
+    const btn = event.target;
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Removing...';
+
+    fetch(`/admin/post-procedural/patient-record/${recordId}`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Patient record removed successfully');
+            location.reload();
+        } else {
+            throw new Error(data.message || 'Failed to remove record');
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Failed to load patient details');
+        btn.disabled = false;
+        btn.textContent = originalText;
+        alert('Failed to remove patient record: ' + error.message);
     });
 }
 
-// Edit patient info with tabs
-function editPatientInfo(id) {
-    // Show tabs, hide view content
-    document.getElementById('modalTabs').classList.remove('d-none');
-    document.getElementById('viewModeContent').classList.add('d-none');
-    document.getElementById('editModeContent').classList.remove('d-none');
-    document.getElementById('saveBtn').style.display = 'block';
-
-    // Store the current record ID for saving
-    window.currentEditingRecordId = id;
-
-    // Fetch all data
-    Promise.all([
-        fetch(`/admin/post-procedural/patient-record/${id}`).then(r => r.json()),
-        fetch(`/admin/post-procedural/patient-history/${id}`).then(r => r.json()),
-        fetch(`/admin/post-procedural/progress-notes/${id}`).then(r => r.json())
-    ])
-    .then(([recordData, historyData, notesData]) => {
-        if (recordData.success) {
-            const patientName = recordData.data.user?.info ?
-                `${recordData.data.user.info.first_name} ${recordData.data.user.info.last_name}` :
-                recordData.data.user?.name || 'Patient';
-
-            document.getElementById('modalTitle').innerHTML = `<i class="bi bi-pencil-square me-2"></i>Edit Patient Information - ${patientName}`;
-
-            // Clear editModeContent and populate viewModeContent tabs for editing
-            document.getElementById('editModeContent').innerHTML = '';
-            document.getElementById('viewModeContent').classList.remove('d-none');
-
-            // Load Patient Record edit form
-            document.getElementById('patient-record-content').innerHTML = renderPatientInfoForm(recordData.data);
-
-            // Load Patient History edit form
-            if (historyData.success && historyData.data && historyData.data.length > 0) {
-                document.getElementById('patient-history-content').innerHTML = renderPatientHistoryEditList(historyData.data, id);
-            } else {
-                document.getElementById('patient-history-content').innerHTML = `
-                    <div class="p-4">
-                        <div class="alert alert-info">
-                            <i class="bi bi-info-circle me-2"></i>No patient history records found. Add new visit records below.
-                        </div>
-                        ${renderAddPatientHistoryForm(id)}
-                    </div>
-                `;
-            }
-
-            // Load Progress Notes edit form
-            if (notesData.success && notesData.data && notesData.data.length > 0) {
-                document.getElementById('progress-notes-content').innerHTML = renderProgressNotesEditList(notesData.data, id);
-            } else {
-                document.getElementById('progress-notes-content').innerHTML = `
-                    <div class="p-4">
-                        <div class="alert alert-info">
-                            <i class="bi bi-info-circle me-2"></i>No progress notes found. Add new notes below.
-                        </div>
-                        ${renderAddProgressNoteForm(id)}
-                    </div>
-                `;
-            }
-
-            // Reset to first tab
-            document.getElementById('patient-record-tab').click();
-
-            // Show modal
-            new bootstrap.Modal(document.getElementById('detailsModal')).show();
-
-            // Populate form fields with existing data after modal is shown
-            setTimeout(() => {
-                populateFormWithData(recordData.data);
-            }, 200);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Failed to load patient details for editing');
-    });
-}
-
-// View patient history
-function viewPatientHistory(id) {
-    fetch(`/admin/post-procedural/patient-history/${id}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showModal('Patient History', renderPatientHistory(data.data), false);
-            }
-        })
-        .catch(error => console.error('Error:', error));
-}
-
-// Edit patient history
-function editPatientHistory(id) {
-    showModal('Edit Patient History', renderPatientHistoryForm(id), true);
-}
-
-// View progress notes
-function viewProgressNotes(id) {
-    fetch(`/admin/post-procedural/progress-notes/${id}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showModal('Progress Notes', renderProgressNotes(data.data), false);
-            }
-        })
-        .catch(error => console.error('Error:', error));
-}
-
-// Edit progress notes
-function editProgressNotes(id) {
-    showModal('Edit Progress Notes', renderProgressNotesForm(id), true);
-}
-
-// Delete record
+// Delete record (old function - keeping for compatibility)
 function deleteRecord(id) {
-    recordToDelete = id;
-    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+    removeRecord(id);
 }
 
 // Confirm delete
@@ -1122,33 +1163,32 @@ function renderPatientInfo(record) {
             <h6 class="section-title">PATIENT INFORMATION RECORD</h6>
 
             <!-- Patient's Name -->
-            <div class="row mb-2">
-                <div class="col-12">
-                    <label class="form-label fw-bold mb-1">Patient's Name:</label>
-                </div>
-                <div class="col-4">
-                    <div class="border-bottom pb-1">${lastName}</div>
-                </div>
-                <div class="col-4">
-                    <div class="border-bottom pb-1">${firstName}</div>
-                </div>
-                <div class="col-4">
-                    <div class="border-bottom pb-1">${middleName}</div>
-                </div>
-            </div>
-
-            <!-- Personal Information -->
-            <div class="row mb-2">
-                <div class="col-12">
-                    <label class="form-label-sm">Home Address:</label>
-                    <div class="border-bottom pb-1">${record.home_address || 'N/A'}</div>
+            <div class="mb-3">
+                <label class="fw-bold" style="color: #2c3e50; font-size: 1rem;">Patient's Name:</label>
+                <div class="row mt-2">
+                    <div class="col-4">
+                        <div class="p-2" style="border-bottom: 1px solid #dee2e6;">${lastName || 'N/A'}</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-2" style="border-bottom: 1px solid #dee2e6;">${firstName || 'N/A'}</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-2" style="border-bottom: 1px solid #dee2e6;">${middleName || 'N/A'}</div>
+                    </div>
                 </div>
             </div>
 
-            <div class="row mb-2">
+            <!-- Home Address -->
+            <div class="mb-3">
+                <label class="fw-bold" style="color: #2c3e50;">Home Address:</label>
+                <div class="p-2" style="border-bottom: 1px solid #dee2e6;">${record.home_address || 'N/A'}</div>
+            </div>
+
+            <!-- Date of birth, Age, Sex, Nickname -->
+            <div class="row g-3 mb-3">
                 <div class="col-3">
-                    <label class="form-label-sm">Date of birth:</label>
-                    <div class="border-bottom pb-1">${(() => {
+                    <label class="fw-bold" style="color: #2c3e50;">Date of birth:</label>
+                    <div class="p-2" style="border-bottom: 1px solid #dee2e6;">${(() => {
                         if (!record.date_of_birth) return 'N/A';
                         try {
                             const date = new Date(record.date_of_birth);
@@ -1159,131 +1199,60 @@ function renderPatientInfo(record) {
                     })()}</div>
                 </div>
                 <div class="col-3">
-                    <label class="form-label-sm">Age:</label>
-                    <div class="border-bottom pb-1">${record.age || 'N/A'}</div>
+                    <label class="fw-bold" style="color: #2c3e50;">Age:</label>
+                    <div class="p-2" style="border-bottom: 1px solid #dee2e6;">${record.age || 'N/A'}</div>
                 </div>
                 <div class="col-3">
-                    <label class="form-label-sm">Sex:</label>
-                    <div class="border-bottom pb-1">${record.sex || 'N/A'}</div>
+                    <label class="fw-bold" style="color: #2c3e50;">Sex:</label>
+                    <div class="p-2" style="border-bottom: 1px solid #dee2e6;">${record.sex || 'N/A'}</div>
                 </div>
                 <div class="col-3">
-                    <label class="form-label-sm">Nickname:</label>
-                    <div class="border-bottom pb-1">${record.nickname || 'N/A'}</div>
+                    <label class="fw-bold" style="color: #2c3e50;">Nickname:</label>
+                    <div class="p-2" style="border-bottom: 1px solid #dee2e6;">${record.nickname || 'N/A'}</div>
                 </div>
             </div>
 
-            <div class="row mb-3">
+            <!-- Religion, Occupation, Contact -->
+            <div class="row g-3 mb-4">
                 <div class="col-4">
-                    <label class="form-label-sm">Religion:</label>
-                    <div class="border-bottom pb-1">${record.religion || 'N/A'}</div>
-                </div>
-                <div class="col-4">
-                    <label class="form-label-sm">Occupation:</label>
-                    <div class="border-bottom pb-1">${record.occupation || 'N/A'}</div>
+                    <label class="fw-bold" style="color: #2c3e50;">Religion:</label>
+                    <div class="p-2" style="border-bottom: 1px solid #dee2e6;">${record.religion || 'N/A'}</div>
                 </div>
                 <div class="col-4">
-                    <label class="form-label-sm">Contact:</label>
-                    <div class="border-bottom pb-1">${record.contact || 'N/A'}</div>
-                </div>
-            </div>
-
-            <!-- DENTAL HISTORY -->
-            <h6 class="section-title mt-3">DENTAL HISTORY</h6>
-            <div class="row mb-2">
-                <div class="col-6">
-                    <label class="form-label-sm">Previous Dentist:</label>
-                    <div class="border-bottom pb-1">${record.previous_dentist || 'N/A'}</div>
-                </div>
-                <div class="col-6">
-                    <label class="form-label-sm">Last dental visit:</label>
-                    <div class="border-bottom pb-1">${(() => {
-                        if (!record.last_dental_visit) return 'N/A';
-                        try {
-                            const date = new Date(record.last_dental_visit);
-                            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-                        } catch(e) {
-                            return record.last_dental_visit;
-                        }
-                    })()}</div>
-                </div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label-sm">Treatment done:</label>
-                <div class="border-bottom pb-1" style="min-height: 60px;">${record.treatment_done || 'N/A'}</div>
-            </div>
-
-            <!-- MEDICAL HISTORY -->
-            <h6 class="section-title mt-3">MEDICAL HISTORY</h6>
-            <div class="row mb-2">
-                <div class="col-6">
-                    <label class="form-label-sm">Name of Physician:</label>
-                    <div class="border-bottom pb-1">${record.physician_name || 'N/A'}</div>
-                </div>
-                <div class="col-6">
-                    <label class="form-label-sm">Specialty:</label>
-                    <div class="border-bottom pb-1">${record.physician_specialty || 'N/A'}</div>
-                </div>
-            </div>
-            <div class="row mb-2">
-                <div class="col-8">
-                    <label class="form-label-sm">Office address:</label>
-                    <div class="border-bottom pb-1">${record.physician_office_address || 'N/A'}</div>
+                    <label class="fw-bold" style="color: #2c3e50;">Occupation:</label>
+                    <div class="p-2" style="border-bottom: 1px solid #dee2e6;">${record.occupation || 'N/A'}</div>
                 </div>
                 <div class="col-4">
-                    <label class="form-label-sm">Contact No.:</label>
-                    <div class="border-bottom pb-1">${record.physician_contact || 'N/A'}</div>
+                    <label class="fw-bold" style="color: #2c3e50;">Contact:</label>
+                    <div class="p-2" style="border-bottom: 1px solid #dee2e6;">${record.contact || 'N/A'}</div>
                 </div>
             </div>
 
-            <div class="mb-3">
-                <label class="form-label-sm fw-bold">Medical History:</label>
-                <div class="border-bottom pb-1" style="min-height: 60px;">${record.medical_history || 'N/A'}</div>
-            </div>
-
-            <!-- Health Questions -->
-            <div class="health-questions mb-3">
-                <label class="form-label-sm fw-bold">Health Questions:</label>
-                ${Object.keys(healthQuestions).length > 0 ? Object.entries(healthQuestions).map(([key, value]) => `
-                    <div class="question-row">
-                        <span class="q-text">${key.replace(/_/g, ' ').toUpperCase()}:</span>
-                        <span class="badge ${value === 'yes' ? 'bg-warning' : 'bg-success'}">${value.toUpperCase()}</span>
+            <!-- For Minors -->
+            <div class="mb-4 p-3" style="background: #f8f9fa; border-left: 4px solid #0d6efd;">
+                <h6 class="fw-bold mb-3" style="color: #0d6efd;">
+                    <i class="bi bi-person-badge me-2"></i>For minors:
+                </h6>
+                <div class="mb-3">
+                    <label class="fw-bold" style="color: #2c3e50;">Parent/Guardian's Name</label>
+                    <div class="p-2" style="border-bottom: 1px solid #dee2e6;">${record.guardian_name || ''}</div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="fw-bold" style="color: #2c3e50;">Contact No.</label>
+                        <div class="p-2" style="border-bottom: 1px solid #dee2e6;">${record.guardian_contact || ''}</div>
                     </div>
-                `).join('') : '<p class="text-muted">No health questions answered</p>'}
+                    <div class="col-md-6">
+                        <label class="fw-bold" style="color: #2c3e50;">Occupation</label>
+                        <div class="p-2" style="border-bottom: 1px solid #dee2e6;">${record.guardian_occupation || ''}</div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Allergies -->
+            <!-- Other Notes -->
             <div class="mb-3">
-                <label class="form-label-sm fw-bold">Allergies:</label>
-                ${Object.keys(allergiesDetail).length > 0 ? Object.entries(allergiesDetail).map(([key, value]) => {
-                    if (key === 'others' && value) {
-                        return `<div>Others: ${value}</div>`;
-                    } else if (value === true) {
-                        return `<div><i class="bi bi-check-circle text-danger"></i> ${key.replace(/allergy_/, '').replace(/_/g, ' ').toUpperCase()}</div>`;
-                    }
-                    return '';
-                }).filter(Boolean).join('') : '<p class="text-muted">No allergies recorded</p>'}
-            </div>
-
-            <!-- For Women -->
-            <div class="mb-3">
-                <label class="form-label-sm fw-bold">For women:</label>
-                <div>Pregnant: <span class="badge ${record.is_pregnant ? 'bg-warning' : 'bg-secondary'}">${record.is_pregnant ? 'YES' : 'NO'}</span></div>
-                <div>Nursing: <span class="badge ${record.is_nursing ? 'bg-warning' : 'bg-secondary'}">${record.is_nursing ? 'YES' : 'NO'}</span></div>
-                <div>Taking Birth Control: <span class="badge ${record.takes_birth_control ? 'bg-info' : 'bg-secondary'}">${record.takes_birth_control ? 'YES' : 'NO'}</span></div>
-            </div>
-
-            <!-- Chief Complaint & Diagnosis -->
-            <div class="mb-2">
-                <label class="form-label-sm fw-bold">Chief Complaint:</label>
-                <div class="border-bottom pb-1" style="min-height: 60px;">${record.chief_complaint || 'N/A'}</div>
-            </div>
-            <div class="mb-2">
-                <label class="form-label-sm fw-bold">Diagnosis:</label>
-                <div class="border-bottom pb-1" style="min-height: 60px;">${record.diagnosis || 'N/A'}</div>
-            </div>
-            <div class="mb-2">
-                <label class="form-label-sm fw-bold">Treatment Plan:</label>
-                <div class="border-bottom pb-1" style="min-height: 60px;">${record.treatment_plan || 'N/A'}</div>
+                <label class="fw-bold" style="color: #2c3e50;">Other Notes:</label>
+                <div class="p-2" style="border-bottom: 1px solid #dee2e6; min-height: 60px; white-space: pre-wrap;">${record.notes || ''}</div>
             </div>
         </div>
     `;
@@ -1306,307 +1275,95 @@ function renderPatientInfoForm(record) {
             <h6 class="section-title">PATIENT INFORMATION RECORD</h6>
 
             <!-- Patient's Name -->
-            <div class="row mb-2">
-                <div class="col-12">
-                    <label class="form-label fw-bold mb-1">Patient's Name:</label>
-                </div>
-                <div class="col-4">
-                    <input type="text" class="form-control-sm border-0 border-bottom rounded-0 w-100" placeholder="LAST NAME" readonly value="${record.user?.info?.last_name || ''}">
-                </div>
-                <div class="col-4">
-                    <input type="text" class="form-control-sm border-0 border-bottom rounded-0 w-100" placeholder="GIVEN NAME" readonly value="${record.user?.info?.first_name || ''}">
-                </div>
-                <div class="col-4">
-                    <input type="text" class="form-control-sm border-0 border-bottom rounded-0 w-100" placeholder="MIDDLE NAME" readonly value="${record.user?.info?.middle_name || ''}">
+            <div class="mb-3">
+                <label class="form-label fw-bold mb-2" style="color: #2c3e50;">Patient's Name</label>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label text-muted" style="font-size: 0.75rem; text-transform: uppercase;">(Last Name)</label>
+                        <input type="text" class="form-control" readonly value="${record.user?.info?.last_name || ''}" style="background: #e9ecef; border: 1px solid #ced4da;">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-muted" style="font-size: 0.75rem; text-transform: uppercase;">(Given Name)</label>
+                        <input type="text" class="form-control" readonly value="${record.user?.info?.first_name || ''}" style="background: #e9ecef; border: 1px solid #ced4da;">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-muted" style="font-size: 0.75rem; text-transform: uppercase;">(Middle Name)</label>
+                        <input type="text" class="form-control" readonly value="${record.user?.info?.middle_name || ''}" style="background: #e9ecef; border: 1px solid #ced4da;">
+                    </div>
                 </div>
             </div>
 
             <!-- Home Address -->
-            <div class="row mb-2">
-                <div class="col-12">
-                    <label class="form-label-sm">Home Address:</label>
-                    <input type="text" class="form-control-sm border-0 border-bottom rounded-0 w-100" name="home_address" value="${record.home_address || ''}">
-                </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold" style="color: #2c3e50;">Home Address</label>
+                <input type="text" class="form-control" name="home_address" value="${record.home_address || ''}" style="border: 1px solid #ced4da;">
             </div>
 
             <!-- Date of birth, Age, Sex, Nickname -->
-            <div class="row mb-2">
-                <div class="col-3">
-                    <label class="form-label-sm">Date of birth:</label>
-                    <input type="date" class="form-control-sm border-0 border-bottom rounded-0 w-100" name="date_of_birth" value="${record.date_of_birth || ''}">
+            <div class="row g-3 mb-3">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold" style="color: #2c3e50;">Date of birth</label>
+                    <input type="date" class="form-control" name="date_of_birth" value="${record.date_of_birth || ''}" style="border: 1px solid #ced4da;">
                 </div>
-                <div class="col-3">
-                    <label class="form-label-sm">Age:</label>
-                    <input type="number" class="form-control-sm border-0 border-bottom rounded-0 w-100" name="age" value="${record.age || ''}">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold" style="color: #2c3e50;">Age <span class="text-muted fw-normal" style="font-size: 0.75rem;">(auto-calculated)</span></label>
+                    <input type="number" class="form-control" name="age" value="${record.age || ''}" readonly style="background: #e9ecef; border: 1px solid #ced4da;">
                 </div>
-                <div class="col-3">
-                    <label class="form-label-sm">Sex:</label>
-                    <select class="form-control-sm border-0 border-bottom rounded-0 w-100" name="sex">
-                        <option value="">Select</option>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold" style="color: #2c3e50;">Sex</label>
+                    <select class="form-select" name="sex" style="border: 1px solid #ced4da;">
+                        <option value="" ${!record.sex ? 'selected' : ''}>Select...</option>
                         <option value="Male" ${record.sex === 'Male' ? 'selected' : ''}>Male</option>
                         <option value="Female" ${record.sex === 'Female' ? 'selected' : ''}>Female</option>
                     </select>
                 </div>
-                <div class="col-3">
-                    <label class="form-label-sm">Nickname:</label>
-                    <input type="text" class="form-control-sm border-0 border-bottom rounded-0 w-100" name="nickname" value="${record.nickname || ''}">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold" style="color: #2c3e50;">Nickname</label>
+                    <input type="text" class="form-control" name="nickname" value="${record.nickname || ''}" style="border: 1px solid #ced4da;">
                 </div>
             </div>
 
             <!-- Religion, Occupation, Contact -->
-            <div class="row mb-2">
-                <div class="col-4">
-                    <label class="form-label-sm">Religion:</label>
-                    <input type="text" class="form-control-sm border-0 border-bottom rounded-0 w-100" name="religion" value="${record.religion || ''}">
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold" style="color: #2c3e50;">Religion</label>
+                    <input type="text" class="form-control" name="religion" value="${record.religion || ''}" style="border: 1px solid #ced4da;">
                 </div>
-                <div class="col-4">
-                    <label class="form-label-sm">Occupation:</label>
-                    <input type="text" class="form-control-sm border-0 border-bottom rounded-0 w-100" name="occupation" value="${record.occupation || ''}">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold" style="color: #2c3e50;">Occupation</label>
+                    <input type="text" class="form-control" name="occupation" value="${record.occupation || ''}" style="border: 1px solid #ced4da;">
                 </div>
-                <div class="col-4">
-                    <label class="form-label-sm">Contact:</label>
-                    <input type="text" class="form-control-sm border-0 border-bottom rounded-0 w-100" name="contact" value="${record.contact || ''}">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold" style="color: #2c3e50;">Contact</label>
+                    <input type="text" class="form-control" name="contact" value="${record.contact || ''}" style="border: 1px solid #ced4da;">
                 </div>
             </div>
 
             <!-- For Minors -->
-            <div class="mb-2">
-                <label class="form-label fw-bold">For minors:</label>
-                <div class="row mb-1">
-                    <div class="col-12">
-                        <label class="form-label-sm">Parent/Guardian's Name:</label>
-                        <input type="text" class="form-control-sm border-0 border-bottom rounded-0 w-100" name="guardian_name" value="${record.guardian_name || ''}">
-                    </div>
+            <div class="mb-4 p-3" style="background: #f8f9fa; border-left: 4px solid #0d6efd;">
+                <h6 class="fw-bold mb-3" style="color: #0d6efd;">
+                    <i class="bi bi-person-badge me-2"></i>For minors:
+                </h6>
+                <div class="mb-3">
+                    <label class="form-label fw-bold" style="color: #2c3e50;">Parent/Guardian's Name</label>
+                    <input type="text" class="form-control" name="guardian_name" value="${record.guardian_name || ''}" style="border: 1px solid #ced4da;">
                 </div>
-                <div class="row">
-                    <div class="col-6">
-                        <label class="form-label-sm">Contact No.:</label>
-                        <input type="text" class="form-control-sm border-0 border-bottom rounded-0 w-100" name="guardian_contact" value="${record.guardian_contact || ''}">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold" style="color: #2c3e50;">Contact No.</label>
+                        <input type="text" class="form-control" name="guardian_contact" value="${record.guardian_contact || ''}" style="border: 1px solid #ced4da;">
                     </div>
-                    <div class="col-6">
-                        <label class="form-label-sm">Occupation:</label>
-                        <input type="text" class="form-control-sm border-0 border-bottom rounded-0 w-100" name="guardian_occupation" value="${record.guardian_occupation || ''}">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold" style="color: #2c3e50;">Occupation</label>
+                        <input type="text" class="form-control" name="guardian_occupation" value="${record.guardian_occupation || ''}" style="border: 1px solid #ced4da;">
                     </div>
                 </div>
             </div>
 
             <!-- Other Notes -->
             <div class="mb-3">
-                <label class="form-label fw-bold">Other Notes:</label>
-                <textarea class="form-control-sm border-0 border-bottom rounded-0 w-100" name="other_notes" rows="3">${record.other_notes || ''}</textarea>
-            </div>
-
-            <!-- DENTAL HISTORY -->
-            <h6 class="section-title mt-3">DENTAL HISTORY</h6>
-            <div class="row mb-2">
-                <div class="col-6">
-                    <label class="form-label-sm">Previous Dentist:</label>
-                    <input type="text" class="form-control-sm border-0 border-bottom rounded-0 w-100" name="previous_dentist" value="${record.previous_dentist || ''}">
-                </div>
-                <div class="col-6">
-                    <label class="form-label-sm">Last dental visit:</label>
-                    <input type="date" class="form-control-sm border-0 border-bottom rounded-0 w-100" name="last_dental_visit" value="${record.last_dental_visit || ''}">
-                </div>
-            </div>
-            <div class="mb-2">
-                <label class="form-label-sm">Treatment done:</label>
-                <textarea class="form-control-sm border-0 border-bottom rounded-0 w-100" name="treatment_done" rows="2">${record.treatment_done || ''}</textarea>
-            </div>
-
-            <!-- MEDICAL HISTORY -->
-            <h6 class="section-title mt-3">MEDICAL HISTORY</h6>
-            <div class="row mb-2">
-                <div class="col-6">
-                    <label class="form-label-sm">Name of Physician:</label>
-                    <input type="text" class="form-control-sm border-0 border-bottom rounded-0 w-100" name="physician_name" value="${record.physician_name || ''}">
-                </div>
-                <div class="col-6">
-                    <label class="form-label-sm">Specialty:</label>
-                    <input type="text" class="form-control-sm border-0 border-bottom rounded-0 w-100" name="physician_specialty" value="${record.physician_specialty || ''}">
-                </div>
-            </div>
-            <div class="row mb-2">
-                <div class="col-8">
-                    <label class="form-label-sm">Office address:</label>
-                    <input type="text" class="form-control-sm border-0 border-bottom rounded-0 w-100" name="physician_office_address" value="${record.physician_office_address || ''}">
-                </div>
-                <div class="col-4">
-                    <label class="form-label-sm">Contact No.:</label>
-                    <input type="text" class="form-control-sm border-0 border-bottom rounded-0 w-100" name="physician_contact" value="${record.physician_contact || ''}">
-                </div>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label-sm fw-bold">Medical History:</label>
-                <textarea class="form-control-sm border-0 border-bottom rounded-0 w-100" name="medical_history" rows="2">${record.medical_history || ''}</textarea>
-            </div>
-
-            <!-- Health Questions -->
-            <div class="health-questions mb-2">
-                <div class="question-row">
-                    <span class="q-number">1.</span>
-                    <span class="q-text">Are you in good health?</span>
-                    <div class="q-options">
-                        <label><input type="radio" name="good_health" value="yes"> YES</label>
-                        <label><input type="radio" name="good_health" value="no"> NO</label>
-                    </div>
-                </div>
-                <div class="question-row">
-                    <span class="q-number">2.</span>
-                    <span class="q-text">Are you under any medical treatment now?</span>
-                    <div class="q-options">
-                        <label><input type="radio" name="under_treatment" value="yes"> YES</label>
-                        <label><input type="radio" name="under_treatment" value="no"> NO</label>
-                    </div>
-                </div>
-                <div class="question-row">
-                    <span class="q-number">3.</span>
-                    <span class="q-text">Have you ever had any serious illness or surgery?</span>
-                    <div class="q-options">
-                        <label><input type="radio" name="serious_illness" value="yes"> YES</label>
-                        <label><input type="radio" name="serious_illness" value="no"> NO</label>
-                    </div>
-                </div>
-                <div class="question-row">
-                    <span class="q-number">4.</span>
-                    <span class="q-text">Have you ever been hospitalized?</span>
-                    <div class="q-options">
-                        <label><input type="radio" name="hospitalized" value="yes"> YES</label>
-                        <label><input type="radio" name="hospitalized" value="no"> NO</label>
-                    </div>
-                </div>
-                <div class="question-row">
-                    <span class="q-number">5.</span>
-                    <span class="q-text">Are you taking any prescription or non prescription drugs?</span>
-                    <div class="q-options">
-                        <label><input type="radio" name="taking_drugs" value="yes"> YES</label>
-                        <label><input type="radio" name="taking_drugs" value="no"> NO</label>
-                    </div>
-                </div>
-                <div class="question-row">
-                    <span class="q-number">6.</span>
-                    <span class="q-text">Do you use any tobacco products?</span>
-                    <div class="q-options">
-                        <label><input type="radio" name="tobacco" value="yes"> YES</label>
-                        <label><input type="radio" name="tobacco" value="no"> NO</label>
-                    </div>
-                </div>
-                <div class="question-row">
-                    <span class="q-number">7.</span>
-                    <span class="q-text">Do you drink alcoholic beverages?</span>
-                    <div class="q-options">
-                        <label><input type="radio" name="alcohol" value="yes"> YES</label>
-                        <label><input type="radio" name="alcohol" value="no"> NO</label>
-                    </div>
-                </div>
-                <div class="question-row">
-                    <span class="q-number">8.</span>
-                    <span class="q-text">Do you take any recreational drugs?</span>
-                    <div class="q-options">
-                        <label><input type="radio" name="recreational_drugs" value="yes"> YES</label>
-                        <label><input type="radio" name="recreational_drugs" value="no"> NO</label>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Allergies -->
-            <div class="row mb-2">
-                <div class="col-12">
-                    <label class="form-label-sm fw-bold">Are you allergic to the following:</label>
-                </div>
-                <div class="col-6">
-                    <div class="form-check form-check-sm">
-                        <input class="form-check-input" type="checkbox" name="allergy_anesthesia" id="allergy_anesthesia">
-                        <label class="form-check-label" for="allergy_anesthesia">Local Anesthetic (e.g. Lidocaine)</label>
-                    </div>
-                    <div class="form-check form-check-sm">
-                        <input class="form-check-input" type="checkbox" name="allergy_antibiotics" id="allergy_antibiotics">
-                        <label class="form-check-label" for="allergy_antibiotics">Antibiotics (e.g. Amoxicillin)</label>
-                    </div>
-                    <div class="form-check form-check-sm">
-                        <input class="form-check-input" type="checkbox" name="allergy_analgesics" id="allergy_analgesics">
-                        <label class="form-check-label" for="allergy_analgesics">Analgesics (e.g. Mefenamic Acid)</label>
-                    </div>
-                </div>
-                <div class="col-6">
-                    <div class="form-check form-check-sm">
-                        <input class="form-check-input" type="checkbox" name="allergy_sulfa" id="allergy_sulfa">
-                        <label class="form-check-label" for="allergy_sulfa">Sulfa drugs</label>
-                    </div>
-                    <div class="form-check form-check-sm">
-                        <input class="form-check-input" type="checkbox" name="allergy_aspirin" id="allergy_aspirin">
-                        <label class="form-check-label" for="allergy_aspirin">Aspirin</label>
-                    </div>
-                    <div class="form-check form-check-sm">
-                        <input class="form-check-input" type="checkbox" name="allergy_latex" id="allergy_latex">
-                        <label class="form-check-label" for="allergy_latex">Latex (e.g. Gloves)</label>
-                    </div>
-                </div>
-                <div class="col-6 mt-2">
-                    <label class="form-label-sm" style="font-size: 0.7rem;">Food (Please specify:)</label>
-                    <input type="text" class="form-control-sm border-0 border-bottom rounded-0 w-100" name="allergy_food" value="${(() => {
-                        try {
-                            const allergies = typeof record.allergies_detail === 'string' ? JSON.parse(record.allergies_detail) : (record.allergies_detail || {});
-                            return allergies.food || '';
-                        } catch(e) {
-                            return '';
-                        }
-                    })()}">
-                </div>
-                <div class="col-6 mt-2">
-                    <label class="form-label-sm" style="font-size: 0.7rem;">Others (Please specify:)</label>
-                    <input type="text" class="form-control-sm border-0 border-bottom rounded-0 w-100" name="allergy_others" value="${(() => {
-                        try {
-                            const allergies = typeof record.allergies_detail === 'string' ? JSON.parse(record.allergies_detail) : (record.allergies_detail || {});
-                            return allergies.others || '';
-                        } catch(e) {
-                            return '';
-                        }
-                    })()}">
-                </div>
-            </div>
-
-            <!-- For Women -->
-            <div class="mb-3">
-                <label class="form-label-sm fw-bold">For women:</label>
-                <div class="question-row">
-                    <span class="q-number">1.</span>
-                    <span class="q-text">Are you pregnant?</span>
-                    <div class="q-options">
-                        <label><input type="radio" name="pregnant" value="yes"> YES</label>
-                        <label><input type="radio" name="pregnant" value="no"> NO</label>
-                    </div>
-                </div>
-                <div class="question-row">
-                    <span class="q-number">2.</span>
-                    <span class="q-text">Are you currently nursing?</span>
-                    <div class="q-options">
-                        <label><input type="radio" name="nursing" value="yes"> YES</label>
-                        <label><input type="radio" name="nursing" value="no"> NO</label>
-                    </div>
-                </div>
-                <div class="question-row">
-                    <span class="q-number">3.</span>
-                    <span class="q-text">Are you currently taking birth control pills?</span>
-                    <div class="q-options">
-                        <label><input type="radio" name="birth_control" value="yes"> YES</label>
-                        <label><input type="radio" name="birth_control" value="no"> NO</label>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Chief Complaint & Diagnosis -->
-            <div class="mb-2">
-                <label class="form-label-sm fw-bold">Chief Complaint:</label>
-                <textarea class="form-control-sm border-0 border-bottom rounded-0 w-100" name="chief_complaint" rows="2">${record.chief_complaint || ''}</textarea>
-            </div>
-            <div class="mb-2">
-                <label class="form-label-sm fw-bold">Diagnosis:</label>
-                <textarea class="form-control-sm border-0 border-bottom rounded-0 w-100" name="diagnosis" rows="2">${record.diagnosis || ''}</textarea>
-            </div>
-            <div class="mb-2">
-                <label class="form-label-sm fw-bold">Treatment Plan:</label>
-                <textarea class="form-control-sm border-0 border-bottom rounded-0 w-100" name="treatment_plan" rows="2">${record.treatment_plan || ''}</textarea>
+                <label class="form-label fw-bold" style="color: #2c3e50;">Other Notes:</label>
+                <textarea class="form-control" name="notes" rows="3" style="border: 1px solid #ced4da;">${record.notes || ''}</textarea>
             </div>
 
             <!-- Patient Assignment Info (Hidden) -->
@@ -1634,50 +1391,145 @@ function renderPatientHistoryView(history) {
     return `
         <div class="patient-history-list p-3">
             ${history.map((h, index) => `
-                <div class="card mb-3" style="border-left: 4px solid #0d6efd;">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="card-title mb-0" style="color: #0a4275;">
-                                <i class="bi bi-calendar-check me-2"></i>Visit #${index + 1}
-                            </h6>
-                            <span class="badge bg-primary">${(() => {
+                <div class="card mb-4 shadow-sm" style="border: none; overflow: hidden;">
+                    <div class="card-header d-flex justify-content-between align-items-center" style="background: #0d6efd; color: white; padding: 12px 20px;">
+                        <h6 class="mb-0">
+                            <i class="bi bi-calendar-check me-2"></i>Visit #${index + 1} - ${(() => {
                                 try {
                                     const date = new Date(h.visit_date);
                                     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
                                 } catch(e) {
-                                    return h.visit_date;
+                                    return h.visit_date || 'Date not set';
                                 }
-                            })()}</span>
+                            })()}
+                        </h6>
+                    </div>
+                    <div class="card-body" style="background: #f8f9fa; padding: 20px;">
+                        <!-- DENTAL HISTORY -->
+                        <div class="mb-3">
+                            <h6 class="fw-bold mb-3" style="color: #0d6efd; border-bottom: 2px solid #0d6efd; padding-bottom: 8px;">DENTAL HISTORY</h6>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="d-block" style="color: #6c757d; font-weight: 600; font-size: 0.9rem;">Previous Dentist:</label>
+                                    <span>${h.previous_dentist || 'N/A'}</span>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="d-block" style="color: #6c757d; font-weight: 600; font-size: 0.9rem;">Last Dental Visit:</label>
+                                    <span>${h.last_dental_visit ? new Date(h.last_dental_visit).toLocaleDateString('en-US', {year: 'numeric', month: '2-digit', day: '2-digit'}) : 'N/A'}</span>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="d-block" style="color: #6c757d; font-weight: 600; font-size: 0.9rem;">Treatment Done:</label>
+                                    <span>${h.treatment_done || 'N/A'}</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="text-muted" style="font-size: 0.75rem; font-weight: 600;">PROCEDURE PERFORMED</label>
-                                <p class="mb-0" style="font-size: 0.9rem;">${h.procedure_performed || 'N/A'}</p>
+
+                        <!-- MEDICAL HISTORY -->
+                        <div class="mb-3">
+                            <h6 class="fw-bold mb-3" style="color: #0d6efd; border-bottom: 2px solid #0d6efd; padding-bottom: 8px;">MEDICAL HISTORY</h6>
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <label class="d-block" style="color: #6c757d; font-weight: 600; font-size: 0.9rem;">Physician Name:</label>
+                                    <span>${h.physician_name || 'N/A'}</span>
+                                </div>
+                                <div class="col-md-8">
+                                    <label class="d-block" style="color: #6c757d; font-weight: 600; font-size: 0.9rem;">Office Address:</label>
+                                    <span>${h.physician_office_address || 'N/A'}</span>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="d-block" style="color: #6c757d; font-weight: 600; font-size: 0.9rem;">Contact:</label>
+                                    <span>${h.physician_contact || 'N/A'}</span>
+                                </div>
                             </div>
-                            <div class="col-md-6">
-                                <label class="text-muted" style="font-size: 0.75rem; font-weight: 600;">MATERIALS USED</label>
-                                <p class="mb-0" style="font-size: 0.9rem;">${h.materials_used || 'N/A'}</p>
+                        </div>
+
+                        <!-- HEALTH QUESTIONS -->
+                        <div class="mb-3">
+                            <h6 class="fw-bold mb-3" style="color: #0d6efd; border-bottom: 2px solid #0d6efd; padding-bottom: 8px;">HEALTH QUESTIONS</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="d-block" style="color: #6c757d; font-weight: 600; font-size: 0.9rem;">Are you in good health?</label>
+                                    <span class="badge ${h.good_health && h.good_health.toLowerCase() === 'yes' ? 'bg-success' : 'bg-secondary'}">${h.good_health || 'N/A'}</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="d-block" style="color: #6c757d; font-weight: 600; font-size: 0.9rem;">Under medical treatment?</label>
+                                    <span>${h.under_treatment || 'N/A'}</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="d-block" style="color: #6c757d; font-weight: 600; font-size: 0.9rem;">Serious illness/operation?</label>
+                                    <span>${h.serious_illness || 'no'}</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="d-block" style="color: #6c757d; font-weight: 600; font-size: 0.9rem;">Been hospitalized?</label>
+                                    <span>${h.been_hospitalized || 'no'}</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="d-block" style="color: #6c757d; font-weight: 600; font-size: 0.9rem;">Taking prescription drugs?</label>
+                                    <span>${h.taking_drugs || 'N/A'}</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="d-block" style="color: #6c757d; font-weight: 600; font-size: 0.9rem;">Tobacco Use:</label>
+                                    <span>${h.tobacco_use || 'N/A'}</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="d-block" style="color: #6c757d; font-weight: 600; font-size: 0.9rem;">Alcohol Use:</label>
+                                    <span>${h.alcohol_use || 'no'}</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="d-block" style="color: #6c757d; font-weight: 600; font-size: 0.9rem;">Recreational Drugs:</label>
+                                    <span>${h.recreational_drugs || 'no'}</span>
+                                </div>
                             </div>
-                            <div class="col-md-6">
-                                <label class="text-muted" style="font-size: 0.75rem; font-weight: 600;">ANESTHESIA USED</label>
-                                <p class="mb-0" style="font-size: 0.9rem;">${h.anesthesia_used || 'N/A'}</p>
+                        </div>
+
+                        <!-- FOR WOMEN -->
+                        <div class="mb-3">
+                            <h6 class="fw-bold mb-3" style="color: #0d6efd; border-bottom: 2px solid #0d6efd; padding-bottom: 8px;">FOR WOMEN</h6>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="d-block" style="color: #6c757d; font-weight: 600; font-size: 0.9rem;">Pregnant:</label>
+                                    <span>${h.is_pregnant || 'no'}</span>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="d-block" style="color: #6c757d; font-weight: 600; font-size: 0.9rem;">Nursing:</label>
+                                    <span>${h.is_nursing || 'no'}</span>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="d-block" style="color: #6c757d; font-weight: 600; font-size: 0.9rem;">Taking Birth Control Pills:</label>
+                                    <span>${h.birth_control || 'no'}</span>
+                                </div>
                             </div>
-                            <div class="col-md-6">
-                                <label class="text-muted" style="font-size: 0.75rem; font-weight: 600;">COMPLICATIONS</label>
-                                <p class="mb-0" style="font-size: 0.9rem;">${h.complications || 'None reported'}</p>
+                        </div>
+
+                        <!-- PROCEDURE DETAILS -->
+                        <div class="mb-3">
+                            <h6 class="fw-bold mb-3" style="color: #0d6efd; border-bottom: 2px solid #0d6efd; padding-bottom: 8px;">PROCEDURE DETAILS</h6>
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <label class="d-block" style="color: #6c757d; font-weight: 600; font-size: 0.9rem;">PROCEDURE PERFORMED:</label>
+                                    <span>${h.procedure_performed || 'N/A'}</span>
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="d-block" style="color: #6c757d; font-weight: 600; font-size: 0.9rem;">MATERIALS USED:</label>
+                                    <span>${h.materials_used || 'N/A'}</span>
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="d-block" style="color: #6c757d; font-weight: 600; font-size: 0.9rem;">ANESTHESIA USED:</label>
+                                    <span>${h.anesthesia_used || 'N/A'}</span>
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="d-block" style="color: #6c757d; font-weight: 600; font-size: 0.9rem;">COMPLICATIONS:</label>
+                                    <span>${h.complications || 'None reported'}</span>
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="d-block" style="color: #6c757d; font-weight: 600; font-size: 0.9rem;">POST-OPERATIVE INSTRUCTIONS:</label>
+                                    <span>${h.post_operative_instructions || 'N/A'}</span>
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="d-block" style="color: #6c757d; font-weight: 600; font-size: 0.9rem;">FOLLOW-UP NOTES:</label>
+                                    <span>${h.follow_up_notes || 'N/A'}</span>
+                                </div>
                             </div>
-                            ${h.post_operative_instructions ? `
-                            <div class="col-12">
-                                <label class="text-muted" style="font-size: 0.75rem; font-weight: 600;">POST-OPERATIVE INSTRUCTIONS</label>
-                                <p class="mb-0" style="font-size: 0.9rem;">${h.post_operative_instructions}</p>
-                            </div>
-                            ` : ''}
-                            ${h.follow_up_notes ? `
-                            <div class="col-12">
-                                <label class="text-muted" style="font-size: 0.75rem; font-weight: 600;">FOLLOW-UP NOTES</label>
-                                <p class="mb-0" style="font-size: 0.9rem;">${h.follow_up_notes}</p>
-                            </div>
-                            ` : ''}
                         </div>
                     </div>
                 </div>
@@ -1686,19 +1538,6 @@ function renderPatientHistoryView(history) {
     `;
 }
 
-function renderPatientHistory(history) {
-    if (!history || history.length === 0) {
-        return '<p class="text-center text-muted">No history records found</p>';
-    }
-    return history.map(h => `
-        <div class="history-item">
-            <div><strong>Visit Date:</strong> ${h.visit_date}</div>
-            <div><strong>Procedure:</strong> ${h.procedure_performed || 'N/A'}</div>
-            <div><strong>Materials:</strong> ${h.materials_used || 'N/A'}</div>
-            <div><strong>Anesthesia:</strong> ${h.anesthesia_used || 'N/A'}</div>
-        </div>
-    `).join('<hr>');
-}
 
 // Editable Patient History List
 function renderPatientHistoryEditList(history, recordId) {
@@ -2342,33 +2181,6 @@ function renderAddPatientHistoryForm(recordId) {
 }
 
 
-function renderPatientHistoryForm(id) {
-    return `
-        <form id="patientHistoryForm">
-            <input type="hidden" name="patient_record_id" value="${id}">
-            <div class="mb-3">
-                <label class="form-label">Visit Date</label>
-                <input type="date" class="form-control" name="visit_date" required>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Procedure Performed</label>
-                <textarea class="form-control" name="procedure_performed" rows="2"></textarea>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Materials Used</label>
-                <textarea class="form-control" name="materials_used" rows="2"></textarea>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Anesthesia Used</label>
-                <textarea class="form-control" name="anesthesia_used" rows="2"></textarea>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Post-Operative Instructions</label>
-                <textarea class="form-control" name="post_operative_instructions" rows="2"></textarea>
-            </div>
-        </form>
-    `;
-}
 
 // Enhanced Progress Notes View for Modal
 function renderProgressNotesView(notes) {
@@ -2381,59 +2193,76 @@ function renderProgressNotesView(notes) {
         `;
     }
 
-    const statusColors = {
-        'ongoing': 'warning',
-        'completed': 'success',
-        'followup_needed': 'info'
-    };
-
-    const statusLabels = {
-        'ongoing': 'Ongoing',
-        'completed': 'Completed',
-        'followup_needed': 'Follow-up Needed'
-    };
-
     return `
         <div class="progress-notes-list p-3">
             ${notes.map((n, index) => `
-                <div class="card mb-3" style="border-left: 4px solid #${statusColors[n.status] === 'warning' ? 'ffc107' : statusColors[n.status] === 'success' ? '198754' : '0dcaf0'};">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="card-title mb-0" style="color: #0a4275;">
-                                <i class="bi bi-journal-medical me-2"></i>Note #${index + 1}
-                            </h6>
-                            <div>
-                                <span class="badge bg-${statusColors[n.status] || 'secondary'} me-2">
-                                    ${statusLabels[n.status] || n.status}
-                                </span>
-                                <span class="badge bg-secondary">${(() => {
-                                    try {
-                                        const date = new Date(n.note_date);
-                                        return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-                                    } catch(e) {
-                                        return n.note_date;
-                                    }
-                                })()}</span>
+                <div class="card mb-4 shadow-sm" style="border: none; overflow: hidden;">
+                    <div class="card-header d-flex justify-content-between align-items-center" style="background: #6f42c1; color: white; padding: 12px 20px;">
+                        <h6 class="mb-0">
+                            <i class="bi bi-journal-medical me-2"></i>Progress Note #${index + 1} - ${(() => {
+                                try {
+                                    const date = new Date(n.note_date);
+                                    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                                } catch(e) {
+                                    return n.note_date || 'Date not set';
+                                }
+                            })()}
+                        </h6>
+                    </div>
+                    <div class="card-body" style="background: #f8f9fa; padding: 20px;">
+                        <!-- PROGRESS NOTE -->
+                        <div class="mb-3">
+                            <h6 class="fw-bold mb-3" style="color: #6f42c1; border-bottom: 2px solid #6f42c1; padding-bottom: 8px;">PROGRESS NOTE</h6>
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <label class="d-block" style="color: #6c757d; font-weight: 600; font-size: 0.9rem;">Progress Note:</label>
+                                    <div style="background: white; padding: 12px; border-radius: 4px; border-left: 3px solid #6f42c1;">
+                                        ${n.progress_note || 'N/A'}
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="row g-3">
-                            <div class="col-12">
-                                <label class="text-muted" style="font-size: 0.75rem; font-weight: 600;">PROGRESS DESCRIPTION</label>
-                                <p class="mb-0" style="font-size: 0.9rem; white-space: pre-wrap;">${n.progress_description || 'N/A'}</p>
+
+                        <!-- ORAL HYGIENE -->
+                        <div class="mb-3">
+                            <h6 class="fw-bold mb-3" style="color: #6f42c1; border-bottom: 2px solid #6f42c1; padding-bottom: 8px;">ORAL HYGIENE</h6>
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <label class="d-block" style="color: #6c757d; font-weight: 600; font-size: 0.9rem;">Oral Hygiene Status:</label>
+                                    <div style="background: white; padding: 12px; border-radius: 4px; border-left: 3px solid #17a2b8;">
+                                        ${n.oral_hygiene || 'N/A'}
+                                    </div>
+                                </div>
                             </div>
-                            ${n.treatment_response ? `
-                            <div class="col-12">
-                                <label class="text-muted" style="font-size: 0.75rem; font-weight: 600;">TREATMENT RESPONSE</label>
-                                <p class="mb-0" style="font-size: 0.9rem; white-space: pre-wrap;">${n.treatment_response}</p>
-                            </div>
-                            ` : ''}
-                            ${n.next_steps ? `
-                            <div class="col-12">
-                                <label class="text-muted" style="font-size: 0.75rem; font-weight: 600;">NEXT STEPS</label>
-                                <p class="mb-0" style="font-size: 0.9rem; white-space: pre-wrap;">${n.next_steps}</p>
-                            </div>
-                            ` : ''}
                         </div>
+
+                        <!-- CONFORMED PRACTICES -->
+                        <div class="mb-3">
+                            <h6 class="fw-bold mb-3" style="color: #6f42c1; border-bottom: 2px solid #6f42c1; padding-bottom: 8px;">CONFORMED PRACTICES</h6>
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <label class="d-block" style="color: #6c757d; font-weight: 600; font-size: 0.9rem;">Practices Conformed:</label>
+                                    <div style="background: white; padding: 12px; border-radius: 4px; border-left: 3px solid #28a745;">
+                                        ${n.conformed_practices || 'N/A'}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ADDITIONAL INFO -->
+                        ${n.created_at ? `
+                        <div class="mt-4 pt-3" style="border-top: 1px solid #dee2e6;">
+                            <small class="text-muted">
+                                <i class="bi bi-clock me-1"></i>Created: ${new Date(n.created_at).toLocaleString('en-US', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                })}
+                            </small>
+                        </div>
+                        ` : ''}
                     </div>
                 </div>
             `).join('')}
@@ -2441,18 +2270,6 @@ function renderProgressNotesView(notes) {
     `;
 }
 
-function renderProgressNotes(notes) {
-    if (!notes || notes.length === 0) {
-        return '<p class="text-center text-muted">No progress notes found</p>';
-    }
-    return notes.map(n => `
-        <div class="note-item">
-            <div><strong>Date:</strong> ${n.note_date}</div>
-            <div><strong>Description:</strong> ${n.progress_description}</div>
-            <div><strong>Status:</strong> <span class="badge bg-primary">${n.status}</span></div>
-        </div>
-    `).join('<hr>');
-}
 
 // Editable Progress Notes List
 function renderProgressNotesEditList(notes, recordId) {
@@ -2571,37 +2388,6 @@ function renderAddProgressNoteForm(recordId) {
     `;
 }
 
-function renderProgressNotesForm(id) {
-    return `
-        <form id="progressNotesForm">
-            <input type="hidden" name="patient_record_id" value="${id}">
-            <div class="mb-3">
-                <label class="form-label">Note Date</label>
-                <input type="date" class="form-control" name="note_date" required>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Progress Description</label>
-                <textarea class="form-control" name="progress_description" rows="3" required></textarea>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Treatment Response</label>
-                <textarea class="form-control" name="treatment_response" rows="2"></textarea>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Next Steps</label>
-                <textarea class="form-control" name="next_steps" rows="2"></textarea>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Status</label>
-                <select class="form-select" name="status" required>
-                    <option value="ongoing">Ongoing</option>
-                    <option value="completed">Completed</option>
-                    <option value="followup_needed">Follow-up Needed</option>
-                </select>
-            </div>
-        </form>
-    `;
-}
 
 // Print modal content
 function printModalContent() {
@@ -2919,15 +2705,22 @@ async function savePatientRecordForm(callback) {
     .then(data => {
         console.log('Save response:', data);
         if (data.success) {
-            showNotification('Record saved and sent to patient successfully!', 'success');
+            // Store the record ID that was saved
+            const savedRecordId = data.data?.id || window.currentEditingRecordId;
 
-            // Auto-refresh: reload form list to show updates
-            loadPatientRecords();
-
-            // If we're in edit modal, refresh the modal content
-            if (window.currentEditingRecordId) {
-                editPatientInfo(window.currentEditingRecordId);
+            // Close the current modal properly
+            const detailsModal = bootstrap.Modal.getInstance(document.getElementById('detailsModal'));
+            if (detailsModal) {
+                detailsModal.hide();
             }
+
+            // Show success message
+            showNotification('✅ Record saved successfully!', 'success');
+
+            // Reload the page after a short delay to show updated data
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
 
             if (callback) callback();
         } else {
@@ -2939,12 +2732,12 @@ async function savePatientRecordForm(callback) {
                 const firstError = Object.values(data.errors)[0];
                 errorMessage = Array.isArray(firstError) ? firstError[0] : firstError;
             }
-            showNotification('Error: ' + errorMessage, 'error');
+            showNotification('❌ Error: ' + errorMessage, 'error');
         }
     })
     .catch(error => {
         console.error('Error saving record:', error);
-        showNotification('An error occurred while saving the record: ' + error.message, 'error');
+        showNotification('❌ An error occurred while saving the record: ' + error.message, 'error');
     });
 }
 
@@ -2955,11 +2748,8 @@ document.addEventListener('DOMContentLoaded', function() {
         saveBtn.addEventListener('click', function() {
             if (document.getElementById('patientInfoForm')) {
                 savePatientRecordForm(() => {
-                    const modal = document.getElementById('detailsModal');
-                    if (modal) {
-                        bootstrap.Modal.getInstance(modal).hide();
-                    }
-                    location.reload();
+                    // Modal content will auto-refresh after save
+                    // No need to close or reload
                 });
             }
         });
@@ -3015,37 +2805,33 @@ function displayPatientNameResults(patients) {
     }
 
     resultsDiv.innerHTML = patients.map(patient => {
-        const firstName = patient.info?.first_name || '';
-        const lastName = patient.info?.last_name || '';
-        const middleName = patient.info?.middle_name || '';
+        const firstName = patient.first_name || '';
+        const lastName = patient.last_name || '';
         const fullName = `${firstName} ${lastName}`.trim();
 
-        // Show appointment count
-        let appointmentInfo = '';
-        if (patient.total_appointments) {
-            appointmentInfo = `<small class="badge bg-success ms-2">${patient.total_appointments} appointment${patient.total_appointments > 1 ? 's' : ''}</small>`;
-        }
-
         return `
-            <div class="search-result-item" onclick="selectPatientForRecord(${patient.id}, '${escapeHtml(patient.username || patient.name)}', '${escapeHtml(firstName)}', '${escapeHtml(lastName)}', '${escapeHtml(middleName)}', ${JSON.stringify(patient).replace(/"/g, '&quot;')})">
+            <div class="search-result-item" onclick='selectPatientForRecord(${JSON.stringify(patient).replace(/'/g, "&#39;")})'>
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <strong><i class="bi bi-person-fill me-1"></i>${escapeHtml(patient.username || patient.name)}</strong>
                         <small class="text-muted d-block">${escapeHtml(fullName)}</small>
                     </div>
-                    ${appointmentInfo}
                 </div>
             </div>
         `;
     }).join('');
 }
 
-function selectPatientForRecord(userId, username, firstName, lastName, middleName, patientData) {
-    console.log('Selected patient for record:', userId, username);
+function selectPatientForRecord(patientData) {
+    console.log('Selected patient for record:', patientData);
 
     // Clear search results and input
     document.getElementById('patientNameSearchResults').innerHTML = '';
     document.getElementById('patientNameSearch').value = '';
+
+    const firstName = patientData.first_name || '';
+    const lastName = patientData.last_name || '';
+    const username = patientData.username || patientData.name || '';
 
     // Show selected patient alert
     const alertBox = document.getElementById('selectedPatientInfoAlert');
@@ -3054,45 +2840,60 @@ function selectPatientForRecord(userId, username, firstName, lastName, middleNam
     alertBox.classList.remove('d-none');
 
     // Auto-populate the patient name fields
-    document.getElementById('lastName').value = lastName || '';
-    document.getElementById('givenName').value = firstName || '';
-    document.getElementById('middleName').value = middleName || '';
+    document.getElementById('lastName').value = lastName;
+    document.getElementById('givenName').value = firstName;
+    document.getElementById('middleName').value = ''; // Not provided by API
 
-    // Auto-populate other available info if present
-    if (patientData && patientData.info) {
-        // Contact
-        if (patientData.info.phone) {
-            document.getElementById('contact').value = patientData.info.phone;
+    // Auto-populate home address
+    if (patientData.home_address) {
+        document.getElementById('homeAddress').value = patientData.home_address;
+    }
+
+    // Auto-populate birthdate and age
+    if (patientData.birthdate) {
+        document.getElementById('dateOfBirth').value = patientData.birthdate;
+
+        // Calculate age
+        const today = new Date();
+        const birthDate = new Date(patientData.birthdate);
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
         }
+        document.getElementById('age').value = age;
+    }
 
-        // Age and birthdate
-        if (patientData.info.birthdate) {
-            document.getElementById('dateOfBirth').value = patientData.info.birthdate;
+    // Auto-populate sex/gender
+    if (patientData.sex) {
+        // Capitalize first letter
+        const sex = patientData.sex.charAt(0).toUpperCase() + patientData.sex.slice(1).toLowerCase();
+        document.getElementById('sex').value = sex;
+    }
 
-            // Calculate age
-            const today = new Date();
-            const birthDate = new Date(patientData.info.birthdate);
-            let age = today.getFullYear() - birthDate.getFullYear();
-            const monthDiff = today.getMonth() - birthDate.getMonth();
-            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-                age--;
-            }
-            document.getElementById('age').value = age;
-        }
+    // Auto-populate religion
+    if (patientData.religion) {
+        document.getElementById('religion').value = patientData.religion;
+    }
 
-        // Gender
-        if (patientData.info.gender) {
-            const genderMap = { 'male': 'Male', 'female': 'Female' };
-            const mappedGender = genderMap[patientData.info.gender.toLowerCase()] || patientData.info.gender;
-            document.getElementById('sex').value = mappedGender;
-        }
+    // Auto-populate occupation
+    if (patientData.occupation) {
+        document.getElementById('occupation').value = patientData.occupation;
+    }
+
+    // Auto-populate contact number
+    if (patientData.contact_number) {
+        document.getElementById('contact').value = patientData.contact_number;
     }
 
     // Auto-populate "Sent to" section
     document.getElementById('patientSearchInput').value = `${username} - ${firstName} ${lastName}`;
-    document.getElementById('selectedPatientId').value = userId;
+    document.getElementById('selectedPatientId').value = patientData.id;
     document.getElementById('selectedPatientDisplay').classList.remove('d-none');
     document.getElementById('selectedPatientText').textContent = `${username} - ${firstName} ${lastName}`;
+
+    // Show success message
+    showNotification('Patient information auto-filled successfully!', 'success');
 
     // Scroll to form fields smoothly
     setTimeout(() => {
@@ -3195,29 +2996,23 @@ function displayPatientRecordSearchResults(patients) {
     console.log('Displaying', patients.length, 'patients');
 
     if (!patients || patients.length === 0) {
-        resultsDiv.innerHTML = '<div class="search-result-item text-muted"><i class="bi bi-info-circle me-2"></i>No patients with appointments found</div>';
+        resultsDiv.innerHTML = '<div class="search-result-item text-muted"><i class="bi bi-info-circle me-2"></i>No patients found</div>';
         return;
     }
 
     resultsDiv.innerHTML = patients.map(patient => {
-        const firstName = patient.info?.first_name || '';
-        const lastName = patient.info?.last_name || '';
+        const firstName = patient.first_name || '';
+        const lastName = patient.last_name || '';
         const fullName = `${firstName} ${lastName}`.trim();
-
-        // Show appointment info if available
-        let appointmentInfo = '';
-        if (patient.total_appointments) {
-            appointmentInfo = `<small class="badge bg-info">${patient.total_appointments} appointment${patient.total_appointments > 1 ? 's' : ''}</small>`;
-        }
+        const username = patient.username || patient.name || '';
 
         return `
-            <div class="search-result-item" onclick="loadPatientRecordIntoForm(${patient.id}, '${escapeHtml(patient.name)}', '${escapeHtml(fullName)}')">
+            <div class="search-result-item" onclick="loadPatientRecordIntoForm(${patient.id}, '${escapeHtml(username)}', '${escapeHtml(fullName)}')">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <strong>${escapeHtml(patient.name)}</strong>
+                        <strong>${escapeHtml(username)}</strong>
                         <small class="text-muted d-block">${escapeHtml(fullName)}</small>
                     </div>
-                    ${appointmentInfo}
                 </div>
             </div>
         `;
@@ -3391,7 +3186,7 @@ function savePatientRecordFromTab() {
         guardian_name: document.getElementById('guardianName').value,
         guardian_contact: document.getElementById('guardianContact').value,
         guardian_occupation: document.getElementById('guardianOccupation').value,
-        other_notes: document.getElementById('otherNotes').value
+        notes: document.getElementById('otherNotes').value
     };
 
     // Check if patient is selected in "Sent to"
@@ -3421,6 +3216,7 @@ function savePatientRecordFromTab() {
                 alert('âœ… Record saved successfully!');
             }
             clearPatientRecordForm(true); // Skip confirmation after successful save
+            loadPatientRecords(); // Reload the records table
         } else {
             let errorMessage = 'Failed to save record';
             if (result.message) {
@@ -3461,7 +3257,7 @@ function sendRecordToPatient() {
         guardian_name: document.getElementById('guardianName').value,
         guardian_contact: document.getElementById('guardianContact').value,
         guardian_occupation: document.getElementById('guardianOccupation').value,
-        other_notes: document.getElementById('otherNotes').value,
+        notes: document.getElementById('otherNotes').value,
         sent_to_patient: true
     };
 
@@ -4260,32 +4056,30 @@ function displayHistoryPatientNameResults(patients) {
     }
 
     resultsDiv.innerHTML = patients.map(patient => {
-        const firstName = patient.info?.first_name || '';
-        const lastName = patient.info?.last_name || '';
-        const middleName = patient.info?.middle_name || '';
+        const firstName = patient.first_name || '';
+        const lastName = patient.last_name || '';
         const fullName = `${firstName} ${lastName}`.trim();
 
-        let appointmentInfo = '';
-        if (patient.total_appointments) {
-            appointmentInfo = `<small class="badge bg-success ms-2">${patient.total_appointments} appointment${patient.total_appointments > 1 ? 's' : ''}</small>`;
-        }
-
         return `
-            <div class="search-result-item" onclick="selectHistoryPatient(${patient.id}, '${escapeHtml(patient.username || patient.name)}', '${escapeHtml(firstName)}', '${escapeHtml(lastName)}', '${escapeHtml(middleName)}')">
+            <div class="search-result-item" onclick='selectHistoryPatient(${JSON.stringify(patient).replace(/'/g, "&#39;")})'>
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <strong><i class="bi bi-person-fill me-1"></i>${escapeHtml(patient.username || patient.name)}</strong>
                         <small class="text-muted d-block">${escapeHtml(fullName)}</small>
                     </div>
-                    ${appointmentInfo}
                 </div>
             </div>
         `;
     }).join('');
 }
 
-function selectHistoryPatient(userId, username, firstName, lastName, middleName) {
-    console.log('Selected patient for history:', userId, username);
+function selectHistoryPatient(patientData) {
+    console.log('Selected patient for history:', patientData);
+
+    const userId = patientData.id;
+    const username = patientData.username || patientData.name || '';
+    const firstName = patientData.first_name || '';
+    const lastName = patientData.last_name || '';
 
     // Clear search results and input
     document.getElementById('historyPatientNameSearchResults').innerHTML = '';
@@ -4298,20 +4092,304 @@ function selectHistoryPatient(userId, username, firstName, lastName, middleName)
     alertBox.classList.remove('d-none');
 
     // Auto-populate the patient name fields (readonly)
-    document.getElementById('historyLastName').value = lastName || '';
-    document.getElementById('historyGivenName').value = firstName || '';
-    document.getElementById('historyMiddleName').value = middleName || '';
+    document.getElementById('historyLastName').value = lastName;
+    document.getElementById('historyGivenName').value = firstName;
+    document.getElementById('historyMiddleName').value = ''; // Not provided by API
 
     // Store selected patient
     selectedHistoryPatient = { id: userId, name: username };
 
-    // Render the medical history form with patient ID
-    renderMedicalHistoryFormOnly(userId);
+    // Fetch patient record to get patient_record_id
+    fetch(`/admin/post-procedural/patient-record-by-user/${userId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.data && data.data.id) {
+                const patientRecordId = data.data.id;
 
-    // Scroll to form
-    setTimeout(() => {
-        document.getElementById('medicalHistoryFormContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 300);
+                // Fetch existing patient history records
+                fetch(`/admin/post-procedural/patient-history/${patientRecordId}`)
+                    .then(response => response.json())
+                    .then(historyData => {
+                        if (historyData.success && historyData.data && historyData.data.length > 0) {
+                            // Show existing history records
+                            renderExistingHistoryRecords(historyData.data, patientRecordId, userId);
+                        } else {
+                            // No history found, render empty form
+                            renderMedicalHistoryFormOnly(userId);
+                            showNotification('No existing history found for this patient. You can create a new one.', 'info');
+                        }
+
+                        // Scroll to form
+                        setTimeout(() => {
+                            document.getElementById('medicalHistoryFormContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }, 300);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching patient history:', error);
+                        renderMedicalHistoryFormOnly(userId);
+                    });
+            } else {
+                // No patient record exists, render empty form
+                renderMedicalHistoryFormOnly(userId);
+                showNotification('No patient record found. Creating a new history will auto-create a patient record.', 'info');
+
+                setTimeout(() => {
+                    document.getElementById('medicalHistoryFormContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 300);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching patient record:', error);
+            renderMedicalHistoryFormOnly(userId);
+        });
+}
+
+// Render existing history records
+function renderExistingHistoryRecords(histories, patientRecordId, userId) {
+    let html = `
+        <div class="alert alert-success mb-4" style="background: linear-gradient(135deg, #d1e7dd 0%, #badbcc 100%); border: 1px solid #a3cfbb;">
+            <i class="bi bi-info-circle-fill me-2"></i>
+            <strong>Found ${histories.length} existing history record${histories.length > 1 ? 's' : ''}</strong> for this patient.
+        </div>
+
+        <div class="mb-4">
+            <h6 class="fw-bold mb-3" style="color: #0a4275;">EXISTING HISTORY RECORDS</h6>
+    `;
+
+    histories.forEach((history, index) => {
+        const visitDate = history.visit_date ? new Date(history.visit_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A';
+
+        html += `
+            <div class="card mb-3" style="border: 2px solid #0d6efd;">
+                <div class="card-header" style="background: linear-gradient(135deg, #e7f1ff 0%, #cfe2ff 100%);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <strong style="color: #0a4275;"><i class="bi bi-calendar-event me-2"></i>Visit Date: ${visitDate}</strong>
+                        <div class="btn-group btn-group-sm">
+                            <button type="button" class="btn btn-primary" onclick="viewHistoryDetails(${history.id})" title="View Details">
+                                <i class="bi bi-eye me-1"></i>View
+                            </button>
+                            <button type="button" class="btn btn-success" onclick="editHistoryRecord(${history.id})" title="Edit">
+                                <i class="bi bi-pencil me-1"></i>Edit
+                            </button>
+                            <button type="button" class="btn btn-danger" onclick="deleteHistoryRecord(${history.id})" title="Delete">
+                                <i class="bi bi-trash me-1"></i>Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body" id="historyDetails${history.id}" style="display: none; background: #f8f9fa;">
+                    <!-- DENTAL HISTORY -->
+                    <div class="mb-3">
+                        <h6 class="fw-bold mb-3" style="color: #0d6efd; border-bottom: 2px solid #0d6efd; padding-bottom: 8px;">DENTAL HISTORY</h6>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">Previous Dentist:</strong>
+                                <span>${history.previous_dentist || 'N/A'}</span>
+                            </div>
+                            <div class="col-md-4">
+                                <strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">Last Dental Visit:</strong>
+                                <span>${history.last_dental_visit ? new Date(history.last_dental_visit).toLocaleDateString('en-US', {year: 'numeric', month: '2-digit', day: '2-digit'}) : 'N/A'}</span>
+                            </div>
+                            <div class="col-md-4">
+                                <strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">Treatment Done:</strong>
+                                <span>${history.treatment_done || 'N/A'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MEDICAL HISTORY -->
+                    <div class="mb-3">
+                        <h6 class="fw-bold mb-3" style="color: #0d6efd; border-bottom: 2px solid #0d6efd; padding-bottom: 8px;">MEDICAL HISTORY</h6>
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">Physician Name:</strong>
+                                <span>${history.physician_name || 'N/A'}</span>
+                            </div>
+                            <div class="col-md-8">
+                                <strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">Office Address:</strong>
+                                <span>${history.physician_office_address || 'N/A'}</span>
+                            </div>
+                            <div class="col-md-4">
+                                <strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">Contact:</strong>
+                                <span>${history.physician_contact || 'N/A'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- HEALTH QUESTIONS -->
+                    <div class="mb-3">
+                        <h6 class="fw-bold mb-3" style="color: #0d6efd; border-bottom: 2px solid #0d6efd; padding-bottom: 8px;">HEALTH QUESTIONS</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">Are you in good health?</strong>
+                                <span class="badge ${history.good_health && history.good_health.toLowerCase() === 'yes' ? 'bg-success' : 'bg-secondary'}">${history.good_health || 'N/A'}</span>
+                            </div>
+                            <div class="col-md-6">
+                                <strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">Under medical treatment?</strong>
+                                <span>${history.under_treatment || 'N/A'}</span>
+                            </div>
+                            <div class="col-md-6">
+                                <strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">Serious illness/operation?</strong>
+                                <span>${history.serious_illness || 'no'}</span>
+                            </div>
+                            <div class="col-md-6">
+                                <strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">Been hospitalized?</strong>
+                                <span>${history.been_hospitalized || 'no'}</span>
+                            </div>
+                            <div class="col-md-6">
+                                <strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">Taking prescription drugs?</strong>
+                                <span>${history.taking_drugs || 'N/A'}</span>
+                            </div>
+                            <div class="col-md-6">
+                                <strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">Tobacco Use:</strong>
+                                <span>${history.tobacco_use || 'N/A'}</span>
+                            </div>
+                            <div class="col-md-6">
+                                <strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">Alcohol Use:</strong>
+                                <span>${history.alcohol_use || 'no'}</span>
+                            </div>
+                            <div class="col-md-6">
+                                <strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">Recreational Drugs:</strong>
+                                <span>${history.recreational_drugs || 'no'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- FOR WOMEN -->
+                    <div class="mb-3">
+                        <h6 class="fw-bold mb-3" style="color: #0d6efd; border-bottom: 2px solid #0d6efd; padding-bottom: 8px;">FOR WOMEN</h6>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">Pregnant:</strong>
+                                <span>${history.is_pregnant || 'no'}</span>
+                            </div>
+                            <div class="col-md-4">
+                                <strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">Nursing:</strong>
+                                <span>${history.is_nursing || 'no'}</span>
+                            </div>
+                            <div class="col-md-4">
+                                <strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">Taking Birth Control Pills:</strong>
+                                <span>${history.birth_control || 'no'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PROCEDURE DETAILS -->
+                    <div class="mb-3">
+                        <h6 class="fw-bold mb-3" style="color: #0d6efd; border-bottom: 2px solid #0d6efd; padding-bottom: 8px;">PROCEDURE DETAILS</h6>
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">PROCEDURE PERFORMED:</strong>
+                                <span>${history.procedure_performed || 'N/A'}</span>
+                            </div>
+                            <div class="col-md-12">
+                                <strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">MATERIALS USED:</strong>
+                                <span>${history.materials_used || 'N/A'}</span>
+                            </div>
+                            <div class="col-md-12">
+                                <strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">ANESTHESIA USED:</strong>
+                                <span>${history.anesthesia_used || 'N/A'}</span>
+                            </div>
+                            <div class="col-md-12">
+                                <strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">COMPLICATIONS:</strong>
+                                <span>${history.complications || 'N/A'}</span>
+                            </div>
+                            <div class="col-md-12">
+                                <strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">POST-OPERATIVE INSTRUCTIONS:</strong>
+                                <span>${history.post_operative_instructions || 'N/A'}</span>
+                            </div>
+                            <div class="col-md-12">
+                                <strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">FOLLOW-UP NOTES:</strong>
+                                <span>${history.follow_up_notes || 'N/A'}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    html += `
+        </div>
+        <hr class="my-4">
+        <div class="text-center mb-3">
+            <button type="button" class="btn btn-lg btn-primary" onclick="renderMedicalHistoryFormOnly(${userId})">
+                <i class="bi bi-plus-circle me-2"></i>Add New History Record
+            </button>
+        </div>
+    `;
+
+    document.getElementById('medicalHistoryFormContainer').innerHTML = html;
+}
+
+// View history details
+function viewHistoryDetails(historyId) {
+    const detailsDiv = document.getElementById('historyDetails' + historyId);
+    const isVisible = detailsDiv.style.display !== 'none';
+
+    // Hide all details first
+    document.querySelectorAll('[id^="historyDetails"]').forEach(div => {
+        div.style.display = 'none';
+    });
+
+    // Toggle this one
+    if (!isVisible) {
+        detailsDiv.style.display = 'block';
+    }
+}
+
+// Edit history record
+function editHistoryRecord(historyId) {
+    showNotification('Loading history record for editing...', 'info');
+
+    fetch(`/admin/post-procedural/patient-history/${historyId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.data) {
+                // TODO: Populate form with history data for editing
+                showNotification('Edit functionality coming soon', 'warning');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Error loading history record', 'danger');
+        });
+}
+
+// Delete history record
+function deleteHistoryRecord(historyId) {
+    if (!confirm('Are you sure you want to delete this history record? This action cannot be undone.')) {
+        return;
+    }
+
+    fetch(`/admin/post-procedural/patient-history/${historyId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('✅ History record deleted successfully!', 'success');
+            // Refresh the patient selection to reload the list
+            if (selectedHistoryPatient) {
+                const patient = selectedHistoryPatient;
+                selectHistoryPatient(patient.id, patient.name,
+                    document.getElementById('historyGivenName').value,
+                    document.getElementById('historyLastName').value,
+                    document.getElementById('historyMiddleName').value);
+            }
+        } else {
+            showNotification('❌ Failed to delete history record', 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('❌ Error deleting history record', 'danger');
+    });
 }
 
 // Render medical history form only (without patient info header)
@@ -5303,6 +5381,335 @@ function createNewMedicalHistory(patientId) {
     showNotification('This feature will open a form to create medical history', 'info');
     // TODO: Implement create new medical history form
 }
+
+// ========================
+// PROGRESS NOTES FUNCTIONALITY
+// ========================
+
+let selectedProgressNotePatient = null;
+let progressNoteRows = [];
+let progressNoteRowCounter = 0;
+
+// Display progress note search results
+function displayProgressNoteSearchResults(patients) {
+    const resultsDiv = document.getElementById('progressNotePatientSearchResults');
+    let html = '';
+
+    patients.forEach(patient => {
+        const fullName = patient.info ?
+            `${patient.info.first_name} ${patient.info.last_name}` :
+            patient.name;
+
+        html += `
+            <div class="search-result-item" onclick="selectProgressNotePatient(${patient.id}, '${fullName}', '${patient.username}')">
+                <div>
+                    <strong>${fullName}</strong>
+                    <br>
+                    <small class="text-muted">@${patient.username}</small>
+                </div>
+            </div>
+        `;
+    });
+
+    resultsDiv.innerHTML = html;
+}
+
+// Select patient for progress notes
+function selectProgressNotePatient(patientId, patientName, username) {
+    selectedProgressNotePatient = {
+        id: patientId,
+        name: patientName,
+        username: username
+    };
+
+    // Clear search
+    document.getElementById('progressNotePatientSearch').value = '';
+    document.getElementById('progressNotePatientSearchResults').innerHTML = '';
+
+    // Show selected patient alert
+    document.getElementById('selectedProgressNotePatientAlert').classList.remove('d-none');
+    document.getElementById('selectedProgressNotePatientText').textContent = `${patientName} (@${username})`;
+
+    // Set send to patient field
+    document.getElementById('progressNoteSendToPatient').value = patientName;
+
+    // Load existing progress notes for this patient
+    loadProgressNotes(patientId);
+
+    showNotification(`Patient ${patientName} selected`, 'success');
+}
+
+// Load existing progress notes for patient
+function loadProgressNotes(patientId) {
+    // First, we need to get or create the patient record by user ID
+    fetch(`/admin/post-procedural/patient-record-by-user/${patientId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.data) {
+                const recordId = data.data.id;
+                // Now load progress notes for this record
+                fetch(`/admin/post-procedural/progress-notes/${recordId}`)
+                    .then(response => response.json())
+                    .then(notesData => {
+                        if (notesData.success && notesData.data.length > 0) {
+                            showNotification(`✅ Found ${notesData.data.length} existing progress note${notesData.data.length > 1 ? 's' : ''} for this patient`, 'success');
+                            progressNoteRows = notesData.data.map((note, index) => ({
+                                id: note.id,
+                                date: note.note_date,
+                                progressNote: note.progress_description || '',
+                                oralHygiene: note.treatment_response || '',
+                                conformedPractices: note.next_steps || '',
+                                rowId: progressNoteRowCounter++
+                            }));
+                            renderProgressNotesTable();
+                        } else {
+                            // No existing notes, start fresh
+                            showNotification('ℹ️ No existing progress notes found. You can create new ones.', 'info');
+                            progressNoteRows = [];
+                            addProgressNoteRow();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading progress notes:', error);
+                        showNotification('⚠️ Could not load progress notes. Starting fresh.', 'warning');
+                        progressNoteRows = [];
+                        addProgressNoteRow();
+                    });
+            } else {
+                // No patient record yet, start fresh
+                showNotification('ℹ️ No patient record found. Creating notes will auto-create a patient record.', 'info');
+                progressNoteRows = [];
+                addProgressNoteRow();
+            }
+        })
+        .catch(error => {
+            console.error('Error loading patient record:', error);
+            showNotification('❌ Error loading patient record', 'danger');
+            progressNoteRows = [];
+            addProgressNoteRow();
+        });
+}
+
+// Add new progress note row
+function addProgressNoteRow() {
+    const rowId = progressNoteRowCounter++;
+    const today = new Date().toISOString().split('T')[0];
+
+    progressNoteRows.push({
+        id: null,
+        date: today,
+        progressNote: '',
+        oralHygiene: '',
+        conformedPractices: '',
+        rowId: rowId
+    });
+
+    renderProgressNotesTable();
+}
+
+// Render progress notes table
+function renderProgressNotesTable() {
+    const tbody = document.getElementById('progressNotesTableBody');
+    let html = '';
+
+    progressNoteRows.forEach((row, index) => {
+        html += `
+            <tr data-row-id="${row.rowId}">
+                <td>
+                    <input type="date" class="form-control" value="${row.date}"
+                           onchange="updateProgressNoteRow(${row.rowId}, 'date', this.value)">
+                </td>
+                <td>
+                    <textarea class="form-control" rows="2"
+                              onchange="updateProgressNoteRow(${row.rowId}, 'progressNote', this.value)"
+                              placeholder="Treatment progress...">${row.progressNote}</textarea>
+                </td>
+                <td>
+                    <textarea class="form-control" rows="2"
+                              onchange="updateProgressNoteRow(${row.rowId}, 'oralHygiene', this.value)"
+                              placeholder="Hygiene assessment...">${row.oralHygiene}</textarea>
+                </td>
+                <td>
+                    <textarea class="form-control" rows="2"
+                              onchange="updateProgressNoteRow(${row.rowId}, 'conformedPractices', this.value)"
+                              placeholder="Recommended practices...">${row.conformedPractices}</textarea>
+                </td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-danger btn-sm"
+                            onclick="deleteProgressNoteRow(${row.rowId})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+
+    tbody.innerHTML = html;
+}
+
+// Update progress note row
+function updateProgressNoteRow(rowId, field, value) {
+    const row = progressNoteRows.find(r => r.rowId === rowId);
+    if (row) {
+        row[field] = value;
+    }
+}
+
+// Delete progress note row
+function deleteProgressNoteRow(rowId) {
+    if (confirm('Are you sure you want to delete this row?')) {
+        progressNoteRows = progressNoteRows.filter(r => r.rowId !== rowId);
+        renderProgressNotesTable();
+        showNotification('Row deleted', 'info');
+    }
+}
+
+// Clear progress notes form
+function clearProgressNotesForm() {
+    selectedProgressNotePatient = null;
+    progressNoteRows = [];
+    progressNoteRowCounter = 0;
+
+    document.getElementById('progressNotePatientSearch').value = '';
+    document.getElementById('selectedProgressNotePatientAlert').classList.add('d-none');
+    document.getElementById('progressNoteSendToPatient').value = '';
+    document.getElementById('progressNoteOtherNotes').value = '';
+
+    // Add one empty row to start fresh
+    addProgressNoteRow();
+}
+
+// Initialize Progress Notes Search (called when Progress Notes tab is clicked)
+let progressNotesSearchInitialized = false;
+function initializeProgressNotesSearch() {
+    // Only initialize once
+    if (progressNotesSearchInitialized) {
+        return;
+    }
+    progressNotesSearchInitialized = true;
+
+    console.log('Initializing Progress Notes search...');
+
+    // Add initial row if none exist
+    if (progressNoteRows.length === 0) {
+        addProgressNoteRow();
+    }
+
+    // Initialize patient search
+    const progressNoteSearchInput = document.getElementById('progressNotePatientSearch');
+    if (progressNoteSearchInput) {
+        progressNoteSearchInput.addEventListener('input', debounce(function(e) {
+            const searchTerm = e.target.value.trim();
+            console.log('Search term:', searchTerm);
+
+            if (searchTerm.length < 2) {
+                document.getElementById('progressNotePatientSearchResults').innerHTML = '';
+                return;
+            }
+
+            console.log('Fetching patients...');
+            fetch(`/admin/post-procedural/search-patients?q=${encodeURIComponent(searchTerm)}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Search response:', data);
+                    if (data.success && data.data.length > 0) {
+                        displayProgressNoteSearchResults(data.data);
+                    } else {
+                        document.getElementById('progressNotePatientSearchResults').innerHTML =
+                            '<div class="search-result-item text-muted">No patients with appointments found</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error searching patients:', error);
+                    document.getElementById('progressNotePatientSearchResults').innerHTML =
+                        '<div class="search-result-item text-danger">Error loading patients</div>';
+                });
+        }, 300));
+        console.log('Search event listener attached');
+    } else {
+        console.error('Search input not found');
+    }
+
+    // Add Row button event listener
+    const addProgressNoteRowBtn = document.getElementById('addProgressNoteRowBtn');
+    if (addProgressNoteRowBtn) {
+        addProgressNoteRowBtn.addEventListener('click', addProgressNoteRow);
+    }
+
+    // Send button event listener
+    const sendProgressNoteBtn = document.getElementById('sendProgressNoteBtn');
+    if (sendProgressNoteBtn) {
+        sendProgressNoteBtn.addEventListener('click', function() {
+            if (!selectedProgressNotePatient) {
+                showNotification('Please select a patient first', 'warning');
+                return;
+            }
+
+            // Validate that at least one row has data
+            const hasData = progressNoteRows.some(row =>
+                row.progressNote || row.oralHygiene || row.conformedPractices
+            );
+
+            if (!hasData) {
+                showNotification('Please add at least one progress note entry', 'warning');
+                return;
+            }
+
+            const otherNotes = document.getElementById('progressNoteOtherNotes').value;
+
+            // Prepare the data to send
+            const progressNotesData = {
+                patient_id: selectedProgressNotePatient.id,
+                notes: progressNoteRows,
+                other_notes: otherNotes,
+                send_to_patient: true
+            };
+
+            // Show loading state
+            const btn = this;
+            const originalContent = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sending...';
+
+            // Send to backend
+            fetch('/admin/post-procedural/store-progress-notes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify(progressNotesData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
+
+                if (data.success) {
+                    showNotification('✅ Progress notes saved and sent to patient successfully!', 'success');
+
+                    // Reset form after a delay
+                    setTimeout(() => {
+                        clearProgressNotesForm();
+                    }, 2000);
+                } else {
+                    showNotification('❌ Failed to save progress notes: ' + (data.message || 'Unknown error'), 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
+                showNotification('❌ Error sending progress notes', 'danger');
+            });
+        });
+    }
+}
+
+// Load patient records on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadPatientRecords();
+});
 
 </script>
 @endsection

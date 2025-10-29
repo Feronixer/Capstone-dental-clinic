@@ -13,7 +13,7 @@
         <nav class="header-nav">
             <ul class="nav-menu">
                 <li class="nav-item">
-                    <a href="{{ route('patient-home') }}" class="nav-link {{ request()->routeIs('patient-home') ? 'active' : '' }}">
+                    <a href="{{ route('patient-dashboard') }}" class="nav-link {{ request()->routeIs('patient-dashboard') || request()->routeIs('patient-home') ? 'active' : '' }}">
                         <i class="bi bi-house-door"></i>
                         <span>Home</span>
                     </a>
@@ -37,7 +37,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="{{ route('patient-about') }}" class="nav-link {{ request()->routeIs('patient-about') ? 'active' : '' }}">
                         <i class="bi bi-info-circle"></i>
                         <span>About Us</span>
                     </a>
@@ -49,38 +49,25 @@
         <div class="header-actions">
             <!-- Notifications -->
             <div class="dropdown">
-                <button class="icon-btn" type="button" data-bs-toggle="dropdown">
+                <button class="icon-btn" type="button" data-bs-toggle="dropdown" id="notificationDropdownBtn">
                     <i class="bi bi-bell"></i>
-                    <span class="notification-badge">3</span>
+                    <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
                 </button>
-                <div class="dropdown-menu dropdown-menu-end notification-dropdown">
+                <div class="dropdown-menu dropdown-menu-end notification-dropdown" id="notificationDropdown">
                     <div class="dropdown-header">
                         <h6 class="mb-0">Notifications</h6>
-                        <small class="text-muted">You have 3 unread messages</small>
+                        <small class="text-muted" id="notificationSubtitle">Loading...</small>
                     </div>
                     <div class="dropdown-divider"></div>
-                    <a href="#" class="dropdown-item notification-item">
-                        <div class="notification-icon bg-primary">
-                            <i class="bi bi-calendar-check text-white"></i>
+                    <div id="notificationsList">
+                        <div class="text-center py-3">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
                         </div>
-                        <div class="notification-content">
-                            <div class="notification-title">Appointment Confirmed</div>
-                            <small class="text-muted">Your appointment on April 15 has been confirmed</small>
-                        </div>
-                        <span class="notification-time">2m ago</span>
-                    </a>
-                    <a href="#" class="dropdown-item notification-item">
-                        <div class="notification-icon bg-success">
-                            <i class="bi bi-file-medical text-white"></i>
-                        </div>
-                        <div class="notification-content">
-                            <div class="notification-title">Record Updated</div>
-                            <small class="text-muted">Your dental record has been updated</small>
-                        </div>
-                        <span class="notification-time">1h ago</span>
-                    </a>
+                    </div>
                     <div class="dropdown-divider"></div>
-                    <a href="#" class="dropdown-item text-center text-primary">
+                    <a href="{{ route('patient-notifications') }}" class="dropdown-item text-center text-primary">
                         <small>View All Notifications</small>
                     </a>
                 </div>
@@ -322,6 +309,16 @@
     gap: 0.75rem;
     padding: 1rem;
     border-bottom: 1px solid #f0f0f0;
+    transition: all 0.2s;
+}
+
+.notification-item:hover {
+    background: #f8fafc;
+}
+
+.notification-item.unread {
+    background: linear-gradient(to right, #f0f9ff 0%, #ffffff 100%);
+    border-left: 3px solid #2196F3;
 }
 
 .notification-icon {
@@ -336,17 +333,29 @@
 
 .notification-content {
     flex: 1;
+    min-width: 0;
 }
 
 .notification-title {
     font-weight: 600;
     font-size: 0.9rem;
     margin-bottom: 0.25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.notification-content small {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .notification-time {
     font-size: 0.75rem;
     color: #999;
+    white-space: nowrap;
 }
 
 .mobile-menu-toggle {
@@ -377,3 +386,97 @@
     }
 }
 </style>
+
+<script>
+// Notification system
+document.addEventListener('DOMContentLoaded', function() {
+    loadNotifications();
+
+    // Refresh notifications every 30 seconds
+    setInterval(loadNotifications, 30000);
+
+    // Load when dropdown is opened
+    document.getElementById('notificationDropdownBtn')?.addEventListener('click', loadNotifications);
+});
+
+async function loadNotifications() {
+    try {
+        const response = await fetch('/patient/notifications/recent');
+        const data = await response.json();
+
+        updateNotificationBadge(data.unread_count);
+        updateNotificationSubtitle(data.unread_count);
+        renderNotifications(data.notifications);
+    } catch (error) {
+        console.error('Error loading notifications:', error);
+        document.getElementById('notificationsList').innerHTML = `
+            <div class="text-center py-3 text-muted">
+                <small>Failed to load notifications</small>
+            </div>
+        `;
+    }
+}
+
+function updateNotificationBadge(count) {
+    const badge = document.getElementById('notificationBadge');
+    if (count > 0) {
+        badge.textContent = count > 99 ? '99+' : count;
+        badge.style.display = 'flex';
+    } else {
+        badge.style.display = 'none';
+    }
+}
+
+function updateNotificationSubtitle(count) {
+    const subtitle = document.getElementById('notificationSubtitle');
+    if (count === 0) {
+        subtitle.textContent = 'No unread notifications';
+    } else if (count === 1) {
+        subtitle.textContent = 'You have 1 unread notification';
+    } else {
+        subtitle.textContent = `You have ${count} unread notifications`;
+    }
+}
+
+function renderNotifications(notifications) {
+    const container = document.getElementById('notificationsList');
+
+    if (notifications.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-4">
+                <i class="bi bi-bell-slash text-muted" style="font-size: 2rem;"></i>
+                <p class="text-muted mb-0 mt-2">No notifications</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = notifications.map(notification => `
+        <a href="{{ route('patient-notifications') }}" class="dropdown-item notification-item ${!notification.is_read ? 'unread' : ''}" onclick="markNotificationAsRead(${notification.id}, event)">
+            <div class="notification-icon ${notification.icon_color}">
+                <i class="bi ${notification.icon_class} text-white"></i>
+            </div>
+            <div class="notification-content">
+                <div class="notification-title">${notification.title}</div>
+                <small class="text-muted">${notification.message}</small>
+            </div>
+            <span class="notification-time">${notification.time_ago}</span>
+        </a>
+    `).join('');
+}
+
+async function markNotificationAsRead(id, event) {
+    // Don't prevent default, let the link work
+    try {
+        await fetch(`/patient/notifications/${id}/read`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Content-Type': 'application/json',
+            }
+        });
+    } catch (error) {
+        console.error('Error marking notification as read:', error);
+    }
+}
+</script>

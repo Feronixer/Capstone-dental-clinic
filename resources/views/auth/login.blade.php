@@ -47,6 +47,11 @@
                         </a>
                     </div>
                 </div>
+                <div class="text-center mt-3">
+                    <a href="/" class="text-muted">
+                        <i class="bi bi-arrow-left me-1"></i>Back to Homepage
+                    </a>
+                </div>
             </form>
         </div>
         <div class="login-card-image">

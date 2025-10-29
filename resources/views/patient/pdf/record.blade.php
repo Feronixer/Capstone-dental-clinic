@@ -10,7 +10,7 @@
             box-sizing: border-box;
         }
 
-        body {
+        bo        dy {
             font-family: Arial, Helvetica, sans-serif;
             font-size: 12px;
             color: #2C3E50;
@@ -18,7 +18,7 @@
             padding: 20px;
         }
 
-        @media print {
+        @media pri        nt {
             .no-print {
                 display: none !important;
             }
@@ -27,7 +27,7 @@
             }
         }
 
-        .print-button-container {
+        .print-button-conta        iner {
             position: fixed;
             top: 10px;
             right: 10px;
@@ -35,7 +35,7 @@
         }
 
         .btn-print {
-            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            b        ackground: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
             color: white;
             border: none;
             padding: 12px 24px;
@@ -49,36 +49,36 @@
         }
 
         .btn-print:hover {
-            background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+            backgroun        d: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
             box-shadow: 0 6px 16px rgba(33, 150, 243, 0.4);
         }
 
         .header {
             text-align: center;
-            margin-bottom: 30px;
+                    margin-bottom: 30px;
             padding-bottom: 20px;
             border-bottom: 3px solid #2196F3;
         }
 
         .header h1 {
             color: #2196F3;
-            font-size: 24px;
+                    font-size: 24px;
             margin-bottom: 5px;
         }
 
         .header p {
             color: #64748b;
-            font-size: 11px;
+            font-s        ize: 11px;
         }
 
         .section {
             margin-bottom: 25px;
-            page-break-inside: avoid;
+            page-br        eak-inside: avoid;
         }
 
         .section-title {
             background: #eceff1;
-            padding: 8px 12px;
+            paddin        g: 8px 12px;
             font-weight: bold;
             color: #2C3E50;
             font-size: 14px;
@@ -89,7 +89,7 @@
         .info-grid {
             display: table;
             width: 100%;
-            margin-bottom: 15px;
+                    margin-bottom: 15px;
         }
 
         .info-row {
@@ -97,16 +97,16 @@
         }
 
         .info-cell {
-            display: table-cell;
+                    display: table-cell;
             padding: 8px 10px;
-            width: 50%;
+                    width: 50%;
             vertical-align: top;
         }
 
         .info-label {
             font-weight: bold;
             color: #64748b;
-            font-size: 10px;
+            font-size:         10px;
             display: block;
             margin-bottom: 3px;
         }
@@ -122,8 +122,8 @@
 
         .notes-box {
             background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 4px;
+                    border: 1px solid #dee2e6;
+            border-radius:         4px;
             padding: 15px;
             margin-top: 10px;
         }
@@ -132,7 +132,7 @@
             margin-top: 50px;
             padding-top: 20px;
             border-top: 2px solid #e2e8f0;
-            text-align: center;
+                    text-align: center;
             color: #64748b;
             font-size: 10px;
         }
@@ -141,7 +141,7 @@
             background: #f8f9fa;
             padding: 15px;
             margin-bottom: 20px;
-            border-radius: 4px;
+            border-ra        dius: 4px;
         }
 
         .clinic-info h3 {
@@ -150,13 +150,13 @@
             margin-bottom: 5px;
         }
 
-        .clinic-info p {
+        .clinic-in        fo p {
             font-size: 11px;
             color: #64748b;
             margin: 2px 0;
         }
     </style>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    <link rel="sty        lesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
 </head>
 <body>
     <!-- Print Button -->
@@ -176,7 +176,7 @@
 
     <div style="text-align: center; margin-bottom: 30px;">
         <h2 style="color: #2C3E50; font-size: 18px; margin-bottom: 5px;">PATIENT MEDICAL RECORD</h2>
-        <p style="color: #64748b; font-size: 11px;">Generated on {{ date('F d, Y') }}</p>
+        <p sty    le="color: #64748b; font-size: 11px;">Generated on {{ date('F d, Y') }}</p>
     </div>
 
     <!-- Patient Information -->

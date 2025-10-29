@@ -30,6 +30,17 @@ class User extends Authenticatable
     {
         return $this->hasMany(PatientRecord::class, 'user_id');
     }
+
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
+    }
+
+    public function unreadNotifications()
+    {
+        return $this->hasMany(Notification::class)->where('is_read', false);
+    }
+
     /**
      * The attributes that are mass assignable.
      *
@@ -42,6 +53,7 @@ class User extends Authenticatable
         'role_id',
         'password',
         'profile_picture',
+        'must_change_password',
     ];
 
     /**
@@ -64,6 +76,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'must_change_password' => 'boolean',
         ];
     }
 }

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Patient;
 
 use App\Http\Controllers\Controller;
+use App\Models\Announcement;
+use App\Models\Event;
 use Illuminate\Http\Request;
 
 class AnnouncementController extends Controller
@@ -12,7 +14,16 @@ class AnnouncementController extends Controller
      */
     public function index()
     {
-        return view("patient.announcement");
+        // Fetch the latest announcement from database
+        $announcement = Announcement::first();
+
+        // Fetch upcoming active events
+        $upcomingEvents = Event::active()->upcoming()->get();
+
+        // Fetch past events (archive)
+        $pastEvents = Event::active()->past()->take(3)->get();
+
+        return view("patient.announcement", compact('announcement', 'upcomingEvents', 'pastEvents'));
     }
 
     /**

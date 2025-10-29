@@ -143,10 +143,28 @@
     font-weight: 600;
 }
 
-.mini-cal-day.has-appointment {
+.mini-cal-day.has-appointment,
+.mini-cal-day.has-events {
     background: #e0e7ff;
     color: #2196F3;
     font-weight: 600;
+    position: relative;
+}
+
+.mini-cal-day.has-events::after {
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    background: #2196F3;
+    border-radius: 50%;
+}
+
+.mini-cal-day.current.has-events::after {
+    background: white;
 }
 
 .mini-cal-day:not(.header):not(.current):hover {

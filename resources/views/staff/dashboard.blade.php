@@ -51,7 +51,7 @@
     <!-- Statistics Cards -->
     <div class="row mb-4 g-4">
         <!-- Total Patient Load -->
-        <div class="col-xl-4 col-md-6">
+        <div class="col-xl-3 col-md-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body p-4">
                     <div class="d-flex align-items-center">
@@ -72,7 +72,7 @@
         </div>
 
         <!-- Today's Appointments -->
-        <div class="col-xl-4 col-md-6">
+        <div class="col-xl-3 col-md-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body p-4">
                     <div class="d-flex align-items-center">
@@ -92,8 +92,29 @@
             </div>
         </div>
 
+        <!-- Total Appointments -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                                 style="width: 65px; height: 65px; background: linear-gradient(135deg, #198754 0%, #146c43 100%);">
+                                <i class="bi bi-calendar3 text-white" style="font-size: 2rem;"></i>
+                            </div>
+                        </div>
+                        <div class="ms-4 flex-grow-1">
+                            <p class="text-muted mb-1 small text-uppercase fw-semibold">Total Appointments</p>
+                            <h2 class="fw-bold mb-0" style="font-size: 2.5rem; color: #198754;">{{ $totalAppointments }}</h2>
+                            <small class="text-muted">All time</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Pending Actions -->
-        <div class="col-xl-4 col-md-6">
+        <div class="col-xl-3 col-md-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body p-4">
                     <div class="d-flex align-items-center">
@@ -116,9 +137,10 @@
 
     <!-- Main Content Row -->
     <div class="row mb-4 g-4">
-        <!-- Left Column - Today's Appointments -->
+        <!-- Left Column - Today's Appointments & Upcoming -->
         <div class="col-lg-6">
-            <div class="card border-0 shadow-sm h-100">
+            <!-- Today's Appointments -->
+            <div class="card border-0 shadow-sm mb-3">
                 <div class="card-header bg-white border-0 pt-4 pb-3">
                     <div class="d-flex justify-content-between align-items-center">
                         <h5 class="mb-0 fw-bold">
@@ -129,7 +151,7 @@
                         </a>
                     </div>
                 </div>
-                <div class="card-body" style="max-height: 500px; overflow-y: auto;">
+                <div class="card-body" style="max-height: 400px; overflow-y: auto;">
                     @if($todayAppointmentsList->isEmpty())
                         <div class="text-center text-muted py-5">
                             <i class="bi bi-calendar-x" style="font-size: 3rem; opacity: 0.3;"></i>
@@ -184,55 +206,153 @@
                     @endif
                 </div>
             </div>
-        </div>
 
-        <!-- Right Column - Calendar & Quick Actions -->
-        <div class="col-lg-6">
-            <!-- Quick Actions -->
+            <!-- Upcoming Appointments -->
             <div class="card border-0 shadow-sm mb-3">
-                <div class="card-header bg-white border-0 pt-4 pb-3">
-                    <h5 class="mb-0 fw-bold">
-                        <i class="bi bi-lightning-charge me-2 text-warning"></i>Quick Actions
-                    </h5>
-                </div>
-                <div class="card-body p-4">
-                    <div class="row g-3">
-                        <div class="col-6">
-                            <a href="{{ route('staff-appointment') }}" class="btn btn-outline-primary w-100 py-3 d-flex flex-column align-items-center justify-content-center">
-                                <i class="bi bi-calendar-check d-block mb-2" style="font-size: 1.8rem;"></i>
-                                <span class="fw-semibold">Appointments</span>
-                            </a>
-                        </div>
-                        <div class="col-6">
-                            <a href="{{ route('staff-patient-records') }}" class="btn btn-outline-success w-100 py-3 d-flex flex-column align-items-center justify-content-center">
-                                <i class="bi bi-file-medical-fill d-block mb-2" style="font-size: 1.8rem;"></i>
-                                <span class="fw-semibold">Patient Records</span>
-                            </a>
-                        </div>
-                        <div class="col-6">
-                            <a href="{{ route('staff-post-procedural') }}" class="btn btn-outline-info w-100 py-3 d-flex flex-column align-items-center justify-content-center">
-                                <i class="bi bi-file-earmark-post d-block mb-2" style="font-size: 1.8rem;"></i>
-                                <span class="fw-semibold">Post-Procedural</span>
-                            </a>
-                        </div>
-                        <div class="col-6">
-                            <a href="{{ route('staff-content-management') }}" class="btn btn-outline-warning w-100 py-3 d-flex flex-column align-items-center justify-content-center">
-                                <i class="bi bi-megaphone-fill d-block mb-2" style="font-size: 1.8rem;"></i>
-                                <span class="fw-semibold">Announcements</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Mini Calendar -->
-            <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white border-0 pt-4 pb-3">
                     <div class="d-flex justify-content-between align-items-center">
                         <h5 class="mb-0 fw-bold">
+                            <i class="bi bi-calendar-event me-2 text-success"></i>Upcoming Appointments
+                        </h5>
+                        <a href="{{ route('staff-appointment') }}" class="btn btn-sm btn-outline-primary">
+                            View All <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                    @if($upcomingAppointments->isEmpty())
+                        <div class="text-center text-muted py-5">
+                            <i class="bi bi-calendar-x" style="font-size: 3rem; opacity: 0.3;"></i>
+                            <p class="mt-3 mb-0">No upcoming appointments</p>
+                        </div>
+                    @else
+                        <div class="list-group list-group-flush">
+                            @foreach($upcomingAppointments as $appointment)
+                                <div class="list-group-item border-0 px-0">
+                                    <div class="d-flex align-items-start">
+                                        <div class="flex-shrink-0">
+                                            <div class="rounded-circle bg-success bg-opacity-10 d-flex align-items-center justify-content-center"
+                                                 style="width: 45px; height: 45px;">
+                                                <i class="bi bi-person-fill text-success"></i>
+                                            </div>
+                                        </div>
+                                        <div class="ms-3 flex-grow-1">
+                                            <h6 class="mb-1">
+                                                @if($appointment->patient && $appointment->patient->info)
+                                                    {{ $appointment->patient->info->first_name }} {{ $appointment->patient->info->last_name }}
+                                                @else
+                                                    Unknown Patient
+                                                @endif
+                                            </h6>
+                                            <div class="text-muted small">
+                                                <i class="bi bi-calendar-event me-1"></i>
+                                                {{ $appointment->start_datetime->format('M j, Y') }} -
+                                                <i class="bi bi-clock ms-1 me-1"></i>
+                                                {{ $appointment->start_datetime->format('g:i A') }}
+                                                @if($appointment->service)
+                                                    | <i class="bi bi-scissors me-1"></i>{{ $appointment->service->service_name }}
+                                                @endif
+                                            </div>
+                                            @if($appointment->patient && $appointment->patient->info && $appointment->patient->info->phone)
+                                                <div class="text-muted small mt-1">
+                                                    <i class="bi bi-telephone me-1"></i>{{ $appointment->patient->info->phone }}
+                                                </div>
+                                            @endif
+                                        </div>
+                                        <div class="flex-shrink-0">
+                                            <span class="badge
+                                                @if($appointment->status === 'Pending') bg-warning
+                                                @elseif($appointment->status === 'Confirmed') bg-success
+                                                @elseif($appointment->status === 'Completed') bg-success
+                                                @else bg-secondary
+                                                @endif">
+                                                {{ $appointment->status }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Recent Patients Section -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 pt-3 pb-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold">
+                            <i class="bi bi-people me-2 text-primary"></i>Recent Patients
+                        </h5>
+                        <a href="{{ route('staff-patient-records') }}" class="btn btn-sm btn-outline-primary">
+                            View All <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if($recentPatients->isEmpty())
+                        <div class="text-center text-muted py-5">
+                            <i class="bi bi-person-x" style="font-size: 3rem; opacity: 0.3;"></i>
+                            <p class="mt-3 mb-0">No patients registered yet</p>
+                        </div>
+                    @else
+                        <div class="list-group list-group-flush">
+                            @foreach($recentPatients as $patient)
+                                <div class="list-group-item border-0 px-0">
+                                    <div class="d-flex align-items-center">
+                                        <div class="flex-shrink-0">
+                                            <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center"
+                                                 style="width: 40px; height: 40px;">
+                                                <i class="bi bi-person-fill text-primary"></i>
+                                            </div>
+                                        </div>
+                                        <div class="ms-3 flex-grow-1">
+                                            <h6 class="mb-1">
+                                                @if($patient->info)
+                                                    {{ $patient->info->first_name }} {{ $patient->info->last_name }}
+                                                @else
+                                                    {{ $patient->name }}
+                                                @endif
+                                            </h6>
+                                            <small class="text-muted">
+                                                <i class="bi bi-envelope me-1"></i>{{ $patient->email }}
+                                                @if($patient->info && $patient->info->phone)
+                                                    <span class="ms-2"><i class="bi bi-telephone me-1"></i>{{ $patient->info->phone }}</span>
+                                                @endif
+                                            </small>
+                                        </div>
+                                        <div class="flex-shrink-0">
+                                            <small class="text-muted">{{ $patient->created_at->diffForHumans() }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Calendar -->
+        <div class="col-lg-6">
+            <!-- Mini Calendar -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 pt-4 pb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="mb-0 fw-bold">
                             <i class="bi bi-calendar3 me-2 text-primary"></i>Appointment Calendar
                         </h5>
-                        <small class="text-muted fw-semibold">{{ \Carbon\Carbon::create($currentYear, $currentMonth, 1)->format('F Y') }}</small>
+                        <div class="calendar-nav d-flex align-items-center gap-2">
+                            <button id="prevMonth" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-chevron-left"></i>
+                            </button>
+                            <span id="currentMonthYear" class="fw-bold px-3" style="min-width: 150px; text-align: center;">
+                                {{ \Carbon\Carbon::create($currentYear, $currentMonth, 1)->format('F Y') }}
+                            </span>
+                            <button id="nextMonth" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-chevron-right"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div class="card-body p-4">
@@ -244,63 +364,272 @@
         </div>
     </div>
 
-    <!-- Recent Patients Section -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-0 pt-4 pb-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0 fw-bold">
-                            <i class="bi bi-people me-2 text-primary"></i>Recent Patient Activity
-                        </h5>
-                        <a href="{{ route('staff-patient-records') }}" class="btn btn-sm btn-outline-primary">
-                            View All Patients <i class="bi bi-arrow-right ms-1"></i>
-                        </a>
+    <!-- Recent Patient Feedback Section -->
+    <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);">
+        <div class="card-header border-0 pt-4 pb-2" style="background: transparent;">
+            <div class="d-flex align-items-center mb-2">
+                <div class="rounded-circle d-flex align-items-center justify-center me-3"
+                     style="width: 50px; height: 50px; background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%); box-shadow: 0 4px 12px rgba(0, 188, 212, 0.3);">
+                    <i class="bi bi-chat-dots-fill text-white" style="font-size: 1.5rem;"></i>
+                </div>
+                <div>
+                    <h5 class="mb-0 fw-bold" style="color: #00695c; font-size: 1.5rem;">Recent Patient Feedback</h5>
+                    <small class="text-muted">Latest Review from patients</small>
+                </div>
+            </div>
+        </div>
+        <div class="card-body pt-2">
+            @if($recentFeedback->isEmpty())
+                <div class="text-center py-5" style="background: white; border-radius: 12px;">
+                    <i class="bi bi-chat-left-dots" style="font-size: 3rem; opacity: 0.3; color: #00bcd4;"></i>
+                    <p class="mt-3 mb-0 text-muted">No patient feedback yet</p>
+                </div>
+            @else
+                <div class="feedback-table-wrapper">
+                    <table class="feedback-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 15%;">Patient</th>
+                                <th style="width: 15%;">Service</th>
+                                <th style="width: 10%;">Rating</th>
+                                <th style="width: 40%;">Comments</th>
+                                <th style="width: 20%;">Submitted</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($recentFeedback as $index => $feedback)
+                                <tr class="feedback-row">
+                                    <td>
+                                        <div class="d-flex align-items-center justify-content-center">
+                                            <div class="patient-avatar me-3">
+                                                <i class="bi bi-person-fill"></i>
+                                            </div>
+                                            <strong style="color: #00695c;">{{ $feedback['patient_name'] }}</strong>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="service-name">{{ $feedback['service_name'] }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="rating-stars">
+                                            @for ($i = 1; $i <= 5; $i++)
+                                                @if ($i <= $feedback['rating'])
+                                                    <i class="bi bi-star-fill" style="color: #00bcd4;"></i>
+                                                @else
+                                                    <i class="bi bi-star" style="color: #ccc;"></i>
+                                                @endif
+                                            @endfor
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        @if($feedback['comment'])
+                                            <div class="feedback-comment">
+                                                <span style="color: #00bcd4; font-size: 1.5rem; font-weight: bold; margin-right: 0.3rem;">"</span>
+                                                <em style="color: #00695c; font-weight: 500;">{{ $feedback['comment'] }}</em>
+                                                <span style="color: #00bcd4; font-size: 1.5rem; font-weight: bold; margin-left: 0.3rem;">"</span>
+                                            </div>
+                                        @else
+                                            <span class="text-muted fst-italic" style="font-size: 0.9rem;">No comment</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <div class="submission-info">
+                                            <small style="color: #00695c;">
+                                                <i class="bi bi-calendar-check me-1"></i>{{ $feedback['rated_at'] }}
+                                            </small>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+        </div>
+    </div>
+
+    <style>
+        .feedback-table-wrapper {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .feedback-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .feedback-table thead {
+            background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%);
+            color: white;
+        }
+
+        .feedback-table thead th {
+            padding: 1rem;
+            font-weight: 700;
+            font-size: 1rem;
+            text-align: center;
+            border: none;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .feedback-table thead th:first-child {
+            border-top-left-radius: 12px;
+        }
+
+        .feedback-table thead th:last-child {
+            border-top-right-radius: 12px;
+        }
+
+        .feedback-row {
+            border-bottom: 1px solid #e0f7fa;
+            transition: all 0.3s ease;
+        }
+
+        .feedback-row:last-child {
+            border-bottom: none;
+        }
+
+        .feedback-row:hover {
+            background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 50%);
+            transform: translateX(5px);
+        }
+
+        .feedback-row td {
+            padding: 1.25rem 1rem;
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        .patient-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.3rem;
+            box-shadow: 0 2px 8px rgba(0, 188, 212, 0.3);
+        }
+
+        .service-name {
+            color: #00695c;
+            font-weight: 500;
+        }
+
+        .rating-stars {
+            font-size: 1.1rem;
+            display: flex;
+            gap: 2px;
+            justify-content: center;
+        }
+
+        .feedback-comment {
+            color: #00695c;
+            line-height: 1.6;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+
+        .submission-info {
+            line-height: 1.6;
+        }
+
+        @media (max-width: 1200px) {
+            .feedback-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+    </style>
+
+    <!-- Analytics Row -->
+    <div class="row g-3 mb-4">
+        <!-- User Demographics -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 pt-3 pb-2">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-people-fill me-2" style="color: #0d6efd;"></i>User Demographics
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Sex Chart -->
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <h6 class="text-center text-muted mb-3">Sex</h6>
+                            <div style="height: 200px; position: relative;">
+                                <canvas id="sexChart"></canvas>
+                            </div>
+                            <div class="mt-3 d-flex justify-content-center gap-3">
+                                <div class="d-flex align-items-center">
+                                    <div style="width: 12px; height: 12px; background: #67B7DC; border-radius: 2px;" class="me-2"></div>
+                                    <small class="text-muted">Male</small>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <div style="width: 12px; height: 12px; background: #6794DC; border-radius: 2px;" class="me-2"></div>
+                                    <small class="text-muted">Female</small>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Age Chart -->
+                        <div class="col-md-6">
+                            <h6 class="text-center text-muted mb-3">Age</h6>
+                            <div style="height: 200px; position: relative;">
+                                <canvas id="ageChart"></canvas>
+                            </div>
+                            <div class="mt-3 d-flex justify-content-center gap-3">
+                                <div class="d-flex align-items-center">
+                                    <div style="width: 12px; height: 12px; background: #6AD4DD; border-radius: 2px;" class="me-2"></div>
+                                    <small class="text-muted">Pediatric</small>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <div style="width: 12px; height: 12px; background: #50B4C8; border-radius: 2px;" class="me-2"></div>
+                                    <small class="text-muted">Adult</small>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="card-body p-4">
-                    @if($recentPatients->isEmpty())
-                        <div class="text-center text-muted py-5">
-                            <i class="bi bi-person-x" style="font-size: 3rem; opacity: 0.3;"></i>
-                            <p class="mt-3 mb-0">No recent patient activity</p>
-                        </div>
-                    @else
-                        <div class="row g-3">
-                            @foreach($recentPatients as $patient)
-                                <div class="col-md-6 col-lg-4">
-                                    <div class="card border-0 shadow-sm h-100 hover-shadow transition">
-                                        <div class="card-body p-3">
-                                            <div class="d-flex align-items-start">
-                                                <div class="flex-shrink-0">
-                                                    <div class="rounded-circle d-flex align-items-center justify-content-center"
-                                                         style="width: 55px; height: 55px; background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
-                                                        <i class="bi bi-person-fill text-white" style="font-size: 1.6rem;"></i>
-                                                    </div>
-                                                </div>
-                                                <div class="ms-3 flex-grow-1">
-                                                    <h6 class="mb-2 fw-bold text-truncate">
-                                                        @if($patient->info)
-                                                            {{ $patient->info->first_name }} {{ $patient->info->last_name }}
-                                                        @else
-                                                            {{ $patient->name }}
-                                                        @endif
-                                                    </h6>
-                                                    <small class="text-muted d-block text-truncate mb-1">
-                                                        <i class="bi bi-envelope me-1"></i>{{ $patient->email }}
-                                                    </small>
-                                                    @if($patient->info && $patient->info->phone)
-                                                        <small class="text-muted d-block">
-                                                            <i class="bi bi-telephone me-1"></i>{{ $patient->info->phone }}
-                                                        </small>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    @endif
+            </div>
+        </div>
+
+        <!-- Service Feedback -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 pt-3 pb-2">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-star-fill me-2" style="color: #0d6efd;"></i>Service Feedback
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div style="height: 315px;">
+                        <canvas id="feedbackChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Most Performed Services -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 pt-3 pb-2">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-heart-pulse-fill me-2" style="color: #0d6efd;"></i>Most Performed Services
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div style="height: 315px;">
+                        <canvas id="servicesChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
@@ -346,6 +675,11 @@
     border: 2px solid #0d6efd;
 }
 
+.mini-calendar-day.has-completed-appointments {
+    background: #e2e3e5;
+    border: 2px solid #6c757d;
+}
+
 .mini-calendar-day.today {
     background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
     color: white;
@@ -362,16 +696,28 @@
     margin-top: 2px;
 }
 
+.appointment-count-completed {
+    font-size: 0.65rem;
+    color: #6c757d;
+    margin-top: 2px;
+    font-style: italic;
+}
+
 .mini-calendar-day.today .appointment-count {
     color: white;
+}
+
+.mini-calendar-day.today .appointment-count-completed {
+    color: white;
+    opacity: 0.8;
 }
 </style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const appointments = @json($appointments);
-    const currentMonth = {{ $currentMonth }};
-    const currentYear = {{ $currentYear }};
+    let currentMonth = {{ $currentMonth }};
+    let currentYear = {{ $currentYear }};
 
     // Helper function to parse datetime strings as LOCAL time
     const parseLocalDateTime = (datetimeStr) => {
@@ -393,6 +739,13 @@ document.addEventListener('DOMContentLoaded', function() {
             return null;
         }
     };
+
+    // Update month/year display
+    function updateMonthYearDisplay() {
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                           'July', 'August', 'September', 'October', 'November', 'December'];
+        document.getElementById('currentMonthYear').textContent = monthNames[currentMonth - 1] + ' ' + currentYear;
+    }
 
     // Generate mini calendar
     function generateMiniCalendar() {
@@ -442,13 +795,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 return aptDate && aptDate.toDateString() === cellDate.toDateString();
             });
 
-            if (dayAppointments.length > 0) {
+            // Separate completed from active appointments
+            const activeAppointments = dayAppointments.filter(apt => apt.status !== 'Completed');
+            const completedAppointments = dayAppointments.filter(apt => apt.status === 'Completed');
+
+            if (activeAppointments.length > 0) {
                 dayElement.classList.add('has-appointments');
+            } else if (completedAppointments.length > 0) {
+                dayElement.classList.add('has-completed-appointments');
             }
 
             dayElement.innerHTML = `
                 <div>${day}</div>
-                ${dayAppointments.length > 0 ? `<div class="appointment-count">${dayAppointments.length} apt${dayAppointments.length > 1 ? 's' : ''}</div>` : ''}
+                ${activeAppointments.length > 0 ? `<div class="appointment-count">${activeAppointments.length} apt${activeAppointments.length > 1 ? 's' : ''}</div>` : ''}
+                ${completedAppointments.length > 0 && activeAppointments.length === 0 ? `<div class="appointment-count-completed">${completedAppointments.length} done</div>` : ''}
             `;
 
             // Click to go to appointment page
@@ -460,7 +820,254 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Navigation event listeners
+    document.getElementById('prevMonth').addEventListener('click', function() {
+        currentMonth--;
+        if (currentMonth < 1) {
+            currentMonth = 12;
+            currentYear--;
+        }
+        updateMonthYearDisplay();
+        generateMiniCalendar();
+    });
+
+    document.getElementById('nextMonth').addEventListener('click', function() {
+        currentMonth++;
+        if (currentMonth > 12) {
+            currentMonth = 1;
+            currentYear++;
+        }
+        updateMonthYearDisplay();
+        generateMiniCalendar();
+    });
+
     generateMiniCalendar();
+
+    // Initialize Charts
+    const chartColors = {
+        teal: ['#67B7DC', '#6794DC'],
+        cyan: ['#6AD4DD', '#50B4C8'],
+        primary: '#0d6efd'
+    };
+
+    // Sex Distribution Chart
+    const sexCtx = document.getElementById('sexChart');
+    if (sexCtx) {
+        new Chart(sexCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Male', 'Female'],
+                datasets: [{
+                    data: [{{ $maleCount }}, {{ $femaleCount }}],
+                    backgroundColor: chartColors.teal,
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = {{ $maleCount + $femaleCount }};
+                                const value = context.parsed;
+                                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                return context.label + ': ' + value + ' (' + percentage + '%)';
+                            }
+                        }
+                    }
+                },
+                cutout: '65%'
+            }
+        });
+    }
+
+    // Age Distribution Chart
+    const ageCtx = document.getElementById('ageChart');
+    if (ageCtx) {
+        new Chart(ageCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Pediatric', 'Adult'],
+                datasets: [{
+                    data: [{{ $pediatricCount }}, {{ $adultCount }}],
+                    backgroundColor: chartColors.cyan,
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = {{ $pediatricCount + $adultCount }};
+                                const value = context.parsed;
+                                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                return context.label + ': ' + value + ' (' + percentage + '%)';
+                            }
+                        }
+                    }
+                },
+                cutout: '65%'
+            }
+        });
+    }
+
+    // Service Feedback Chart
+    const feedbackCtx = document.getElementById('feedbackChart');
+    if (feedbackCtx) {
+        const feedbackData = @json($feedbackData);
+        new Chart(feedbackCtx, {
+            type: 'bar',
+            data: {
+                labels: ['⭐⭐⭐⭐⭐', '⭐⭐⭐⭐', '⭐⭐⭐', '⭐⭐', '⭐'],
+                datasets: [{
+                    data: [
+                        feedbackData[5] || 0,
+                        feedbackData[4] || 0,
+                        feedbackData[3] || 0,
+                        feedbackData[2] || 0,
+                        feedbackData[1] || 0
+                    ],
+                    backgroundColor: '#0d6efd',
+                    borderRadius: 6,
+                    barThickness: 40
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: function(context) {
+                                const starCount = 5 - context[0].dataIndex;
+                                return starCount + ' Star' + (starCount !== 1 ? 's' : '');
+                            },
+                            label: function(context) {
+                                return 'Ratings: ' + context.parsed.y;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            display: true,
+                            drawBorder: false
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 14
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Most Performed Services Chart
+    const servicesCtx = document.getElementById('servicesChart');
+    if (servicesCtx) {
+        const topServices = @json($topServices);
+
+        // Extract service names and counts
+        const serviceNames = topServices.map(service => service.name);
+        const serviceCounts = topServices.map(service => service.count);
+
+        // Generate gradient colors for each bar
+        const gradientColors = [
+            '#0d6efd',
+            '#3498db',
+            '#9b59b6',
+            '#e74c3c',
+            '#f39c12'
+        ];
+
+        new Chart(servicesCtx, {
+            type: 'bar',
+            data: {
+                labels: serviceNames,
+                datasets: [{
+                    label: 'Appointments',
+                    data: serviceCounts,
+                    backgroundColor: gradientColors.slice(0, serviceCounts.length),
+                    borderRadius: 6,
+                    barThickness: 40
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return 'Appointments: ' + context.parsed.y;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            display: true,
+                            drawBorder: false
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 11
+                            },
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    }
+                }
+            }
+        });
+    }
 });
 </script>
 @endsection

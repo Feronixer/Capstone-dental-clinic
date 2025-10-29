@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\Appointment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Services\NotificationService;
 
 class PostProceduralController extends Controller
 {
@@ -18,9 +19,9 @@ class PostProceduralController extends Controller
      */
     public function index()
     {
-        $records = PatientRecord::with(['user.info', 'appointment.service'])
+        $records = PatientRecord::with(['user.info', 'appointment.service', 'progressNotes', 'patientHistories'])
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(5);
 
         return view("admin.post-procedural", compact('records'));
     }
@@ -31,57 +32,136 @@ class PostProceduralController extends Controller
     public function getRecords()
     {
         try {
-            $records = PatientRecord::with(['user.info', 'appointment.service'])
-                ->orderBy('created_at', 'desc')
-                ->get();
+            $patientRecords = PatientRecord::with(['user.info', 'appointment.service'])->get()->map([$this, 'mapPatientRecord']);
+            $patientHistories = PatientHistory::with(['patientRecord.user.info'])->get()->map([$this, 'mapPatientHistory']);
+            $progressNotes = ProgressNote::with(['patientRecord.user.info'])->get()->map([$this, 'mapProgressNote']);
 
-            return response()->json([
-                'success' => true,
-                'records' => $records
-            ]);
+            $allRecords = $patientRecords->concat($patientHistories)->concat($progressNotes)->sortByDesc('created_at')->values();
+
+            return response()->json(['success' => true, 'records' => $allRecords]);
         } catch (\Exception $e) {
-            \Log::error('Error fetching patient records', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Error loading records: ' . $e->getMessage()
-            ], 500);
+            \Log::error('Error fetching records', ['error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'Error loading records'], 500);
         }
     }
 
     /**
-     * Get patient record details
+     * Search for patients by name or username (only those with appointments)
      */
-    public function getPatientRecord($id)
+    public function searchPatients(Request $request)
     {
-        $record = PatientRecord::with(['user.info', 'appointment.service'])->findOrFail($id);
+        try {
+            $searchTerm = $request->input('q', $request->input('search', ''));
 
-        return response()->json([
-            'success' => true,
+            if (empty($searchTerm)) {
+                return response()->json([
+                    'success' => true,
+                    'data' => []
+                ]);
+            }
+
+            // Search for patients (role_id = 3) who have at least one appointment
+            $patients = User::with('info')
+                ->where('role_id', 3)
+                ->whereHas('appointments') // Only patients with appointments
+                ->where(function ($query) use ($searchTerm) {
+                    $query->where('username', 'LIKE', "%{$searchTerm}%")
+                          ->orWhereHas('info', function ($q) use ($searchTerm) {
+                              $q->where('first_name', 'LIKE', "%{$searchTerm}%")
+                                ->orWhere('last_name', 'LIKE', "%{$searchTerm}%");
+                          });
+                })
+                ->limit(10)
+                ->get()
+                ->map(function ($user) {
+                    return [
+                        'id' => $user->id,
+                        'username' => $user->username,
+                        'name' => $user->info ? $user->info->first_name . ' ' . $user->info->last_name : $user->username,
+                        'first_name' => $user->info ? $user->info->first_name : '',
+                        'last_name' => $user->info ? $user->info->last_name : '',
+                        'birthdate' => $user->info ? $user->info->birthdate : '',
+                        'age' => $user->info && $user->info->birthdate
+                            ? \Carbon\Carbon::parse($user->info->birthdate)->age
+                            : '',
+                        'sex' => $user->info ? $user->info->sex : '',
+                        'religion' => $user->info ? $user->info->religion : '',
+                        'nationality' => $user->info ? $user->info->nationality : '',
+                        'contact_number' => $user->info ? $user->info->contact_number : '',
+                        'home_address' => $user->info ? $user->info->home_address : '',
+                        'occupation' => $user->info ? $user->info->occupation : '',
+                    ];
+                });
+
+            return response()->json([
+                'success' => true,
+                'data' => $patients
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error searching patients: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error searching patients'
+            ], 500);
+        }
+    }
+
+    private function mapPatientRecord($record): array
+    {
+        return [
+            'id' => $record->id,
+            'type' => 'patient_record',
+            'type_label' => 'Patient Record',
+            'patient_name' => $record->user?->info ? $record->user->info->first_name . ' ' . $record->user->info->last_name : ($record->user->name ?? 'N/A'),
+            'username' => $record->user->name ?? 'N/A',
+            'patient_number' => $record->patient_number ?? 'N/A',
+            'related_info' => $record->home_address ?? 'No address',
+            'sent_to_patient' => $record->sent_to_patient ?? false,
+            'created_at' => $record->created_at,
             'data' => $record
-        ]);
+        ];
     }
 
-    /**
-     * Get patient record by user ID
-     */
-    public function getPatientRecordByUser($userId)
+    private function mapPatientHistory($history): array
     {
-        $record = PatientRecord::with(['user.info', 'appointment.service'])
-            ->where('user_id', $userId)
-            ->first();
+        $user = $history->patientRecord?->user;
+        $patientName = $user?->info ? $user->info->first_name . ' ' . $user->info->last_name : ($user?->name ?? 'N/A');
 
-        $user = User::with('info')->find($userId);
-
-        return response()->json([
-            'success' => true,
-            'data' => $record,
-            'userInfo' => $user ? $user->info : null
-        ]);
+        return [
+            'id' => $history->id,
+            'type' => 'patient_history',
+            'type_label' => 'Patient History',
+            'patient_record_id' => $history->patient_record_id,
+            'patient_name' => $patientName,
+            'username' => $user?->name ?? 'N/A',
+            'patient_number' => $history->patientRecord?->patient_number ?? 'N/A',
+            'related_info' => $history->visit_date ? 'Visit: ' . \Carbon\Carbon::parse($history->visit_date)->format('M d, Y') : 'No visit date',
+            'sent_to_patient' => $history->sent_to_patient ?? false,
+            'created_at' => $history->created_at,
+            'data' => $history
+        ];
     }
+
+    private function mapProgressNote($note): array
+    {
+        $user = $note->patientRecord?->user;
+        $patientName = $user?->info ? $user->info->first_name . ' ' . $user->info->last_name : ($user?->name ?? 'N/A');
+
+        return [
+            'id' => $note->id,
+            'type' => 'progress_note',
+            'type_label' => 'Progress Note',
+            'patient_record_id' => $note->patient_record_id,
+            'patient_name' => $patientName,
+            'username' => $user?->name ?? 'N/A',
+            'patient_number' => $note->patientRecord?->patient_number ?? 'N/A',
+            'related_info' => $note->note_date ? 'Note: ' . \Carbon\Carbon::parse($note->note_date)->format('M d, Y') : 'No date',
+            'sent_to_patient' => true,
+            'created_at' => $note->created_at,
+            'data' => $note
+        ];
+    }
+
 
     /**
      * Store or update patient record
@@ -106,7 +186,7 @@ class PostProceduralController extends Controller
                 'guardian_name' => 'nullable|string',
                 'guardian_contact' => 'nullable|string',
                 'guardian_occupation' => 'nullable|string',
-                'other_notes' => 'nullable|string',
+                'notes' => 'nullable|string',
                 'previous_dentist' => 'nullable|string',
                 'last_dental_visit' => 'nullable|date',
                 'treatment_done' => 'nullable|string',
@@ -213,7 +293,7 @@ class PostProceduralController extends Controller
             }
 
             // Keep important fields even if empty
-            $importantFields = ['user_id', 'id', 'patient_number', 'appointment_id', 'sent_to_patient', 'sent_at'];
+            $importantFields = ['user_id', 'id', 'patient_number', 'appointment_id', 'sent_to_patient', 'sent_at', 'notes'];
 
             // Remove empty strings and null values for optional fields, but keep important fields
             $filteredData = [];
@@ -258,6 +338,13 @@ class PostProceduralController extends Controller
 
             \Log::info('Patient record saved successfully', ['record_id' => $record->id]);
 
+            // Send notification to patient about record update
+            try {
+                NotificationService::recordUpdated($record->user_id, 'medical record');
+            } catch (\Exception $e) {
+                \Log::error('Failed to send record update notification:', ['error' => $e->getMessage()]);
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Patient record saved and sent to patient successfully',
@@ -276,60 +363,6 @@ class PostProceduralController extends Controller
         }
     }
 
-    /**
-     * Search patients by name (only those with appointments)
-     */
-    public function searchPatients(Request $request)
-    {
-        try {
-            $searchTerm = $request->input('q');
-
-            if (empty($searchTerm)) {
-                return response()->json([
-                    'success' => true,
-                    'data' => []
-                ]);
-            }
-
-            // Only get patients who have at least one appointment
-            $patients = User::with(['info', 'appointments.service'])
-                ->where('role_id', 3) // Patient role
-                ->whereHas('appointments') // Must have at least one appointment
-                ->where(function($query) use ($searchTerm) {
-                    $query->where('name', 'like', "%{$searchTerm}%")
-                        ->orWhereHas('info', function($q) use ($searchTerm) {
-                            $q->where('first_name', 'like', "%{$searchTerm}%")
-                              ->orWhere('last_name', 'like', "%{$searchTerm}%");
-                        });
-                })
-                ->limit(10)
-                ->get();
-
-            // Add appointment info to each patient
-            $patientsWithAppointments = $patients->map(function($patient) {
-                $latestAppointment = $patient->appointments()->latest('start_datetime')->first();
-                $patient->latest_appointment = $latestAppointment;
-                $patient->total_appointments = $patient->appointments()->count();
-                return $patient;
-            });
-
-            return response()->json([
-                'success' => true,
-                'data' => $patientsWithAppointments
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('Error searching patients with appointments', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Error searching patients: ' . $e->getMessage(),
-                'data' => []
-            ], 500);
-        }
-    }
 
     /**
      * Send record to patient
@@ -358,6 +391,40 @@ class PostProceduralController extends Controller
             'success' => true,
             'message' => 'Record sent to patient successfully'
         ]);
+    }
+
+    /**
+     * Get patient record by user ID
+     */
+    public function getPatientRecordByUser($userId)
+    {
+        try {
+            $record = PatientRecord::with(['user.info', 'appointment.service', 'progressNotes', 'patientHistories'])
+                ->where('user_id', $userId)
+                ->first();
+
+            if ($record) {
+                return response()->json([
+                    'success' => true,
+                    'data' => $record,
+                    'userInfo' => $record->user->info ?? null
+                ]);
+            } else {
+                // Return user info even if no record exists
+                $user = User::with('info')->find($userId);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No patient record found for this user',
+                    'userInfo' => $user->info ?? null
+                ]);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error fetching patient record by user: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching patient record'
+            ], 500);
+        }
     }
 
     /**
@@ -519,6 +586,15 @@ class PostProceduralController extends Controller
 
             \Log::info('Patient history saved successfully', ['history_id' => $history->id]);
 
+            // Send notification to patient about history update
+            try {
+                if ($patientRecord) {
+                    NotificationService::recordUpdated($patientRecord->user_id, 'medical history');
+                }
+            } catch (\Exception $e) {
+                \Log::error('Failed to send history update notification:', ['error' => $e->getMessage()]);
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Patient history saved and sent to patient successfully',
@@ -578,6 +654,16 @@ class PostProceduralController extends Controller
             $request->all()
         );
 
+        // Send notification to patient about progress note
+        try {
+            $record = PatientRecord::find($request->input('patient_record_id'));
+            if ($record) {
+                NotificationService::recordUpdated($record->user_id, 'progress note');
+            }
+        } catch (\Exception $e) {
+            \Log::error('Failed to send progress note notification:', ['error' => $e->getMessage()]);
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Progress note saved successfully',
@@ -600,25 +686,39 @@ class PostProceduralController extends Controller
     }
 
     /**
-     * Delete patient history
+     * Delete patient history (single record by ID or all by patient_record_id)
      */
     public function destroyPatientHistory($id)
     {
         try {
-            \Log::info('Delete Patient History Request', ['history_id' => $id]);
+            \Log::info('Delete Patient History Request', ['id' => $id]);
 
-            $history = PatientHistory::findOrFail($id);
-            $history->delete();
+            // Check if we're deleting by patient_record_id (all histories) or by history id (single)
+            $patientHistories = PatientHistory::where('patient_record_id', $id)->get();
 
-            \Log::info('Patient history deleted successfully', ['history_id' => $id]);
+            if ($patientHistories->count() > 0) {
+                // Delete all histories for this patient record
+                PatientHistory::where('patient_record_id', $id)->delete();
+                \Log::info('All patient histories deleted for record', ['patient_record_id' => $id, 'count' => $patientHistories->count()]);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Patient history deleted successfully'
-            ]);
+                return response()->json([
+                    'success' => true,
+                    'message' => 'All patient histories deleted successfully'
+                ]);
+            } else {
+                // Try deleting by history ID
+                $history = PatientHistory::findOrFail($id);
+                $history->delete();
+                \Log::info('Patient history deleted successfully', ['history_id' => $id]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Patient history deleted successfully'
+                ]);
+            }
         } catch (\Exception $e) {
             \Log::error('Error deleting patient history', [
-                'history_id' => $id,
+                'id' => $id,
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
@@ -631,16 +731,160 @@ class PostProceduralController extends Controller
     }
 
     /**
-     * Delete progress note
+     * Delete progress note (single note by ID or all by patient_record_id)
      */
     public function destroyProgressNote($id)
     {
-        $note = ProgressNote::findOrFail($id);
-        $note->delete();
+        try {
+            \Log::info('Delete Progress Note Request', ['id' => $id]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Progress note deleted successfully'
-        ]);
+            // Check if we're deleting by patient_record_id (all notes) or by note id (single)
+            $progressNotes = ProgressNote::where('patient_record_id', $id)->get();
+
+            if ($progressNotes->count() > 0) {
+                // Delete all notes for this patient record
+                ProgressNote::where('patient_record_id', $id)->delete();
+                \Log::info('All progress notes deleted for record', ['patient_record_id' => $id, 'count' => $progressNotes->count()]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'All progress notes deleted successfully'
+                ]);
+            } else {
+                // Try deleting by note ID
+                $note = ProgressNote::findOrFail($id);
+                $note->delete();
+                \Log::info('Progress note deleted successfully', ['note_id' => $id]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Progress note deleted successfully'
+                ]);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error deleting progress note', [
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete progress note'
+            ], 500);
+        }
+    }
+
+    /**
+     * Store multiple progress notes at once
+     */
+    public function storeProgressNotes(Request $request)
+    {
+        try {
+            \Log::info('Store Progress Notes Request', $request->all());
+
+            $validator = Validator::make($request->all(), [
+                'patient_id' => 'required|exists:users,id',
+                'notes' => 'required|array|min:1',
+                'notes.*.date' => 'required|date',
+                'notes.*.progressNote' => 'nullable|string',
+                'notes.*.oralHygiene' => 'nullable|string',
+                'notes.*.conformedPractices' => 'nullable|string',
+                'other_notes' => 'nullable|string',
+                'send_to_patient' => 'boolean'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed: ' . $validator->errors()->first(),
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $patientId = $request->input('patient_id');
+
+            // Get or create patient record
+            $patientRecord = PatientRecord::where('user_id', $patientId)->first();
+
+            if (!$patientRecord) {
+                // Create a new patient record if it doesn't exist
+                $maxId = PatientRecord::max('id') ?? 0;
+                $patientRecord = PatientRecord::create([
+                    'user_id' => $patientId,
+                    'patient_number' => 'PN-' . str_pad($maxId + 1, 6, '0', STR_PAD_LEFT),
+                    'sent_to_patient' => true,
+                    'sent_at' => now()
+                ]);
+            }
+
+            // Save each progress note
+            $savedNotes = [];
+            foreach ($request->input('notes') as $noteData) {
+                // Skip empty rows
+                if (empty($noteData['progressNote']) && empty($noteData['oralHygiene']) && empty($noteData['conformedPractices'])) {
+                    continue;
+                }
+
+                $note = ProgressNote::create([
+                    'patient_record_id' => $patientRecord->id,
+                    'note_date' => $noteData['date'],
+                    'progress_description' => $noteData['progressNote'] ?? null,
+                    'treatment_response' => $noteData['oralHygiene'] ?? null,
+                    'next_steps' => $noteData['conformedPractices'] ?? null,
+                    'status' => 'ongoing'
+                ]);
+
+                $savedNotes[] = $note;
+            }
+
+            // Add other notes to patient record if provided
+            if ($request->has('other_notes') && !empty($request->input('other_notes'))) {
+                $currentNotes = $patientRecord->notes ?? '';
+                $timestamp = now()->format('Y-m-d H:i');
+                $newNote = "\n\n[{$timestamp}] Progress Note - Other Notes:\n{$request->input('other_notes')}";
+                $patientRecord->update([
+                    'notes' => $currentNotes . $newNote,
+                    'sent_to_patient' => true,
+                    'sent_at' => now()
+                ]);
+            } else {
+                // Mark as sent even if no other notes
+                $patientRecord->update([
+                    'sent_to_patient' => true,
+                    'sent_at' => now()
+                ]);
+            }
+
+            // Send notification to patient
+            try {
+                NotificationService::recordUpdated($patientId, 'progress notes');
+            } catch (\Exception $e) {
+                \Log::error('Failed to send progress notes notification:', ['error' => $e->getMessage()]);
+            }
+
+            \Log::info('Progress notes saved successfully', [
+                'patient_record_id' => $patientRecord->id,
+                'notes_count' => count($savedNotes)
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Progress notes saved and sent to patient successfully',
+                'data' => [
+                    'patient_record' => $patientRecord,
+                    'notes' => $savedNotes
+                ]
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error saving progress notes', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error saving progress notes: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

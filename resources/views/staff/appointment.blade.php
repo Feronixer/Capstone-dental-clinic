@@ -306,6 +306,9 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-info" id="change-status-btn">
+                    <i class="bi bi-arrow-repeat me-1"></i>Change Status
+                </button>
                 <button type="button" class="btn btn-warning" id="reschedule-appointment-btn">
                     <i class="bi bi-calendar3 me-1"></i>Reschedule
                 </button>
@@ -314,6 +317,77 @@
                     <i class="bi bi-trash me-1"></i>Delete
                 </button>
                 @endif
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Change Status Modal -->
+<div class="modal fade" id="changeStatusModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border: none;">
+                <h5 class="modal-title text-white">
+                    <i class="bi bi-arrow-repeat me-2"></i>Change Appointment Status
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <input type="hidden" id="status_change_appointment_id">
+                <input type="hidden" id="status_change_current_status">
+
+                <!-- Appointment Info -->
+                <div class="alert alert-info mb-4" role="alert" style="border-left: 4px solid #3b82f6; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border-radius: 12px;">
+                    <div style="display: flex; align-items: start; gap: 0.75rem;">
+                        <i class="bi bi-info-circle-fill" style="color: #1e40af; font-size: 1.25rem; flex-shrink: 0; margin-top: 0.125rem;"></i>
+                        <div style="color: #1e40af;">
+                            <strong style="display: block; margin-bottom: 0.25rem;" id="status_change_patient_name">Patient Name</strong>
+                            <span style="font-size: 0.9rem;" id="status_change_appointment_info">Appointment details</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Current Status -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Current Status:</label>
+                    <div>
+                        <span class="badge fs-6 px-3 py-2" id="current_status_badge">Pending</span>
+                    </div>
+                </div>
+
+                <!-- New Status Selection -->
+                <div class="mb-3">
+                    <label for="new_status" class="form-label fw-bold">
+                        <i class="bi bi-check-circle me-1"></i>Change Status To:
+                    </label>
+                    <select class="form-select" id="new_status" required>
+                        <option value="">Select new status...</option>
+                    </select>
+                    <small class="form-text text-muted mt-1" id="status_transition_help">
+                        Select a new status for this appointment
+                    </small>
+                </div>
+
+                <!-- Optional Notes -->
+                <div class="mb-3">
+                    <label for="status_change_notes" class="form-label fw-bold">
+                        <i class="bi bi-pencil me-1"></i>Notes (Optional)
+                    </label>
+                    <textarea class="form-control" id="status_change_notes" rows="3"
+                              placeholder="Add a note about this status change (optional)..." maxlength="500"></textarea>
+                    <small class="form-text text-muted">This note will be added to the appointment notes.</small>
+                </div>
+
+                <!-- Validation Message -->
+                <div id="status-validation-message" class="alert" style="display: none;" role="alert"></div>
+            </div>
+            <div class="modal-footer bg-light" style="gap: 0.75rem; padding: 1.25rem 1.5rem;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="padding: 0.65rem 1.5rem; border-radius: 10px; font-weight: 600;">
+                    <i class="bi bi-x-circle me-1"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-primary" id="confirm-status-change-btn" style="padding: 0.65rem 1.5rem; border-radius: 10px; font-weight: 600; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border: none;">
+                    <i class="bi bi-check-circle me-1"></i>Update Status
+                </button>
             </div>
         </div>
     </div>
@@ -338,7 +412,7 @@
 
                     <!-- Patient Information (Read-Only) -->
                     <div class="mb-4">
-                        <label for="reschedule_patient_info" class="form-label fw-bold">Patient Information</label>
+                        <div class="form-label fw-bold">Patient Information</div>
                         <div class="bg-light rounded p-3">
                             <div class="row">
                                 <div class="col-md-6">
@@ -634,7 +708,11 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     let currentDate = new Date({{ $currentYear }}, {{ $currentMonth - 1 }}, 1);
-    let currentView = 'month';
+
+    // Get view from URL parameter, default to 'month'
+    const urlParams = new URLSearchParams(window.location.search);
+    let currentView = urlParams.get('view') || 'month';
+
     let appointments = @json($appointments);
     let blockedTimes = @json($blockedTimes);
 
@@ -718,6 +796,12 @@ document.addEventListener('DOMContentLoaded', function() {
             this.classList.add('btn-primary');
 
             currentView = this.dataset.view;
+
+            // Update URL with the new view parameter
+            const url = new URL(window.location.href);
+            url.searchParams.set('view', currentView);
+            window.history.pushState({}, '', url);
+
             generateCalendar();
         });
     });
@@ -748,8 +832,18 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     document.getElementById('today-btn').addEventListener('click', function() {
-        currentDate = new Date();
-        generateCalendar();
+        // Get current date in Philippines timezone
+        const today = new Date();
+        const phToday = new Date(today.toLocaleString("en-US", {timeZone: "Asia/Manila"}));
+        const month = phToday.getMonth() + 1; // JavaScript months are 0-indexed
+        const year = phToday.getFullYear();
+
+        // Reload page with today's month, year, and preserve current view
+        const url = new URL(window.location.href);
+        url.searchParams.set('month', month);
+        url.searchParams.set('year', year);
+        url.searchParams.set('view', currentView); // Preserve the current view
+        window.location.href = url.toString();
     });
 
     // Appointment form handling
@@ -969,6 +1063,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function navigatePeriod(direction) {
+        console.log('Navigate Period:', direction, 'Current View:', currentView, 'Current Date:', currentDate);
+
         if (currentView === 'month') {
             currentDate.setMonth(currentDate.getMonth() + direction);
         } else if (currentView === 'week') {
@@ -976,7 +1072,18 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (currentView === 'day') {
             currentDate.setDate(currentDate.getDate() + direction);
         }
-        generateCalendar();
+
+        // Reload page with the new month, year, and view to fetch correct data
+        const month = currentDate.getMonth() + 1; // JavaScript months are 0-indexed
+        const year = currentDate.getFullYear();
+        console.log('Navigating to:', month, '/', year, 'View:', currentView);
+
+        const url = new URL(window.location.href);
+        url.searchParams.set('month', month);
+        url.searchParams.set('year', year);
+        url.searchParams.set('view', currentView); // Preserve the current view
+        console.log('New URL:', url.toString());
+        window.location.href = url.toString();
     }
 
     function generateCalendar() {
@@ -1186,6 +1293,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 aptElement.textContent = `${timeString}-${endTimeString} ${patientName}`;
                 aptElement.title = `${patientName} - ${apt.service ? apt.service.service_name : 'No Service'} - ${apt.status}`;
+
+                // Add strikethrough for completed appointments
+                if (apt.status.toLowerCase() === 'completed') {
+                    aptElement.style.textDecoration = 'line-through';
+                    aptElement.style.opacity = '0.7';
+                }
                 }
 
                 aptElement.addEventListener('click', () => editAppointment(apt.id));
@@ -1261,6 +1374,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
             aptElement.textContent = `${timeString}-${endTimeString} ${patientName}`;
             aptElement.title = `${patientName} - ${apt.service ? apt.service.service_name : 'No Service'} - ${apt.status}`;
+
+            // Add strikethrough for completed appointments
+            if (apt.status.toLowerCase() === 'completed') {
+                aptElement.style.textDecoration = 'line-through';
+                aptElement.style.opacity = '0.7';
+            }
             }
 
             aptElement.addEventListener('click', () => editAppointment(apt.id));
@@ -1839,8 +1958,26 @@ document.addEventListener('DOMContentLoaded', function() {
             // Check if this is a blocked time
             if (item.status === 'blocked') {
                 showBlockTimeDetails(item);
-        } else {
-                showAppointmentDetails(item);
+            } else {
+                // For regular appointments, fetch fresh data from server to ensure service is loaded
+                fetch(`/staff/appointment/${id}`, {
+                    method: 'GET',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(appointment => {
+                    console.log('Fresh appointment data from server:', appointment);
+                    showAppointmentDetails(appointment);
+                })
+                .catch(error => {
+                    console.error('Error fetching appointment:', error);
+                    // Fall back to cached data
+                    showAppointmentDetails(item);
+                });
             }
         } else {
             console.error('Calendar item not found with ID:', id);
@@ -1915,8 +2052,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Get service name
         let serviceName = 'No Service';
-        if (appointment.service && appointment.service.service_name) {
-            serviceName = appointment.service.service_name;
+        if (appointment.service) {
+            if (typeof appointment.service === 'object' && appointment.service.service_name) {
+                serviceName = appointment.service.service_name;
+            }
+        } else if (appointment.service_id && !appointment.service) {
+            // Service ID exists but service relationship wasn't loaded
+            serviceName = 'Loading...';
+        } else if (appointment.reason_for_visit) {
+            // If no service but has reason_for_visit (custom service/other concern)
+            serviceName = appointment.reason_for_visit;
         }
 
         // Parse datetime strings as LOCAL time to avoid timezone conversion
@@ -2001,8 +2146,23 @@ document.addEventListener('DOMContentLoaded', function() {
         // Populate the modal content
         document.getElementById('appointment-details-content').innerHTML = detailsHTML;
 
-        // Store appointment ID for delete/reschedule actions
+        // Store appointment ID for status change, delete, and reschedule actions
+        document.getElementById('change-status-btn').setAttribute('data-appointment-id', appointment.id);
         document.getElementById('reschedule-appointment-btn').setAttribute('data-appointment-id', appointment.id);
+
+        // Disable reschedule button if appointment is completed or cancelled
+        const rescheduleBtn = document.getElementById('reschedule-appointment-btn');
+        if (appointment.status.toLowerCase() === 'completed' || appointment.status.toLowerCase() === 'cancelled') {
+            rescheduleBtn.disabled = true;
+            rescheduleBtn.style.opacity = '0.5';
+            rescheduleBtn.style.cursor = 'not-allowed';
+            rescheduleBtn.title = `Cannot reschedule ${appointment.status.toLowerCase()} appointments`;
+        } else {
+            rescheduleBtn.disabled = false;
+            rescheduleBtn.style.opacity = '1';
+            rescheduleBtn.style.cursor = 'pointer';
+            rescheduleBtn.title = 'Reschedule this appointment';
+        }
 
         // Only set delete button data if it exists (admin only)
         const deleteAppointmentBtn = document.getElementById('delete-appointment-btn');
@@ -2475,13 +2635,33 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function rescheduleAppointment(appointmentId) {
-        // Find the appointment
-        const appointment = appointments.find(apt => apt.id == appointmentId);
-        if (!appointment) {
-            showValidationMessage('Appointment not found', 'error');
-            return;
-        }
+        // Fetch fresh appointment data from server
+        fetch(`/staff/appointment/${appointmentId}`, {
+            method: 'GET',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(appointment => {
+            console.log('Fresh appointment data for reschedule:', appointment);
+            populateRescheduleModal(appointment);
+        })
+        .catch(error => {
+            console.error('Error fetching appointment:', error);
+            // Fall back to cached data
+            const appointment = appointments.find(apt => apt.id == appointmentId);
+            if (!appointment) {
+                showValidationMessage('Appointment not found', 'error');
+                return;
+            }
+            populateRescheduleModal(appointment);
+        });
+    }
 
+    function populateRescheduleModal(appointment) {
         // Close the details modal
         bootstrap.Modal.getInstance(document.getElementById('appointmentDetailsModal')).hide();
 
@@ -2500,9 +2680,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Set service name (read-only display)
         let serviceName = 'No Service';
-        if (appointment.service && appointment.service.service_name) {
-            serviceName = appointment.service.service_name;
+        if (appointment.service) {
+            if (typeof appointment.service === 'object' && appointment.service.service_name) {
+                serviceName = appointment.service.service_name;
+            }
+        } else if (appointment.reason_for_visit) {
+            // If no service but has reason_for_visit (custom service/other concern)
+            serviceName = appointment.reason_for_visit;
         }
+
+        console.log('Reschedule service debug:', {
+            id: appointment.id,
+            service_id: appointment.service_id,
+            service: appointment.service,
+            service_name: serviceName,
+            reason_for_visit: appointment.reason_for_visit
+        });
+
         document.getElementById('reschedule_service_name').textContent = serviceName;
 
         // Set notes (read-only display)
@@ -2928,6 +3122,238 @@ document.addEventListener('DOMContentLoaded', function() {
         const messagesDiv = document.getElementById('reschedule-validation-messages');
         messagesDiv.innerHTML = '';
         messagesDiv.style.display = 'none';
+    }
+
+    // ============ STATUS CHANGE FUNCTIONALITY ============
+
+    // Change Status Button Handler
+    const changeStatusBtn = document.getElementById('change-status-btn');
+    if (changeStatusBtn) {
+        changeStatusBtn.addEventListener('click', function() {
+            const appointmentId = this.getAttribute('data-appointment-id');
+            if (appointmentId) {
+                openStatusChangeModal(appointmentId);
+            } else {
+                showValidationMessage('Error: No appointment selected', 'error');
+            }
+        });
+    }
+
+    function openStatusChangeModal(appointmentId) {
+        // Fetch fresh appointment data
+        fetch(`/staff/appointment/${appointmentId}`, {
+            method: 'GET',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(appointment => {
+            populateStatusChangeModal(appointment);
+        })
+        .catch(error => {
+            console.error('Error fetching appointment:', error);
+            showValidationMessage('Error loading appointment data', 'error');
+        });
+    }
+
+    function populateStatusChangeModal(appointment) {
+        // Close details modal
+        const detailsModal = bootstrap.Modal.getInstance(document.getElementById('appointmentDetailsModal'));
+        if (detailsModal) {
+            detailsModal.hide();
+        }
+
+        // Set appointment data
+        document.getElementById('status_change_appointment_id').value = appointment.id;
+        document.getElementById('status_change_current_status').value = appointment.status;
+
+        // Set patient name
+        let patientName = 'Unknown Patient';
+        if (appointment.patient && appointment.patient.info) {
+            const info = appointment.patient.info;
+            patientName = `${info.first_name} ${info.last_name}`.trim();
+        } else if (appointment.patient && appointment.patient.name) {
+            patientName = appointment.patient.name;
+        }
+        document.getElementById('status_change_patient_name').textContent = patientName;
+
+        // Set appointment info
+        let serviceName = 'No Service';
+        if (appointment.service && appointment.service.service_name) {
+            serviceName = appointment.service.service_name;
+        } else if (appointment.reason_for_visit) {
+            serviceName = appointment.reason_for_visit;
+        }
+
+        const startDateTime = parseLocalDateTime(appointment.start_datetime);
+        const formattedDate = startDateTime.toLocaleDateString('en-US', {
+            weekday: 'long',
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric'
+        });
+        const formattedTime = startDateTime.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        });
+
+        document.getElementById('status_change_appointment_info').textContent =
+            `${serviceName} on ${formattedDate} at ${formattedTime}`;
+
+        // Set current status badge
+        const statusBadge = document.getElementById('current_status_badge');
+        statusBadge.textContent = appointment.status;
+        statusBadge.className = 'badge fs-6 px-3 py-2 ';
+
+        const statusClass = appointment.status.toLowerCase();
+        if (statusClass === 'pending') {
+            statusBadge.classList.add('bg-warning', 'text-dark');
+        } else if (statusClass === 'confirmed') {
+            statusBadge.classList.add('bg-primary');
+        } else if (statusClass === 'completed') {
+            statusBadge.classList.add('bg-success');
+        } else if (statusClass === 'cancelled') {
+            statusBadge.classList.add('bg-danger');
+        }
+
+        // Populate available status transitions
+        const validTransitions = {
+            'Pending': ['Confirmed', 'Cancelled'],
+            'Confirmed': ['Completed', 'Cancelled'],
+            'Completed': [],
+            'Cancelled': []
+        };
+
+        const newStatusSelect = document.getElementById('new_status');
+        newStatusSelect.innerHTML = '<option value="">Select new status...</option>';
+
+        let availableStatuses = validTransitions[appointment.status] || [];
+
+        // Check if appointment date is today (Philippines timezone)
+        const appointmentDate = parseLocalDateTime(appointment.start_datetime);
+        const today = new Date();
+        const phToday = new Date(today.toLocaleString("en-US", {timeZone: "Asia/Manila"}));
+        const isToday = appointmentDate.toDateString() === phToday.toDateString();
+
+        // If appointment is not today, remove "Completed" from available statuses
+        if (!isToday && availableStatuses.includes('Completed')) {
+            availableStatuses = availableStatuses.filter(status => status !== 'Completed');
+        }
+
+        if (availableStatuses.length === 0) {
+            newStatusSelect.innerHTML = '<option value="">No status changes available</option>';
+            newStatusSelect.disabled = true;
+            document.getElementById('status_transition_help').textContent =
+                `${appointment.status} appointments cannot change status.`;
+            document.getElementById('confirm-status-change-btn').disabled = true;
+        } else {
+            availableStatuses.forEach(status => {
+                const option = document.createElement('option');
+                option.value = status;
+                option.textContent = status;
+                newStatusSelect.appendChild(option);
+            });
+            newStatusSelect.disabled = false;
+            document.getElementById('status_transition_help').textContent =
+                'Select a new status for this appointment';
+            document.getElementById('confirm-status-change-btn').disabled = false;
+        }
+
+        // Clear previous notes and validation
+        document.getElementById('status_change_notes').value = '';
+        document.getElementById('status-validation-message').style.display = 'none';
+
+        // Show the modal after a short delay
+        setTimeout(() => {
+            new bootstrap.Modal(document.getElementById('changeStatusModal')).show();
+        }, 300);
+    }
+
+    // Confirm status change
+    document.getElementById('confirm-status-change-btn').addEventListener('click', function() {
+        updateAppointmentStatus();
+    });
+
+    function updateAppointmentStatus() {
+        const appointmentId = document.getElementById('status_change_appointment_id').value;
+        const newStatus = document.getElementById('new_status').value;
+        const notes = document.getElementById('status_change_notes').value;
+        const currentStatus = document.getElementById('status_change_current_status').value;
+
+        // Validation
+        if (!newStatus) {
+            showStatusValidationMessage('Please select a new status', 'danger');
+            return;
+        }
+
+        if (newStatus === currentStatus) {
+            showStatusValidationMessage('Please select a different status', 'warning');
+            return;
+        }
+
+        // Show loading state
+        const confirmBtn = document.getElementById('confirm-status-change-btn');
+        const originalText = confirmBtn.innerHTML;
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Updating...';
+
+        // Prepare request data
+        const requestData = {
+            status: newStatus,
+            notes: notes
+        };
+
+        // Send request
+        fetch(`/staff/appointment/${appointmentId}/status`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Close the status change modal
+                bootstrap.Modal.getInstance(document.getElementById('changeStatusModal')).hide();
+
+                // Show success message
+                showValidationMessage(data.message || 'Status updated successfully!', 'success');
+
+                // Reload page to show updated status
+                setTimeout(() => {
+                    reloadWithCurrentMonth();
+                }, 1500);
+            } else {
+                showStatusValidationMessage(data.message || 'Error updating status', 'danger');
+                confirmBtn.innerHTML = originalText;
+                confirmBtn.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error updating status:', error);
+            showStatusValidationMessage('Network error. Please try again.', 'danger');
+            confirmBtn.innerHTML = originalText;
+            confirmBtn.disabled = false;
+        });
+    }
+
+    function showStatusValidationMessage(message, type) {
+        const messageDiv = document.getElementById('status-validation-message');
+        messageDiv.className = `alert alert-${type}`;
+        messageDiv.textContent = message;
+        messageDiv.style.display = 'block';
+
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+            messageDiv.style.display = 'none';
+        }, 5000);
     }
 
 });

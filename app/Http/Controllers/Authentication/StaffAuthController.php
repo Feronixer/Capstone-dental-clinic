@@ -53,6 +53,12 @@ class StaffAuthController extends Controller
         if (Auth::attempt(['username' => $request->username, 'password' => $request->password])) {
             $request->session()->regenerate();
 
+            // Check if staff must change password (first-time login)
+            if ($user->must_change_password) {
+                \Log::info("Staff member '{$user->username}' requires password change");
+                return redirect()->route('staff.password.change')->with('info', 'Please change your password to continue.');
+            }
+
             // Log successful staff login
             \Log::info("Staff member '{$user->username}' logged in successfully");
 
@@ -62,6 +68,50 @@ class StaffAuthController extends Controller
         return back()->withErrors([
             'error' => 'Invalid staff credentials. Please check your username and password.',
         ])->withInput($request->only('username'));
+    }
+
+    /**
+     * Show change password form
+     */
+    public function showChangePasswordForm()
+    {
+        return view('auth.staff-change-password');
+    }
+
+    /**
+     * Handle password change
+     */
+    public function changePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => ['required'],
+            'new_password' => ['required', 'min:8', 'confirmed'],
+        ]);
+
+        $user = Auth::user();
+
+        // Verify user is staff
+        if ($user->role_id !== 2) {
+            return redirect()->route('staff.login')->withErrors([
+                'error' => 'Unauthorized access.',
+            ]);
+        }
+
+        // Verify current password
+        if (!Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors([
+                'current_password' => 'The current password is incorrect.',
+            ]);
+        }
+
+        // Update password and reset must_change_password flag
+        $user->password = Hash::make($request->new_password);
+        $user->must_change_password = false;
+        $user->save();
+
+        \Log::info("Staff member '{$user->username}' changed password successfully");
+
+        return redirect()->route('staff-dashboard')->with('success', 'Password changed successfully!');
     }
 
     /**

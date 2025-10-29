@@ -55,7 +55,12 @@
                 <li class="{{ request()->routeIs('staff-notification') ? 'active' : '' }}">
                     <a href="{{ route('staff-notification') }}">
                         <i class="bi bi-bell"></i>
-                        Notifications
+                        <span style="position: relative; display: inline-flex; align-items: center; gap: 0.5rem;">
+                            Notifications
+                            @if(isset($pendingRequestsCount) && $pendingRequestsCount > 0)
+                                <span class="notification-badge">{{ $pendingRequestsCount }}</span>
+                            @endif
+                        </span>
                     </a>
                 </li>
                 <li class="{{ request()->routeIs('staff-profile') ? 'active' : '' }}">
