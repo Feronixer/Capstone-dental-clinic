@@ -193,6 +193,7 @@ class PostProceduralController extends Controller
                 'guardian_contact' => 'nullable|string',
                 'guardian_occupation' => 'nullable|string',
                 'notes' => 'nullable|string',
+                'other_notes' => 'nullable|string',
                 'previous_dentist' => 'nullable|string',
                 'last_dental_visit' => 'nullable|date',
                 'treatment_done' => 'nullable|string',
@@ -222,6 +223,11 @@ class PostProceduralController extends Controller
             }
 
             $data = $request->all();
+
+            // Normalize notes -> other_notes for storage
+            if (isset($data['notes']) && (!isset($data['other_notes']) || $data['other_notes'] === null)) {
+                $data['other_notes'] = $data['notes'];
+            }
 
             // Convert string "null" to actual null (but not for critical fields)
             $criticalFields = ['user_id', 'sent_to_patient'];
@@ -299,7 +305,7 @@ class PostProceduralController extends Controller
             }
 
             // Keep important fields even if empty
-            $importantFields = ['user_id', 'id', 'patient_number', 'appointment_id', 'sent_to_patient', 'sent_at', 'notes'];
+            $importantFields = ['user_id', 'id', 'patient_number', 'appointment_id', 'sent_to_patient', 'sent_at', 'notes', 'other_notes'];
 
             // Remove empty strings and null values for optional fields, but keep important fields
             $filteredData = [];
@@ -1061,11 +1067,11 @@ class PostProceduralController extends Controller
 
             // Add other notes to patient record if provided
             if ($request->has('other_notes') && !empty($request->input('other_notes'))) {
-                $currentNotes = $patientRecord->notes ?? '';
+                $currentNotes = $patientRecord->other_notes ?? '';
                 $timestamp = now()->format('Y-m-d H:i');
                 $newNote = "\n\n[{$timestamp}] Progress Note - Other Notes:\n{$request->input('other_notes')}";
                 $patientRecord->update([
-                    'notes' => $currentNotes . $newNote,
+                    'other_notes' => $currentNotes . $newNote,
                     'sent_to_patient' => true,
                     'sent_at' => now()
                 ]);

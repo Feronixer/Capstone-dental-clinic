@@ -2611,6 +2611,17 @@ document.addEventListener('DOMContentLoaded', function() {
     if (patientRecordSection && !patientRecordSection.classList.contains('d-none')) {
         initializePatientRecordSearch();
     }
+
+    // When navigating to Patient Record Section from sidebar, clear the form
+    document.addEventListener('click', function(ev) {
+        const navItem = ev.target.closest('.nav-item[data-section="patient-record"]');
+        if (navItem) {
+            // Clear immediately without confirmation so the form is fresh
+            if (typeof clearPatientRecordForm === 'function') {
+                clearPatientRecordForm(true);
+            }
+        }
+    });
 });
 
 // Helper: open modal with tabs populated (same design as sections)
@@ -2894,6 +2905,12 @@ async function savePatientRecordForm(callback) {
     formData.forEach((value, key) => {
         data[key] = value;
     });
+
+    // Ensure notes includes value from standalone #otherNotes when present
+    if (!data.notes) {
+        const otherNotesEl = document.getElementById('otherNotes');
+        if (otherNotesEl) data.notes = otherNotesEl.value || '';
+    }
 
     // Ensure user_id is set (from currentPatientRecord if available)
     if (!data.user_id && currentPatientRecord && currentPatientRecord.user_id) {
@@ -3496,6 +3513,12 @@ function savePatientRecordFromTab() {
         guardian_occupation: getElementValue('guardianOccupation'),
         notes: getElementValue('notes')
     };
+
+    // Fallback for notes: main section may use #otherNotes
+    if (!data.notes) {
+        const otherNotesEl = document.getElementById('otherNotes');
+        if (otherNotesEl) data.notes = otherNotesEl.value || '';
+    }
 
     // Check if patient is selected in "Sent to" or from patient name search
     const selectedPatientIdElement = document.getElementById('selectedPatientId');
@@ -6128,6 +6151,8 @@ function openEditRecordModal(recordId) {
                 const record = res.data;
                 if (typeof renderPatientInfoForm === 'function') {
                     container.innerHTML = renderPatientInfoForm(record);
+                    // Ensure all fields, including notes, are populated
+                    try { if (typeof populateFormWithData === 'function') populateFormWithData(record); } catch(e) { /* no-op */ }
                 } else {
                     container.innerHTML = '<div class="alert alert-info">Form renderer missing. Please fill from main tab.</div>';
                 }

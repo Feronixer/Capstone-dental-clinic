@@ -44,6 +44,13 @@ class PatientRecord extends Model
         'sent_at'
     ];
 
+    protected $appends = ['notes'];
+
+    public function getNotesAttribute()
+    {
+        return $this->other_notes;
+    }
+
     protected $casts = [
         'date_of_birth' => 'date',
         'last_dental_visit' => 'date',
