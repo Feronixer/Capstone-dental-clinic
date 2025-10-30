@@ -21,15 +21,8 @@ class AdminAuthController extends Controller
     public function showLoginForm()
     {
         // Check if user is already authenticated as an ADMIN
-        if (Auth::check()) {
-            $user = Auth::user();
-
-            // Only redirect if they're trying to access THEIR OWN login page
-            if ($user->role_id === 1) {
-                // Admin trying to access admin login - redirect to dashboard
-                return redirect()->route('admin-dashboard')->with('info', 'You are already logged in.');
-            }
-            // If they're patient/staff trying to access admin login, allow it (they might want to switch accounts)
+        if (Auth::guard('admin')->check()) {
+            return redirect()->route('admin-dashboard')->with('info', 'You are already logged in.');
         }
 
         return view('auth.admin-login');
@@ -61,8 +54,8 @@ class AdminAuthController extends Controller
             ])->withInput($request->only('username'));
         }
 
-        // Attempt login with username and password
-        if (Auth::attempt(['username' => $request->username, 'password' => $request->password])) {
+        // Attempt login with username and password using admin guard
+        if (Auth::guard('admin')->attempt(['username' => $request->username, 'password' => $request->password])) {
             $request->session()->regenerate();
 
             // Check if admin must change password (first-time login)
@@ -100,7 +93,7 @@ class AdminAuthController extends Controller
             'new_password' => ['required', 'min:8', 'confirmed'],
         ]);
 
-        $user = Auth::user();
+        $user = Auth::guard('admin')->user();
 
         // Verify user is admin
         if ($user->role_id !== 1) {
@@ -278,9 +271,9 @@ class AdminAuthController extends Controller
      */
     public function logout(Request $request)
     {
-        $username = Auth::user()->username ?? 'unknown';
+        $username = Auth::guard('admin')->user()->username ?? 'unknown';
 
-        Auth::logout();
+        Auth::guard('admin')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 

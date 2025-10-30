@@ -923,24 +923,60 @@
                 Experience world-class dental care with cutting-edge technology and a compassionate team dedicated to your oral health and beautiful smile.
             </p>
 
-            <a href="{{ route('login') }}" class="patient-login-btn">
-                <i class="bi bi-person-circle"></i>
-                Patient Login
-            </a>
+            {{-- Patient Portal --}}
+            @if(!Auth::guard('staff')->check() && !Auth::guard('admin')->check())
+                @auth('web')
+                    {{-- Patient is logged in --}}
+                    <a href="{{ route('patient-dashboard') }}" class="patient-login-btn">
+                        <i class="bi bi-speedometer2"></i>
+                        Go to Dashboard
+                    </a>
+                @else
+                    {{-- Patient is not logged in --}}
+                    <a href="{{ route('login') }}" class="patient-login-btn">
+                        <i class="bi bi-person-circle"></i>
+                        Patient Login
+                    </a>
+                @endauth
+            @endif
 
-            <div class="staff-admin-section">
-                <h3>Staff & Admin Access</h3>
-                <div class="login-buttons">
-                    <a href="{{ route('staff.login') }}" class="login-btn staff">
-                        <i class="bi bi-person-badge-fill"></i>
-                        Staff Login
-                    </a>
-                    <a href="{{ route('admin.login') }}" class="login-btn admin">
-                        <i class="bi bi-shield-fill-check"></i>
-                        Admin Login
-                    </a>
+            {{-- Staff/Admin Portal --}}
+            @if(!Auth::guard('web')->check())
+                <div class="staff-admin-section">
+                    @if(Auth::guard('staff')->check())
+                        {{-- Staff is logged in - show only staff dashboard --}}
+                        <h3>Welcome back, Staff!</h3>
+                        <div class="login-buttons">
+                            <a href="{{ route('staff-dashboard') }}" class="login-btn staff">
+                                <i class="bi bi-speedometer2"></i>
+                                Go to Dashboard
+                            </a>
+                        </div>
+                    @elseif(Auth::guard('admin')->check())
+                        {{-- Admin is logged in - show only admin dashboard --}}
+                        <h3>Welcome back, Admin!</h3>
+                        <div class="login-buttons">
+                            <a href="{{ route('admin-dashboard') }}" class="login-btn admin">
+                                <i class="bi bi-speedometer2"></i>
+                                Go to Dashboard
+                            </a>
+                        </div>
+                    @else
+                        {{-- No one is logged in - show both login options --}}
+                        <h3>Staff & Admin Access</h3>
+                        <div class="login-buttons">
+                            <a href="{{ route('staff.login') }}" class="login-btn staff">
+                                <i class="bi bi-person-badge-fill"></i>
+                                Staff Login
+                            </a>
+                            <a href="{{ route('admin.login') }}" class="login-btn admin">
+                                <i class="bi bi-shield-fill-check"></i>
+                                Admin Login
+                            </a>
+                        </div>
+                    @endif
                 </div>
-            </div>
+            @endif
         </div>
 
         <!-- Right Card -->

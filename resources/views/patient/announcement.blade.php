@@ -75,7 +75,7 @@
 
     .announcement-banner {
         background: linear-gradient(135deg, #2196F3 0%, #1976D2 50%, #0d47a1 100%);
-        padding: 4rem 3rem;
+        padding: 3rem 3rem;
         text-align: center;
         position: relative;
         overflow: hidden;
@@ -92,6 +92,16 @@
         animation: pulse 8s ease-in-out infinite;
     }
 
+    .announcement-banner::after {
+        content: '📢';
+        position: absolute;
+        font-size: 8rem;
+        opacity: 0.1;
+        right: -2rem;
+        top: 50%;
+        transform: translateY(-50%) rotate(15deg);
+    }
+
     @keyframes pulse {
         0%, 100% { transform: scale(1) rotate(0deg); }
         50% { transform: scale(1.1) rotate(180deg); }
@@ -99,7 +109,7 @@
 
     .banner-title {
         color: white;
-        font-size: 2.5rem;
+        font-size: 2rem;
         font-weight: 800;
         margin: 0;
         position: relative;
@@ -117,28 +127,67 @@
         border-radius: 16px;
         overflow: hidden;
         box-shadow: var(--shadow-md);
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
     }
 
     .announcement-image-wrapper img {
         max-width: 100%;
+        max-height: 400px;
+        width: auto;
         height: auto;
+        object-fit: contain;
         border-radius: 16px;
         transition: transform 0.4s ease;
+        display: block;
+        margin: 0 auto;
     }
 
     .announcement-image-wrapper:hover img {
-        transform: scale(1.02);
+        transform: scale(1.05);
     }
 
     .announcement-message {
         background: linear-gradient(135deg, #f8fafc 0%, #e3f2fd 100%);
         border-left: 5px solid var(--primary-blue);
-        padding: 2rem;
+        padding: 2rem 2.5rem;
         border-radius: 12px;
         color: var(--text-dark);
         line-height: 1.8;
         font-size: 1.05rem;
         box-shadow: var(--shadow-sm);
+        position: relative;
+    }
+
+    .announcement-message::before {
+        content: '📋';
+        position: absolute;
+        top: 1rem;
+        right: 1.5rem;
+        font-size: 1.5rem;
+        opacity: 0.3;
+    }
+
+    .new-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: white;
+        padding: 0.5rem 1.25rem;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        margin-bottom: 1rem;
+        animation: pulse-badge 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-badge {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
     }
 
     .announcement-details {
@@ -370,15 +419,40 @@
         }
 
         .banner-title {
-            font-size: 1.75rem;
+            font-size: 1.5rem;
         }
 
         .announcement-banner {
-            padding: 3rem 1.5rem;
+            padding: 2rem 1.5rem;
+        }
+
+        .announcement-banner::after {
+            font-size: 4rem;
+            right: -1rem;
         }
 
         .announcement-content-section {
             padding: 2rem 1.5rem;
+        }
+
+        .announcement-image-wrapper {
+            max-width: 100%;
+            margin-bottom: 2rem;
+        }
+
+        .announcement-image-wrapper img {
+            max-height: 300px;
+        }
+
+        .announcement-message {
+            padding: 1.5rem;
+            font-size: 0.95rem;
+        }
+
+        .announcement-message::before {
+            font-size: 1.2rem;
+            top: 0.75rem;
+            right: 1rem;
         }
 
         .announcement-details {
@@ -386,8 +460,12 @@
         }
 
         .detail-item {
-            font-size: 0.9rem;
-            padding: 0.6rem 1.2rem;
+            font-size: 0.85rem;
+            padding: 0.6rem 1rem;
+        }
+
+        .detail-item i {
+            font-size: 1.1rem;
         }
 
         .archive-grid {
@@ -397,6 +475,16 @@
 
         .archive-section-header h2 {
             font-size: 1.75rem;
+        }
+
+        .new-badge {
+            font-size: 0.75rem;
+            padding: 0.4rem 1rem;
+        }
+
+        .event-badge {
+            font-size: 0.8rem;
+            padding: 0.6rem 1.5rem;
         }
     }
 </style>
@@ -417,6 +505,13 @@
                 </div>
 
                 <div class="announcement-content-section">
+                    @if($announcement->created_at->diffInDays(now()) < 7)
+                        <span class="new-badge">
+                            <i class="bi bi-star-fill"></i>
+                            NEW
+                        </span>
+                    @endif
+
                     @if($announcement->image_path)
                         <div class="announcement-image-wrapper">
                             <img src="{{ asset('storage/' . $announcement->image_path) }}" alt="{{ $announcement->title }}">
@@ -460,10 +555,9 @@
                 </div>
 
                 @if($event->image_path)
-                    <div class="announcement-image-wrapper" style="margin: 1.5rem 3rem 0 3rem;">
+                    <div class="announcement-image-wrapper" style="margin: 1.5rem auto 0 auto;">
                         <img src="{{ asset('storage/' . $event->image_path) }}?v={{ time() }}"
-                             alt="{{ $event->title }}"
-                             style="max-height: 400px; object-fit: cover; width: 100%;">
+                             alt="{{ $event->title }}">
                     </div>
                 @endif
 

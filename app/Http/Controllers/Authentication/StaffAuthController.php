@@ -21,15 +21,8 @@ class StaffAuthController extends Controller
     public function showLoginForm()
     {
         // Check if user is already authenticated as STAFF
-        if (Auth::check()) {
-            $user = Auth::user();
-
-            // Only redirect if they're trying to access THEIR OWN login page
-            if ($user->role_id === 2) {
-                // Staff trying to access staff login - redirect to dashboard
-                return redirect()->route('staff-dashboard')->with('info', 'You are already logged in.');
-            }
-            // If they're admin/patient trying to access staff login, allow it (they might want to switch accounts)
+        if (Auth::guard('staff')->check()) {
+            return redirect()->route('staff-dashboard')->with('info', 'You are already logged in.');
         }
 
         return view('auth.staff-login');
@@ -61,8 +54,8 @@ class StaffAuthController extends Controller
             ])->withInput($request->only('username'));
         }
 
-        // Attempt login with username and password
-        if (Auth::attempt(['username' => $request->username, 'password' => $request->password])) {
+        // Attempt login with username and password using staff guard
+        if (Auth::guard('staff')->attempt(['username' => $request->username, 'password' => $request->password])) {
             $request->session()->regenerate();
 
             // Check if staff must change password (first-time login)
@@ -100,7 +93,7 @@ class StaffAuthController extends Controller
             'new_password' => ['required', 'min:8', 'confirmed'],
         ]);
 
-        $user = Auth::user();
+        $user = Auth::guard('staff')->user();
 
         // Verify user is staff
         if ($user->role_id !== 2) {
@@ -287,9 +280,9 @@ class StaffAuthController extends Controller
      */
     public function logout(Request $request): RedirectResponse
     {
-        $username = Auth::user()->username ?? 'Unknown';
+        $username = Auth::guard('staff')->user()->username ?? 'Unknown';
 
-        Auth::logout();
+        Auth::guard('staff')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 

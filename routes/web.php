@@ -50,8 +50,8 @@ Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('
 // Admin Authentication Routes
 Route::get('/admin/login', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
 Route::post('/admin/login', [AdminAuthController::class, 'login'])->name('admin.login.submit');
-Route::get('/admin/change-password', [AdminAuthController::class, 'showChangePasswordForm'])->name('admin.password.change')->middleware('auth');
-Route::post('/admin/change-password', [AdminAuthController::class, 'changePassword'])->name('admin.password.change.submit')->middleware('auth');
+Route::get('/admin/change-password', [AdminAuthController::class, 'showChangePasswordForm'])->name('admin.password.change')->middleware('auth:admin');
+Route::post('/admin/change-password', [AdminAuthController::class, 'changePassword'])->name('admin.password.change.submit')->middleware('auth:admin');
 Route::get('/admin/forgot-password', [AdminAuthController::class, 'showForgotPasswordForm'])->name('admin.password.forgot');
 Route::post('/admin/forgot-password', [AdminAuthController::class, 'sendResetCode'])->name('admin.password.reset.send');
 Route::get('/admin/reset-password/verify', [AdminAuthController::class, 'showResetVerifyForm'])->name('admin.password.reset.verify');
@@ -62,8 +62,8 @@ Route::post('/admin/reset-password', [AdminAuthController::class, 'resetPassword
 // Staff Authentication Routes
 Route::get('/staff/login', [StaffAuthController::class, 'showLoginForm'])->name('staff.login');
 Route::post('/staff/login', [StaffAuthController::class, 'login'])->name('staff.login.submit');
-Route::get('/staff/change-password', [StaffAuthController::class, 'showChangePasswordForm'])->name('staff.password.change')->middleware('auth');
-Route::post('/staff/change-password', [StaffAuthController::class, 'changePassword'])->name('staff.password.change.submit')->middleware('auth');
+Route::get('/staff/change-password', [StaffAuthController::class, 'showChangePasswordForm'])->name('staff.password.change')->middleware('auth:staff');
+Route::post('/staff/change-password', [StaffAuthController::class, 'changePassword'])->name('staff.password.change.submit')->middleware('auth:staff');
 Route::get('/staff/forgot-password', [StaffAuthController::class, 'showForgotPasswordForm'])->name('staff.password.forgot');
 Route::post('/staff/forgot-password', [StaffAuthController::class, 'sendResetCode'])->name('staff.password.reset.send');
 Route::get('/staff/reset-password/verify', [StaffAuthController::class, 'showResetVerifyForm'])->name('staff.password.reset.verify');
@@ -71,7 +71,7 @@ Route::post('/staff/reset-password/verify', [StaffAuthController::class, 'verify
 Route::get('/staff/reset-password', [StaffAuthController::class, 'showResetForm'])->name('staff.password.reset.form');
 Route::post('/staff/reset-password', [StaffAuthController::class, 'resetPassword'])->name('staff.password.reset');
 
-Route::middleware(['auth'])->group(function(): void{
+Route::middleware(['auth:web,admin,staff'])->group(function(): void{
     //Admin Routes
     Route::get('/admin/dashboard', [AdminDashboardController::class,'index'])->name('admin-dashboard');
 
