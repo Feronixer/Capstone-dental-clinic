@@ -38,6 +38,12 @@
                         Post-Procedural Form
                     </a>
                 </li>
+                {{-- <li class="{{ request()->routeIs('staff-toothtalk') ? 'active' : '' }}">
+                    <a href="{{ route('staff-toothtalk') }}">
+                        <i class="bi bi-chat-left-text"></i>
+                        Toothtalk
+                    </a>
+                </li> --}}
             </div>
             <div>
                 <li class="{{ request()->routeIs('staff-notification') ? 'active' : '' }}">
