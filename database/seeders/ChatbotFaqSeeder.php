@@ -24,7 +24,7 @@ class ChatbotFaqSeeder extends Seeder
             ],
             [
                 'question' => 'What services do you offer?',
-                'answer' => 'We provide cosmetic dentistry, laser treatments, oral surgery, root canals, crowns, and more',
+                'answer' => "General Dentistry:\n• Tooth Restoration (Fillings)\n• Tooth Extraction\n\nSpecialized Treatments:\n• Wisdom Tooth Removal\n• Root Canal Treatment (Endodontics)\n\nAesthetic & Prosthetic Services:\n• Dental Crowns (Porcelain Fused to Metal, Emax, Zirconia)\n• Veneers\n• Orthodontics (Braces)",
                 'is_active' => true,
                 'order' => 3
             ],

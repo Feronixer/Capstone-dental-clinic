@@ -7,6 +7,7 @@ use App\Models\Appointment;
 use App\Models\User;
 use App\Models\Service;
 use App\Models\Notification;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Carbon\Carbon;
@@ -197,6 +198,17 @@ class AppointmentController extends Controller
 
             \Log::info('Appointment created successfully:', ['id' => $appointment->id]);
 
+            // Log activity
+            ActivityLog::log(
+                'created',
+                'appointment',
+                'Created appointment for ' . ($appointment->patient->info->first_name ?? '') . ' ' . ($appointment->patient->info->last_name ?? '') . ' on ' . Carbon::parse($appointment->start_datetime)->format('M d, Y'),
+                $appointment->id,
+                'Appointment',
+                null,
+                $appointment->toArray()
+            );
+
             // Send confirmation email to patient
             try {
                 MailService::sendAppointmentEmail('initial_confirmation', $appointment->load(['patient.info', 'service']));
@@ -252,6 +264,12 @@ class AppointmentController extends Controller
             $data = $appointment->toArray();
             $data['start_datetime'] = $appointment->start_datetime->format('Y-m-d H:i:s');
             $data['end_datetime'] = $appointment->end_datetime->format('Y-m-d H:i:s');
+
+            // Ensure service is included even if null
+            if (!isset($data['service']) && $appointment->service_id) {
+                $data['service'] = null;
+            }
+
             return response()->json($data);
         }
 
@@ -259,6 +277,12 @@ class AppointmentController extends Controller
         $data = $appointment->toArray();
         $data['start_datetime'] = $appointment->start_datetime->format('Y-m-d H:i:s');
         $data['end_datetime'] = $appointment->end_datetime->format('Y-m-d H:i:s');
+
+        // Ensure service is included even if null
+        if (!isset($data['service']) && $appointment->service_id) {
+            $data['service'] = null;
+        }
+
         return response()->json($data);
     }
 
@@ -269,6 +293,17 @@ class AppointmentController extends Controller
     {
         try {
             $appointment = Appointment::findOrFail($id);
+
+            // Staff restriction: Cannot reschedule confirmed, completed, or cancelled appointments
+            if (in_array($appointment->status, ['Confirmed', 'Completed', 'Cancelled'])) {
+                if ($request->ajax() || $request->wantsJson() || $request->header('Accept') === 'application/json') {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Staff cannot reschedule ' . strtolower($appointment->status) . ' appointments. Please contact an administrator.'
+                    ], 403);
+                }
+                return redirect()->back()->with('error', 'Staff cannot reschedule ' . strtolower($appointment->status) . ' appointments. Please contact an administrator.');
+            }
 
             // Regular appointment validation
             $request->validate([
@@ -338,7 +373,19 @@ class AppointmentController extends Controller
                 $appointmentData['rescheduled_at'] = now();
             }
 
+            $oldValues = $appointment->toArray();
             $appointment->update($appointmentData);
+
+            // Log activity
+            ActivityLog::log(
+                'updated',
+                'appointment',
+                ($isRescheduling ? 'Rescheduled' : 'Updated') . ' appointment for ' . ($appointment->patient->info->first_name ?? '') . ' ' . ($appointment->patient->info->last_name ?? ''),
+                $appointment->id,
+                'Appointment',
+                $oldValues,
+                $appointment->fresh()->toArray()
+            );
 
             // Send rescheduling email and notification if datetime changed
             if ($isRescheduling) {
@@ -493,6 +540,17 @@ class AppointmentController extends Controller
 
             // Update appointment status
             $appointment->update(['status' => $validated['status']]);
+
+            // Log activity
+            ActivityLog::log(
+                'updated',
+                'appointment',
+                'Changed appointment status from ' . $oldStatus . ' to ' . $validated['status'] . ' for ' . ($appointment->patient->info->first_name ?? '') . ' ' . ($appointment->patient->info->last_name ?? ''),
+                $appointment->id,
+                'Appointment',
+                ['status' => $oldStatus],
+                ['status' => $validated['status']]
+            );
 
             // Add status change note if provided
             if (!empty($validated['notes'])) {

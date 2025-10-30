@@ -194,6 +194,15 @@ class CalendarController extends Controller
             $formattedDate = $requestedDateTime->format('F j, Y');
             $formattedTime = $requestedDateTime->format('g:i A');
 
+            // Get service name for the notification message
+            $serviceName = 'Unknown Service';
+            if ($serviceId) {
+                $service = Service::find($serviceId);
+                $serviceName = $service ? $service->service_name : 'Service Not Found';
+            } elseif ($otherConcern) {
+                $serviceName = $otherConcern;
+            }
+
             // Create notifications for all admins and staff
             $adminStaff = User::whereHas('info', function($query) {
                 $query->whereIn('role_id', [1, 2]); // Admin and Staff
@@ -206,12 +215,13 @@ class CalendarController extends Controller
                     'title' => $request->type === 'emergency' ? 'New Walk-in Request' : 'New Reschedule Request',
                     'message' => "{$patientName} has requested a " .
                                 ($request->type === 'emergency' ? 'walk-in appointment' : 'reschedule') .
-                                " on {$formattedDate} at {$formattedTime}.",
+                                " for {$serviceName} on {$formattedDate} at {$formattedTime}.",
                     'icon' => 'bi-calendar-plus',
                     'data' => json_encode([
                         'request_id' => $appointmentRequest->id,
                         'patient_id' => auth()->id(),
                         'patient_name' => $patientName,
+                        'service_name' => $serviceName,
                         'request_type' => $request->type,
                         'requested_date' => $formattedDate,
                         'requested_time' => $formattedTime,

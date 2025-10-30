@@ -1126,6 +1126,7 @@ document.addEventListener('DOMContentLoaded', function() {
             calendarGrid.appendChild(dayHeader);
         });
 
+
         // Get first day of month and number of days
         const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
         const startDate = new Date(firstDay);
@@ -1231,6 +1232,7 @@ document.addEventListener('DOMContentLoaded', function() {
             day: 'numeric'
         });
         calendarGrid.appendChild(dayHeader);
+
 
         // Generate time slots (8 AM to 8 PM)
         for (let hour = 8; hour <= 20; hour++) {
@@ -2066,16 +2068,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Get service name
         let serviceName = 'No Service';
-        if (appointment.service) {
-            if (typeof appointment.service === 'object' && appointment.service.service_name) {
-                serviceName = appointment.service.service_name;
-            }
-        } else if (appointment.service_id && !appointment.service) {
-            // Service ID exists but service relationship wasn't loaded
-            serviceName = 'Loading...';
+        if (appointment.service && typeof appointment.service === 'object' && appointment.service.service_name) {
+            serviceName = appointment.service.service_name;
         } else if (appointment.reason_for_visit) {
-            // If no service but has reason_for_visit (custom service/other concern)
+            // Use reason_for_visit as fallback
             serviceName = appointment.reason_for_visit;
+        } else if (appointment.service_id && (!appointment.service || appointment.service === null)) {
+            // Service ID exists but service was deleted or doesn't exist
+            serviceName = 'Service Not Found (ID: ' + appointment.service_id + ')';
         }
 
         // Parse datetime strings as LOCAL time to avoid timezone conversion
@@ -2697,8 +2697,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (appointment.service && appointment.service.service_name) {
             serviceName = appointment.service.service_name;
         } else if (appointment.reason_for_visit) {
-            // If no service but has reason_for_visit (custom service/other concern)
+            // Use reason_for_visit as fallback
             serviceName = appointment.reason_for_visit;
+        } else if (appointment.service_id && (!appointment.service || appointment.service === null)) {
+            // Service ID exists but service was deleted or doesn't exist
+            serviceName = 'Service Not Found (ID: ' + appointment.service_id + ')';
         }
         document.getElementById('reschedule_service_name').textContent = serviceName;
 
@@ -3192,7 +3195,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (appointment.service && appointment.service.service_name) {
             serviceName = appointment.service.service_name;
         } else if (appointment.reason_for_visit) {
+            // Use reason_for_visit as fallback
             serviceName = appointment.reason_for_visit;
+        } else if (appointment.service_id && (!appointment.service || appointment.service === null)) {
+            // Service ID exists but service was deleted or doesn't exist
+            serviceName = 'Service Not Found (ID: ' + appointment.service_id + ')';
         }
 
         const startDateTime = parseLocalDateTime(appointment.start_datetime);

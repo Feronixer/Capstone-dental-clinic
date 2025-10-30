@@ -15,5 +15,7 @@ class UserInfo extends Model
         'address',
         'age',
         'gender',
+        'birthday',
+        'role_id',
     ];
 }

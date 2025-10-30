@@ -20,6 +20,18 @@ class StaffAuthController extends Controller
      */
     public function showLoginForm()
     {
+        // Check if user is already authenticated as STAFF
+        if (Auth::check()) {
+            $user = Auth::user();
+
+            // Only redirect if they're trying to access THEIR OWN login page
+            if ($user->role_id === 2) {
+                // Staff trying to access staff login - redirect to dashboard
+                return redirect()->route('staff-dashboard')->with('info', 'You are already logged in.');
+            }
+            // If they're admin/patient trying to access staff login, allow it (they might want to switch accounts)
+        }
+
         return view('auth.staff-login');
     }
 

@@ -8,6 +8,7 @@ use App\Models\PatientHistory;
 use App\Models\ProgressNote;
 use App\Models\User;
 use App\Models\Appointment;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
@@ -39,9 +40,35 @@ class PostProceduralController extends Controller
     public function getRecords()
     {
         try {
-            $patientRecords = PatientRecord::with(['user.info', 'appointment.service'])->get()->map([$this, 'mapPatientRecord']);
-            $patientHistories = PatientHistory::with(['patientRecord.user.info'])->get()->map([$this, 'mapPatientHistory']);
-            $progressNotes = ProgressNote::with(['patientRecord.user.info'])->get()->map([$this, 'mapProgressNote']);
+            $patientRecords = PatientRecord::with(['user.info', 'appointment.service'])
+                ->whereHas('user') // Only get records with valid user
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function($record) {
+                    return $this->mapPatientRecord($record);
+                });
+
+            $patientHistories = PatientHistory::with(['patientRecord.user.info'])
+                ->whereHas('patientRecord.user') // Only get histories with valid patient record and user
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function($history) {
+                    return $this->mapPatientHistory($history);
+                })
+                ->filter(function($history) {
+                    return $history['user_id'] !== null; // Filter out records without user_id
+                });
+
+            $progressNotes = ProgressNote::with(['patientRecord.user.info'])
+                ->whereHas('patientRecord.user') // Only get notes with valid patient record and user
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function($note) {
+                    return $this->mapProgressNote($note);
+                })
+                ->filter(function($note) {
+                    return $note['user_id'] !== null; // Filter out records without user_id
+                });
 
             $allRecords = $patientRecords->concat($patientHistories)->concat($progressNotes)->sortByDesc('created_at')->values();
 
@@ -121,6 +148,7 @@ class PostProceduralController extends Controller
             'id' => $record->id,
             'type' => 'patient_record',
             'type_label' => 'Patient Record',
+            'user_id' => $record->user_id,
             'patient_name' => $record->user?->info ? $record->user->info->first_name . ' ' . $record->user->info->last_name : ($record->user->name ?? 'N/A'),
             'username' => $record->user->name ?? 'N/A',
             'patient_number' => $record->patient_number ?? 'N/A',
@@ -141,6 +169,7 @@ class PostProceduralController extends Controller
             'type' => 'patient_history',
             'type_label' => 'Patient History',
             'patient_record_id' => $history->patient_record_id,
+            'user_id' => $history->patientRecord?->user_id,
             'patient_name' => $patientName,
             'username' => $user?->name ?? 'N/A',
             'patient_number' => $history->patientRecord?->patient_number ?? 'N/A',
@@ -161,6 +190,7 @@ class PostProceduralController extends Controller
             'type' => 'progress_note',
             'type_label' => 'Progress Note',
             'patient_record_id' => $note->patient_record_id,
+            'user_id' => $note->patientRecord?->user_id,
             'patient_name' => $patientName,
             'username' => $user?->name ?? 'N/A',
             'patient_number' => $note->patientRecord?->patient_number ?? 'N/A',
@@ -235,6 +265,11 @@ class PostProceduralController extends Controller
 
             $data = $request->all();
 
+            // Normalize notes -> other_notes for storage
+            if (isset($data['notes']) && (!isset($data['other_notes']) || $data['other_notes'] === null)) {
+                $data['other_notes'] = $data['notes'];
+            }
+
             // Convert string "null" to actual null (but not for critical fields)
             $criticalFields = ['user_id', 'sent_to_patient'];
             foreach ($data as $key => $value) {
@@ -279,14 +314,74 @@ class PostProceduralController extends Controller
                 }
             }
 
+            // Generate patient number if not exists
+            if (empty($data['patient_number']) && empty($data['id'])) {
+                // Creating new record - generate patient number
+                $maxId = PatientRecord::max('id') ?? 0;
+                $data['patient_number'] = 'PN-' . str_pad($maxId + 1, 6, '0', STR_PAD_LEFT);
+                \Log::info('Staff generated NEW patient number', ['patient_number' => $data['patient_number']]);
+            } elseif (!empty($data['id'])) {
+                // Updating existing record - get patient number from database if not provided
+                $existingRecord = PatientRecord::find($data['id']);
+                if ($existingRecord && $existingRecord->patient_number && empty($data['patient_number'])) {
+                    $data['patient_number'] = $existingRecord->patient_number;
+                    \Log::info('Staff loaded patient_number from existing record', ['patient_number' => $data['patient_number']]);
+                }
+            }
+
+            // Keep important fields even if empty
+            $importantFields = ['user_id', 'id', 'patient_number', 'appointment_id', 'sent_to_patient', 'sent_at', 'notes', 'other_notes'];
+
+            // Remove empty strings and null values for optional fields, but keep important fields
+            $filteredData = [];
+            foreach ($data as $key => $value) {
+                if (in_array($key, $importantFields) || ($value !== '' && $value !== null)) {
+                    $filteredData[$key] = $value;
+                }
+            }
+            $data = $filteredData;
+
+            // Automatically send to patient when saving (unless explicitly set to false)
+            if (!isset($data['sent_to_patient'])) {
+                $data['sent_to_patient'] = true;
+            }
+
+            // Automatically set sent_at timestamp if sent_to_patient is true
+            if (isset($data['sent_to_patient']) && $data['sent_to_patient']) {
+                $data['sent_at'] = now();
+            }
+
             // Update or create the record
             if (isset($data['id']) && !empty($data['id'])) {
                 $record = PatientRecord::findOrFail($data['id']);
+                $oldValues = $record->toArray();
                 $record->update($data);
                 \Log::info('Staff updated patient record', ['record_id' => $record->id]);
+
+                // Log activity
+                ActivityLog::log(
+                    'updated',
+                    'patient_record',
+                    'Updated patient record for ' . ($record->user->info->first_name ?? '') . ' ' . ($record->user->info->last_name ?? ''),
+                    $record->id,
+                    'PatientRecord',
+                    $oldValues,
+                    $record->fresh()->toArray()
+                );
             } else {
                 $record = PatientRecord::create($data);
                 \Log::info('Staff created patient record', ['record_id' => $record->id]);
+
+                // Log activity
+                ActivityLog::log(
+                    'created',
+                    'patient_record',
+                    'Created patient record for ' . ($record->user->info->first_name ?? '') . ' ' . ($record->user->info->last_name ?? ''),
+                    $record->id,
+                    'PatientRecord',
+                    null,
+                    $record->toArray()
+                );
             }
 
             // Send notification to patient about record update
@@ -411,10 +506,39 @@ class PostProceduralController extends Controller
         }
     }
 
+    /**
+     * Get patient record by record ID
+     */
+    public function getPatientRecord($recordId)
+    {
+        try {
+            $record = PatientRecord::with(['user.info', 'appointment.service', 'progressNotes', 'patientHistories'])
+                ->find($recordId);
+
+            if ($record) {
+                return response()->json([
+                    'success' => true,
+                    'data' => $record
+                ]);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Patient record not found'
+            ], 404);
+        } catch (\Exception $e) {
+            \Log::error('Error fetching patient record: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching patient record'
+            ], 500);
+        }
+    }
+
     public function getPatientHistory($patientRecordId)
     {
         $histories = PatientHistory::where('patient_record_id', $patientRecordId)
-            ->orderBy('created_at', 'desc')
+            ->orderBy('visit_date', 'desc')
             ->get();
 
         return response()->json([
@@ -424,33 +548,173 @@ class PostProceduralController extends Controller
     }
 
     /**
-     * Store patient history
+     * Store or update patient history
      */
     public function storePatientHistory(Request $request)
     {
         try {
+            \Log::info('Staff Store Patient History Request', $request->all());
+
+            // Allow both workflows: with patient_id (new) or patient_record_id (existing)
             $validator = Validator::make($request->all(), [
-                'patient_record_id' => 'required|exists:patient_records,id',
-                'history_date' => 'required|date',
-                'condition' => 'required|string',
-                'notes' => 'nullable|string'
+            'patient_id' => 'required_without:patient_record_id|exists:users,id',
+            'patient_record_id' => 'required_without:patient_id|exists:patient_records,id',
+            'visit_date' => 'required|date',
+            // Dental History
+            'previous_dentist' => 'nullable|string',
+            'last_dental_visit' => 'nullable|date',
+            'treatment_done' => 'nullable|string',
+            // Medical History
+            'physician_name' => 'nullable|string',
+            'physician_specialty' => 'nullable|string',
+            'physician_office_address' => 'nullable|string',
+            'physician_contact' => 'nullable|string',
+            // Health Questions
+            'good_health' => 'nullable|string',
+            'under_treatment' => 'nullable|string',
+            'treatment_condition' => 'nullable|string',
+            'serious_illness' => 'nullable|string',
+            'illness_details' => 'nullable|string',
+            'been_hospitalized' => 'nullable|string',
+            'hospitalization_reason' => 'nullable|string',
+            'taking_drugs' => 'nullable|string',
+            'medications' => 'nullable|string',
+            'tobacco_use' => 'nullable|string',
+            'alcohol_use' => 'nullable|string',
+            'recreational_drugs' => 'nullable|string',
+            // Allergies
+            'allergy_anesthesia' => 'nullable|boolean',
+            'allergy_sulfa' => 'nullable|boolean',
+            'allergy_antibiotics' => 'nullable|boolean',
+            'allergy_aspirin' => 'nullable|boolean',
+            'allergy_analgesics' => 'nullable|boolean',
+            'allergy_latex' => 'nullable|boolean',
+            'food_allergy_details' => 'nullable|string',
+            'other_allergy_details' => 'nullable|string',
+            // For Women
+            'is_pregnant' => 'nullable|string',
+            'is_nursing' => 'nullable|string',
+            'birth_control' => 'nullable|string',
+            // Procedure Details
+            'procedure_performed' => 'nullable|string',
+            'materials_used' => 'nullable|string',
+            'anesthesia_used' => 'nullable|string',
+            'complications' => 'nullable|string',
+            'post_operative_instructions' => 'nullable|string',
+            'follow_up_notes' => 'nullable|string'
             ]);
 
             if ($validator->fails()) {
+            \Log::error('Patient History Validation failed', $validator->errors()->toArray());
                 return response()->json([
                     'success' => false,
+                'message' => 'Validation failed: ' . $validator->errors()->first(),
                     'errors' => $validator->errors()
                 ], 422);
             }
 
-            $history = PatientHistory::create($request->all());
-            \Log::info('Staff created patient history', ['history_id' => $history->id]);
+        // Get or find patient_record_id
+        $patientRecordId = $request->patient_record_id;
+
+        // If patient_id is provided instead, find or create patient record
+        if ($request->patient_id && !$patientRecordId) {
+            $patientRecord = PatientRecord::firstOrCreate(
+                ['user_id' => $request->patient_id],
+                [
+                    'patient_number' => 'P' . str_pad($request->patient_id, 6, '0', STR_PAD_LEFT),
+                    'sent_to_patient' => true
+                ]
+            );
+            $patientRecordId = $patientRecord->id;
+        }
+
+        // Create or update patient history
+        $isNew = !$request->id;
+        $oldHistory = $request->id ? PatientHistory::find($request->id)?->toArray() : null;
+
+        $history = PatientHistory::updateOrCreate(
+            ['id' => $request->id], // If id exists, update; otherwise create
+            [
+            'patient_record_id' => $patientRecordId,
+            'visit_date' => $request->visit_date,
+            // Dental History
+            'previous_dentist' => $request->previous_dentist,
+            'last_dental_visit' => $request->last_dental_visit,
+            'treatment_done' => $request->treatment_done,
+            // Medical History
+            'physician_name' => $request->physician_name,
+            'physician_specialty' => $request->physician_specialty,
+            'physician_office_address' => $request->physician_office_address,
+            'physician_contact' => $request->physician_contact,
+            // Health Questions
+            'good_health' => $request->good_health,
+            'under_treatment' => $request->under_treatment,
+            'treatment_condition' => $request->treatment_condition,
+            'serious_illness' => $request->serious_illness,
+            'illness_details' => $request->illness_details,
+            'been_hospitalized' => $request->been_hospitalized,
+            'hospitalization_reason' => $request->hospitalization_reason,
+            'taking_drugs' => $request->taking_drugs,
+            'medications' => $request->medications,
+            'tobacco_use' => $request->tobacco_use,
+            'alcohol_use' => $request->alcohol_use,
+            'recreational_drugs' => $request->recreational_drugs,
+            // Allergies
+            'allergy_anesthesia' => $request->allergy_anesthesia ?? 0,
+            'allergy_sulfa' => $request->allergy_sulfa ?? 0,
+            'allergy_antibiotics' => $request->allergy_antibiotics ?? 0,
+            'allergy_aspirin' => $request->allergy_aspirin ?? 0,
+            'allergy_analgesics' => $request->allergy_analgesics ?? 0,
+            'allergy_latex' => $request->allergy_latex ?? 0,
+            'food_allergy_details' => $request->food_allergy_details,
+            'other_allergy_details' => $request->other_allergy_details,
+            // For Women
+            'is_pregnant' => $request->is_pregnant,
+            'is_nursing' => $request->is_nursing,
+            'birth_control' => $request->birth_control,
+            // Procedure Details
+            'procedure_performed' => $request->procedure_performed,
+            'materials_used' => $request->materials_used,
+            'anesthesia_used' => $request->anesthesia_used,
+            'complications' => $request->complications,
+            'post_operative_instructions' => $request->post_operative_instructions,
+            'follow_up_notes' => $request->follow_up_notes,
+            // Automatically send to patient
+            'sent_to_patient' => true,
+            'sent_at' => now()
+        ]
+        );
+
+        // Also mark the parent patient record as sent
+        $patientRecord = PatientRecord::find($patientRecordId);
+        if ($patientRecord) {
+            $patientRecord->update([
+                'sent_to_patient' => true,
+                'sent_at' => now()
+            ]);
+        }
+
+            \Log::info('Patient history saved successfully by staff', ['history_id' => $history->id]);
+
+            // Log activity
+            $patientName = $patientRecord && $patientRecord->user && $patientRecord->user->info
+                ? $patientRecord->user->info->first_name . ' ' . $patientRecord->user->info->last_name
+                : 'Unknown Patient';
+
+            ActivityLog::log(
+                $isNew ? 'created' : 'updated',
+                'patient_history',
+                ($isNew ? 'Created' : 'Updated') . ' patient history for ' . $patientName,
+                $history->id,
+                'PatientHistory',
+                $oldHistory,
+                $history->fresh()->toArray()
+            );
 
             // Send notification to patient about history update
             try {
-                $record = PatientRecord::find($request->input('patient_record_id'));
-                if ($record) {
-                    NotificationService::recordUpdated($record->user_id, 'medical history');
+                if ($patientRecord) {
+                    NotificationService::recordUpdated($patientRecord->user_id, 'medical history');
                 }
             } catch (\Exception $e) {
                 \Log::error('Failed to send history update notification:', ['error' => $e->getMessage()]);
@@ -458,15 +722,159 @@ class PostProceduralController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Patient history saved successfully',
+                'message' => 'Patient history saved and sent to patient successfully',
                 'data' => $history
             ]);
         } catch (\Exception $e) {
-            \Log::error('Error saving patient history: ' . $e->getMessage());
+            \Log::error('Error saving patient history', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Error saving history: ' . $e->getMessage()
+                'message' => 'Error saving patient history: ' . $e->getMessage()
             ], 500);
+        }
+    }
+
+    public function updatePatientHistory(Request $request, $id)
+    {
+        try {
+            \Log::info('Staff Update Patient History Request', $request->all());
+
+            $validator = Validator::make($request->all(), [
+                'patient_record_id' => 'required|exists:patient_records,id',
+                'visit_date' => 'required|date',
+                // Dental History
+                'previous_dentist' => 'nullable|string|max:255',
+                'last_dental_visit' => 'nullable|date',
+                'treatment_done' => 'nullable|string',
+                // Medical History
+                'physician_name' => 'nullable|string|max:255',
+                'physician_specialty' => 'nullable|string|max:255',
+                'physician_office_address' => 'nullable|string',
+                'physician_contact' => 'nullable|string|max:20',
+                // Health questions
+                'good_health' => 'nullable|in:yes,no',
+                'under_treatment' => 'nullable|in:yes,no',
+                'treatment_condition' => 'nullable|string',
+                'serious_illness' => 'nullable|in:yes,no',
+                'illness_details' => 'nullable|string',
+                'been_hospitalized' => 'nullable|in:yes,no',
+                'hospitalization_reason' => 'nullable|string',
+                'taking_drugs' => 'nullable|in:yes,no',
+                'medications' => 'nullable|string',
+                'tobacco_use' => 'nullable|in:yes,no',
+                'alcohol_use' => 'nullable|in:yes,no',
+                'recreational_drugs' => 'nullable|in:yes,no',
+                // Allergies
+                'allergy_anesthesia' => 'nullable|boolean',
+                'allergy_sulfa' => 'nullable|boolean',
+                'allergy_antibiotics' => 'nullable|boolean',
+                'allergy_aspirin' => 'nullable|boolean',
+                'allergy_analgesics' => 'nullable|boolean',
+                'allergy_latex' => 'nullable|boolean',
+                'food_allergy_details' => 'nullable|string',
+                'other_allergy_details' => 'nullable|string',
+                // For women
+                'is_pregnant' => 'nullable|in:yes,no',
+                'is_nursing' => 'nullable|in:yes,no',
+                'birth_control' => 'nullable|in:yes,no',
+                // Procedure details
+                'anesthesia_used' => 'nullable|string',
+                'procedure_performed' => 'nullable|string',
+                'materials_used' => 'nullable|string',
+                'complications' => 'nullable|string',
+                'post_operative_instructions' => 'nullable|string',
+                'follow_up_notes' => 'nullable|string'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['success' => false, 'message' => 'Validation failed', 'errors' => $validator->errors()], 422);
+            }
+
+            $patientHistory = PatientHistory::findOrFail($id);
+
+            $patientHistory->update([
+                'patient_record_id' => $request->patient_record_id,
+                'visit_date' => $request->visit_date,
+                // Dental History
+                'previous_dentist' => $request->previous_dentist,
+                'last_dental_visit' => $request->last_dental_visit,
+                'treatment_done' => $request->treatment_done,
+                // Medical History
+                'physician_name' => $request->physician_name,
+                'physician_specialty' => $request->physician_specialty,
+                'physician_office_address' => $request->physician_office_address,
+                'physician_contact' => $request->physician_contact,
+                // Health questions
+                'good_health' => $request->good_health,
+                'under_treatment' => $request->under_treatment,
+                'treatment_condition' => $request->treatment_condition,
+                'serious_illness' => $request->serious_illness,
+                'illness_details' => $request->illness_details,
+                'been_hospitalized' => $request->been_hospitalized,
+                'hospitalization_reason' => $request->hospitalization_reason,
+                'taking_drugs' => $request->taking_drugs,
+                'medications' => $request->medications,
+                'tobacco_use' => $request->tobacco_use,
+                'alcohol_use' => $request->alcohol_use,
+                'recreational_drugs' => $request->recreational_drugs,
+                // Allergies
+                'allergy_anesthesia' => $request->allergy_anesthesia ?? 0,
+                'allergy_sulfa' => $request->allergy_sulfa ?? 0,
+                'allergy_antibiotics' => $request->allergy_antibiotics ?? 0,
+                'allergy_aspirin' => $request->allergy_aspirin ?? 0,
+                'allergy_analgesics' => $request->allergy_analgesics ?? 0,
+                'allergy_latex' => $request->allergy_latex ?? 0,
+                'food_allergy_details' => $request->food_allergy_details,
+                'other_allergy_details' => $request->other_allergy_details,
+                // For Women
+                'is_pregnant' => $request->is_pregnant,
+                'is_nursing' => $request->is_nursing,
+                'birth_control' => $request->birth_control,
+                // Procedure Details
+                'procedure_performed' => $request->procedure_performed,
+                'materials_used' => $request->materials_used,
+                'anesthesia_used' => $request->anesthesia_used,
+                'complications' => $request->complications,
+                'post_operative_instructions' => $request->post_operative_instructions,
+                'follow_up_notes' => $request->follow_up_notes,
+                // Automatically send to patient
+                'sent_to_patient' => true,
+                'sent_at' => now()
+            ]);
+
+            // Also mark the parent patient record as sent
+            $patientRecord = PatientRecord::find($request->patient_record_id);
+            if ($patientRecord) {
+                $patientRecord->update([
+                    'sent_to_patient' => true,
+                    'sent_at' => now()
+                ]);
+            }
+
+            \Log::info('Patient history updated successfully by staff', ['history_id' => $patientHistory->id]);
+
+            // Send notification to patient about history update
+            try {
+                if ($patientRecord) {
+                    NotificationService::recordUpdated($patientRecord->user_id, 'medical history');
+                }
+            } catch (\Exception $e) {
+                \Log::error('Failed to send history update notification:', ['error' => $e->getMessage()]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Patient history updated and sent to patient successfully',
+                'data' => $patientHistory
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Error updating patient history: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Error updating patient history: ' . $e->getMessage()], 500);
         }
     }
 
@@ -540,18 +948,17 @@ class PostProceduralController extends Controller
     }
 
     /**
-     * Store progress note
+     * Store or update progress note
      */
     public function storeProgressNote(Request $request)
     {
-        try {
             $validator = Validator::make($request->all(), [
                 'patient_record_id' => 'required|exists:patient_records,id',
                 'note_date' => 'required|date',
                 'progress_description' => 'required|string',
                 'treatment_response' => 'nullable|string',
                 'next_steps' => 'nullable|string',
-                'status' => 'required|in:ongoing,completed,followup_needed'
+            'other_notes' => 'nullable|string'
             ]);
 
             if ($validator->fails()) {
@@ -561,15 +968,24 @@ class PostProceduralController extends Controller
                 ], 422);
             }
 
-            // Check if updating existing note
-            if ($request->has('id') && $request->input('id')) {
-                $note = ProgressNote::findOrFail($request->input('id'));
-                $note->update($request->all());
-                \Log::info('Staff updated progress note', ['note_id' => $note->id]);
-            } else {
-                $note = ProgressNote::create($request->all());
-                \Log::info('Staff created progress note', ['note_id' => $note->id]);
-            }
+        $isNew = !$request->id;
+        $oldNote = $request->id ? ProgressNote::find($request->id)?->toArray() : null;
+
+        $note = ProgressNote::updateOrCreate(
+            ['id' => $request->id],
+            $request->all()
+        );
+
+        // Log activity
+        ActivityLog::log(
+            $isNew ? 'created' : 'updated',
+            'progress_note',
+            ($isNew ? 'Created' : 'Updated') . ' progress note',
+            $note->id,
+            'ProgressNote',
+            $oldNote,
+            $note->fresh()->toArray()
+        );
 
             // Send notification to patient about progress note
             try {
@@ -586,12 +1002,54 @@ class PostProceduralController extends Controller
                 'message' => 'Progress note saved successfully',
                 'data' => $note
             ]);
-        } catch (\Exception $e) {
-            \Log::error('Error saving progress note: ' . $e->getMessage());
+    }
+
+    public function updateProgressNote(Request $request, $id)
+    {
+        try {
+            \Log::info('Staff Update Progress Note Request', $request->all());
+
+            $validator = Validator::make($request->all(), [
+                'patient_record_id' => 'required|exists:patient_records,id',
+                'note_date' => 'required|date',
+                'progress_description' => 'required|string',
+                'treatment_response' => 'nullable|string',
+                'next_steps' => 'nullable|string',
+                'other_notes' => 'nullable|string'
+            ]);
+
+            if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error saving note: ' . $e->getMessage()
-            ], 500);
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $note = ProgressNote::findOrFail($id);
+            $note->update($request->all());
+
+            // Send notification to patient about progress note update
+            try {
+                $record = PatientRecord::find($request->input('patient_record_id'));
+                if ($record) {
+                    NotificationService::recordUpdated($record->user_id, 'progress note');
+                }
+            } catch (\Exception $e) {
+                \Log::error('Failed to send progress note notification:', ['error' => $e->getMessage()]);
+            }
+
+            \Log::info('Progress note updated successfully by staff', ['note_id' => $note->id]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Progress note updated successfully',
+                'data' => $note
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Error updating progress note: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Error updating progress note: ' . $e->getMessage()], 500);
         }
     }
 
@@ -712,23 +1170,12 @@ class PostProceduralController extends Controller
                 $savedNotes[] = $note;
             }
 
-            // Add other notes to patient record if provided
-            if ($request->has('other_notes') && !empty($request->input('other_notes'))) {
-                $currentNotes = $patientRecord->notes ?? '';
-                $timestamp = now()->format('Y-m-d H:i');
-                $newNote = "\n\n[{$timestamp}] Progress Note - Other Notes:\n{$request->input('other_notes')}";
-                $patientRecord->update([
-                    'notes' => $currentNotes . $newNote,
-                    'sent_to_patient' => true,
-                    'sent_at' => now()
-                ]);
-            } else {
-                // Mark as sent even if no other notes
-                $patientRecord->update([
-                    'sent_to_patient' => true,
-                    'sent_at' => now()
-                ]);
-            }
+            // Don't append progress note other_notes to patient record
+            // Just mark the patient record as sent
+            $patientRecord->update([
+                'sent_to_patient' => true,
+                'sent_at' => now()
+            ]);
 
             // Send notification to patient
             try {

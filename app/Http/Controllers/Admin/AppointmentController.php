@@ -252,6 +252,12 @@ class AppointmentController extends Controller
             $data = $appointment->toArray();
             $data['start_datetime'] = $appointment->start_datetime->format('Y-m-d H:i:s');
             $data['end_datetime'] = $appointment->end_datetime->format('Y-m-d H:i:s');
+
+            // Ensure service is included even if null
+            if (!isset($data['service']) && $appointment->service_id) {
+                $data['service'] = null;
+            }
+
             return response()->json($data);
         }
 
@@ -259,6 +265,12 @@ class AppointmentController extends Controller
         $data = $appointment->toArray();
         $data['start_datetime'] = $appointment->start_datetime->format('Y-m-d H:i:s');
         $data['end_datetime'] = $appointment->end_datetime->format('Y-m-d H:i:s');
+
+        // Ensure service is included even if null
+        if (!isset($data['service']) && $appointment->service_id) {
+            $data['service'] = null;
+        }
+
         return response()->json($data);
     }
 

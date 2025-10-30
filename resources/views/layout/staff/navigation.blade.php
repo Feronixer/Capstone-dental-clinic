@@ -32,12 +32,6 @@
                         Content Management
                     </a>
                 </li>
-                <li class="{{ request()->routeIs('staff-patient-records') ? 'active' : '' }}">
-                    <a href="{{ route('staff-patient-records') }}">
-                        <i class="bi bi-file-medical-fill"></i>
-                        Patient Record Access
-                    </a>
-                </li>
                 <li class="{{ request()->routeIs('staff-post-procedural') ? 'active' : '' }}">
                     <a href="{{ route('staff-post-procedural') }}">
                         <i class="bi bi-file-earmark-post"></i>

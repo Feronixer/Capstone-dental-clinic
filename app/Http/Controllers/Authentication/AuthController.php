@@ -17,6 +17,18 @@ use Carbon\Carbon;
 class AuthController extends Controller
 {
     public function showLoginForm(){
+        // Check if user is already authenticated as a PATIENT
+        if (Auth::check()) {
+            $user = Auth::user();
+
+            // Only redirect if they're trying to access THEIR OWN login page
+            if ($user->role_id === 3) {
+                // Patient trying to access patient login - redirect to dashboard
+                return redirect()->route('patient-home')->with('info', 'You are already logged in.');
+            }
+            // If they're admin/staff trying to access patient login, allow it (they might want to switch accounts)
+        }
+
         return view("auth.login");
     }
 

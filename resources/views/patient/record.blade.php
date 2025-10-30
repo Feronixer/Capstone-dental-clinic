@@ -254,6 +254,21 @@
     <div class="records-layout">
         <!-- Records Table -->
         <div class="records-table-section">
+            <!-- Sort Control -->
+            <div style="padding: 1rem 1.5rem; border-bottom: 2px solid #e2e8f0; background: #f8fafc;">
+                <div class="d-flex align-items-center gap-2">
+                    <label for="recordSortBy" class="mb-0 fw-semibold" style="color: #475569; font-size: 0.9rem;">
+                        <i class="bi bi-sort-down me-1"></i>Sort by:
+                    </label>
+                    <select class="form-select form-select-sm" id="recordSortBy" style="width: auto; border: 2px solid #26a69a;">
+                        <option value="date_desc" selected>Newest First</option>
+                        <option value="date_asc">Oldest First</option>
+                        <option value="form_asc">Form Type (A-Z)</option>
+                        <option value="form_desc">Form Type (Z-A)</option>
+                    </select>
+                </div>
+            </div>
+
             <table class="records-table">
                     <thead>
                         <tr>
@@ -289,10 +304,9 @@
                     <!-- Patient Histories for this record -->
                     @if($record->patientHistories && $record->patientHistories->count() > 0)
                         @foreach($record->patientHistories as $history)
-                        <tr style="background: #f0f7ff;">
-                            <td class="form-name" style="padding-left: 2.5rem;">
-                                <i class="bi bi-arrow-return-right me-2"></i>
-                                Medical History - Visit {{ $loop->iteration }}
+                        <tr>
+                            <td class="form-name">
+                                Medical History
                             </td>
                             <td class="form-date">{{ \Carbon\Carbon::parse($history->visit_date ?? $history->created_at)->format('m/d/Y') }}</td>
                             <td>
@@ -308,15 +322,15 @@
                     <!-- Progress Notes for this record -->
                     @if($record->progressNotes && $record->progressNotes->count() > 0)
                         @foreach($record->progressNotes as $note)
-                        <tr style="background: #f0fff4;">
-                            <td class="form-name" style="padding-left: 2.5rem;">
-                                <i class="bi bi-arrow-return-right me-2"></i>
+                        <tr>
+                            <td class="form-name">
                                 Progress Note - {{ \Carbon\Carbon::parse($note->note_date)->format('M d, Y') }}
                             </td>
                             <td class="form-date">{{ \Carbon\Carbon::parse($note->created_at)->format('m/d/Y') }}</td>
                             <td>
                                 <div class="action-buttons">
                                     <button class="btn-view" onclick="viewProgressNote({{ $note->id }})">VIEW</button>
+                                    <button class="btn-download" onclick="downloadProgressNote({{ $note->id }})">DOWNLOAD</button>
                                 </div>
                             </td>
                         </tr>
@@ -397,18 +411,15 @@ async function viewRecord(recordId) {
 // Display record details in preview panel
 function displayRecordInPreview(record) {
     const content = `
-        <div class="preview-header mb-3 d-flex justify-content-between align-items-center" style="border-bottom: 2px solid #2196F3; padding-bottom: 1rem;">
+        <div class="preview-header mb-3" style="border-bottom: 2px solid #2196F3; padding-bottom: 1rem;">
             <h2 class="form-preview-title mb-0">Patient Medical Record</h2>
-            <button class="btn btn-sm" onclick="downloadRecord(${record.id})" style="background: #2C3E50; color: white; padding: 0.5rem 1.5rem; border-radius: 6px; font-weight: 600;">
-                <i class="bi bi-download me-1"></i>DOWNLOAD
-            </button>
         </div>
         <div class="record-detail-view">
             <h3 class="section-title">Patient Information</h3>
             <div class="form-grid mb-4">
                 <div class="form-field">
-                    <span class="field-label">Patient Number:</span>
-                    <span class="field-value">${record.patient_number || 'N/A'}</span>
+                    <span class="field-label">Patient Name:</span>
+                    <span class="field-value">${record.user?.info ? (record.user.info.first_name + ' ' + record.user.info.last_name) : 'N/A'}</span>
                 </div>
                 <div class="form-field">
                     <span class="field-label">Sex:</span>
@@ -416,7 +427,7 @@ function displayRecordInPreview(record) {
                 </div>
                 <div class="form-field">
                     <span class="field-label">Date of Birth:</span>
-                    <span class="field-value">${record.date_of_birth || 'N/A'}</span>
+                    <span class="field-value">${record.date_of_birth ? new Date(record.date_of_birth).toLocaleDateString('en-US', {year: 'numeric', month: 'long', day: 'numeric'}) : 'N/A'}</span>
                 </div>
                 <div class="form-field">
                     <span class="field-label">Age:</span>
@@ -624,11 +635,8 @@ async function viewHistory(historyId) {
 // Render patient history in preview panel
 function renderPatientHistory(history) {
     const content = `
-        <div class="preview-header mb-3 d-flex justify-content-between align-items-center" style="border-bottom: 2px solid #2196F3; padding-bottom: 1rem;">
+        <div class="preview-header mb-3" style="border-bottom: 2px solid #2196F3; padding-bottom: 1rem;">
             <h2 class="form-preview-title mb-0" style="color: #2196F3; font-weight: 700;">Medical History</h2>
-            <button class="btn btn-sm" onclick="downloadHistory(${history.id})" style="background: #2C3E50; color: white; padding: 0.5rem 1.5rem; border-radius: 6px; font-weight: 600;">
-                <i class="bi bi-download me-1"></i>DOWNLOAD
-            </button>
         </div>
         <div>
             <div class="mb-4">
@@ -645,8 +653,8 @@ function renderPatientHistory(history) {
             </div>
             ` : ''}
 
-            ${history.physician_name || history.physician_specialty ? `
-            <h3 class="section-title">Medical History</h3>
+            ${history.physician_name || history.physician_specialty || history.physician_office_address || history.physician_contact ? `
+            <h3 class="section-title">Physician Information</h3>
             <div class="form-grid mb-4">
                 ${history.physician_name ? `<div class="form-field"><span class="field-label">Physician:</span><span class="field-value">${history.physician_name}</span></div>` : ''}
                 ${history.physician_specialty ? `<div class="form-field"><span class="field-label">Specialty:</span><span class="field-value">${history.physician_specialty}</span></div>` : ''}
@@ -655,7 +663,48 @@ function renderPatientHistory(history) {
             </div>
             ` : ''}
 
-            ${history.procedure_performed || history.anesthesia_used ? `
+            ${history.good_health || history.under_treatment || history.serious_illness || history.been_hospitalized || history.taking_drugs || history.tobacco_use || history.alcohol_use || history.recreational_drugs ? `
+            <h3 class="section-title">Health Questions</h3>
+            <div class="form-grid mb-4">
+                ${history.good_health ? `<div class="form-field"><span class="field-label">Good Health:</span><span class="field-value">${history.good_health}</span></div>` : ''}
+                ${history.under_treatment ? `<div class="form-field"><span class="field-label">Under Treatment:</span><span class="field-value">${history.under_treatment}</span></div>` : ''}
+                ${history.treatment_condition ? `<div class="form-field field-full-width"><span class="field-label">Condition:</span><span class="field-value">${history.treatment_condition}</span></div>` : ''}
+                ${history.serious_illness ? `<div class="form-field"><span class="field-label">Serious Illness:</span><span class="field-value">${history.serious_illness}</span></div>` : ''}
+                ${history.illness_details ? `<div class="form-field field-full-width"><span class="field-label">Illness Details:</span><span class="field-value">${history.illness_details}</span></div>` : ''}
+                ${history.been_hospitalized ? `<div class="form-field"><span class="field-label">Been Hospitalized:</span><span class="field-value">${history.been_hospitalized}</span></div>` : ''}
+                ${history.hospitalization_reason ? `<div class="form-field field-full-width"><span class="field-label">Reason:</span><span class="field-value">${history.hospitalization_reason}</span></div>` : ''}
+                ${history.taking_drugs ? `<div class="form-field"><span class="field-label">Taking Medications:</span><span class="field-value">${history.taking_drugs}</span></div>` : ''}
+                ${history.medications ? `<div class="form-field field-full-width"><span class="field-label">Medications:</span><span class="field-value">${history.medications}</span></div>` : ''}
+                ${history.tobacco_use ? `<div class="form-field"><span class="field-label">Tobacco Use:</span><span class="field-value">${history.tobacco_use}</span></div>` : ''}
+                ${history.alcohol_use ? `<div class="form-field"><span class="field-label">Alcohol Use:</span><span class="field-value">${history.alcohol_use}</span></div>` : ''}
+                ${history.recreational_drugs ? `<div class="form-field"><span class="field-label">Recreational Drugs:</span><span class="field-value">${history.recreational_drugs}</span></div>` : ''}
+            </div>
+            ` : ''}
+
+            ${history.allergy_anesthesia || history.allergy_sulfa || history.allergy_antibiotics || history.allergy_aspirin || history.allergy_analgesics || history.allergy_latex || history.food_allergy_details || history.other_allergy_details ? `
+            <h3 class="section-title">Allergies</h3>
+            <div class="form-grid mb-4">
+                ${history.allergy_anesthesia ? `<div class="form-field"><span class="field-label">Local Anesthesia:</span><span class="field-value">Yes</span></div>` : ''}
+                ${history.allergy_sulfa ? `<div class="form-field"><span class="field-label">Sulfa Drugs:</span><span class="field-value">Yes</span></div>` : ''}
+                ${history.allergy_antibiotics ? `<div class="form-field"><span class="field-label">Antibiotics:</span><span class="field-value">Yes</span></div>` : ''}
+                ${history.allergy_aspirin ? `<div class="form-field"><span class="field-label">Aspirin:</span><span class="field-value">Yes</span></div>` : ''}
+                ${history.allergy_analgesics ? `<div class="form-field"><span class="field-label">Analgesics:</span><span class="field-value">Yes</span></div>` : ''}
+                ${history.allergy_latex ? `<div class="form-field"><span class="field-label">Latex:</span><span class="field-value">Yes</span></div>` : ''}
+                ${history.food_allergy_details ? `<div class="form-field field-full-width"><span class="field-label">Food Allergies:</span><span class="field-value">${history.food_allergy_details}</span></div>` : ''}
+                ${history.other_allergy_details ? `<div class="form-field field-full-width"><span class="field-label">Other Allergies:</span><span class="field-value">${history.other_allergy_details}</span></div>` : ''}
+            </div>
+            ` : ''}
+
+            ${history.is_pregnant || history.is_nursing || history.birth_control ? `
+            <h3 class="section-title">For Women</h3>
+            <div class="form-grid mb-4">
+                ${history.is_pregnant ? `<div class="form-field"><span class="field-label">Pregnant:</span><span class="field-value">${history.is_pregnant}</span></div>` : ''}
+                ${history.is_nursing ? `<div class="form-field"><span class="field-label">Nursing:</span><span class="field-value">${history.is_nursing}</span></div>` : ''}
+                ${history.birth_control ? `<div class="form-field"><span class="field-label">Taking Birth Control:</span><span class="field-value">${history.birth_control}</span></div>` : ''}
+            </div>
+            ` : ''}
+
+            ${history.procedure_performed || history.anesthesia_used || history.materials_used || history.complications || history.post_operative_instructions || history.follow_up_notes ? `
             <h3 class="section-title">Procedure Details</h3>
             <div class="form-grid mb-4">
                 ${history.anesthesia_used ? `<div class="form-field"><span class="field-label">Anesthesia:</span><span class="field-value">${history.anesthesia_used}</span></div>` : ''}
@@ -684,6 +733,16 @@ function downloadHistory(historyId) {
         showNotification('Opening print-friendly view. Use your browser\'s print function to save as PDF.', 'info');
     } else {
         showNotification('Please allow pop-ups to view the printable history.', 'warning');
+    }
+}
+
+function downloadProgressNote(noteId) {
+    const printWindow = window.open(`/patient/progress-note/${noteId}/download`, '_blank');
+
+    if (printWindow) {
+        showNotification('Opening print-friendly view. Use your browser\'s print function to save as PDF.', 'info');
+    } else {
+        showNotification('Please allow pop-ups to view the printable progress note.', 'warning');
     }
 }
 
@@ -740,11 +799,7 @@ function renderProgressNote(note) {
                     <span class="field-label">Date:</span>
                     <span class="field-value" style="font-size: 1.1rem; font-weight: 600; color: #10b981;">${new Date(note.note_date).toLocaleDateString()}</span>
                 </div>
-                <div class="form-field">
-                    <span class="field-label">Status:</span>
-                    <span class="field-value badge ${note.status === 'completed' ? 'bg-success' : note.status === 'ongoing' ? 'bg-primary' : 'bg-warning'}">${note.status}</span>
-    </div>
-</div>
+            </div>
 
             ${note.progress_description ? `
             <h3 class="section-title">Progress Description</h3>
@@ -777,6 +832,41 @@ if (!document.querySelector('meta[name="csrf-token"]')) {
     meta.content = '{{ csrf_token() }}';
     document.head.appendChild(meta);
 }
+
+// Sort functionality
+document.getElementById('recordSortBy')?.addEventListener('change', function() {
+    const sortBy = this.value;
+    const tbody = document.getElementById('recordsTableBody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+
+    rows.sort((a, b) => {
+        let aValue, bValue;
+
+        switch(sortBy) {
+            case 'date_desc':
+            case 'date_asc':
+                // Get date from the 2nd column (DATE)
+                const aDate = a.cells[1]?.textContent.trim() || '';
+                const bDate = b.cells[1]?.textContent.trim() || '';
+                const comparison = new Date(aDate) - new Date(bDate);
+                return sortBy === 'date_desc' ? -comparison : comparison;
+
+            case 'form_asc':
+            case 'form_desc':
+                // Get form type from the 1st column (FORM)
+                aValue = a.cells[0]?.textContent.trim() || '';
+                bValue = b.cells[0]?.textContent.trim() || '';
+                const formComp = aValue.localeCompare(bValue);
+                return sortBy === 'form_asc' ? formComp : -formComp;
+
+            default:
+                return 0;
+        }
+    });
+
+    // Re-append sorted rows
+    rows.forEach(row => tbody.appendChild(row));
+});
 </script>
 
 @endsection

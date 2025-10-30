@@ -4,62 +4,83 @@ namespace App\Http\Controllers\Patient;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Models\User;
+use App\Models\UserInfo;
+use Carbon\Carbon;
 
 class ProfileController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display the patient profile page with their information.
      */
     public function index()
     {
-        return view("patient.profile");
+        $user = Auth::user();
+        $userInfo = $user->info;
+
+        return view("patient.profile", compact('user', 'userInfo'));
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Update the patient's profile information.
      */
-    public function create()
+    public function update(Request $request)
     {
-        //
-    }
+        try {
+            $user = Auth::user();
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
+            // Validate the incoming data
+            $validated = $request->validate([
+                'first_name' => 'required|string|max:255',
+                'middle_name' => 'nullable|string|max:255',
+                'last_name' => 'required|string|max:255',
+                'birthday' => 'required|date',
+                'gender' => 'required|in:Male,Female,Other',
+                'phone' => 'required|string|max:20',
+                'email' => 'required|email|max:255|unique:users,email,' . $user->id,
+            ]);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
+            // Calculate age from birthday
+            $birthday = Carbon::parse($validated['birthday']);
+            $age = $birthday->age;
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
+            // Update the user's email in users table
+            $user->update([
+                'email' => $validated['email']
+            ]);
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
+            // Update or create the user's info
+            UserInfo::updateOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'first_name' => $validated['first_name'],
+                    'middle_name' => $validated['middle_name'],
+                    'last_name' => $validated['last_name'],
+                    'birthday' => $validated['birthday'],
+                    'age' => $age,
+                    'gender' => $validated['gender'],
+                    'phone' => $validated['phone'],
+                ]
+            );
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+            return response()->json([
+                'success' => true,
+                'message' => 'Profile updated successfully!'
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Profile update error:', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating profile: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

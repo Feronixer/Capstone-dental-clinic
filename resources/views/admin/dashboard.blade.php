@@ -207,7 +207,7 @@
                             View All <i class="bi bi-arrow-right ms-1"></i>
                         </a>
                     </div>
-                    <small class="text-muted">Next 7 days</small>
+
                 </div>
                 <div class="card-body">
                     @if($upcomingAppointments->isEmpty())
@@ -329,6 +329,9 @@
                         <div class="calendar-nav d-flex align-items-center gap-2">
                             <button id="prevMonth" class="btn btn-sm btn-outline-secondary">
                                 <i class="bi bi-chevron-left"></i>
+                            </button>
+                            <button id="todayBtn" class="btn btn-sm btn-outline-primary" title="Go to current month">
+                                <i class="bi bi-calendar-day me-1"></i>Today
                             </button>
                             <span id="currentMonthYear" class="fw-bold px-3" style="min-width: 150px; text-align: center;">
                                 {{ \Carbon\Carbon::create($currentYear, $currentMonth, 1)->format('F Y') }}
@@ -701,6 +704,8 @@
 document.addEventListener('DOMContentLoaded', function() {
     const appointments = @json($appointments);
     const blockedTimes = @json($blockedTimes);
+    const initialMonth = {{ $currentMonth }};
+    const initialYear = {{ $currentYear }};
     let currentMonth = {{ $currentMonth }};
     let currentYear = {{ $currentYear }};
 
@@ -825,6 +830,14 @@ document.addEventListener('DOMContentLoaded', function() {
             currentMonth = 1;
             currentYear++;
         }
+        updateMonthYearDisplay();
+        generateMiniCalendar();
+    });
+
+    // Today button - reset to current month
+    document.getElementById('todayBtn').addEventListener('click', function() {
+        currentMonth = initialMonth;
+        currentYear = initialYear;
         updateMonthYearDisplay();
         generateMiniCalendar();
     });

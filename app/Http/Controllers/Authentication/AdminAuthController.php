@@ -20,6 +20,18 @@ class AdminAuthController extends Controller
      */
     public function showLoginForm()
     {
+        // Check if user is already authenticated as an ADMIN
+        if (Auth::check()) {
+            $user = Auth::user();
+
+            // Only redirect if they're trying to access THEIR OWN login page
+            if ($user->role_id === 1) {
+                // Admin trying to access admin login - redirect to dashboard
+                return redirect()->route('admin-dashboard')->with('info', 'You are already logged in.');
+            }
+            // If they're patient/staff trying to access admin login, allow it (they might want to switch accounts)
+        }
+
         return view('auth.admin-login');
     }
 

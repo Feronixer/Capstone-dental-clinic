@@ -12,11 +12,12 @@ class ProgressNote extends Model
         'progress_description',
         'treatment_response',
         'next_steps',
-        'status'
+        'status',
+        'other_notes'
     ];
 
     protected $casts = [
-        'note_date' => 'date'
+        'note_date' => 'date:Y-m-d'
     ];
 
     // Expose computed attributes in JSON

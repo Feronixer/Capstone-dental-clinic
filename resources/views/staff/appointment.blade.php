@@ -1065,6 +1065,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function navigatePeriod(direction) {
         console.log('Navigate Period:', direction, 'Current View:', currentView, 'Current Date:', currentDate);
 
+        // Adjust current date based on active view
         if (currentView === 'month') {
             currentDate.setMonth(currentDate.getMonth() + direction);
         } else if (currentView === 'week') {
@@ -1073,17 +1074,15 @@ document.addEventListener('DOMContentLoaded', function() {
             currentDate.setDate(currentDate.getDate() + direction);
         }
 
-        // Reload page with the new month, year, and view to fetch correct data
-        const month = currentDate.getMonth() + 1; // JavaScript months are 0-indexed
-        const year = currentDate.getFullYear();
-        console.log('Navigating to:', month, '/', year, 'View:', currentView);
-
+        // Update URL params without reloading the page
         const url = new URL(window.location.href);
-        url.searchParams.set('month', month);
-        url.searchParams.set('year', year);
-        url.searchParams.set('view', currentView); // Preserve the current view
-        console.log('New URL:', url.toString());
-        window.location.href = url.toString();
+        url.searchParams.set('month', currentDate.getMonth() + 1);
+        url.searchParams.set('year', currentDate.getFullYear());
+        url.searchParams.set('view', currentView);
+        window.history.pushState({}, '', url);
+
+        // Re-render the calendar in-place
+        generateCalendar();
     }
 
     function generateCalendar() {
@@ -1744,7 +1743,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Is update:', isUpdate, 'Block ID:', blockId);
 
         // Determine URL and method for blocked times
-        const url = isUpdate ? `/admin/blocked-time/${blockId}` : '/admin/blocked-time';
+        const url = isUpdate ? `/staff/blocked-time/${blockId}` : '/staff/blocked-time';
         const method = isUpdate ? 'PUT' : 'POST';
 
         // Add _method for Laravel PUT requests
@@ -1873,7 +1872,7 @@ document.addEventListener('DOMContentLoaded', function() {
         deleteBtn.disabled = true;
         deleteBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Deleting...';
 
-        fetch(`/admin/blocked-time/${blockId}/delete`, {
+        fetch(`/staff/blocked-time/${blockId}/delete`, {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -2052,16 +2051,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Get service name
         let serviceName = 'No Service';
-        if (appointment.service) {
-            if (typeof appointment.service === 'object' && appointment.service.service_name) {
-                serviceName = appointment.service.service_name;
-            }
-        } else if (appointment.service_id && !appointment.service) {
-            // Service ID exists but service relationship wasn't loaded
-            serviceName = 'Loading...';
+        if (appointment.service && typeof appointment.service === 'object' && appointment.service.service_name) {
+            serviceName = appointment.service.service_name;
         } else if (appointment.reason_for_visit) {
-            // If no service but has reason_for_visit (custom service/other concern)
+            // Use reason_for_visit as fallback
             serviceName = appointment.reason_for_visit;
+        } else if (appointment.service_id && (!appointment.service || appointment.service === null)) {
+            // Service ID exists but service was deleted or doesn't exist
+            serviceName = 'Service Not Found (ID: ' + appointment.service_id + ')';
         }
 
         // Parse datetime strings as LOCAL time to avoid timezone conversion
@@ -2150,13 +2147,13 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('change-status-btn').setAttribute('data-appointment-id', appointment.id);
         document.getElementById('reschedule-appointment-btn').setAttribute('data-appointment-id', appointment.id);
 
-        // Disable reschedule button if appointment is completed or cancelled
+        // Disable reschedule button if appointment is confirmed, completed, or cancelled (staff restriction)
         const rescheduleBtn = document.getElementById('reschedule-appointment-btn');
-        if (appointment.status.toLowerCase() === 'completed' || appointment.status.toLowerCase() === 'cancelled') {
+        if (['confirmed', 'completed', 'cancelled'].includes(appointment.status.toLowerCase())) {
             rescheduleBtn.disabled = true;
             rescheduleBtn.style.opacity = '0.5';
             rescheduleBtn.style.cursor = 'not-allowed';
-            rescheduleBtn.title = `Cannot reschedule ${appointment.status.toLowerCase()} appointments`;
+            rescheduleBtn.title = `Staff cannot reschedule ${appointment.status.toLowerCase()} appointments. Contact an administrator.`;
         } else {
             rescheduleBtn.disabled = false;
             rescheduleBtn.style.opacity = '1';
@@ -2680,13 +2677,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Set service name (read-only display)
         let serviceName = 'No Service';
-        if (appointment.service) {
-            if (typeof appointment.service === 'object' && appointment.service.service_name) {
-                serviceName = appointment.service.service_name;
-            }
+        if (appointment.service && typeof appointment.service === 'object' && appointment.service.service_name) {
+            serviceName = appointment.service.service_name;
         } else if (appointment.reason_for_visit) {
-            // If no service but has reason_for_visit (custom service/other concern)
+            // Use reason_for_visit as fallback
             serviceName = appointment.reason_for_visit;
+        } else if (appointment.service_id && (!appointment.service || appointment.service === null)) {
+            // Service ID exists but service was deleted or doesn't exist
+            serviceName = 'Service Not Found (ID: ' + appointment.service_id + ')';
         }
 
         console.log('Reschedule service debug:', {
@@ -3185,7 +3183,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (appointment.service && appointment.service.service_name) {
             serviceName = appointment.service.service_name;
         } else if (appointment.reason_for_visit) {
+            // Use reason_for_visit as fallback
             serviceName = appointment.reason_for_visit;
+        } else if (appointment.service_id && (!appointment.service || appointment.service === null)) {
+            // Service ID exists but service was deleted or doesn't exist
+            serviceName = 'Service Not Found (ID: ' + appointment.service_id + ')';
         }
 
         const startDateTime = parseLocalDateTime(appointment.start_datetime);

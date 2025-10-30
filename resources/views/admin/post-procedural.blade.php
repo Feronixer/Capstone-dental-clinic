@@ -34,27 +34,22 @@
             <div class="content-section" id="form-list-section">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <div class="d-flex align-items-center gap-2">
-                        <label class="mb-0">Show</label>
-                        <select class="form-select form-select-sm" id="entriesPerPage" style="width: 80px;">
+                        <label for="entriesPerPage" class="mb-0">Show</label>
+                        <select class="form-select form-select-sm" id="entriesPerPage" name="entries_per_page" style="width: 80px;">
                             <option value="5" selected>5</option>
                             <option value="10">10</option>
                             <option value="25">25</option>
                             <option value="50">50</option>
                             <option value="100">100</option>
                         </select>
-                        <label class="mb-0">entries</label>
+                        <span class="mb-0">entries</span>
                     </div>
 
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-outline-primary" id="filterBtn">
-                            <i class="bi bi-funnel"></i> Filter By
-                        </button>
-                        <div class="input-group" style="width: 250px;">
-                            <span class="input-group-text bg-white">
-                                <i class="bi bi-search"></i>
-                            </span>
-                            <input type="text" class="form-control form-control-sm" id="searchInput" placeholder="Search">
-                        </div>
+                    <div class="input-group" style="width: 250px;">
+                        <label for="searchInput" class="input-group-text bg-white">
+                            <i class="bi bi-search"></i>
+                        </label>
+                        <input type="text" class="form-control form-control-sm" id="searchInput" name="search_input" placeholder="Search">
                     </div>
                 </div>
 
@@ -116,13 +111,14 @@
                             </small>
                         </div>
                         <div class="position-relative mt-2">
-                            <input type="text" class="form-control form-control-lg patient-search-input" id="patientNameSearch"
+                            <label for="patientNameSearch" class="visually-hidden">Search Patient Name</label>
+                            <input type="text" class="form-control form-control-lg patient-search-input" id="patientNameSearch" name="patient_name_search"
                                    placeholder="Start typing patient name or username..." autocomplete="off"
                                    style="border: 2px solid #0d6efd; border-radius: 8px; padding-left: 45px;">
                             <i class="bi bi-search position-absolute" style="left: 15px; top: 50%; transform: translateY(-50%); color: #0d6efd; font-size: 1.2rem;"></i>
                             <div id="patientNameSearchResults" class="search-results-dropdown"></div>
                         </div>
-                        <input type="hidden" id="selectedPatientId">
+                        <input type="hidden" id="selectedPatientId" name="selected_patient_id">
                     </div>
 
                     <!-- Selected Patient Info Alert (Hidden by default) -->
@@ -142,17 +138,17 @@
                             <label class="form-label fw-bold mb-0" style="color: #495057;">Patient's Name</label>
                         </div>
                         <div class="col-md-4">
-                            <label class="text-muted" style="font-size: 0.7rem; margin-bottom: 4px;">(LAST NAME)</label>
+                            <label for="lastName" class="text-muted" style="font-size: 0.7rem; margin-bottom: 4px;">(LAST NAME)</label>
                             <input type="text" class="form-control readonly-field" id="lastName" readonly
                                    style="background: #e9ecef; border: 1px solid #ced4da; cursor: not-allowed;">
                         </div>
                         <div class="col-md-4">
-                            <label class="text-muted" style="font-size: 0.7rem; margin-bottom: 4px;">(GIVEN NAME)</label>
+                            <label for="givenName" class="text-muted" style="font-size: 0.7rem; margin-bottom: 4px;">(GIVEN NAME)</label>
                             <input type="text" class="form-control readonly-field" id="givenName" readonly
                                    style="background: #e9ecef; border: 1px solid #ced4da; cursor: not-allowed;">
                         </div>
                         <div class="col-md-4">
-                            <label class="text-muted" style="font-size: 0.7rem; margin-bottom: 4px;">(MIDDLE NAME)</label>
+                            <label for="middleName" class="text-muted" style="font-size: 0.7rem; margin-bottom: 4px;">(MIDDLE NAME)</label>
                             <input type="text" class="form-control readonly-field" id="middleName" readonly
                                    style="background: #e9ecef; border: 1px solid #ced4da; cursor: not-allowed;">
                         </div>
@@ -163,7 +159,7 @@
                     <!-- Home Address -->
                     <div class="row mb-3">
                         <div class="col-12">
-                            <label class="form-label fw-bold mb-2" style="color: #495057;">Home Address</label>
+                            <label for="homeAddress" class="form-label fw-bold mb-2" style="color: #495057;">Home Address</label>
                             <input type="text" class="form-control" id="homeAddress"
                                    style="border: 2px solid #dee2e6; border-radius: 6px;">
                         </div>
@@ -172,19 +168,19 @@
                     <!-- Date of Birth, Age, Sex, Nickname -->
                     <div class="row mb-3">
                         <div class="col-md-3">
-                            <label class="form-label fw-bold mb-2" style="color: #495057; font-size: 0.875rem;">Date of birth</label>
+                            <label for="dateOfBirth" class="form-label fw-bold mb-2" style="color: #495057; font-size: 0.875rem;">Date of birth</label>
                             <input type="date" class="form-control" id="dateOfBirth" placeholder="MM/DD/YYYY"
                                    style="border: 2px solid #dee2e6; border-radius: 6px;">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label fw-bold mb-2" style="color: #495057; font-size: 0.875rem;">
+                            <label for="age" class="form-label fw-bold mb-2" style="color: #495057; font-size: 0.875rem;">
                                 Age <small class="text-muted" style="font-weight: 400;">(auto-calculated)</small>
                             </label>
                             <input type="number" class="form-control" id="age" readonly
                                    style="border: 2px solid #dee2e6; border-radius: 6px; background: #f8f9fa; cursor: not-allowed;">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label fw-bold mb-2" style="color: #495057; font-size: 0.875rem;">Sex</label>
+                            <label for="sex" class="form-label fw-bold mb-2" style="color: #495057; font-size: 0.875rem;">Sex</label>
                             <select class="form-select" id="sex"
                                     style="border: 2px solid #dee2e6; border-radius: 6px;">
                                 <option value="">Select...</option>
@@ -193,7 +189,7 @@
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label fw-bold mb-2" style="color: #495057; font-size: 0.875rem;">Nickname</label>
+                            <label for="nickname" class="form-label fw-bold mb-2" style="color: #495057; font-size: 0.875rem;">Nickname</label>
                             <input type="text" class="form-control" id="nickname"
                                    style="border: 2px solid #dee2e6; border-radius: 6px;">
                         </div>
@@ -202,17 +198,17 @@
                     <!-- Religion, Occupation, Contact -->
                     <div class="row mb-3">
                         <div class="col-md-4">
-                            <label class="form-label fw-bold mb-2" style="color: #495057; font-size: 0.875rem;">Religion</label>
+                            <label for="religion" class="form-label fw-bold mb-2" style="color: #495057; font-size: 0.875rem;">Religion</label>
                             <input type="text" class="form-control" id="religion"
                                    style="border: 2px solid #dee2e6; border-radius: 6px;">
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label fw-bold mb-2" style="color: #495057; font-size: 0.875rem;">Occupation</label>
+                            <label for="occupation" class="form-label fw-bold mb-2" style="color: #495057; font-size: 0.875rem;">Occupation</label>
                             <input type="text" class="form-control" id="occupation"
                                    style="border: 2px solid #dee2e6; border-radius: 6px;">
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label fw-bold mb-2" style="color: #495057; font-size: 0.875rem;">Contact</label>
+                            <label for="contact" class="form-label fw-bold mb-2" style="color: #495057; font-size: 0.875rem;">Contact</label>
                             <input type="text" class="form-control" id="contact"
                                    style="border: 2px solid #dee2e6; border-radius: 6px;">
                         </div>
@@ -227,17 +223,17 @@
                         </label>
                         <div class="row" style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #dee2e6;">
                             <div class="col-12 mb-2">
-                                <label class="form-label mb-1" style="font-size: 0.875rem; color: #495057;">Parent/Guardian's Name</label>
+                                <label for="guardianName" class="form-label mb-1" style="font-size: 0.875rem; color: #495057;">Parent/Guardian's Name</label>
                                 <input type="text" class="form-control" id="guardianName"
                                        style="border: 2px solid #dee2e6; border-radius: 6px;">
                             </div>
                             <div class="col-md-6 mb-2">
-                                <label class="form-label mb-1" style="font-size: 0.875rem; color: #495057;">Contact No.</label>
+                                <label for="guardianContact" class="form-label mb-1" style="font-size: 0.875rem; color: #495057;">Contact No.</label>
                                 <input type="text" class="form-control" id="guardianContact"
                                        style="border: 2px solid #dee2e6; border-radius: 6px;">
                             </div>
                             <div class="col-md-6 mb-2">
-                                <label class="form-label mb-1" style="font-size: 0.875rem; color: #495057;">Occupation</label>
+                                <label for="guardianOccupation" class="form-label mb-1" style="font-size: 0.875rem; color: #495057;">Occupation</label>
                                 <input type="text" class="form-control" id="guardianOccupation"
                                        style="border: 2px solid #dee2e6; border-radius: 6px;">
                             </div>
@@ -249,7 +245,7 @@
                     <!-- Other Notes and Sent To Section -->
                     <div class="row mb-4">
                         <div class="col-md-6">
-                            <label class="form-label fw-bold mb-2" style="color: #0a4275; font-size: 1rem;">
+                            <label for="otherNotes" class="form-label fw-bold mb-2" style="color: #0a4275; font-size: 1rem;">
                                 <i class="bi bi-pencil-square me-2"></i>Other Notes:
                             </label>
                             <textarea class="form-control" id="otherNotes" rows="6"
@@ -425,20 +421,6 @@
                         </div>
                     </div>
 
-                    <!-- Other Notes Section -->
-                    <div class="card mb-4" style="border: 2px solid #17a2b8; border-radius: 12px;">
-                        <div class="card-header" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); color: white;">
-                            <h6 class="mb-0 fw-bold">
-                                <i class="bi bi-chat-left-text me-2"></i>Other Notes
-                            </h6>
-                        </div>
-                        <div class="card-body">
-                            <textarea class="form-control" id="progressNoteOtherNotes" rows="5"
-                                      placeholder="Enter any additional observations, recommendations, or follow-up instructions..."
-                                      style="border: 2px solid #e0e0e0; border-radius: 8px;"></textarea>
-                        </div>
-                    </div>
-
                     <!-- Save Progress Notes (auto-sent to patient on save) -->
                     <div class="card mb-4" style="border: 2px solid #17a2b8; border-radius: 12px; background: linear-gradient(135deg, #f8fdfe 0%, #f0fbfc 100%);">
                         <div class="card-body">
@@ -599,12 +581,15 @@ function debounce(func, wait) {
 let recordToDelete = null;
 
 // Load Patient Records Function
+let allRecords = []; // Store all records for sorting
+
 function loadPatientRecords() {
     fetch('/admin/post-procedural/records')
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                renderPatientRecords(data.records);
+                allRecords = data.records; // Store records globally
+                renderPatientRecords(allRecords);
             } else {
                 console.error('Failed to load records:', data.message);
             }
@@ -631,10 +616,11 @@ function renderPatientRecords(records) {
         return;
     }
 
-    // Group records by patient (using patient_name as key)
+    // Group records by patient (using user_id as primary key for consistency)
     const groupedRecords = {};
     records.forEach(record => {
-        const key = record.patient_name || 'Unknown';
+        // Use user_id as the primary grouping key to ensure consistency
+        const key = record.user_id || record.patient_name || 'Unknown';
         if (!groupedRecords[key]) {
             groupedRecords[key] = {
                 patient_name: record.patient_name || 'N/A',
@@ -649,14 +635,38 @@ function renderPatientRecords(records) {
             };
         }
 
+        // Update patient info if not set yet
+        if (record.patient_name && record.patient_name !== 'N/A') {
+            groupedRecords[key].patient_name = record.patient_name;
+        }
+        if (record.username && record.username !== 'N/A') {
+            groupedRecords[key].username = record.username;
+        }
+        if (record.patient_number && record.patient_number !== 'N/A') {
+            groupedRecords[key].patient_number = record.patient_number;
+        }
+
         // Update treatment from patient_record if available
         if (record.type === 'patient_record') {
-            groupedRecords[key].treatment = record.data?.appointment?.service?.service_name || record.related_info || 'N/A';
+            // Try to get service name from multiple possible paths
+            let serviceName = 'N/A';
+            if (record.data?.appointment?.service?.service_name) {
+                serviceName = record.data.appointment.service.service_name;
+            } else if (record.data?.service?.service_name) {
+                serviceName = record.data.service.service_name;
+            } else if (record.related_info && record.related_info !== 'No address') {
+                serviceName = record.related_info;
+            }
+            groupedRecords[key].treatment = serviceName;
             groupedRecords[key].patient_record = record;
             groupedRecords[key].user_id = record.user_id || record.data?.user_id || groupedRecords[key].user_id;
         } else if (record.type === 'patient_history') {
             groupedRecords[key].patient_history = record;
-        } else if (record.type === 'progress_notes') {
+            // Get treatment from patient history procedure_performed if available
+            if (record.data?.procedure_performed) {
+                groupedRecords[key].treatment = record.data.procedure_performed;
+            }
+        } else if (record.type === 'progress_note') {
             groupedRecords[key].progress_notes = record;
         }
     });
@@ -920,6 +930,7 @@ function showConfirmModal(message, options = {}) {
 
         // Handle OK button
         const handleOk = () => {
+            if (document.activeElement) document.activeElement.blur();
             modalInstance.hide();
             resolve(true);
             cleanup();
@@ -927,6 +938,7 @@ function showConfirmModal(message, options = {}) {
 
         // Handle cancel/close
         const handleCancel = () => {
+            if (document.activeElement) document.activeElement.blur();
             modalInstance.hide();
             resolve(false);
             cleanup();
@@ -1025,99 +1037,75 @@ if (detailsModal) {
 
 
 
-// Remove patient record
-function removeRecord(recordId) {
-    showConfirmModal(
-        'Delete Patient Record',
-        'Are you sure you want to permanently delete this patient record?<br><br><strong>This will remove:</strong><br>• Patient Information Record<br>• All Patient History entries<br>• All Progress Notes<br>• All associated data<br><br><span class="text-danger"><i class="bi bi-exclamation-triangle me-1"></i>This action cannot be undone!</span>',
+// Remove patient record - with selective deletion
+async function removeRecord(recordId) {
+    // Show confirmation dialog
+    const confirmed = await showConfirmModal(
+        'Are you sure you want to delete all records for this patient? This will delete the Patient Information Record, Patient History, and Progress Notes. This action cannot be undone!',
         {
-            confirmText: 'Yes, Delete All',
-            confirmClass: 'btn-danger',
-            cancelText: 'Cancel',
-            icon: 'bi-trash'
+            title: 'Delete All Patient Records',
+            icon: 'trash',
+            type: 'danger',
+            okText: 'Yes, Delete All'
         }
-    ).then(confirmed => {
-        if (confirmed) {
-            // Show loading state
-            const btn = event.target;
-            const originalText = btn.textContent;
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Deleting...';
+    );
 
-            // Delete all related data - handle each deletion separately
-            const deletePromises = [];
-            let deletedCount = 0;
-            let totalAttempts = 0;
+    if (!confirmed) return;
 
-            // Helper function to attempt deletion and handle 404 gracefully
-            const attemptDelete = (url, type) => {
-                totalAttempts++;
-                return fetch(url, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                    }
-                })
-                .then(response => {
-                    // Consider success ONLY when HTTP status is 200
-                    if (response.status === 200) {
-                        deletedCount++;
-                        console.log(`${type} deleted successfully (200)`);
-                        return { success: true, type, status: 200 };
-                    }
-                    // Treat 404 (not found) and 204 (no content) as skipped (neither success nor failure)
-                    if (response.status === 404 || response.status === 204) {
-                        console.log(`${type} not found or already deleted (status ${response.status}) - skipping`);
-                        return { success: false, type, skipped: true, status: response.status };
-                    }
-                    // Any other status is a failure
-                    console.warn(`${type} delete returned status ${response.status}`);
-                    return { success: false, type, status: response.status };
-                })
-                .catch(error => {
-                    console.error(`Error deleting ${type}:`, error);
-                    return { success: false, type, error: error.message };
-                });
-            };
+    // Show loading notification
+    showNotification('Deleting all patient records...', 'info');
 
-            // Attempt to delete each type of record
-            deletePromises.push(attemptDelete(`/admin/post-procedural/patient-history/${recordId}`, 'Patient History'));
-            deletePromises.push(attemptDelete(`/admin/post-procedural/progress-notes/${recordId}`, 'Progress Notes'));
-            deletePromises.push(attemptDelete(`/admin/post-procedural/patient-record/${recordId}`, 'Patient Record'));
+    // Delete all record types
+    const recordsToDelete = [
+        { type: 'Patient Record', url: `/admin/post-procedural/patient-record/${recordId}` },
+        { type: 'Patient History', url: `/admin/post-procedural/patient-history/${recordId}` },
+        { type: 'Progress Notes', url: `/admin/post-procedural/progress-notes/${recordId}` }
+    ];
 
-            // Wait for all deletion attempts to complete
-            Promise.allSettled(deletePromises)
-            .then(results => {
-                const successes = results.filter(r => r.value && r.value.success && r.value.status === 200);
-                const failures = results.filter(r => r.value && !r.value.success && !r.value.skipped);
-                const skipped = results.filter(r => r.value && r.value.skipped);
+    // Delete all records
+    const deletePromises = recordsToDelete.map(record => {
+        return fetch(record.url, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            }
+        })
+        .then(response => {
+            if (response.status === 200 || response.status === 204) {
+                console.log(`${record.type} deleted successfully`);
+                return { success: true, type: record.type };
+            }
+            if (response.status === 404) {
+                console.log(`${record.type} not found - skipping`);
+                return { success: true, type: record.type, skipped: true };
+            }
+            console.warn(`${record.type} delete returned status ${response.status}`);
+            return { success: false, type: record.type };
+        })
+        .catch(error => {
+            console.error(`Error deleting ${record.type}:`, error);
+            return { success: false, type: record.type, error: error.message };
+        });
+    });
 
-                const successText = successes.length > 0 ? `Deleted: ${successes.map(r => r.value.type).join(', ')}` : '';
-                const failedText = failures.length > 0 ? `Failed: ${failures.map(r => r.value ? r.value.type : 'Unknown').join(', ')}` : '';
-                const skippedText = skipped.length > 0 && successes.length === 0 && failures.length === 0 ? 'No records to delete for this patient' : '';
+    // Wait for all deletions to complete
+    Promise.allSettled(deletePromises)
+    .then(results => {
+        const successes = results.filter(r => r.value && r.value.success);
+        const failures = results.filter(r => r.value && !r.value.success);
 
-                let message = '';
-                if (successText) message += successText;
-                if (failedText) message += (message ? ' • ' : '') + failedText;
-                if (!message && skippedText) message = skippedText;
-
-                const type = failures.length > 0 ? 'danger' : (successes.length > 0 ? 'success' : 'info');
-                if (message) showNotification(message, type);
-
-                if (successes.length > 0) {
-                    loadPatientRecords();
-                }
-            })
-            .catch(error => {
-                console.error('Unexpected error during deletion:', error);
-                showNotification('An unexpected error occurred during deletion', 'error');
-            })
-            .finally(() => {
-                // Restore button state
-                btn.disabled = false;
-                btn.textContent = originalText;
-            });
+        if (failures.length > 0) {
+            showNotification('Some records could not be deleted', 'warning');
+        } else {
+            showNotification('All patient records deleted successfully!', 'success');
         }
+
+        // Reload the patient records list
+        loadPatientRecords();
+    })
+    .catch(error => {
+        console.error('Unexpected error during deletion:', error);
+        showNotification('An unexpected error occurred during deletion', 'error');
     });
 }
 
@@ -1139,6 +1127,7 @@ document.getElementById('confirmDeleteBtn').addEventListener('click', function()
     .then(response => response.json())
     .then(data => {
         if (data.success) {
+            if (document.activeElement) document.activeElement.blur();
             bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
             location.reload();
         }
@@ -2224,7 +2213,10 @@ function renderProgressNotesView(notes) {
                         <h6 class="mb-0">
                             <i class="bi bi-journal-medical me-2"></i>Progress Note #${index + 1} - ${(() => {
                                 try {
-                                    const date = new Date(n.note_date);
+                                    // Extract just the date part to avoid timezone issues
+                                    const datePart = n.note_date.split('T')[0].split(' ')[0];
+                                    const [year, month, day] = datePart.split('-');
+                                    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
                                     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
                                 } catch(e) {
                                     return n.note_date || 'Date not set';
@@ -2302,6 +2294,14 @@ function renderProgressNotesEditList(notes, recordId) {
         'followup_needed': 'info'
     };
 
+    // Helper function to escape HTML and preserve newlines
+    const escapeHtml = (text) => {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    };
+
     return `
         <div class="p-3">
             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -2315,7 +2315,13 @@ function renderProgressNotesEditList(notes, recordId) {
                 ${renderAddProgressNoteForm(recordId)}
             </div>
 
-            ${notes.map((n, index) => `
+            ${notes.map((n, index) => {
+                // Escape values to prevent XSS and ensure proper rendering
+                const progressDesc = escapeHtml(n.progress_description || '');
+                const treatmentResp = escapeHtml(n.treatment_response || '');
+                const nextSteps = escapeHtml(n.next_steps || '');
+
+                return `
                 <div class="card mb-3" style="border-left: 4px solid #${statusColors[n.status] === 'warning' ? 'ffc107' : statusColors[n.status] === 'success' ? '198754' : '0dcaf0'};">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -2324,31 +2330,23 @@ function renderProgressNotesEditList(notes, recordId) {
                                 <i class="bi bi-trash"></i> Delete
                             </button>
                         </div>
-                        <form id="noteForm${n.id}">
+                        <form id="noteForm${n.id}_${recordId}" data-note-id="${n.id}">
                             <div class="row g-3">
-                                <div class="col-md-6">
+                                <div class="col-md-12">
                                     <label class="form-label">Note Date</label>
-                                    <input type="date" class="form-control" name="note_date" value="${n.note_date || ''}" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Status</label>
-                                    <select class="form-select" name="status" required>
-                                        <option value="ongoing" ${n.status === 'ongoing' ? 'selected' : ''}>Ongoing</option>
-                                        <option value="completed" ${n.status === 'completed' ? 'selected' : ''}>Completed</option>
-                                        <option value="followup_needed" ${n.status === 'followup_needed' ? 'selected' : ''}>Follow-up Needed</option>
-                                    </select>
+                                    <input type="date" class="form-control note-date-input" name="note_date" value="${n.note_date || ''}" required>
                                 </div>
                                 <div class="col-12">
                                     <label class="form-label">Progress Description</label>
-                                    <textarea class="form-control" name="progress_description" rows="3" required>${n.progress_description || ''}</textarea>
+                                    <textarea class="form-control note-progress-textarea" name="progress_description" rows="3" required>${progressDesc}</textarea>
                                 </div>
                                 <div class="col-12">
                                     <label class="form-label">Treatment Response</label>
-                                    <textarea class="form-control" name="treatment_response" rows="2">${n.treatment_response || ''}</textarea>
+                                    <textarea class="form-control note-treatment-textarea" name="treatment_response" rows="2">${treatmentResp}</textarea>
                                 </div>
                                 <div class="col-12">
                                     <label class="form-label">Next Steps</label>
-                                    <textarea class="form-control" name="next_steps" rows="2">${n.next_steps || ''}</textarea>
+                                    <textarea class="form-control note-nextsteps-textarea" name="next_steps" rows="2">${nextSteps}</textarea>
                                 </div>
                                 <div class="col-12">
                                     <button type="button" class="btn btn-success btn-sm" onclick="saveProgressNote(${n.id}, ${recordId})">
@@ -2359,7 +2357,8 @@ function renderProgressNotesEditList(notes, recordId) {
                         </form>
                     </div>
                 </div>
-            `).join('')}
+            `;
+            }).join('')}
         </div>
     `;
 }
@@ -2372,17 +2371,9 @@ function renderAddProgressNoteForm(recordId) {
                 <h6 class="mb-3"><i class="bi bi-plus-circle me-2"></i>Add New Progress Note</h6>
                 <form id="newNoteForm">
                     <div class="row g-3">
-                        <div class="col-md-6">
+                        <div class="col-md-12">
                             <label class="form-label">Note Date</label>
                             <input type="date" class="form-control" name="note_date" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Status</label>
-                            <select class="form-select" name="status" required>
-                                <option value="ongoing">Ongoing</option>
-                                <option value="completed">Completed</option>
-                                <option value="followup_needed">Follow-up Needed</option>
-                            </select>
                         </div>
                         <div class="col-12">
                             <label class="form-label">Progress Description</label>
@@ -2768,23 +2759,23 @@ function makeContainerReadOnly(container) {
 function formatDateForInput(dateString) {
     if (!dateString) return '';
     try {
-        // Handle various date formats including ISO with timezone
-        let date;
+        // Simply extract the date part without any Date object conversion
         if (typeof dateString === 'string') {
-            // Remove timezone info if present and parse
-            const cleanDate = dateString.split('T')[0]; // Get just the date part
-            date = new Date(cleanDate + 'T00:00:00'); // Add time to avoid timezone issues
-        } else {
-            date = new Date(dateString);
+            // If it's already in YYYY-MM-DD format or YYYY-MM-DD HH:MM:SS format
+            const datePart = dateString.split('T')[0].split(' ')[0];
+
+            // Validate it's a proper date format (YYYY-MM-DD)
+            if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
+                return datePart;
+            }
         }
 
-        if (isNaN(date.getTime())) {
-            return '';
-        }
-
-        const formatted = date.toISOString().split('T')[0];
-        return formatted;
+        // If we get here, just return empty - don't try to parse with Date object
+        // as that causes timezone issues
+        console.warn('Unexpected date format:', dateString);
+        return '';
     } catch (e) {
+        console.error('Error formatting date:', e);
         return '';
     }
 }
@@ -2926,6 +2917,12 @@ async function savePatientRecordForm(callback) {
 
     console.log('Saving record for user_id:', data.user_id);
 
+    // If editing an existing record, include the record ID
+    if (window.currentEditingRecordId) {
+        data.id = window.currentEditingRecordId;
+        console.log('Updating existing record ID:', data.id);
+    }
+
     // Handle health questions
     const healthQuestions = {};
     ['good_health', 'under_treatment', 'serious_illness', 'hospitalized', 'taking_drugs', 'tobacco', 'alcohol', 'recreational_drugs'].forEach(q => {
@@ -2988,6 +2985,10 @@ async function savePatientRecordForm(callback) {
             // Close the current modal properly
             const detailsModal = bootstrap.Modal.getInstance(document.getElementById('detailsModal'));
             if (detailsModal) {
+                // Remove focus from any active element to prevent aria-hidden warning
+                if (document.activeElement) {
+                    document.activeElement.blur();
+                }
                 detailsModal.hide();
             }
 
@@ -3374,17 +3375,55 @@ function createNewPatientRecord() {
     // Show the form container
     document.getElementById('formContainerWrapper').classList.remove('d-none');
 
+    // Clear all form fields first to prevent data from previous patient
+    const setElementValue = (id, value) => {
+        const element = document.getElementById(id);
+        if (element) element.value = value;
+    };
+
+    const addClass = (id, className) => {
+        const element = document.getElementById(id);
+        if (element) element.classList.add(className);
+    };
+
+    const setElementHTML = (id, html) => {
+        const element = document.getElementById(id);
+        if (element) element.innerHTML = html;
+    };
+
+    setElementValue('lastName', '');
+    setElementValue('givenName', '');
+    setElementValue('middleName', '');
+    setElementValue('homeAddress', '');
+    setElementValue('dateOfBirth', '');
+    setElementValue('age', '');
+    setElementValue('sex', '');
+    setElementValue('nickname', '');
+    setElementValue('religion', '');
+    setElementValue('occupation', '');
+    setElementValue('contact', '');
+    setElementValue('guardianName', '');
+    setElementValue('guardianContact', '');
+    setElementValue('guardianOccupation', '');
+    setElementValue('otherNotes', '');
+
+    // Clear "Sent to" section
+    setElementValue('patientSearchInput', '');
+    setElementValue('selectedPatientId', '');
+    addClass('selectedPatientDisplay', 'd-none');
+    setElementHTML('patientSearchResults', '');
+
     // Populate the form with patient data from the system
     if (currentPatientRecord.user && currentPatientRecord.user.info) {
         const info = currentPatientRecord.user.info;
-        document.getElementById('lastName').value = info.last_name || '';
-        document.getElementById('givenName').value = info.first_name || '';
-        document.getElementById('middleName').value = info.middle_name || '';
-        document.getElementById('contact').value = info.phone || '';
+        setElementValue('lastName', info.last_name || '');
+        setElementValue('givenName', info.first_name || '');
+        setElementValue('middleName', info.middle_name || '');
+        setElementValue('contact', info.phone || '');
 
         // Calculate age if birthdate exists
         if (info.birthdate) {
-            document.getElementById('dateOfBirth').value = info.birthdate;
+            setElementValue('dateOfBirth', info.birthdate);
             const today = new Date();
             const birthDate = new Date(info.birthdate);
             let age = today.getFullYear() - birthDate.getFullYear();
@@ -3392,7 +3431,7 @@ function createNewPatientRecord() {
             if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
                 age--;
             }
-            document.getElementById('age').value = age;
+            setElementValue('age', age);
         }
     }
 
@@ -4011,11 +4050,10 @@ function addNewProgressNote(recordId) {
         note_date: formData.get('note_date'),
         progress_description: formData.get('progress_description'),
         treatment_response: formData.get('treatment_response'),
-        next_steps: formData.get('next_steps'),
-        status: formData.get('status')
+        next_steps: formData.get('next_steps')
     };
 
-    fetch('/admin/post-procedural/progress-note/store', {
+    fetch('/admin/post-procedural/progress-notes', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -4046,7 +4084,13 @@ function addNewProgressNote(recordId) {
 }
 
 function saveProgressNote(noteId, recordId) {
-    const form = document.getElementById(`noteForm${noteId}`);
+    const form = document.getElementById(`noteForm${noteId}_${recordId}`);
+    if (!form) {
+        console.error('Form not found:', `noteForm${noteId}_${recordId}`);
+        showNotification('Form not found. Please refresh and try again.', 'error');
+        return;
+    }
+
     const formData = new FormData(form);
     const data = {
         id: noteId,
@@ -4054,11 +4098,12 @@ function saveProgressNote(noteId, recordId) {
         note_date: formData.get('note_date'),
         progress_description: formData.get('progress_description'),
         treatment_response: formData.get('treatment_response'),
-        next_steps: formData.get('next_steps'),
-        status: formData.get('status')
+        next_steps: formData.get('next_steps')
     };
 
-    fetch('/admin/post-procedural/progress-note/store', {
+    console.log('Saving progress note:', data);
+
+    fetch('/admin/post-procedural/progress-notes', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -4098,7 +4143,7 @@ async function deleteProgressNote(noteId) {
 
     if (!confirmed) return;
 
-    fetch(`/admin/post-procedural/progress-note/${noteId}`, {
+    fetch(`/admin/post-procedural/progress-notes/${noteId}`, {
         method: 'DELETE',
         headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
@@ -5806,16 +5851,23 @@ function selectProgressNotePatient(patientId, patientName, username) {
         username: username
     };
 
-    // Clear search
-    document.getElementById('progressNotePatientSearch').value = '';
-    document.getElementById('progressNotePatientSearchResults').innerHTML = '';
+    // Clear search - with null checks
+    const searchInput = document.getElementById('progressNotePatientSearch');
+    if (searchInput) searchInput.value = '';
 
-    // Show selected patient alert
-    document.getElementById('selectedProgressNotePatientAlert').classList.remove('d-none');
-    document.getElementById('selectedProgressNotePatientText').textContent = `${patientName} (@${username})`;
+    const resultsDiv = document.getElementById('progressNotePatientSearchResults');
+    if (resultsDiv) resultsDiv.innerHTML = '';
 
-    // Set send to patient field
-    document.getElementById('progressNoteSendToPatient').value = patientName;
+    // Show selected patient alert - with null checks
+    const alertEl = document.getElementById('selectedProgressNotePatientAlert');
+    if (alertEl) alertEl.classList.remove('d-none');
+
+    const textEl = document.getElementById('selectedProgressNotePatientText');
+    if (textEl) textEl.textContent = `${patientName} (@${username})`;
+
+    // Set send to patient field - with null check
+    const sendToInput = document.getElementById('progressNoteSendToPatient');
+    if (sendToInput) sendToInput.value = patientName;
 
     // Load existing progress notes for this patient
     loadProgressNotes(patientId);
@@ -5954,13 +6006,20 @@ function clearProgressNotesForm() {
     progressNoteRows = [];
     progressNoteRowCounter = 0;
 
-    document.getElementById('progressNotePatientSearch').value = '';
-    document.getElementById('selectedProgressNotePatientAlert').classList.add('d-none');
-    document.getElementById('progressNoteSendToPatient').value = '';
-    document.getElementById('progressNoteOtherNotes').value = '';
+    // Add null checks to prevent errors
+    const searchInput = document.getElementById('progressNotePatientSearch');
+    if (searchInput) searchInput.value = '';
+
+    const alertEl = document.getElementById('selectedProgressNotePatientAlert');
+    if (alertEl) alertEl.classList.add('d-none');
+
+    const sendToInput = document.getElementById('progressNoteSendToPatient');
+    if (sendToInput) sendToInput.value = '';
 
     // Add one empty row to start fresh
-    addProgressNoteRow();
+    if (typeof addProgressNoteRow === 'function') {
+        addProgressNoteRow();
+    }
 }
 
 // Initialize Progress Notes Search (called when Progress Notes tab is clicked)
@@ -6039,13 +6098,10 @@ function initializeProgressNotesSearch() {
                 return;
             }
 
-            const otherNotes = document.getElementById('progressNoteOtherNotes').value;
-
             // Prepare the data to send
             const progressNotesData = {
                 patient_id: selectedProgressNotePatient.id,
                 notes: progressNoteRows,
-                other_notes: otherNotes,
                 send_to_patient: true
             };
 
@@ -6162,6 +6218,7 @@ function openEditRecordModal(recordId) {
                 if (saveBtn && typeof savePatientRecordForm === 'function') {
                     saveBtn.onclick = async function() {
                         await savePatientRecordForm(() => {
+                            if (document.activeElement) document.activeElement.blur();
                             modal.hide();
                             loadPatientRecords();
                         });
@@ -6317,6 +6374,7 @@ function openEditHistoryModal(recordId) {
                         const result = await response.json();
                         if (result.success) {
                             showNotification(hasExistingHistory ? 'Patient history updated successfully!' : 'Patient history saved successfully!', 'success');
+                            if (document.activeElement) document.activeElement.blur();
                             modal.hide();
                             loadPatientRecords();
                         } else {
@@ -6341,99 +6399,212 @@ function openEditNotesModal(recordId) {
     window.currentEditingRecordId = recordId;
 
     const formHtml = `
+        <style>
+            #edit-notes-form .form-label {
+                font-weight: 600;
+                color: #2c3e50;
+                margin-bottom: 0.5rem;
+                font-size: 0.95rem;
+            }
+            #edit-notes-form .form-control {
+                border: 2px solid #e0e6ed;
+                border-radius: 8px;
+                padding: 0.75rem;
+                transition: all 0.3s ease;
+            }
+            #edit-notes-form .form-control:focus {
+                border-color: #4a90e2;
+                box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.15);
+            }
+            .progress-notes-section {
+                background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+                border-radius: 12px;
+                padding: 1.5rem;
+                margin-bottom: 1.5rem;
+                border: 1px solid #dee2e6;
+            }
+            .section-header {
+                display: flex;
+                align-items: center;
+                margin-bottom: 1rem;
+                padding-bottom: 0.75rem;
+                border-bottom: 2px solid #4a90e2;
+            }
+            .section-header i {
+                font-size: 1.25rem;
+                color: #4a90e2;
+                margin-right: 0.5rem;
+            }
+            .section-header h6 {
+                margin: 0;
+                color: #2c3e50;
+                font-weight: 700;
+                font-size: 1.1rem;
+            }
+            .date-badge {
+                display: inline-flex;
+                align-items: center;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 0.5rem 1rem;
+                border-radius: 20px;
+                font-weight: 600;
+                margin-bottom: 1rem;
+            }
+            .date-badge i {
+                margin-right: 0.5rem;
+            }
+        </style>
         <form id="edit-notes-form">
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <label class="form-label">Date</label>
-                    <input type="date" class="form-control" name="note_date" required>
+            <!-- Date Section -->
+            <div class="progress-notes-section">
+                <div class="section-header">
+                    <i class="bi bi-calendar-event"></i>
+                    <h6>Date Information</h6>
                 </div>
-                <div class="col-md-8">
-                    <label class="form-label">Description</label>
-                    <input type="text" class="form-control" name="progress_description" placeholder="Description">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Treatment Response</label>
-                    <input type="text" class="form-control" name="treatment_response" placeholder="Response">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Next Steps</label>
-                    <input type="text" class="form-control" name="next_steps" placeholder="Next steps">
+                <div class="row g-3">
+                    <div class="col-md-12">
+                        <label class="form-label">
+                            <i class="bi bi-calendar3 me-2"></i>Note Date
+                        </label>
+                        <input type="date" class="form-control" name="note_date" required>
+                    </div>
                 </div>
             </div>
+
+            <!-- Progress Description Section -->
+            <div class="progress-notes-section">
+                <div class="section-header">
+                    <i class="bi bi-journal-text"></i>
+                    <h6>Progress Description</h6>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-12">
+                        <label class="form-label">
+                            <i class="bi bi-file-text me-2"></i>Description
+                        </label>
+                        <textarea class="form-control" name="progress_description" rows="4"
+                                  placeholder="Enter detailed progress description..." required></textarea>
+                        <small class="text-muted">Provide comprehensive details about the patient's progress</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Treatment & Response Section -->
+            <div class="progress-notes-section">
+                <div class="section-header">
+                    <i class="bi bi-clipboard-pulse"></i>
+                    <h6>Treatment & Response</h6>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-12">
+                        <label class="form-label">
+                            <i class="bi bi-heart-pulse me-2"></i>Treatment Response
+                        </label>
+                        <textarea class="form-control" name="treatment_response" rows="3"
+                                  placeholder="How did the patient respond to treatment?"></textarea>
+                        <small class="text-muted">Document patient's response to prescribed treatment</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Next Steps Section -->
+            <div class="progress-notes-section">
+                <div class="section-header">
+                    <i class="bi bi-arrow-right-circle"></i>
+                    <h6>Next Steps</h6>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-12">
+                        <label class="form-label">
+                            <i class="bi bi-list-check me-2"></i>Next Steps
+                        </label>
+                        <textarea class="form-control" name="next_steps" rows="3"
+                                  placeholder="What are the next steps in treatment?"></textarea>
+                        <small class="text-muted">Outline the recommended next steps or follow-up actions</small>
+                    </div>
+                </div>
+            </div>
+
         </form>`;
 
-    const modal = createAndShowModal('editNotesModal', 'Edit Progress Notes', formHtml, `
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-secondary" id="save-notes-btn">Save Note</button>
-    `, 'modal-lg');
+    const modal = createAndShowModal('editNotesModal',
+        '<i class="bi bi-journal-text me-2"></i>Edit Progress Notes',
+        formHtml, `
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="bi bi-x-circle me-2"></i>Close
+        </button>
+        <button type="button" class="btn btn-primary" id="save-notes-btn"
+                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+            <i class="bi bi-save me-2"></i>Save Note
+        </button>
+    `, 'modal-xl');
 
     // Preload latest note values and check if we have existing notes
     let existingNotes = [];
     let latestNoteId = null;
 
+    // First, clear all form fields to prevent showing old data
+    setTimeout(() => {
+        const form = document.getElementById('edit-notes-form');
+        if (form) {
+            // Add null checks for each field
+            if (form.note_date) form.note_date.value = '';
+            if (form.progress_description) form.progress_description.value = '';
+            if (form.treatment_response) form.treatment_response.value = '';
+            if (form.next_steps) form.next_steps.value = '';
+            if (form.other_notes) form.other_notes.value = '';
+        }
+    }, 100);
+
+    // Fetch all progress notes and display them
     fetch(`/admin/post-procedural/progress-notes/${recordId}`)
-        .then(r => r.json())
-        .then(res => {
-            existingNotes = (res && res.data) ? (Array.isArray(res.data) ? res.data : [res.data]) : [];
-            const latest = existingNotes[0] || {};
-            latestNoteId = latest.id || null;
-
-            const form = document.getElementById('edit-notes-form');
-            form.note_date.value = latest.note_date ? formatDateForInput(latest.note_date) : '';
-            form.progress_description.value = latest.progress_description || '';
-            form.treatment_response.value = latest.treatment_response || '';
-            form.next_steps.value = latest.next_steps || '';
+        .then(r => {
+            if (!r.ok) {
+                throw new Error(`HTTP error! status: ${r.status}`);
+            }
+            return r.json();
         })
-        .catch(() => {});
+        .then(res => {
+            console.log('Progress notes response:', res);
+            existingNotes = (res && res.data) ? (Array.isArray(res.data) ? res.data : [res.data]) : [];
 
+            // Replace the single form with a list of all notes
+            const modalBody = document.querySelector('#editNotesModal .modal-body');
+            if (modalBody && typeof renderProgressNotesEditList === 'function') {
+                modalBody.innerHTML = renderProgressNotesEditList(existingNotes, recordId);
+            }
+
+            console.log('Rendered all progress notes:', existingNotes.length, 'notes');
+        })
+        .catch((error) => {
+            console.error('Error fetching progress notes:', error);
+            showNotification('Could not load existing progress notes.', 'info');
+        });
+
+    // Hide the save button in footer since each note has its own save button
     const saveBtn = document.getElementById('save-notes-btn');
     if (saveBtn) {
-        saveBtn.onclick = async function() {
+        saveBtn.style.display = 'none';
+    }
+
+    // Clear form when modal is closed to prevent data persistence
+    const modalElement = document.getElementById('editNotesModal');
+    if (modalElement) {
+        modalElement.addEventListener('hidden.bs.modal', function () {
             const form = document.getElementById('edit-notes-form');
-            const payload = {
-                patient_record_id: recordId,
-                note_date: form.note_date.value,
-                progress_description: form.progress_description.value,
-                treatment_response: form.treatment_response.value,
-                next_steps: form.next_steps.value
-            };
-
-            try {
-                let res;
-                if (existingNotes.length > 0 && latestNoteId) {
-                    // Update existing note
-                    res = await fetch(`/admin/post-procedural/progress-notes/${latestNoteId}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                        },
-                        body: JSON.stringify(payload)
-                    });
-                } else {
-                    // Create new note
-                    res = await fetch('/admin/post-procedural/progress-notes', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                        },
-                        body: JSON.stringify(payload)
-                    });
-                }
-
-                const json = await res.json();
-                if (json && json.success) {
-                    showNotification(existingNotes.length > 0 ? 'Progress note updated successfully!' : 'Progress note saved successfully!', 'success');
-                    modal.hide();
-                    loadPatientRecords();
-                } else {
-                    showNotification('Failed to save note', 'error');
-                }
-            } catch (e) {
-                showNotification('Error saving note', 'error');
+            if (form) {
+                // Add null checks for each field
+                if (form.note_date) form.note_date.value = '';
+                if (form.progress_description) form.progress_description.value = '';
+                if (form.treatment_response) form.treatment_response.value = '';
+                if (form.next_steps) form.next_steps.value = '';
+                if (form.other_notes) form.other_notes.value = '';
             }
-        };
+            existingNotes = [];
+            latestNoteId = null;
+            console.log('Progress notes form cleared on modal close');
+        }, { once: true }); // Use once: true so this doesn't pile up multiple listeners
     }
 }
 

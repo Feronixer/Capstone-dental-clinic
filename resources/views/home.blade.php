@@ -417,7 +417,36 @@
             font-size: 1.2rem;
             font-weight: 700;
             color: #263238;
+            margin-bottom: 0.5rem;
+        }
+
+        .service-price {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
             margin-bottom: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .price-label {
+            font-size: 0.75rem;
+            color: #90a4ae;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .price-amount {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #2196F3;
+            line-height: 1;
+        }
+
+        .price-note {
+            font-size: 0.75rem;
+            color: #78909c;
+            font-style: italic;
         }
 
         .service-content p {
@@ -626,8 +655,8 @@
             position: fixed;
             right: 24px;
             bottom: 24px;
-            width: 56px;
-            height: 56px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             background: #2196F3;
             color: white;
@@ -638,12 +667,19 @@
             cursor: pointer;
             z-index: 1000;
             transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+            padding: 8px;
         }
 
         .chatbot-toggle-btn:hover {
-            transform: translateY(-2px);
+            transform: translateY(-2px) scale(1.05);
             box-shadow: 0 14px 36px rgba(33,150,243,0.45);
             background: #1976D2;
+        }
+
+        .chatbot-toggle-btn img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
         }
 
         .chatbot-widget {
@@ -709,14 +745,37 @@
             padding: 10px 12px;
             border-radius: 14px;
             font-size: 0.92rem;
-            line-height: 1.35rem;
+            line-height: 1.6rem;
+            word-wrap: break-word;
+            word-break: break-word;
+            white-space: pre-wrap;
         }
 
         .message.bot {
             background: #f5f9ff;
-            color: #0d47a1;
+            color: #263238;
             border: 1px solid #e3f2fd;
             align-self: flex-start;
+            text-align: left;
+        }
+
+        /* Style for bullet lists in bot messages */
+        .message.bot .bullet-item {
+            display: block;
+            padding-left: 1.2em;
+            text-indent: -1.2em;
+            margin: 0.3em 0;
+        }
+
+        .message.bot .section-header {
+            font-weight: 600;
+            margin-top: 0.8em;
+            margin-bottom: 0.3em;
+            display: block;
+        }
+
+        .message.bot .section-header:first-child {
+            margin-top: 0;
         }
 
         .message.user {
@@ -836,11 +895,11 @@
                 <i class="bi bi-house-door-fill"></i>
                 Home
             </a>
-            <a href="#" class="nav-btn secondary">
+            <a href="{{ route('announcements') }}" class="nav-btn secondary">
                 <i class="bi bi-megaphone-fill"></i>
                 Announcements
             </a>
-            <a href="#" class="nav-btn secondary">
+            <a href="{{ route('about-us') }}" class="nav-btn secondary">
                 <i class="bi bi-info-circle-fill"></i>
                 About Us
             </a>
@@ -922,104 +981,31 @@
             </p>
 
             <div class="services-grid">
-                <!-- Service Card 1 -->
+                @forelse($services as $service)
+                <!-- Service Card: {{ $service->service_name }} -->
                 <div class="service-card">
                     <div class="service-icon-box">
-                        <i class="bi bi-heart-pulse-fill"></i>
+                        <i class="bi {{ $service->icon_class ?? 'bi-gear' }}"></i>
                     </div>
                     <div class="service-content">
-                        <h3>Cosmetic Dentistry</h3>
-                        <p>Teeth whitening, veneers, bonding, and smile makeovers to transform your smile and confidence.</p>
+                        <h3>{{ $service->service_name }}</h3>
+                        <div class="service-price">
+                            <span class="price-label">Starting at</span>
+                            <span class="price-amount">₱{{ number_format($service->price, 0, '.', ',') }}</span>
+                            @if(strpos(strtolower($service->description), 'tooth') !== false)
+                                <span class="price-note">per tooth</span>
+                            @endif
+                        </div>
+                        <p>{{ $service->description }}</p>
                     </div>
                 </div>
-
-                <!-- Service Card 2 -->
-                <div class="service-card">
-                    <div class="service-icon-box">
-                        <i class="bi bi-lightning-charge-fill"></i>
-                    </div>
-                    <div class="service-content">
-                        <h3>Laser Dentistry</h3>
-                        <p>Minimally invasive laser treatments for precise care and faster recovery.</p>
-                    </div>
+                @empty
+                <!-- No Services Available -->
+                <div class="col-12 text-center py-5">
+                    <i class="bi bi-inbox" style="font-size: 4rem; opacity: 0.2;"></i>
+                    <p class="text-muted mt-3">No services available at the moment</p>
                 </div>
-
-                <!-- Service Card 3 -->
-                <div class="service-card">
-                    <div class="service-icon-box">
-                        <i class="bi bi-bandaid-fill"></i>
-                    </div>
-                    <div class="service-content">
-                        <h3>Oral Surgery</h3>
-                        <p>Expert surgical care including wisdom teeth removal and dental implants.</p>
-                    </div>
-                </div>
-
-                <!-- Service Card 4 -->
-                <div class="service-card">
-                    <div class="service-icon-box">
-                        <i class="bi bi-clipboard2-pulse-fill"></i>
-                    </div>
-                    <div class="service-content">
-                        <h3>Periodontics</h3>
-                        <p>Specialized care for gums and supporting structures for optimal oral health.</p>
-                    </div>
-                </div>
-
-                <!-- Service Card 5 -->
-                <div class="service-card">
-                    <div class="service-icon-box">
-                        <i class="bi bi-clipboard2-check-fill"></i>
-                    </div>
-                    <div class="service-content">
-                        <h3>Restoration & Filling</h3>
-                        <p>High quality dental fillings and restorations to repair damaged teeth.</p>
-                    </div>
-                </div>
-
-                <!-- Service Card 6 -->
-                <div class="service-card">
-                    <div class="service-icon-box">
-                        <i class="bi bi-capsule-pill"></i>
-                    </div>
-                    <div class="service-content">
-                        <h3>Tooth Extraction</h3>
-                        <p>Safe and comfortable tooth removal procedures.</p>
-                    </div>
-                </div>
-
-                <!-- Service Card 7 -->
-                <div class="service-card">
-                    <div class="service-icon-box">
-                        <i class="bi bi-activity"></i>
-                    </div>
-                    <div class="service-content">
-                        <h3>Root Canal Treatment</h3>
-                        <p>Advanced root canal therapy to save infected teeth.</p>
-                    </div>
-                </div>
-
-                <!-- Service Card 8 -->
-                <div class="service-card">
-                    <div class="service-icon-box">
-                        <i class="bi bi-gem"></i>
-                    </div>
-                    <div class="service-content">
-                        <h3>Dental Crowns</h3>
-                        <p>Various crown options including porcelain, Emax, and zirconia for durable restoration.</p>
-                    </div>
-                </div>
-
-                <!-- Service Card 9 -->
-                <div class="service-card">
-                    <div class="service-icon-box">
-                        <i class="bi bi-grid-3x3-gap-fill"></i>
-                    </div>
-                    <div class="service-content">
-                        <h3>Dentures</h3>
-                        <p>Custom-fit flexible and traditional dentures for natural looking results.</p>
-                    </div>
-                </div>
+                @endforelse
             </div>
     </div>
 </section>
@@ -1109,7 +1095,7 @@
     @if(!empty($chatbotSetting) && $chatbotSetting->enabled)
     <!-- Chatbot Toggle Button -->
     <div id="chatbot-toggle" class="chatbot-toggle-btn" aria-label="Open chat" title="Chat with us">
-        <i class="bi bi-chat-dots-fill" style="font-size: 1.4rem;"></i>
+        <img src="{{ asset('images/chatbot-logo_3.png') }}" alt="ToothTalk Assistant">
     </div>
 
     <!-- Chatbot Widget -->
@@ -1159,7 +1145,39 @@
             function addMessage(text, sender) {
                 const div = document.createElement('div');
                 div.className = 'message ' + (sender === 'user' ? 'user' : 'bot');
-                div.textContent = text;
+
+                if (sender === 'bot') {
+                    // Process text line by line
+                    let lines = text.split('\n');
+                    let formattedHTML = '';
+
+                    for (let i = 0; i < lines.length; i++) {
+                        let line = lines[i].trim();
+                        if (!line) continue;
+
+                        // Check if line ends with colon (section header)
+                        if (line.endsWith(':')) {
+                            formattedHTML += `<span class="section-header">${line}</span>`;
+                        }
+                        // Check if line starts with bullet
+                        else if (line.startsWith('•')) {
+                            formattedHTML += `<span class="bullet-item">${line}</span>`;
+                        }
+                        // Regular text
+                        else {
+                            formattedHTML += line;
+                            // Add spacing after sentences if next line exists
+                            if (i < lines.length - 1) {
+                                formattedHTML += '<br>';
+                            }
+                        }
+                    }
+
+                    div.innerHTML = formattedHTML;
+                } else {
+                    div.textContent = text;
+                }
+
                 messagesEl.appendChild(div);
                 scrollToBottom();
             }

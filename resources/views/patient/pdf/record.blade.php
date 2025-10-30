@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Medical Record - {{ $record->patient_name ?? 'Patient' }}</title>
+    <title>Medical Record - {{ $record->user && $record->user->info ? $record->user->info->first_name . ' ' . $record->user->info->last_name : 'Patient' }}</title>
     <style>
         * {
             margin: 0;
@@ -10,24 +10,25 @@
             box-sizing: border-box;
         }
 
-        bo        dy {
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 12px;
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            font-size: 13px;
             color: #2C3E50;
             line-height: 1.6;
-            padding: 20px;
+            padding: 30px;
+            background: white;
         }
 
-        @media pri        nt {
+        @media print {
             .no-print {
                 display: none !important;
             }
             body {
-                padding: 10px;
+                padding: 15px;
             }
         }
 
-        .print-button-conta        iner {
+        .print-button-container {
             position: fixed;
             top: 10px;
             right: 10px;
@@ -35,199 +36,155 @@
         }
 
         .btn-print {
-            b        ackground: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            background: #2196F3;
             color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
+            padding: 10px 20px;
+            border-radius: 4px;
             font-weight: 600;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            font-size: 13px;
         }
 
         .btn-print:hover {
-            backgroun        d: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
-            box-shadow: 0 6px 16px rgba(33, 150, 243, 0.4);
+            background: #1976D2;
         }
 
-        .header {
-            text-align: center;
-                    margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 3px solid #2196F3;
+        .page-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #2C3E50;
+            margin-bottom: 10px;
         }
 
-        .header h1 {
-            color: #2196F3;
-                    font-size: 24px;
+        .title-underline {
+            height: 3px;
+            background: #2196F3;
             margin-bottom: 5px;
         }
 
-        .header p {
-            color: #64748b;
-            font-s        ize: 11px;
+        .title-underline-thin {
+            height: 2px;
+            background: #2196F3;
+            margin-bottom: 25px;
         }
 
         .section {
-            margin-bottom: 25px;
-            page-br        eak-inside: avoid;
+            margin-bottom: 30px;
+            page-break-inside: avoid;
+        }
+
+        .section-header {
+            background: #f5f5f5;
+            padding: 10px 12px;
+            border-left: 4px solid #2196F3;
+            margin-bottom: 15px;
         }
 
         .section-title {
-            background: #eceff1;
-            paddin        g: 8px 12px;
-            font-weight: bold;
-            color: #2C3E50;
             font-size: 14px;
-            margin-bottom: 15px;
-            border-left: 4px solid #2196F3;
+            font-weight: 600;
+            color: #2C3E50;
         }
 
         .info-grid {
-            display: table;
-            width: 100%;
-                    margin-bottom: 15px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px 30px;
         }
 
-        .info-row {
-            display: table-row;
+        .info-field {
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
         }
 
-        .info-cell {
-                    display: table-cell;
-            padding: 8px 10px;
-                    width: 50%;
-            vertical-align: top;
-        }
-
-        .info-label {
-            font-weight: bold;
-            color: #64748b;
-            font-size:         10px;
-            display: block;
-            margin-bottom: 3px;
-        }
-
-        .info-value {
-            color: #2C3E50;
+        .field-label {
             font-size: 12px;
+            color: #546E7A;
+            font-weight: 600;
+            margin-bottom: 4px;
         }
 
-        .full-width {
-            width: 100%;
+        .field-value {
+            font-size: 13px;
+            color: #2C3E50;
+        }
+
+        .info-field.full-width {
+            grid-column: 1 / -1;
         }
 
         .notes-box {
-            background: #f8f9fa;
-                    border: 1px solid #dee2e6;
-            border-radius:         4px;
+            background: #E3F2FD;
             padding: 15px;
+            border-radius: 4px;
             margin-top: 10px;
         }
 
         .footer {
-            margin-top: 50px;
+            margin-top: 40px;
             padding-top: 20px;
-            border-top: 2px solid #e2e8f0;
-                    text-align: center;
-            color: #64748b;
-            font-size: 10px;
-        }
-
-        .clinic-info {
-            background: #f8f9fa;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-ra        dius: 4px;
-        }
-
-        .clinic-info h3 {
-            color: #2196F3;
-            font-size: 14px;
-            margin-bottom: 5px;
-        }
-
-        .clinic-in        fo p {
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+            color: #757575;
             font-size: 11px;
-            color: #64748b;
-            margin: 2px 0;
         }
     </style>
-    <link rel="sty        lesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
 </head>
 <body>
     <!-- Print Button -->
     <div class="print-button-container no-print">
         <button class="btn-print" onclick="window.print()">
-            <i class="bi bi-printer-fill"></i>
-            <span>Print / Save as PDF</span>
+            🖨️ Print / Save as PDF
         </button>
     </div>
 
-    <!-- Header -->
-    <div class="header">
-        <h1>JValera Dental Clinic</h1>
-        <p>0190 Policapio St. Gen T. Deleon Valenzuela City</p>
-        <p>Phone: +63 15 622 9695 | Email: jvalera@dentalclinic.com</p>
-    </div>
-
-    <div style="text-align: center; margin-bottom: 30px;">
-        <h2 style="color: #2C3E50; font-size: 18px; margin-bottom: 5px;">PATIENT MEDICAL RECORD</h2>
-        <p sty    le="color: #64748b; font-size: 11px;">Generated on {{ date('F d, Y') }}</p>
-    </div>
+    <!-- Page Title -->
+    <div class="page-title">Patient Medical Record</div>
+    <div class="title-underline"></div>
+    <div class="title-underline-thin"></div>
 
     <!-- Patient Information -->
     <div class="section">
-        <div class="section-title">PATIENT INFORMATION</div>
+        <div class="section-header">
+            <div class="section-title">Patient Information</div>
+        </div>
         <div class="info-grid">
-            <div class="info-row">
-                <div class="info-cell">
-                    <span class="info-label">Patient Number:</span>
-                    <span class="info-value">{{ $record->patient_number ?? 'N/A' }}</span>
-                </div>
-                <div class="info-cell">
-                    <span class="info-label">Sex:</span>
-                    <span class="info-value">{{ $record->sex ?? 'N/A' }}</span>
-                </div>
+            <div class="info-field">
+                <div class="field-label">Patient Name:</div>
+                <div class="field-value">{{ $record->user && $record->user->info ? $record->user->info->first_name . ' ' . $record->user->info->last_name : 'N/A' }}</div>
             </div>
-            <div class="info-row">
-                <div class="info-cell">
-                    <span class="info-label">Date of Birth:</span>
-                    <span class="info-value">{{ $record->date_of_birth ? $record->date_of_birth->format('m/d/Y') : 'N/A' }}</span>
-                </div>
-                <div class="info-cell">
-                    <span class="info-label">Age:</span>
-                    <span class="info-value">{{ $record->age ?? 'N/A' }}</span>
-                </div>
+            <div class="info-field">
+                <div class="field-label">Sex:</div>
+                <div class="field-value">{{ $record->sex ?? 'N/A' }}</div>
             </div>
-            <div class="info-row">
-                <div class="info-cell">
-                    <span class="info-label">Contact Number:</span>
-                    <span class="info-value">{{ $record->contact ?? 'N/A' }}</span>
-                </div>
-                <div class="info-cell">
-                    <span class="info-label">Nickname:</span>
-                    <span class="info-value">{{ $record->nickname ?? 'N/A' }}</span>
-                </div>
+            <div class="info-field">
+                <div class="field-label">Date of Birth:</div>
+                <div class="field-value">{{ $record->date_of_birth ? \Carbon\Carbon::parse($record->date_of_birth)->format('F d, Y') : 'N/A' }}</div>
             </div>
-            <div class="info-row">
-                <div class="info-cell full-width" style="width: 100%;">
-                    <span class="info-label">Home Address:</span>
-                    <span class="info-value">{{ $record->home_address ?? 'N/A' }}</span>
-                </div>
+            <div class="info-field">
+                <div class="field-label">Age:</div>
+                <div class="field-value">{{ $record->age ?? 'N/A' }}</div>
             </div>
-            <div class="info-row">
-                <div class="info-cell">
-                    <span class="info-label">Religion:</span>
-                    <span class="info-value">{{ $record->religion ?? 'N/A' }}</span>
-                </div>
-                <div class="info-cell">
-                    <span class="info-label">Occupation:</span>
-                    <span class="info-value">{{ $record->occupation ?? 'N/A' }}</span>
-                </div>
+            <div class="info-field">
+                <div class="field-label">Contact:</div>
+                <div class="field-value">{{ $record->contact ?? 'N/A' }}</div>
+            </div>
+            <div class="info-field">
+                <div class="field-label">Nickname:</div>
+                <div class="field-value">{{ $record->nickname ?? 'N/A' }}</div>
+            </div>
+            <div class="info-field full-width">
+                <div class="field-label">Home Address:</div>
+                <div class="field-value">{{ $record->home_address ?? 'N/A' }}</div>
+            </div>
+            <div class="info-field">
+                <div class="field-label">Religion:</div>
+                <div class="field-value">{{ $record->religion ?? 'N/A' }}</div>
+            </div>
+            <div class="info-field">
+                <div class="field-label">Occupation:</div>
+                <div class="field-value">{{ $record->occupation ?? 'N/A' }}</div>
             </div>
         </div>
     </div>
@@ -235,23 +192,21 @@
     @if($record->guardian_name)
     <!-- Guardian Information -->
     <div class="section">
-        <div class="section-title">GUARDIAN INFORMATION</div>
+        <div class="section-header">
+            <div class="section-title">Guardian Information</div>
+        </div>
         <div class="info-grid">
-            <div class="info-row">
-                <div class="info-cell">
-                    <span class="info-label">Guardian Name:</span>
-                    <span class="info-value">{{ $record->guardian_name }}</span>
-                </div>
-                <div class="info-cell">
-                    <span class="info-label">Guardian Contact:</span>
-                    <span class="info-value">{{ $record->guardian_contact ?? 'N/A' }}</span>
-                </div>
+            <div class="info-field">
+                <div class="field-label">Guardian Name:</div>
+                <div class="field-value">{{ $record->guardian_name }}</div>
             </div>
-            <div class="info-row">
-                <div class="info-cell">
-                    <span class="info-label">Guardian Occupation:</span>
-                    <span class="info-value">{{ $record->guardian_occupation ?? 'N/A' }}</span>
-                </div>
+            <div class="info-field">
+                <div class="field-label">Guardian Contact:</div>
+                <div class="field-value">{{ $record->guardian_contact ?? 'N/A' }}</div>
+            </div>
+            <div class="info-field">
+                <div class="field-label">Guardian Occupation:</div>
+                <div class="field-value">{{ $record->guardian_occupation ?? 'N/A' }}</div>
             </div>
         </div>
     </div>
@@ -260,29 +215,25 @@
     @if($record->physician_name)
     <!-- Physician Information -->
     <div class="section">
-        <div class="section-title">PHYSICIAN INFORMATION</div>
+        <div class="section-header">
+            <div class="section-title">Physician Information</div>
+        </div>
         <div class="info-grid">
-            <div class="info-row">
-                <div class="info-cell">
-                    <span class="info-label">Physician Name:</span>
-                    <span class="info-value">{{ $record->physician_name }}</span>
-                </div>
-                <div class="info-cell">
-                    <span class="info-label">Specialty:</span>
-                    <span class="info-value">{{ $record->physician_specialty ?? 'N/A' }}</span>
-                </div>
+            <div class="info-field">
+                <div class="field-label">Physician Name:</div>
+                <div class="field-value">{{ $record->physician_name }}</div>
             </div>
-            <div class="info-row">
-                <div class="info-cell">
-                    <span class="info-label">Contact:</span>
-                    <span class="info-value">{{ $record->physician_contact ?? 'N/A' }}</span>
-                </div>
+            <div class="info-field">
+                <div class="field-label">Specialty:</div>
+                <div class="field-value">{{ $record->physician_specialty ?? 'N/A' }}</div>
             </div>
-            <div class="info-row">
-                <div class="info-cell full-width" style="width: 100%;">
-                    <span class="info-label">Office Address:</span>
-                    <span class="info-value">{{ $record->physician_office_address ?? 'N/A' }}</span>
-                </div>
+            <div class="info-field">
+                <div class="field-label">Contact:</div>
+                <div class="field-value">{{ $record->physician_contact ?? 'N/A' }}</div>
+            </div>
+            <div class="info-field full-width">
+                <div class="field-label">Office Address:</div>
+                <div class="field-value">{{ $record->physician_office_address ?? 'N/A' }}</div>
             </div>
         </div>
     </div>
@@ -291,26 +242,24 @@
     @if($record->previous_dentist || $record->last_dental_visit || $record->treatment_done)
     <!-- Dental History -->
     <div class="section">
-        <div class="section-title">DENTAL HISTORY</div>
+        <div class="section-header">
+            <div class="section-title">Dental History</div>
+        </div>
         <div class="info-grid">
             @if($record->previous_dentist)
-            <div class="info-row">
-                <div class="info-cell">
-                    <span class="info-label">Previous Dentist:</span>
-                    <span class="info-value">{{ $record->previous_dentist }}</span>
-                </div>
-                <div class="info-cell">
-                    <span class="info-label">Last Dental Visit:</span>
-                    <span class="info-value">{{ $record->last_dental_visit ? $record->last_dental_visit->format('m/d/Y') : 'N/A' }}</span>
-                </div>
+            <div class="info-field">
+                <div class="field-label">Previous Dentist:</div>
+                <div class="field-value">{{ $record->previous_dentist }}</div>
+            </div>
+            <div class="info-field">
+                <div class="field-label">Last Dental Visit:</div>
+                <div class="field-value">{{ $record->last_dental_visit ? $record->last_dental_visit->format('m/d/Y') : 'N/A' }}</div>
             </div>
             @endif
             @if($record->treatment_done)
-            <div class="info-row">
-                <div class="info-cell full-width" style="width: 100%;">
-                    <span class="info-label">Treatment Done:</span>
-                    <span class="info-value">{{ $record->treatment_done }}</span>
-                </div>
+            <div class="info-field full-width">
+                <div class="field-label">Treatment Done:</div>
+                <div class="field-value">{{ $record->treatment_done }}</div>
             </div>
             @endif
         </div>
@@ -320,7 +269,9 @@
     @if($record->medical_history || $record->allergies || $record->current_medications)
     <!-- Medical Information -->
     <div class="section">
-        <div class="section-title">MEDICAL INFORMATION</div>
+        <div class="section-header">
+            <div class="section-title">Medical Information</div>
+        </div>
         @if($record->medical_history)
         <div class="notes-box" style="margin-bottom: 10px;">
             <strong style="display: block; margin-bottom: 5px;">Medical History:</strong>
@@ -345,7 +296,9 @@
     @if($record->chief_complaint || $record->diagnosis || $record->treatment_plan)
     <!-- Treatment Information -->
     <div class="section">
-        <div class="section-title">TREATMENT INFORMATION</div>
+        <div class="section-header">
+            <div class="section-title">Treatment Information</div>
+        </div>
         @if($record->chief_complaint)
         <div class="notes-box" style="margin-bottom: 10px;">
             <strong style="display: block; margin-bottom: 5px;">Chief Complaint:</strong>
@@ -370,7 +323,9 @@
     @if($record->other_notes)
     <!-- Additional Notes -->
     <div class="section">
-        <div class="section-title">ADDITIONAL NOTES</div>
+        <div class="section-header">
+            <div class="section-title">Additional Notes</div>
+        </div>
         <div class="notes-box">
             {{ $record->other_notes }}
         </div>

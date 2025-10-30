@@ -5,11 +5,18 @@
     <div class="user-profile-section">
         <a href="{{ route('admin-profile') }}" class="user-profile-link">
             <div class="user-profile-avatar">
-                @if(Auth::user()->profile_picture)
-                    <img src="{{ asset('storage/' . Auth::user()->profile_picture) }}" alt="Profile Picture">
-                @else
-                    <img src="{{ asset('images/avatar.jpg') }}" alt="Default Avatar">
-                @endif
+                <div class="user-initials-avatar">
+                    @php
+                        $firstName = Auth::user()->info && Auth::user()->info->first_name
+                            ? Auth::user()->info->first_name
+                            : (explode(' ', Auth::user()->name)[0] ?? 'U');
+                        $lastName = Auth::user()->info && Auth::user()->info->last_name
+                            ? Auth::user()->info->last_name
+                            : (explode(' ', Auth::user()->name)[1] ?? '');
+                        $initials = strtoupper(substr($firstName, 0, 1) . substr($lastName, 0, 1));
+                    @endphp
+                    {{ $initials }}
+                </div>
             </div>
             <div class="user-profile-info">
                 <div class="user-profile-name">{{ Auth::user()->name }}</div>
@@ -74,6 +81,12 @@
                                 <span class="notification-badge">{{ $pendingRequestsCount }}</span>
                             @endif
                         </span>
+                    </a>
+                </li>
+                <li class="{{ request()->routeIs('admin-activity-logs*') ? 'active' : '' }}">
+                    <a href="{{ route('admin-activity-logs') }}">
+                        <i class="bi bi-clock-history"></i>
+                        Activity Logs
                     </a>
                 </li>
                 <li class="{{ request()->routeIs('admin-profile') ? 'active' : '' }}">

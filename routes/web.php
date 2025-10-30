@@ -31,6 +31,7 @@ Route::get("/", [HomeController::class,"showHomePage"])->name("home");
 Route::get('/about-us', function() {
     return view('about-us');
 })->name('about-us');
+Route::get('/announcements', [HomeController::class,"showAnnouncement"])->name('announcements');
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name(name: 'login');
 Route::post('/login', [AuthController::class,'login']);
 Route::get('/change-password', [AuthController::class, 'showChangePasswordForm'])->name('password.change')->middleware('auth');
@@ -108,6 +109,8 @@ Route::middleware(['auth'])->group(function(): void{
     Route::get('/admin/content-management/patients-with-appointments', [ContentManagementController::class,'getPatientsWithAppointments'])->name('admin-content-management.patients-with-appointments');
     Route::get('/admin/content-management/patient-appointments/{patientId}', [ContentManagementController::class,'getPatientAppointments'])->name('admin-content-management.patient-appointments');
     Route::post('/admin/content-management/send-patient-email', [ContentManagementController::class,'sendPatientEmail'])->name('admin-content-management.send-patient-email');
+    Route::get('/admin/content-management/patients-by-situation', [ContentManagementController::class,'getPatientsBySituation'])->name('admin-content-management.patients-by-situation');
+    Route::post('/admin/content-management/send-bulk-email', [ContentManagementController::class,'sendBulkEmail'])->name('admin-content-management.send-bulk-email');
     Route::get('/admin/post-procedural', [PostProceduralController::class,'index'])->name('admin-post-procedural');
     Route::get('/admin/post-procedural/records', [PostProceduralController::class,'getRecords']);
     Route::get('/admin/post-procedural/patient-record-by-user/{userId}', [PostProceduralController::class,'getPatientRecordByUser']);
@@ -138,6 +141,11 @@ Route::middleware(['auth'])->group(function(): void{
     Route::post('/admin/profile/update', [ProfileController::class,'update'])->name('admin-profile.update');
     Route::post('/admin/profile/update-picture', [ProfileController::class,'updateProfilePicture'])->name('admin-profile.update-picture');
     Route::post('/admin/profile/update-password', [ProfileController::class,'updatePassword'])->name('admin-profile.update-password');
+
+    // Admin Activity Logs Routes
+    Route::get('/admin/activity-logs', [\App\Http\Controllers\Admin\ActivityLogController::class,'index'])->name('admin-activity-logs');
+    Route::get('/admin/activity-logs/data', [\App\Http\Controllers\Admin\ActivityLogController::class,'getLogs'])->name('admin-activity-logs.data');
+    Route::get('/admin/activity-logs/{id}', [\App\Http\Controllers\Admin\ActivityLogController::class,'show'])->name('admin-activity-logs.show');
 
     // Staff Patient Record Access Routes (Staff Only)
     Route::get('/staff/patient-records', [PatientRecordAccessController::class,'index'])->name('staff-patient-records');
@@ -196,16 +204,20 @@ Route::middleware(['auth'])->group(function(): void{
 
     // Staff Post-Procedural Routes
     Route::get('/staff/post-procedural', [StaffPostProceduralController::class,'index'])->name('staff-post-procedural');
+    Route::get('/staff/post-procedural/records', [StaffPostProceduralController::class,'getRecords']);
     Route::get('/staff/post-procedural/patient-record-by-user/{userId}', [StaffPostProceduralController::class,'getPatientRecordByUser']);
+    Route::get('/staff/post-procedural/patient-record/{recordId}', [StaffPostProceduralController::class,'getPatientRecord']);
     Route::post('/staff/post-procedural/patient-record/store', [StaffPostProceduralController::class,'storePatientRecord']);
     Route::delete('/staff/post-procedural/patient-record/{id}', [StaffPostProceduralController::class,'destroyPatientRecord']);
     Route::get('/staff/post-procedural/search-patients', [StaffPostProceduralController::class,'searchPatients']);
     Route::post('/staff/post-procedural/send-to-patient', [StaffPostProceduralController::class,'sendToPatient']);
     Route::get('/staff/post-procedural/patient-history/{id}', [StaffPostProceduralController::class,'getPatientHistory']);
     Route::post('/staff/post-procedural/patient-history', [StaffPostProceduralController::class,'storePatientHistory']);
+    Route::put('/staff/post-procedural/patient-history/{id}', [StaffPostProceduralController::class,'updatePatientHistory']);
     Route::delete('/staff/post-procedural/patient-history/{id}', [StaffPostProceduralController::class,'destroyPatientHistory']);
     Route::get('/staff/post-procedural/progress-notes/{id}', [StaffPostProceduralController::class,'getProgressNotes']);
     Route::post('/staff/post-procedural/progress-notes', [StaffPostProceduralController::class,'storeProgressNote']);
+    Route::put('/staff/post-procedural/progress-notes/{id}', [StaffPostProceduralController::class,'updateProgressNote']);
     Route::post('/staff/post-procedural/store-progress-notes', [StaffPostProceduralController::class,'storeProgressNotes']);
     Route::delete('/staff/post-procedural/progress-notes/{id}', [StaffPostProceduralController::class,'destroyProgressNote']);
 
@@ -224,9 +236,11 @@ Route::middleware(['auth'])->group(function(): void{
     Route::get('/patient/record/{id}', [PatientRecord::class, 'show'])->name('patient-record.show');
     Route::get('/patient/record/{id}/download', [PatientRecord::class, 'download'])->name('patient-record.download');
     Route::get('/patient/records/all', [PatientRecord::class, 'getRecords'])->name('patient-records.all');
+    Route::post('/patient/profile/update', [PatientProfileController::class, 'update'])->name('patient-profile.update');
     Route::get('/patient/history/{id}', [PatientRecord::class, 'showHistory'])->name('patient-history.show');
     Route::get('/patient/history/{id}/download', [PatientRecord::class, 'downloadHistory'])->name('patient-history.download');
     Route::get('/patient/progress-note/{id}', [PatientRecord::class, 'showProgressNote'])->name('patient-progress-note.show');
+    Route::get('/patient/progress-note/{id}/download', [PatientRecord::class, 'downloadProgressNote'])->name('patient-progress-note.download');
     Route::get('/patient/announcement', [AnnouncementController::class, 'index'])->name('patient-announcement');
     Route::get('/patient/about', function() {
         return view('patient.aboutUs');
@@ -270,6 +284,11 @@ Route::middleware(['auth'])->group(function(): void{
     Route::post('/staff/appointment/{id}/status', [App\Http\Controllers\Staff\AppointmentController::class,'updateStatus'])->name('staff-appointment.status');
     Route::get('/staff/appointment/search/patients', [App\Http\Controllers\Staff\AppointmentController::class,'searchPatients'])->name('staff-appointment.search-patients');
 
+    // Staff Blocked Time Routes
+    Route::post('/staff/blocked-time', [App\Http\Controllers\Staff\BlockedTimeController::class, 'store'])->name('staff-blocked-time.store');
+    Route::put('/staff/blocked-time/{id}', [App\Http\Controllers\Staff\BlockedTimeController::class, 'update'])->name('staff-blocked-time.update');
+    Route::post('/staff/blocked-time/{id}/delete', [App\Http\Controllers\Staff\BlockedTimeController::class, 'destroy'])->name('staff-blocked-time.destroy');
+
       // Staff Content Management Routes (No delete permission for services)
       Route::get('/staff/content-management', [App\Http\Controllers\Staff\ContentManagementController::class,'index'])->name('staff-content-management');
       Route::post('/staff/content-management/announcement', [App\Http\Controllers\Staff\ContentManagementController::class,'updateAnnouncement'])->name('staff-content-management.announcement.update');
@@ -284,6 +303,8 @@ Route::middleware(['auth'])->group(function(): void{
     Route::get('/staff/content-management/patients-with-appointments', [App\Http\Controllers\Staff\ContentManagementController::class,'getPatientsWithAppointments'])->name('staff-content-management.patients-with-appointments');
     Route::get('/staff/content-management/patient-appointments/{patientId}', [App\Http\Controllers\Staff\ContentManagementController::class,'getPatientAppointments'])->name('staff-content-management.patient-appointments');
     Route::post('/staff/content-management/send-patient-email', [App\Http\Controllers\Staff\ContentManagementController::class,'sendPatientEmail'])->name('staff-content-management.send-patient-email');
+    Route::get('/staff/content-management/patients-by-situation', [App\Http\Controllers\Staff\ContentManagementController::class,'getPatientsBySituation'])->name('staff-content-management.patients-by-situation');
+    Route::post('/staff/content-management/send-bulk-email', [App\Http\Controllers\Staff\ContentManagementController::class,'sendBulkEmail'])->name('staff-content-management.send-bulk-email');
 
     // Staff Profile Routes
     Route::get('/staff/profile', [App\Http\Controllers\Staff\ProfileController::class,'index'])->name('staff-profile');

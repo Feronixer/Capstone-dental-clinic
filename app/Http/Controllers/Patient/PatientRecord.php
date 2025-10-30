@@ -21,12 +21,17 @@ class PatientRecord extends Controller
         // Get all records for the authenticated patient with histories and progress notes
         $records = PatientRecordModel::where('user_id', $userId)
             ->where('sent_to_patient', true) // Only show records that have been sent
-            ->with(['patientHistories' => function($query) {
-                $query->where('sent_to_patient', true) // Only show histories that have been sent
-                      ->orderBy('visit_date', 'desc');
-            }, 'progressNotes' => function($query) {
-                $query->orderBy('note_date', 'desc');
-            }])
+            ->with([
+                'user.info',
+                'appointment.service',
+                'patientHistories' => function($query) {
+                    $query->where('sent_to_patient', true) // Only show histories that have been sent
+                          ->orderBy('visit_date', 'desc');
+                },
+                'progressNotes' => function($query) {
+                    $query->orderBy('note_date', 'desc');
+                }
+            ])
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -44,12 +49,17 @@ class PatientRecord extends Controller
         $record = PatientRecordModel::where('id', $id)
             ->where('user_id', $userId)
             ->where('sent_to_patient', true)
-            ->with(['patientHistories' => function($query) {
-                $query->where('sent_to_patient', true)
-                      ->orderBy('visit_date', 'desc');
-            }, 'progressNotes' => function($query) {
-                $query->orderBy('note_date', 'desc');
-            }])
+            ->with([
+                'user.info',
+                'appointment.service',
+                'patientHistories' => function($query) {
+                    $query->where('sent_to_patient', true)
+                          ->orderBy('visit_date', 'desc');
+                },
+                'progressNotes' => function($query) {
+                    $query->orderBy('note_date', 'desc');
+                }
+            ])
             ->firstOrFail();
 
         return response()->json([
@@ -68,6 +78,7 @@ class PatientRecord extends Controller
         // Get the record and ensure it belongs to the authenticated patient
         $record = PatientRecordModel::where('id', $id)
             ->where('user_id', $userId)
+            ->with('user.info')
             ->firstOrFail();
 
         // Return a print-friendly view
@@ -83,12 +94,17 @@ class PatientRecord extends Controller
 
         $records = PatientRecordModel::where('user_id', $userId)
             ->where('sent_to_patient', true)
-            ->with(['patientHistories' => function($query) {
-                $query->where('sent_to_patient', true)
-                      ->orderBy('visit_date', 'desc');
-            }, 'progressNotes' => function($query) {
-                $query->orderBy('note_date', 'desc');
-            }])
+            ->with([
+                'user.info',
+                'appointment.service',
+                'patientHistories' => function($query) {
+                    $query->where('sent_to_patient', true)
+                          ->orderBy('visit_date', 'desc');
+                },
+                'progressNotes' => function($query) {
+                    $query->orderBy('note_date', 'desc');
+                }
+            ])
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -112,6 +128,7 @@ class PatientRecord extends Controller
                 $query->where('user_id', $userId)
                       ->where('sent_to_patient', true);
             })
+            ->with('patientRecord.user.info')
             ->firstOrFail();
 
         return response()->json([
@@ -153,11 +170,31 @@ class PatientRecord extends Controller
                 $query->where('user_id', $userId)
                       ->where('sent_to_patient', true);
             })
+            ->with('patientRecord.user.info')
             ->firstOrFail();
 
         return response()->json([
             'success' => true,
             'note' => $note
         ]);
+    }
+
+    /**
+     * Download a specific progress note as PDF
+     */
+    public function downloadProgressNote($id)
+    {
+        $userId = Auth::id();
+
+        // Get the note and ensure it belongs to a record of the authenticated patient
+        $note = ProgressNote::where('id', $id)
+            ->whereHas('patientRecord', function($query) use ($userId) {
+                $query->where('user_id', $userId)
+                      ->where('sent_to_patient', true);
+            })
+            ->with('patientRecord.user.info')
+            ->firstOrFail();
+
+        return view('patient.pdf.progress-note', compact('note'));
     }
 }

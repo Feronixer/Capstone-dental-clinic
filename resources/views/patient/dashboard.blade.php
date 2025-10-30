@@ -218,7 +218,36 @@
         font-size: 1.2rem;
         font-weight: 700;
         color: #263238;
+        margin-bottom: 0.5rem;
+    }
+
+    .service-price {
+        display: flex;
+        align-items: baseline;
+        gap: 0.5rem;
         margin-bottom: 0.8rem;
+        flex-wrap: wrap;
+    }
+
+    .price-label {
+        font-size: 0.75rem;
+        color: #90a4ae;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+    }
+
+    .price-amount {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: #2196F3;
+        line-height: 1;
+    }
+
+    .price-note {
+        font-size: 0.75rem;
+        color: #78909c;
+        font-style: italic;
     }
 
     .service-content p {
@@ -227,14 +256,40 @@
         line-height: 1.6;
     }
 
+    @media (max-width: 1200px) {
+        .hero-section {
+            padding: 2.5rem 2rem;
+            gap: 2rem;
+        }
+    }
+
     @media (max-width: 1024px) {
         .hero-section {
             flex-direction: column;
-            padding: 2rem;
+            padding: 2rem 1.5rem;
+        }
+
+        .hero-content {
+            max-width: 100%;
+            text-align: center;
+        }
+
+        .badge {
+            justify-content: center;
         }
 
         .hero-title {
             font-size: 2.5rem;
+        }
+
+        .hero-card {
+            max-width: 100%;
+            width: 100%;
+        }
+
+        .main-card {
+            min-height: 350px;
+            padding: 2rem;
         }
 
         .feature-card {
@@ -243,6 +298,7 @@
             top: auto;
             bottom: auto;
             margin-bottom: 1rem;
+            max-width: 100%;
         }
 
         .services-section {
@@ -256,8 +312,51 @@
     }
 
     @media (max-width: 768px) {
+        .hero-section {
+            padding: 1.5rem 1rem;
+        }
+
+        .badge {
+            font-size: 0.85rem;
+            padding: 0.4rem 0.8rem;
+        }
+
         .hero-title {
             font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero-description {
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .main-card {
+            min-height: 300px;
+            padding: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            bottom: 1.5rem;
+        }
+
+        .feature-card {
+            padding: 1rem;
+        }
+
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 1.1rem;
+        }
+
+        .feature-text h4 {
+            font-size: 0.95rem;
+        }
+
+        .feature-text p {
+            font-size: 0.8rem;
         }
 
         .services-section {
@@ -265,11 +364,12 @@
         }
 
         .services-title {
-            font-size: 2rem;
+            font-size: 1.8rem;
         }
 
         .services-description {
             font-size: 0.9rem;
+            padding: 0 1rem;
         }
 
         .services-grid {
@@ -284,6 +384,64 @@
 
         .service-icon-box i {
             font-size: 2.5rem;
+        }
+
+        .service-content {
+            padding: 1.25rem;
+        }
+
+        .service-content h3 {
+            font-size: 1.1rem;
+        }
+
+        .service-content p {
+            font-size: 0.85rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .hero-section {
+            padding: 1rem;
+        }
+
+        .hero-title {
+            font-size: 1.6rem;
+        }
+
+        .hero-description {
+            font-size: 0.9rem;
+        }
+
+        .main-card {
+            min-height: 250px;
+            padding: 1rem;
+        }
+
+        .card-title {
+            font-size: 1rem;
+            bottom: 1rem;
+        }
+
+        .feature-card.top,
+        .feature-card.bottom {
+            position: static;
+            margin: 0.5rem auto;
+        }
+
+        .services-title {
+            font-size: 1.5rem;
+        }
+
+        .services-description br {
+            display: none;
+        }
+
+        .service-icon-box {
+            height: 100px;
+        }
+
+        .service-icon-box i {
+            font-size: 2rem;
         }
     }
 </style>
@@ -344,104 +502,31 @@
         </p>
 
         <div class="services-grid">
-            <!-- Service Card 1 -->
+            @forelse($services as $service)
+            <!-- Service Card: {{ $service->service_name }} -->
             <div class="service-card">
                 <div class="service-icon-box">
-                    <i class="bi bi-heart-pulse-fill"></i>
+                    <i class="bi {{ $service->icon_class ?? 'bi-gear' }}"></i>
                 </div>
                 <div class="service-content">
-                    <h3>Cosmetic Dentistry</h3>
-                    <p>Teeth whitening, veneers, bonding, and smile makeovers to transform your smile and confidence.</p>
+                    <h3>{{ $service->service_name }}</h3>
+                    <div class="service-price">
+                        <span class="price-label">Starting at</span>
+                        <span class="price-amount">₱{{ number_format($service->price, 0, '.', ',') }}</span>
+                        @if(strpos(strtolower($service->description), 'tooth') !== false)
+                            <span class="price-note">per tooth</span>
+                        @endif
+                    </div>
+                    <p>{{ $service->description }}</p>
                 </div>
             </div>
-
-            <!-- Service Card 2 -->
-            <div class="service-card">
-                <div class="service-icon-box">
-                    <i class="bi bi-lightning-charge-fill"></i>
-                </div>
-                <div class="service-content">
-                    <h3>Laser Dentistry</h3>
-                    <p>Minimally invasive laser treatments for precise care and faster recovery.</p>
-                </div>
+            @empty
+            <!-- No Services Available -->
+            <div class="col-12 text-center py-5">
+                <i class="bi bi-inbox" style="font-size: 4rem; opacity: 0.2;"></i>
+                <p class="text-muted mt-3">No services available at the moment</p>
             </div>
-
-            <!-- Service Card 3 -->
-            <div class="service-card">
-                <div class="service-icon-box">
-                    <i class="bi bi-bandaid-fill"></i>
-                </div>
-                <div class="service-content">
-                    <h3>Oral Surgery</h3>
-                    <p>Expert surgical care including wisdom teeth removal and dental implants.</p>
-                </div>
-            </div>
-
-            <!-- Service Card 4 -->
-            <div class="service-card">
-                <div class="service-icon-box">
-                    <i class="bi bi-clipboard2-pulse-fill"></i>
-                </div>
-                <div class="service-content">
-                    <h3>Periodontics</h3>
-                    <p>Specialized care for gums and supporting structures for optimal oral health.</p>
-                </div>
-            </div>
-
-            <!-- Service Card 5 -->
-            <div class="service-card">
-                <div class="service-icon-box">
-                    <i class="bi bi-clipboard2-check-fill"></i>
-                </div>
-                <div class="service-content">
-                    <h3>Restoration & Filling</h3>
-                    <p>High quality dental fillings and restorations to repair damaged teeth.</p>
-                </div>
-            </div>
-
-            <!-- Service Card 6 -->
-            <div class="service-card">
-                <div class="service-icon-box">
-                    <i class="bi bi-capsule-pill"></i>
-                </div>
-                <div class="service-content">
-                    <h3>Tooth Extraction</h3>
-                    <p>Safe and comfortable tooth removal procedures.</p>
-                </div>
-            </div>
-
-            <!-- Service Card 7 -->
-            <div class="service-card">
-                <div class="service-icon-box">
-                    <i class="bi bi-activity"></i>
-                </div>
-                <div class="service-content">
-                    <h3>Root Canal Treatment</h3>
-                    <p>Advanced root canal therapy to save infected teeth.</p>
-                </div>
-            </div>
-
-            <!-- Service Card 8 -->
-            <div class="service-card">
-                <div class="service-icon-box">
-                    <i class="bi bi-gem"></i>
-                </div>
-                <div class="service-content">
-                    <h3>Dental Crowns</h3>
-                    <p>Various crown options including porcelain, Emax, and zirconia for durable restoration.</p>
-                </div>
-            </div>
-
-            <!-- Service Card 9 -->
-            <div class="service-card">
-                <div class="service-icon-box">
-                    <i class="bi bi-grid-3x3-gap-fill"></i>
-                </div>
-                <div class="service-content">
-                    <h3>Dentures</h3>
-                    <p>Custom-fit flexible and traditional dentures for natural looking results.</p>
-                </div>
-            </div>
+            @endforelse
         </div>
     </div>
 </section>
@@ -787,17 +872,113 @@
         font-size: 1.2rem;
     }
 
+    @media (max-width: 992px) {
+        .feedback-section {
+            padding: 3.5rem 2rem;
+        }
+    }
+
     @media (max-width: 768px) {
         .feedback-section {
             padding: 3rem 1rem;
         }
 
         .feedback-title {
-            font-size: 1.75rem;
+            font-size: 1.6rem;
+        }
+
+        .title-badge {
+            font-size: 0.85rem;
+            padding: 0.4rem 1rem;
+        }
+
+        .feedback-description {
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
         }
 
         .feedback-cards {
             grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        .feedback-action-card {
+            padding: 1.5rem;
+        }
+
+        .feedback-icon {
+            width: 70px;
+            height: 70px;
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .feedback-action-card h3 {
+            font-size: 1.2rem;
+        }
+
+        .feedback-btn {
+            padding: 0.65rem 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        .pending-count {
+            width: 32px;
+            height: 32px;
+            font-size: 0.85rem;
+        }
+
+        .star-rating {
+            font-size: 2rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .feedback-section {
+            padding: 2rem 1rem;
+        }
+
+        .feedback-title {
+            font-size: 1.4rem;
+        }
+
+        .title-badge {
+            font-size: 0.8rem;
+        }
+
+        .feedback-action-card {
+            padding: 1.25rem;
+        }
+
+        .feedback-icon {
+            width: 60px;
+            height: 60px;
+            font-size: 1.5rem;
+        }
+
+        .feedback-action-card h3 {
+            font-size: 1.1rem;
+        }
+
+        .feedback-action-card p {
+            font-size: 0.9rem;
+        }
+
+        .star-rating {
+            font-size: 1.8rem;
+            gap: 0.3rem;
+        }
+
+        .modal-dialog {
+            margin: 1rem;
+        }
+
+        .history-card {
+            padding: 1rem;
+        }
+
+        .history-stars {
+            font-size: 1rem;
         }
     }
 </style>
@@ -1010,5 +1191,454 @@ function loadPendingFeedbackCount() {
         });
 }
 </script>
+
+<!-- Chatbot Styles -->
+<style>
+    /* Chatbot */
+    .chatbot-toggle-btn {
+        position: fixed;
+        right: 24px;
+        bottom: 24px;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: #2196F3;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 10px 30px rgba(33,150,243,0.4);
+        cursor: pointer;
+        z-index: 1000;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        padding: 8px;
+    }
+
+    .chatbot-toggle-btn:hover {
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 14px 36px rgba(33,150,243,0.45);
+        background: #1976D2;
+    }
+
+    .chatbot-toggle-btn img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .chatbot-widget {
+        position: fixed;
+        right: 24px;
+        bottom: 92px;
+        width: 340px;
+        max-width: calc(100vw - 32px);
+        border-radius: 16px;
+        background: #ffffff;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        overflow: hidden;
+        display: none;
+        flex-direction: column;
+        z-index: 1000;
+    }
+
+    .chatbot-widget.open { display: flex; }
+
+    .chatbot-header {
+        background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+        color: #fff;
+        padding: 14px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .chatbot-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+    }
+
+    .chatbot-title .badge-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #A5D6A7;
+        box-shadow: 0 0 0 4px rgba(165,214,167,0.25);
+    }
+
+    .chatbot-body {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 12px;
+    }
+
+    .chatbot-messages {
+        height: 280px;
+        overflow-y: auto;
+        padding-right: 4px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        border-bottom: 1px solid #eef2f5;
+    }
+
+    .message {
+        max-width: 82%;
+        padding: 10px 12px;
+        border-radius: 14px;
+        font-size: 0.92rem;
+        line-height: 1.6rem;
+        word-wrap: break-word;
+        word-break: break-word;
+        white-space: pre-wrap;
+    }
+
+    .message.bot {
+        background: #f5f9ff;
+        color: #263238;
+        border: 1px solid #e3f2fd;
+        align-self: flex-start;
+        text-align: left;
+    }
+
+    /* Style for bullet lists in bot messages */
+    .message.bot .bullet-item {
+        display: block;
+        padding-left: 1.2em;
+        text-indent: -1.2em;
+        margin: 0.3em 0;
+    }
+
+    .message.bot .section-header {
+        font-weight: 600;
+        margin-top: 0.8em;
+        margin-bottom: 0.3em;
+        display: block;
+    }
+
+    .message.bot .section-header:first-child {
+        margin-top: 0;
+    }
+
+    .message.user {
+        background: #2196F3;
+        color: #fff;
+        align-self: flex-end;
+    }
+
+    .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .chip {
+        background: #e3f2fd;
+        color: #1976D2;
+        border: 1px solid #bbdefb;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: background 0.2s ease, transform 0.1s ease;
+    }
+
+    .chip:hover { background: #d2e9fb; transform: translateY(-1px); }
+
+    .chatbot-input {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 0 0;
+    }
+
+    .chatbot-input input[type="text"] {
+        flex: 1;
+        padding: 10px 12px;
+        border: 1px solid #dfe7ef;
+        border-radius: 10px;
+        outline: none;
+        transition: border 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .chatbot-input input[type="text"]:focus {
+        border: 1px solid #90caf9;
+        box-shadow: 0 0 0 3px rgba(144,202,249,0.25);
+    }
+
+    .send-btn {
+        background: #2196F3;
+        color: #fff;
+        border: none;
+        padding: 10px 12px;
+        border-radius: 10px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .send-btn:hover { background: #1976D2; }
+
+    /* Typing Indicator */
+    .typing-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 10px 14px;
+        background: #E3F2FD;
+        border-radius: 16px;
+        margin-bottom: 8px;
+        max-width: fit-content;
+    }
+
+    .typing-indicator span {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #2196F3;
+        animation: typing 1.4s infinite;
+    }
+
+    .typing-indicator span:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .typing-indicator span:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+
+    @keyframes typing {
+        0%, 60%, 100% {
+            transform: translateY(0);
+            opacity: 0.5;
+        }
+        30% {
+            transform: translateY(-10px);
+            opacity: 1;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .chatbot-widget { right: 16px; left: 16px; width: auto; }
+        .chatbot-messages { height: 240px; }
+        .chatbot-toggle-btn { right: 16px; bottom: 16px; }
+    }
+</style>
+
+@if(!empty($chatbotSetting) && $chatbotSetting->enabled)
+<!-- Chatbot Toggle Button -->
+<div id="chatbot-toggle" class="chatbot-toggle-btn" aria-label="Open chat" title="Chat with us">
+    <img src="{{ asset('images/chatbot-logo_3.png') }}" alt="ToothTalk Assistant">
+</div>
+
+<!-- Chatbot Widget -->
+<div id="chatbot" class="chatbot-widget" role="dialog" aria-modal="false" aria-labelledby="chatbotTitle">
+    <div class="chatbot-header">
+        <div class="chatbot-title">
+            <span class="badge-dot"></span>
+            <span id="chatbotTitle">ToothTalk Assistant</span>
+        </div>
+        <button id="chatbot-close" class="send-btn" aria-label="Close chat" title="Close" style="background:#ffffff22;border:1px solid #ffffff33;">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+    <div class="chatbot-body">
+        <div id="chatbot-messages" class="chatbot-messages" aria-live="polite"></div>
+        <div class="chips" id="chatbot-chips"></div>
+        <div class="chatbot-input">
+            <input id="chatbot-input" type="text" placeholder="Ask about services, hours, pricing..." autocomplete="off" />
+            <button id="chatbot-send" class="send-btn" aria-label="Send message">
+                <i class="bi bi-send-fill"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        const toggleBtn = document.getElementById('chatbot-toggle');
+        const widget = document.getElementById('chatbot');
+        const closeBtn = document.getElementById('chatbot-close');
+        const messagesEl = document.getElementById('chatbot-messages');
+        const inputEl = document.getElementById('chatbot-input');
+        const sendBtn = document.getElementById('chatbot-send');
+        const chipsEl = document.getElementById('chatbot-chips');
+
+        const quickIntents = {!! json_encode($chatbotSetting->quick_intents ?? []) !!};
+
+        const faqRaw = @json($chatbotFaqs ?? []);
+        const faqPairs = (faqRaw || []).map(function(f){
+            return { q: (f.question || ''), a: (f.answer || '') };
+        });
+
+        function scrollToBottom() {
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+
+        function addMessage(text, sender) {
+            const div = document.createElement('div');
+            div.className = 'message ' + (sender === 'user' ? 'user' : 'bot');
+
+            if (sender === 'bot') {
+                // Process text line by line
+                let lines = text.split('\n');
+                let formattedHTML = '';
+
+                for (let i = 0; i < lines.length; i++) {
+                    let line = lines[i].trim();
+                    if (!line) continue;
+
+                    // Check if line ends with colon (section header)
+                    if (line.endsWith(':')) {
+                        formattedHTML += `<span class="section-header">${line}</span>`;
+                    }
+                    // Check if line starts with bullet
+                    else if (line.startsWith('•')) {
+                        formattedHTML += `<span class="bullet-item">${line}</span>`;
+                    }
+                    // Regular text
+                    else {
+                        formattedHTML += line;
+                        // Add spacing after sentences if next line exists
+                        if (i < lines.length - 1) {
+                            formattedHTML += '<br>';
+                        }
+                    }
+                }
+
+                div.innerHTML = formattedHTML;
+            } else {
+                div.textContent = text;
+            }
+
+            messagesEl.appendChild(div);
+            scrollToBottom();
+        }
+
+        function showTypingIndicator() {
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'typing-indicator';
+            typingDiv.id = 'typing-indicator';
+            typingDiv.innerHTML = '<span></span><span></span><span></span>';
+            messagesEl.appendChild(typingDiv);
+            scrollToBottom();
+        }
+
+        function hideTypingIndicator() {
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        function normalize(s) {
+            return String(s)
+                .toLowerCase()
+                .replace(/&nbsp;/g, ' ')
+                .replace(/[^a-z0-9\s]/g, '')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        const stopWords = new Set(['the','a','an','is','are','do','i','you','we','how','what','where','when','why','to','for','of','and','or','in','on','at','with','get','does','it','this','that','about']);
+
+        function tokenize(text) {
+            return normalize(text).split(' ').filter(w => w && !stopWords.has(w));
+        }
+
+        function overlapScore(aTokens, bTokens) {
+            const a = new Set(aTokens);
+            const b = new Set(bTokens);
+            let inter = 0;
+            a.forEach(t => { if (b.has(t)) inter++; });
+            const union = a.size + b.size - inter || 1;
+            return { inter, jaccard: inter / union };
+        }
+
+        // Precompute FAQ tokens
+        const faqIndexed = (faqPairs || []).map(p => ({ q: p.q, a: p.a, tokens: tokenize(p.q || '') }));
+
+        function getBotReply(query) {
+            const q = normalize(query);
+            const qTokens = tokenize(q);
+            // 1) Fuzzy match FAQs by token overlap
+            let best = { score: 0, inter: 0, a: null };
+            for (const item of faqIndexed) {
+                if (!item.tokens.length) continue;
+                const { inter, jaccard } = overlapScore(qTokens, item.tokens);
+                const score = inter >= 2 ? jaccard + 0.1 : jaccard;
+                if (score > best.score) best = { score, inter, a: item.a };
+            }
+            if (best.a && (best.score >= 0.25 || best.inter >= 2)) return best.a;
+
+            // 2) Fallback generic message
+            return 'Thanks for your message! Please check our FAQs or ask a specific question.';
+        }
+
+        function sendUserMessage(text) {
+            if (!text.trim()) return;
+            addMessage(text.trim(), 'user');
+
+            // Show typing indicator
+            showTypingIndicator();
+
+            // Simulate bot thinking time (1-2 seconds)
+            const typingDelay = 1000 + Math.random() * 1000;
+
+            setTimeout(() => {
+                hideTypingIndicator();
+                addMessage(getBotReply(text), 'bot');
+            }, typingDelay);
+        }
+
+        function renderChips() {
+            chipsEl.innerHTML = '';
+            quickIntents.forEach(intent => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'chip';
+                btn.textContent = intent.label;
+                btn.addEventListener('click', () => sendUserMessage(intent.value));
+                chipsEl.appendChild(btn);
+            });
+        }
+
+        function openChat() {
+            widget.classList.add('open');
+            widget.setAttribute('aria-hidden', 'false');
+            if (!messagesEl.dataset.welcomed) {
+                // Show typing indicator before welcome message
+                showTypingIndicator();
+                setTimeout(() => {
+                    hideTypingIndicator();
+                    addMessage(@json($chatbotSetting->welcome_message ?: 'Welcome! How can I help today?'), 'bot');
+                    renderChips();
+                }, 800);
+                messagesEl.dataset.welcomed = '1';
+            }
+            inputEl.focus();
+        }
+
+        function closeChat() {
+            widget.classList.remove('open');
+            widget.setAttribute('aria-hidden', 'true');
+        }
+
+        toggleBtn.addEventListener('click', () => {
+            if (widget.classList.contains('open')) closeChat(); else openChat();
+        });
+        closeBtn.addEventListener('click', closeChat);
+        sendBtn.addEventListener('click', () => {
+            const v = inputEl.value; inputEl.value = ''; sendUserMessage(v);
+        });
+        inputEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { const v = inputEl.value; inputEl.value = ''; sendUserMessage(v); }
+        });
+    })();
+</script>
+@endif
 
 @endsection

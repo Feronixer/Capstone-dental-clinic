@@ -92,6 +92,28 @@
     .announcement-ticker {
         padding: 0.75rem 1rem;
         font-size: 0.85rem;
+        gap: 0.5rem;
+    }
+
+    .announcement-ticker i {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .announcement-ticker {
+        padding: 0.65rem 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    .announcement-ticker i {
+        font-size: 0.9rem;
+    }
+
+    .close-announcement {
+        width: 20px;
+        height: 20px;
+        font-size: 0.8rem;
     }
 }
 </style>

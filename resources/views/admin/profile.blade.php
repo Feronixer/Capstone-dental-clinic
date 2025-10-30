@@ -12,18 +12,19 @@
             <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #3498db 0%, #2574b8 100%);">
                 <div class="card-body p-4">
                     <div class="d-flex align-items-center">
-                        <div class="position-relative me-4">
-                            <div class="profile-picture-container">
-                                @if($user->profile_picture)
-                                    <img src="{{ asset('storage/' . $user->profile_picture) }}" alt="Profile Picture" class="profile-picture" id="profilePicturePreview">
-                                @else
-                                    <img src="{{ asset('images/avatar.jpg') }}" alt="Default Avatar" class="profile-picture" id="profilePicturePreview">
-                                @endif
-                                <button type="button" class="btn btn-sm btn-light profile-picture-upload-btn" onclick="document.getElementById('profilePictureInput').click()">
-                                    <i class="bi bi-camera-fill"></i>
-                                </button>
+                        <div class="profile-initials-container me-4">
+                            @php
+                                $firstName = $userInfo && $userInfo->first_name
+                                    ? $userInfo->first_name
+                                    : (explode(' ', $user->name)[0] ?? 'U');
+                                $lastName = $userInfo && $userInfo->last_name
+                                    ? $userInfo->last_name
+                                    : (explode(' ', $user->name)[1] ?? '');
+                                $initials = strtoupper(substr($firstName, 0, 1) . substr($lastName, 0, 1));
+                            @endphp
+                            <div class="profile-initials-avatar">
+                                {{ $initials }}
                             </div>
-                            <input type="file" id="profilePictureInput" accept="image/*" style="display: none;">
                         </div>
                         <div class="text-white">
                             <h2 class="fw-bold mb-1">{{ $user->name }}</h2>
@@ -185,42 +186,27 @@
 </div>
 
 <style>
-.profile-picture-container {
-    position: relative;
+.profile-initials-container {
     width: 120px;
     height: 120px;
+    flex-shrink: 0;
 }
 
-.profile-picture {
+.profile-initials-avatar {
     width: 120px;
     height: 120px;
     border-radius: 50%;
-    object-fit: cover;
-    border: 4px solid white;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-}
-
-.profile-picture-upload-btn {
-    position: absolute;
-    bottom: 5px;
-    right: 5px;
-    width: 35px;
-    height: 35px;
-    border-radius: 50%;
-    padding: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    border: 2px solid white;
-    background: linear-gradient(135deg, #3498db, #2574b8);
+    font-size: 2.5rem;
+    font-weight: 700;
     color: white;
-}
-
-.profile-picture-upload-btn:hover {
-    transform: scale(1.1);
-    background: linear-gradient(135deg, #2574b8, #1a5a8e);
-    color: white;
+    border: 4px solid white;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    text-transform: uppercase;
+    letter-spacing: 2px;
 }
 
 .form-control:focus, .form-select:focus {
@@ -250,45 +236,6 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Profile Picture Upload
-    document.getElementById('profilePictureInput').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            // Preview image
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('profilePicturePreview').src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-
-            // Upload image
-            const formData = new FormData();
-            formData.append('profile_picture', file);
-            formData.append('_token', '{{ csrf_token() }}');
-
-            fetch('{{ route("admin-profile.update-picture") }}', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showToast('Success!', data.message, 'success');
-                } else {
-                    showToast('Error!', data.message, 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showToast('Error!', 'Failed to upload profile picture', 'error');
-            });
-        }
-    });
-
     // Profile Form Submit
     document.getElementById('profileForm').addEventListener('submit', function(e) {
         e.preventDefault();

@@ -32,15 +32,35 @@ class PostProceduralController extends Controller
     public function getRecords()
     {
         try {
-            $patientRecords = PatientRecord::with(['user.info', 'appointment.service'])->get()->map(function($record) {
-                return $this->mapPatientRecord($record);
-            });
-            $patientHistories = PatientHistory::with(['patientRecord.user.info'])->get()->map(function($history) {
-                return $this->mapPatientHistory($history);
-            });
-            $progressNotes = ProgressNote::with(['patientRecord.user.info'])->get()->map(function($note) {
-                return $this->mapProgressNote($note);
-            });
+            $patientRecords = PatientRecord::with(['user.info', 'appointment.service'])
+                ->whereHas('user') // Only get records with valid user
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function($record) {
+                    return $this->mapPatientRecord($record);
+                });
+
+            $patientHistories = PatientHistory::with(['patientRecord.user.info'])
+                ->whereHas('patientRecord.user') // Only get histories with valid patient record and user
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function($history) {
+                    return $this->mapPatientHistory($history);
+                })
+                ->filter(function($history) {
+                    return $history['user_id'] !== null; // Filter out records without user_id
+                });
+
+            $progressNotes = ProgressNote::with(['patientRecord.user.info'])
+                ->whereHas('patientRecord.user') // Only get notes with valid patient record and user
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function($note) {
+                    return $this->mapProgressNote($note);
+                })
+                ->filter(function($note) {
+                    return $note['user_id'] !== null; // Filter out records without user_id
+                });
 
             $allRecords = $patientRecords->concat($patientHistories)->concat($progressNotes)->sortByDesc('created_at')->values();
 
@@ -118,6 +138,7 @@ class PostProceduralController extends Controller
             'id' => $record->id,
             'type' => 'patient_record',
             'type_label' => 'Patient Record',
+            'user_id' => $record->user_id,
             'patient_name' => $record->user?->info ? $record->user->info->first_name . ' ' . $record->user->info->last_name : ($record->user->name ?? 'N/A'),
             'username' => $record->user->name ?? 'N/A',
             'patient_number' => $record->patient_number ?? 'N/A',
@@ -138,6 +159,7 @@ class PostProceduralController extends Controller
             'type' => 'patient_history',
             'type_label' => 'Patient History',
             'patient_record_id' => $history->patient_record_id,
+            'user_id' => $history->patientRecord?->user_id,
             'patient_name' => $patientName,
             'username' => $user?->name ?? 'N/A',
             'patient_number' => $history->patientRecord?->patient_number ?? 'N/A',
@@ -158,6 +180,7 @@ class PostProceduralController extends Controller
             'type' => 'progress_note',
             'type_label' => 'Progress Note',
             'patient_record_id' => $note->patient_record_id,
+            'user_id' => $note->patientRecord?->user_id,
             'patient_name' => $patientName,
             'username' => $user?->name ?? 'N/A',
             'patient_number' => $note->patientRecord?->patient_number ?? 'N/A',
@@ -316,6 +339,11 @@ class PostProceduralController extends Controller
             }
             $data = $filteredData;
 
+            // Automatically send to patient when saving (unless explicitly set to false)
+            if (!isset($data['sent_to_patient'])) {
+                $data['sent_to_patient'] = true;
+            }
+
             // Automatically set sent_at timestamp if sent_to_patient is true
             if (isset($data['sent_to_patient']) && $data['sent_to_patient']) {
                 $data['sent_at'] = now();
@@ -473,7 +501,9 @@ class PostProceduralController extends Controller
      */
     public function getPatientHistory($recordId)
     {
-        $history = PatientHistory::where('patient_record_id', $recordId)->get();
+        $history = PatientHistory::where('patient_record_id', $recordId)
+            ->orderBy('visit_date', 'desc')
+            ->get();
 
         return response()->json([
             'success' => true,
@@ -819,7 +849,9 @@ class PostProceduralController extends Controller
             'note_date' => 'required|date',
             'progress_description' => 'required|string',
             'treatment_response' => 'nullable|string',
-            'next_steps' => 'nullable|string'
+            'next_steps' => 'nullable|string',
+            'other_notes' => 'nullable|string',
+            'status' => 'nullable|in:ongoing,completed,followup_needed'
         ]);
 
         if ($validator->fails()) {
@@ -861,7 +893,9 @@ class PostProceduralController extends Controller
                 'note_date' => 'required|date',
                 'progress_description' => 'required|string',
                 'treatment_response' => 'nullable|string',
-                'next_steps' => 'nullable|string'
+                'next_steps' => 'nullable|string',
+                'other_notes' => 'nullable|string',
+                'status' => 'nullable|in:ongoing,completed,followup_needed'
             ]);
 
             if ($validator->fails()) {
@@ -1065,23 +1099,12 @@ class PostProceduralController extends Controller
                 $savedNotes[] = $note;
             }
 
-            // Add other notes to patient record if provided
-            if ($request->has('other_notes') && !empty($request->input('other_notes'))) {
-                $currentNotes = $patientRecord->other_notes ?? '';
-                $timestamp = now()->format('Y-m-d H:i');
-                $newNote = "\n\n[{$timestamp}] Progress Note - Other Notes:\n{$request->input('other_notes')}";
-                $patientRecord->update([
-                    'other_notes' => $currentNotes . $newNote,
-                    'sent_to_patient' => true,
-                    'sent_at' => now()
-                ]);
-            } else {
-                // Mark as sent even if no other notes
-                $patientRecord->update([
-                    'sent_to_patient' => true,
-                    'sent_at' => now()
-                ]);
-            }
+            // Don't append progress note other_notes to patient record
+            // Just mark the patient record as sent
+            $patientRecord->update([
+                'sent_to_patient' => true,
+                'sent_at' => now()
+            ]);
 
             // Send notification to patient
             try {
