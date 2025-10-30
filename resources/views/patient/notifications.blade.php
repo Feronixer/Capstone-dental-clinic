@@ -74,16 +74,25 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
+    text-decoration: none;
+    display: inline-block;
 }
 
 .filter-btn:hover {
     background: #f8fafc;
+    color: #64748b;
+    text-decoration: none;
 }
 
 .filter-btn.active {
     background: #2196F3;
     color: white;
     border-color: #2196F3;
+}
+
+.filter-btn.active:hover {
+    background: #1976D2;
+    color: white;
 }
 
 .notifications-list {
@@ -238,8 +247,66 @@
 
 .pagination-wrapper {
     margin-top: 2rem;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.pagination-info {
+    color: #64748b;
+    font-size: 0.95rem;
+}
+
+.pagination-info strong {
+    color: #1e293b;
+    font-weight: 600;
+}
+
+.pagination {
+    gap: 0.25rem;
+}
+
+.pagination .page-item {
+    margin: 0;
+}
+
+.pagination .page-link {
+    border: 1px solid #e2e8f0;
+    color: #64748b;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.2s;
     display: flex;
+    align-items: center;
     justify-content: center;
+    min-width: 40px;
+}
+
+.pagination .page-link:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #1e293b;
+}
+
+.pagination .page-item.active .page-link {
+    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+    border-color: #2196F3;
+    color: white;
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+}
+
+.pagination .page-item.disabled .page-link {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+    color: #cbd5e1;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.pagination .page-link i {
+    font-size: 0.9rem;
 }
 
 @media (max-width: 768px) {
@@ -264,6 +331,30 @@
     .notification-header-row {
         flex-direction: column;
         gap: 0.5rem;
+    }
+
+    .pagination-wrapper {
+        padding: 1rem;
+    }
+
+    .pagination-wrapper > div {
+        flex-direction: column;
+        gap: 1rem !important;
+    }
+
+    .pagination-info {
+        text-align: center;
+    }
+
+    .pagination {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .pagination .page-link {
+        padding: 0.4rem 0.6rem;
+        min-width: 35px;
+        font-size: 0.9rem;
     }
 }
 </style>
@@ -290,15 +381,15 @@
 
     <!-- Filters -->
     <div class="notifications-filters">
-        <button class="filter-btn active" data-filter="all" onclick="filterNotifications('all')">
+        <a href="{{ route('patient-notifications') }}" class="filter-btn {{ !request('filter') || request('filter') == 'all' ? 'active' : '' }}" data-filter="all">
             All
-        </button>
-        <button class="filter-btn" data-filter="unread" onclick="filterNotifications('unread')">
+        </a>
+        <a href="{{ route('patient-notifications', ['filter' => 'unread']) }}" class="filter-btn {{ request('filter') == 'unread' ? 'active' : '' }}" data-filter="unread">
             Unread ({{ $unreadCount }})
-        </button>
-        <button class="filter-btn" data-filter="read" onclick="filterNotifications('read')">
+        </a>
+        <a href="{{ route('patient-notifications', ['filter' => 'read']) }}" class="filter-btn {{ request('filter') == 'read' ? 'active' : '' }}" data-filter="read">
             Read
-        </button>
+        </a>
     </div>
 
     <!-- Notifications List -->
@@ -349,7 +440,66 @@
     <!-- Pagination -->
     @if($notifications->hasPages())
         <div class="pagination-wrapper">
-            {{ $notifications->links() }}
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <!-- Showing Data -->
+                <div class="pagination-info">
+                    Showing <strong>{{ $notifications->firstItem() }}</strong>
+                    to <strong>{{ $notifications->lastItem() }}</strong>
+                    of <strong>{{ $notifications->total() }}</strong> results
+                </div>
+
+                <!-- Pagination Controls -->
+                <nav aria-label="Notification pagination">
+                    <ul class="pagination mb-0">
+                        {{-- Previous Page --}}
+                        <li class="page-item {{ $notifications->onFirstPage() ? 'disabled' : '' }}">
+                            <a class="page-link" href="{{ $notifications->previousPageUrl() }}" aria-label="Previous">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+
+                        {{-- Page Numbers --}}
+                        @php
+                            $start = max($notifications->currentPage() - 1, 1);
+                            $end = min($notifications->currentPage() + 1, $notifications->lastPage());
+                        @endphp
+
+                        {{-- First page --}}
+                        @if ($start > 1)
+                            <li class="page-item">
+                                <a class="page-link" href="{{ $notifications->url(1) }}">1</a>
+                            </li>
+                            @if ($start > 2)
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                            @endif
+                        @endif
+
+                        {{-- Page range --}}
+                        @for ($i = $start; $i <= $end; $i++)
+                            <li class="page-item {{ $notifications->currentPage() == $i ? 'active' : '' }}">
+                                <a class="page-link" href="{{ $notifications->url($i) }}">{{ $i }}</a>
+                            </li>
+                        @endfor
+
+                        {{-- Last page --}}
+                        @if ($end < $notifications->lastPage())
+                            @if ($end < $notifications->lastPage() - 1)
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                            @endif
+                            <li class="page-item">
+                                <a class="page-link" href="{{ $notifications->url($notifications->lastPage()) }}">{{ $notifications->lastPage() }}</a>
+                            </li>
+                        @endif
+
+                        {{-- Next Page --}}
+                        <li class="page-item {{ $notifications->currentPage() == $notifications->lastPage() ? 'disabled' : '' }}">
+                            <a class="page-link" href="{{ $notifications->nextPageUrl() }}" aria-label="Next">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
         </div>
     @endif
 </div>
@@ -548,31 +698,6 @@
 <script>
 const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 let currentNotificationId = null;
-
-// Filter notifications
-function filterNotifications(filter) {
-    // Update active button
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    event.target.classList.add('active');
-
-    // Filter cards
-    const cards = document.querySelectorAll('.notification-card');
-    cards.forEach(card => {
-        const isRead = card.dataset.read === 'true';
-
-        if (filter === 'all') {
-            card.style.display = 'flex';
-        } else if (filter === 'unread' && !isRead) {
-            card.style.display = 'flex';
-        } else if (filter === 'read' && isRead) {
-            card.style.display = 'flex';
-        } else {
-            card.style.display = 'none';
-        }
-    });
-}
 
 // Mark notification as read
 async function markAsRead(id) {

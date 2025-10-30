@@ -14,8 +14,11 @@
     <div class="row mb-5">
         <div class="col-12">
             <div class="card shadow-sm border-0">
-                <div class="card-header bg-white border-bottom">
+                <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 text-primary fw-bold">Update Announcement</h5>
+                    <a href="{{ route('admin-announcement-archives') }}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-archive me-1"></i>View Archives
+                    </a>
                 </div>
                 <div class="card-body">
                     <form id="announcementForm" enctype="multipart/form-data">

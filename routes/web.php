@@ -97,6 +97,7 @@ Route::middleware(['auth'])->group(function(): void{
     Route::put('/admin/blocked-time/{id}', [App\Http\Controllers\Admin\BlockedTimeController::class, 'update'])->name('admin-blocked-time.update');
     Route::post('/admin/blocked-time/{id}/delete', [App\Http\Controllers\Admin\BlockedTimeController::class, 'destroy'])->name('admin-blocked-time.destroy');
       Route::get('/admin/content-management', [ContentManagementController::class,'index'])->name('admin-content-management');
+      Route::get('/admin/announcement-archives', [ContentManagementController::class,'announcementArchives'])->name('admin-announcement-archives');
       Route::post('/admin/content-management/announcement', [ContentManagementController::class,'updateAnnouncement'])->name('admin-content-management.announcement.update');
       Route::post('/admin/content-management/ticker', [ContentManagementController::class,'updateTicker'])->name('admin-content-management.ticker.update');
       Route::post('/admin/content-management/service', [ContentManagementController::class,'storeService'])->name('admin-content-management.service.store');
@@ -291,6 +292,7 @@ Route::middleware(['auth'])->group(function(): void{
 
       // Staff Content Management Routes (No delete permission for services)
       Route::get('/staff/content-management', [App\Http\Controllers\Staff\ContentManagementController::class,'index'])->name('staff-content-management');
+      Route::get('/staff/announcement-archives', [App\Http\Controllers\Staff\ContentManagementController::class,'announcementArchives'])->name('staff-announcement-archives');
       Route::post('/staff/content-management/announcement', [App\Http\Controllers\Staff\ContentManagementController::class,'updateAnnouncement'])->name('staff-content-management.announcement.update');
       Route::post('/staff/content-management/ticker', [App\Http\Controllers\Staff\ContentManagementController::class,'updateTicker'])->name('staff-content-management.ticker.update');
       Route::post('/staff/content-management/service', [App\Http\Controllers\Staff\ContentManagementController::class,'storeService'])->name('staff-content-management.service.store');

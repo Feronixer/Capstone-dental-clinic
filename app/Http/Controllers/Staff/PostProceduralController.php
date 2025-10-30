@@ -413,9 +413,9 @@ class PostProceduralController extends Controller
     {
         // Check if user is admin (role_id = 1)
         $user = Auth::user();
-        if ($user->role_id !== 1) {
+        if (!$user || $user->role_id !== 1) {
             \Log::warning('Staff user attempted to delete patient record', [
-                'user_id' => $user->id,
+                'user_id' => $user?->id ?? 'unknown',
                 'record_id' => $id
             ]);
 
@@ -885,9 +885,9 @@ class PostProceduralController extends Controller
     {
         // Check if user is admin (role_id = 1)
         $user = Auth::user();
-        if ($user->role_id !== 1) {
+        if (!$user || $user->role_id !== 1) {
             \Log::warning('Staff user attempted to delete patient history', [
-                'user_id' => $user->id,
+                'user_id' => $user?->id ?? 'unknown',
                 'id' => $id
             ]);
 
@@ -1060,9 +1060,9 @@ class PostProceduralController extends Controller
     {
         // Check if user is admin (role_id = 1)
         $user = Auth::user();
-        if ($user->role_id !== 1) {
+        if (!$user || $user->role_id !== 1) {
             \Log::warning('Staff user attempted to delete progress note', [
-                'user_id' => $user->id,
+                'user_id' => $user?->id ?? 'unknown',
                 'id' => $id
             ]);
 

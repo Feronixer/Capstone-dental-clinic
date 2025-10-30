@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Staff;
 
 use App\Http\Controllers\Controller;
 use App\Models\Announcement;
+use App\Models\AnnouncementArchive;
 use App\Models\Service;
 use App\Models\MailTemplate;
 use App\Models\ActivityLog;
@@ -23,6 +24,18 @@ class ContentManagementController extends Controller
         $mailTemplates = MailTemplate::all()->keyBy('type');
 
         return view("staff.content-management", compact('announcement', 'services', 'mailTemplates'));
+    }
+
+    /**
+     * Display announcement archives
+     */
+    public function announcementArchives()
+    {
+        $archives = AnnouncementArchive::with('archivedBy')
+            ->orderBy('archived_at', 'desc')
+            ->paginate(9);
+
+        return view("staff.announcement-archives", compact('archives'));
     }
 
     /**
@@ -50,6 +63,13 @@ class ContentManagementController extends Controller
             $announcement = new Announcement();
         }
 
+        $isNew = !$announcement->exists;
+
+        // Archive the old announcement before updating (only if it exists)
+        if (!$isNew) {
+            AnnouncementArchive::createFromAnnouncement($announcement, auth()->id());
+        }
+
         $announcement->title = $request->input('title');
         $announcement->content = $request->input('content');
 
@@ -64,7 +84,6 @@ class ContentManagementController extends Controller
             $announcement->image_path = $path;
         }
 
-        $isNew = !$announcement->exists;
         $announcement->save();
 
         // Log activity
@@ -110,6 +129,12 @@ class ContentManagementController extends Controller
         }
 
         $oldTicker = $announcement->ticker_text;
+
+        // Archive the old announcement before updating ticker (only if it exists)
+        if ($announcement->exists) {
+            AnnouncementArchive::createFromAnnouncement($announcement, auth()->id());
+        }
+
         $announcement->ticker_text = $request->input('ticker_text');
         $announcement->show_ticker = $request->input('show_ticker', true);
         $announcement->save();

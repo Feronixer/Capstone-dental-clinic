@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Announcement;
+use App\Models\AnnouncementArchive;
 use App\Models\Service;
 use App\Models\MailTemplate;
 use Illuminate\Http\Request;
@@ -22,6 +23,18 @@ class ContentManagementController extends Controller
         $mailTemplates = MailTemplate::all()->keyBy('type');
 
         return view("admin.content-management", compact('announcement', 'services', 'mailTemplates'));
+    }
+
+    /**
+     * Display announcement archives
+     */
+    public function announcementArchives()
+    {
+        $archives = AnnouncementArchive::with('archivedBy')
+            ->orderBy('archived_at', 'desc')
+            ->paginate(9);
+
+        return view("admin.announcement-archives", compact('archives'));
     }
 
     /**
@@ -47,6 +60,9 @@ class ContentManagementController extends Controller
 
         if (!$announcement) {
             $announcement = new Announcement();
+        } else {
+            // Archive the old announcement before updating
+            AnnouncementArchive::createFromAnnouncement($announcement, auth()->id());
         }
 
         $announcement->title = $request->input('title');
@@ -94,6 +110,9 @@ class ContentManagementController extends Controller
 
         if (!$announcement) {
             $announcement = new Announcement();
+        } else {
+            // Archive the old announcement before updating ticker
+            AnnouncementArchive::createFromAnnouncement($announcement, auth()->id());
         }
 
         $announcement->ticker_text = $request->input('ticker_text');

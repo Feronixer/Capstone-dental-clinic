@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Patient;
 
 use App\Http\Controllers\Controller;
 use App\Models\Announcement;
+use App\Models\AnnouncementArchive;
 use App\Models\Event;
 use Illuminate\Http\Request;
 
@@ -23,7 +24,12 @@ class AnnouncementController extends Controller
         // Fetch past events (archive)
         $pastEvents = Event::active()->past()->take(3)->get();
 
-        return view("patient.announcement", compact('announcement', 'upcomingEvents', 'pastEvents'));
+        // Fetch archived announcements (most recent 3)
+        $archivedAnnouncements = AnnouncementArchive::orderBy('archived_at', 'desc')
+            ->take(3)
+            ->get();
+
+        return view("patient.announcement", compact('announcement', 'upcomingEvents', 'pastEvents', 'archivedAnnouncements'));
     }
 
     /**

@@ -12,11 +12,21 @@ class NotificationController extends Controller
     /**
      * Display a listing of notifications
      */
-    public function index()
+    public function index(Request $request)
     {
-        $notifications = Notification::where('user_id', auth()->id())
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
+        $query = Notification::where('user_id', auth()->id())
+            ->orderBy('created_at', 'desc');
+
+        // Apply filter if present
+        if ($request->has('filter')) {
+            if ($request->filter === 'unread') {
+                $query->unread();
+            } elseif ($request->filter === 'read') {
+                $query->read();
+            }
+        }
+
+        $notifications = $query->paginate(20)->appends($request->query());
 
         $unreadCount = Notification::where('user_id', auth()->id())
             ->unread()
