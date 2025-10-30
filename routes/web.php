@@ -316,8 +316,5 @@ Route::middleware(['auth'])->group(function(): void{
     Route::get('/staff/notifications', [App\Http\Controllers\Staff\NotificationController::class,'index'])->name('staff-notification');
     Route::post('/staff/notifications/approve/{id}', [App\Http\Controllers\Staff\NotificationController::class,'approveRequest'])->name('staff-notification.approve');
     Route::post('/staff/notifications/deny/{id}', [App\Http\Controllers\Staff\NotificationController::class,'denyRequest'])->name('staff-notification.deny');
-
-    // Staff ToothTalk Routes
-    Route::get('/staff/toothtalk', [App\Http\Controllers\Staff\ToothTalkController::class,'index'])->name('staff-toothtalk');
 });
 
