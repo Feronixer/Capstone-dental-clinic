@@ -84,136 +84,7 @@ body.admin-body {
     color: var(--dm-text-primary) !important;
 }
 
-/* Service Table Dark Mode */
-[data-theme="dark"] .service-table {
-    background: var(--dm-card-bg) !important;
-    border-color: var(--dm-border-color) !important;
-}
-
-[data-theme="dark"] .service-table thead {
-    background: var(--dm-bg-tertiary) !important;
-    border-bottom-color: var(--dm-border-color) !important;
-}
-
-[data-theme="dark"] .service-table thead th {
-    background: var(--dm-bg-tertiary) !important;
-    color: var(--dm-text-primary) !important;
-    border-bottom-color: var(--dm-border-color) !important;
-}
-
-/* Force text alignment for table headers in dark mode */
-[data-theme="dark"] .service-table thead th.text-center {
-    text-align: center !important;
-}
-
-[data-theme="dark"] .service-table thead th.text-start {
-    text-align: left !important;
-}
-
-[data-theme="dark"] .service-table tbody td {
-    background-color: transparent !important;
-    color: var(--dm-text-primary) !important;
-    border-bottom-color: var(--dm-border-color) !important;
-}
-
-/* Force text alignment for table cells in dark mode */
-[data-theme="dark"] .service-table tbody td.text-center {
-    text-align: center !important;
-}
-
-[data-theme="dark"] .service-table tbody td.text-start {
-    text-align: left !important;
-}
-
-[data-theme="dark"] .service-table tbody tr {
-    background: var(--dm-card-bg) !important;
-}
-
-/* Alternate row colors in dark mode */
-[data-theme="dark"] .service-table tbody tr:nth-of-type(odd) {
-    background: var(--dm-card-bg) !important;
-}
-
-[data-theme="dark"] .service-table tbody tr:nth-of-type(even) {
-    background: var(--dm-bg-secondary) !important;
-}
-
-[data-theme="dark"] .service-table tbody tr:hover {
-    background: var(--dm-bg-tertiary) !important;
-}
-
-[data-theme="dark"] .service-table tbody tr:last-child td {
-    border-bottom: none !important;
-}
-
-/* Service icon box dark mode */
-[data-theme="dark"] .service-icon-box {
-    background: var(--dm-bg-secondary) !important;
-    border-color: var(--dm-border-color) !important;
-}
-
-[data-theme="dark"] .service-icon-box i {
-    color: #14b8a6 !important;
-}
-
-/* Icon wrapper dark mode */
-[data-theme="dark"] .icon-wrapper {
-    color: var(--dm-text-primary) !important;
-}
-
-/* Change button dark mode */
-[data-theme="dark"] .btn-change {
-    background: #14b8a6 !important;
-    color: white !important;
-    border-color: #14b8a6 !important;
-}
-
-[data-theme="dark"] .btn-change:hover {
-    background: #0d9488 !important;
-    border-color: #0d9488 !important;
-    color: white !important;
-}
-
-/* Edit and Delete buttons dark mode - preserve colors but ensure visibility */
-[data-theme="dark"] .btn-edit {
-    background: #10b981 !important;
-    color: white !important;
-}
-
-[data-theme="dark"] .btn-edit:hover {
-    background: #059669 !important;
-    color: white !important;
-}
-
-[data-theme="dark"] .btn-delete {
-    background: #ef4444 !important;
-    color: white !important;
-}
-
-[data-theme="dark"] .btn-delete:hover {
-    background: #dc2626 !important;
-    color: white !important;
-}
-
-/* Action buttons container */
-[data-theme="dark"] .action-buttons {
-    color: var(--dm-text-primary) !important;
-}
-
-/* Empty state text */
-[data-theme="dark"] .service-table tbody td.text-muted {
-    color: var(--dm-text-muted) !important;
-}
-
-/* Description cell dark mode */
-[data-theme="dark"] .description-cell {
-    color: var(--dm-text-primary) !important;
-}
-
-/* Table responsive container dark mode */
-[data-theme="dark"] .table-responsive {
-    background-color: transparent !important;
-}
+/* (Removed) service table dark mode rules */
 
 [data-theme="dark"] .card {
     background: var(--dm-card-bg) !important;
@@ -709,154 +580,7 @@ h6 {
     line-height: 1.6;
 }
 
-/* Table Styles - Clean Design */
-.service-table {
-    width: 100%;
-    background: var(--white);
-    border-collapse: separate;
-    border-spacing: 0;
-}
-
-.service-table thead {
-    background: #f8fafc;
-    border-bottom: 2px solid #e5e7eb;
-}
-
-.service-table thead th {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #374151;
-    padding: 1rem 1.5rem;
-    border-bottom: 2px solid #e5e7eb;
-    white-space: nowrap;
-    vertical-align: middle;
-}
-
-.service-table thead th:first-child {
-    padding-left: 2rem;
-}
-
-.service-table thead th:last-child {
-    padding-right: 2rem;
-}
-
-.service-table tbody td {
-    font-size: 0.875rem;
-    padding: 1.5rem 1.5rem;
-    vertical-align: middle;
-    border-bottom: 1px solid #e5e7eb;
-    color: #1f2937;
-}
-
-.service-table tbody td:first-child {
-    padding-left: 2rem;
-}
-
-.service-table tbody td:last-child {
-    padding-right: 2rem;
-}
-
-.service-table tbody tr {
-    background: var(--white);
-    transition: background-color 0.2s ease;
-}
-
-.service-table tbody tr:hover {
-    background: #f9fafb;
-}
-
-.service-table tbody tr:last-child td {
-    border-bottom: none;
-}
-
-/* Icon Column */
-.icon-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.service-icon-box {
-    width: 50px;
-    height: 50px;
-    background: #f0fdfa;
-    border: 2px solid #99f6e4;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.service-icon-box i {
-    font-size: 1.75rem;
-    color: #14b8a6;
-}
-
-.btn-change {
-    background: #14b8a6;
-    color: white;
-    border: none;
-    padding: 0.25rem 0.75rem;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.btn-change:hover {
-    background: #0d9488;
-    transform: translateY(-1px);
-}
-
-/* Description Column */
-.description-cell {
-    max-width: 600px;
-    line-height: 1.5;
-}
-
-/* Action Buttons */
-.action-buttons {
-    display: flex;
-    gap: 0.75rem;
-    align-items: center;
-    justify-content: flex-start;
-}
-
-.btn-edit,
-.btn-delete {
-    padding: 0.5rem 1.25rem;
-    border: none;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    min-width: 80px;
-}
-
-.btn-edit {
-    background: #10b981;
-    color: white;
-}
-
-.btn-edit:hover {
-    background: #059669;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-}
-
-.btn-delete {
-    background: #ef4444;
-    color: white;
-}
-
-.btn-delete:hover {
-    background: #dc2626;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-}
+/* (Removed) admin service table styles */
 
 /* Card Styles */
 .card {
@@ -1043,33 +767,7 @@ textarea.form-control {
     }
 }
 
-/* Responsive Design for Table */
-@media (max-width: 1400px) {
-    .description-cell {
-        max-width: 500px;
-    }
-}
-
-@media (max-width: 1200px) {
-    .description-cell {
-        max-width: 400px;
-    }
-
-    .service-table thead th,
-    .service-table tbody td {
-        padding: 1rem;
-    }
-
-    .service-table thead th:first-child,
-    .service-table tbody td:first-child {
-        padding-left: 1.5rem;
-    }
-
-    .service-table thead th:last-child,
-    .service-table tbody td:last-child {
-        padding-right: 1.5rem;
-    }
-}
+/* (Removed) responsive rules for admin service table */
 
 @media (max-width: 992px) {
     .service-table thead th,
@@ -1148,6 +846,104 @@ textarea.form-control {
     opacity: 0.6;
     cursor: not-allowed;
 }
+
+/* =====================
+   st-* Services Grid
+   ===================== */
+.st-table { width: 100%; display: block; }
+.st-row {
+    display: grid;
+    grid-template-columns: 60px 120px minmax(220px, 280px) 120px 1fr 170px;
+    align-items: center;
+    border-bottom: 1px solid #e9eef5;
+}
+.st-head { background:#f7fbff; font-weight:700; color:#1f2937; }
+.st-row > .st-cell { padding: 14px 16px; min-width: 0; }
+.st-row > .st-cell { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.st-row:nth-of-type(even) { background: #fbfdff; }
+.st-row:hover { background:#f3f9ff; }
+.st-icon-wrap { display:flex; flex-direction:column; align-items:center; gap:8px; }
+.st-icon-box { width:44px; height:44px; border-radius:10px; background:#eef7ff; border:2px solid #d7e8ff; display:flex; align-items:center; justify-content:center; }
+.st-icon-box i { font-size:1.4rem; color:#0ea5e9; }
+.st-icon-img { width:44px; height:44px; object-fit:contain; }
+.st-btn-change { background:#10b981; color:#fff; border:0; padding:3px 10px; border-radius:8px; font-size:12px; }
+.st-btn-change:hover { background:#0b8f70; }
+
+@media (max-width: 1200px) {
+  .st-row { grid-template-columns: 60px 110px minmax(200px, 260px) 110px 1fr 160px; }
+}
+@media (max-width: 992px) {
+  .st-row { grid-template-columns: 50px 100px 1fr 110px 1fr 150px; }
+}
+@media (max-width: 768px) {
+  .st-head { display:none; }
+  .st-row { grid-template-columns: 60px 100px 1fr; border-top:1px solid #eef2f7; }
+  .st-row > .st-cell:nth-child(4) { grid-column: 3 / 4; text-align:left; }
+  .st-row > .st-cell:nth-child(5) { grid-column: 1 / -1; }
+  .st-row > .st-cell:nth-child(6) { grid-column: 1 / -1; justify-self:end; }
+}
+
+/* Extra small devices */
+@media (max-width: 576px) {
+  .st-row { grid-template-columns: 50px 80px 1fr; }
+  .st-row > .st-cell { padding: 10px 12px; }
+  .st-icon-box { width:38px; height:38px; }
+  .st-icon-box i { font-size:1.2rem; }
+  .st-icon-img { width:38px; height:38px; }
+  .st-btn-change { padding:2px 8px; font-size:11px; }
+  .btn-edit, .btn-delete { min-width: 72px; padding: 0.4rem 0.8rem; border-radius: 10px; }
+  /* Ensure action buttons stay inside the container on tiny screens */
+  .st-row > .st-cell:nth-child(6) .d-inline-flex { gap: 8px; flex-wrap: wrap; }
+}
+
+/* Keep action column from showing ellipsis */
+.st-row > .st-cell:nth-child(6) {
+  overflow: visible;
+  white-space: normal;
+}
+
+/* Icon-only buttons */
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+.btn-icon i { font-size: 1.1rem; }
+
+/* Green edit button */
+.btn-edit {
+  background: linear-gradient(135deg, #16a34a 0%, #0e9f3e 100%);
+  color: #fff;
+}
+.btn-edit:hover { filter: brightness(0.98); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(22,163,74,0.35); }
+
+/* Red delete button (kept) */
+.btn-delete {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: #fff;
+}
+.btn-delete:hover { filter: brightness(0.98); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(239,68,68,0.35); }
+
+/* Remove default focus outline on these buttons */
+.btn-edit:focus, .btn-delete:focus, .btn-icon:focus {
+  outline: none;
+  box-shadow: 0 0 0 0.15rem rgba(0,0,0,0.06);
+}
+
+/* Dark mode for st-* services grid */
+[data-theme="dark"] .st-table { background: var(--dm-card-bg) !important; }
+[data-theme="dark"] .st-head { background: var(--dm-bg-tertiary) !important; color: var(--dm-text-primary) !important; }
+[data-theme="dark"] .st-row { border-bottom-color: var(--dm-border-color) !important; }
+[data-theme="dark"] .st-row > .st-cell { color: var(--dm-text-primary) !important; }
+[data-theme="dark"] .st-row:nth-of-type(even) { background: var(--dm-card-bg) !important; }
+[data-theme="dark"] .st-row:hover { background: var(--dm-bg-secondary) !important; }
+[data-theme="dark"] .st-icon-box { background: var(--dm-bg-secondary) !important; border-color: var(--dm-border-color) !important; }
+[data-theme="dark"] .st-btn-change { background:#10b981 !important; color:#fff !important; }
 
 /* Icon Spacing */
 .bi {

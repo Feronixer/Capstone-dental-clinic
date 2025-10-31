@@ -611,4 +611,153 @@ class AppointmentController extends Controller
 
         return response()->json($formattedPatients);
     }
+
+    /**
+     * Display appointment table view
+     */
+    public function table(Request $request)
+    {
+        $query = Appointment::with(['patient.info', 'service'])
+            ->whereNotIn('status', ['blocked']);
+
+        // Search by patient name or service
+        if ($request->has('search') && !empty($request->search)) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                // Search by patient name
+                $q->whereHas('patient.info', function($subQ) use ($search) {
+                    $subQ->where('first_name', 'like', "%{$search}%")
+                         ->orWhere('last_name', 'like', "%{$search}%")
+                         ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$search}%"]);
+                })
+                // Search by service name
+                ->orWhereHas('service', function($subQ) use ($search) {
+                    $subQ->where('service_name', 'like', "%{$search}%");
+                })
+                // Search by reason_for_visit (for appointments without service)
+                ->orWhere('reason_for_visit', 'like', "%{$search}%");
+            });
+        }
+
+        // Filter by status
+        if ($request->has('status') && $request->status !== 'all') {
+            $query->where('status', $request->status);
+        }
+
+        // Filter by rescheduled
+        if ($request->has('rescheduled') && $request->rescheduled !== 'all') {
+            if ($request->rescheduled === 'yes') {
+                $query->whereNotNull('rescheduled_at');
+            } else {
+                $query->whereNull('rescheduled_at');
+            }
+        }
+
+        // Filter by emergency (check notes or reason_for_visit contains "emergency")
+        if ($request->has('emergency') && $request->emergency !== 'all') {
+            if ($request->emergency === 'yes') {
+                $query->where(function($q) {
+                    $q->where('notes', 'like', '%emergency%')
+                      ->orWhere('notes', 'like', '%Emergency%')
+                      ->orWhere('reason_for_visit', 'like', '%emergency%')
+                      ->orWhere('reason_for_visit', 'like', '%Emergency%');
+                });
+            } else {
+                // Not emergency: neither notes nor reason_for_visit contains "emergency"
+                $query->where(function($q) {
+                    $q->where(function($subQ) {
+                        $subQ->whereNull('notes')
+                             ->orWhere(function($nQ) {
+                                 $nQ->where('notes', 'not like', '%emergency%')
+                                    ->where('notes', 'not like', '%Emergency%');
+                             });
+                    })
+                    ->where(function($subQ) {
+                        $subQ->whereNull('reason_for_visit')
+                             ->orWhere(function($rQ) {
+                                 $rQ->where('reason_for_visit', 'not like', '%emergency%')
+                                    ->where('reason_for_visit', 'not like', '%Emergency%');
+                             });
+                    });
+                });
+            }
+        }
+
+        // Filter by month
+        if ($request->has('month') && $request->month !== 'all') {
+            $monthYear = explode('-', $request->month);
+            if (count($monthYear) === 2) {
+                $month = $monthYear[0];
+                $year = $monthYear[1];
+                $query->whereYear('start_datetime', $year)
+                      ->whereMonth('start_datetime', $month);
+            }
+        }
+
+        // Sorting
+        $sortBy = $request->get('sort_by', 'start_datetime');
+        $sortOrder = $request->get('sort_order', 'desc');
+        
+        $validSortFields = ['id', 'start_datetime', 'status', 'duration_minutes', 'rescheduled_at', 'patient_id', 'service_id', 'created_at'];
+        if (!in_array($sortBy, $validSortFields)) {
+            $sortBy = 'start_datetime';
+        }
+
+        if ($sortOrder !== 'asc' && $sortOrder !== 'desc') {
+            $sortOrder = 'desc';
+        }
+
+        $query->orderBy($sortBy, $sortOrder);
+
+        // Pagination
+        $perPage = $request->get('per_page', 10);
+        $validPerPage = [5, 10, 25, 50, 100];
+        if (!in_array($perPage, $validPerPage)) {
+            $perPage = 10;
+        }
+
+        // Get paginated appointments
+        $appointments = $query->paginate($perPage)->withQueryString();
+
+        // Get filter counts for UI
+        $totalCount = Appointment::whereNotIn('status', ['blocked'])->count();
+        $statusCounts = [
+            'all' => $totalCount,
+            'Pending' => Appointment::where('status', 'Pending')->whereNotIn('status', ['blocked'])->count(),
+            'Confirmed' => Appointment::where('status', 'Confirmed')->whereNotIn('status', ['blocked'])->count(),
+            'Completed' => Appointment::where('status', 'Completed')->whereNotIn('status', ['blocked'])->count(),
+            'Cancelled' => Appointment::where('status', 'Cancelled')->whereNotIn('status', ['blocked'])->count(),
+        ];
+        $rescheduledCount = Appointment::whereNotNull('rescheduled_at')->whereNotIn('status', ['blocked'])->count();
+        $emergencyCount = Appointment::where(function($q) {
+            $q->where('notes', 'like', '%emergency%')
+              ->orWhere('notes', 'like', '%Emergency%')
+              ->orWhere('reason_for_visit', 'like', '%emergency%')
+              ->orWhere('reason_for_visit', 'like', '%Emergency%');
+        })->whereNotIn('status', ['blocked'])->count();
+
+        // Get available months from appointments
+        $availableMonths = Appointment::whereNotIn('status', ['blocked'])
+            ->selectRaw('YEAR(start_datetime) as year, MONTH(start_datetime) as month')
+            ->distinct()
+            ->orderBy('year', 'desc')
+            ->orderBy('month', 'desc')
+            ->get()
+            ->map(function($item) {
+                $monthName = \Carbon\Carbon::create($item->year, $item->month, 1)->format('F Y');
+                return [
+                    'value' => $item->month . '-' . $item->year,
+                    'label' => $monthName
+                ];
+            });
+
+        return view('admin.appointment-table', compact(
+            'appointments',
+            'statusCounts',
+            'rescheduledCount',
+            'emergencyCount',
+            'totalCount',
+            'availableMonths'
+        ))->with('perPage', $perPage)->with('search', $request->get('search', ''));
+    }
 }

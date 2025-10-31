@@ -7,7 +7,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>ToothTalk - Premium Dental Care</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
         * {
@@ -17,7 +17,7 @@
         }
 
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Poppins', sans-serif;
             background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
             min-height: 100vh;
             overflow-x: hidden;
@@ -26,6 +26,21 @@
         [data-theme="dark"] body {
             background: linear-gradient(135deg, var(--dm-bg-primary) 0%, var(--dm-bg-secondary) 100%) !important;
         }
+
+        /* Dark Mode Hero Section (match patient dashboard) */
+        [data-theme="dark"] .hero-title {
+            color: var(--dm-text-primary, #f1f5f9) !important;
+        }
+        [data-theme="dark"] .hero-title .highlight {
+            color: #60a5fa !important;
+        }
+        [data-theme="dark"] .hero-title .highlight:hover {
+            color: #93c5fd !important;
+            text-shadow: 0 6px 18px rgba(147, 197, 253, 0.55), 0 0 16px rgba(147,197,253,0.7);
+            filter: saturate(1.1);
+        }
+        [data-theme="dark"] .hero-description { color: var(--dm-text-muted, #94a3b8) !important; }
+        [data-theme="dark"] .badge { background: rgba(59,130,246,0.2) !important; color: #93c5fd !important; }
 
         /* Navigation Bar */
         .navbar {
@@ -138,6 +153,17 @@
 
         .hero-title .highlight {
             color: #2196F3;
+        }
+
+        /* Hover animation for SMILE (match patient dashboard) */
+        .hero-title .highlight {
+            position: relative;
+            transition: color 220ms ease, filter 220ms ease, text-shadow 220ms ease;
+        }
+        .hero-title .highlight:hover {
+            color: #ffffff;
+            text-shadow: 0 6px 18px rgba(10, 42, 107, 0.65), 0 0 10px rgba(10,42,107,0.35);
+            filter: saturate(1.2);
         }
 
         .hero-description {
@@ -351,41 +377,53 @@
             }
         }
 
-        /* Services Section */
+        /* Services Section - match patient dashboard */
         .services-section {
             padding: 5rem 3rem;
-            background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
+            background: linear-gradient(135deg, #0a2a6b 0%, #0b3b91 100%);
             position: relative;
+            color: #ffffff;
         }
 
         .services-container {
             max-width: 1400px;
             margin: 0 auto;
-            position: relative;
         }
 
         .services-title {
             font-size: 2.5rem;
             font-weight: 800;
-            color: #1e293b;
+            color: #ffffff;
             text-align: center;
-            margin-bottom: 3rem;
+            margin-bottom: 0.75rem;
             letter-spacing: 1px;
             text-transform: uppercase;
         }
 
+        .services-subtitle {
+            text-align: center;
+            color: #ffffff;
+            opacity: 0.85;
+            font-size: 1rem;
+            margin-bottom: clamp(1.25rem, 2vw, 2.75rem);
+        }
+
         .services-carousel-wrapper {
             position: relative;
-            padding: 0 60px;
+            padding: 0 clamp(16px, 4vw, 60px);
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
         }
 
         .services-carousel {
             display: flex;
-            gap: 2rem;
+            gap: clamp(1rem, 2vw, 2rem);
             overflow-x: hidden;
             scroll-behavior: smooth;
             scrollbar-width: none;
             -ms-overflow-style: none;
+            width: 100%;
         }
 
         .services-carousel::-webkit-scrollbar {
@@ -396,11 +434,11 @@
             background: white;
             border-radius: 20px;
             padding: 2rem;
-            min-width: 250px;
-            max-width: 250px;
+            min-width: clamp(220px, 24vw, 280px);
+            max-width: clamp(220px, 24vw, 280px);
             flex-shrink: 0;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
             cursor: pointer;
             display: flex;
             flex-direction: column;
@@ -409,8 +447,8 @@
         }
 
         .service-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+            transform: translateY(-6px) scale(1.06);
+            box-shadow: 0 16px 46px rgba(0, 0, 0, 0.18);
         }
 
         .service-icon-box {
@@ -729,7 +767,7 @@
             flex-shrink: 0;
             width: 24px;
             text-align: center;
-            color: #FFA726;
+            color: #93c5fd;
         }
 
         .footer-contact p span {
@@ -1027,7 +1065,7 @@
         <div class="hero-content">
             <div class="badge">
                 <i class="bi bi-stars"></i>
-                Premium Dental Care Since 2005
+                Premium Dental Care since 2024
             </div>
 
             <h1 class="hero-title">
@@ -1035,7 +1073,7 @@
             </h1>
 
             <p class="hero-description">
-                Experience world-class dental care with cutting-edge technology and a compassionate team dedicated to your oral health and beautiful smile.
+                Become a patient today! Our clinic staff will register you, and keep you updated with your dental needs.
             </p>
 
             {{-- Patient Portal --}}
@@ -1126,6 +1164,7 @@
     <section class="services-section">
         <div class="services-container">
             <h2 class="services-title">OUR SERVICES</h2>
+            <p class="services-subtitle">We offer a comprehensive range of premium dental services</p>
 
             <div class="services-carousel-wrapper">
                 <button class="carousel-nav-btn prev" onclick="scrollServices('prev')" id="servicesPrevBtn">
@@ -1136,7 +1175,12 @@
                     @forelse($services as $service)
                     <div class="service-card" onclick="openServiceModal({{ $service->id }}, '{{ $service->service_name }}', '{{ addslashes($service->description) }}', {{ $service->default_duration_minutes }}, '{{ $service->icon_class ?? 'bi-gear' }}')">
                         <div class="service-icon-box">
-                            <i class="bi {{ $service->icon_class ?? 'bi-gear' }}"></i>
+                            @php $ic = $service->icon_class; @endphp
+                            @if($ic && \Illuminate\Support\Str::startsWith($ic,'uploaded:'))
+                                <img src="{{ asset('storage/' . \Illuminate\Support\Str::after($ic,'uploaded:')) }}" alt="icon" style="width:80px;height:80px;object-fit:contain;" class="theme-adapt">
+                            @else
+                                <i class="bi {{ $ic ?? 'bi-gear' }}"></i>
+                            @endif
                         </div>
                         <h3>{{ $service->service_name }}</h3>
                     </div>
@@ -1162,6 +1206,7 @@
                 <i class="bi bi-x-lg"></i>
             </button>
             <div class="service-modal-icon">
+                <img id="modalServiceImg" class="d-none" style="width:80px;height:80px;object-fit:contain;" alt="icon">
                 <i class="bi" id="modalServiceIcon"></i>
             </div>
             <h2 class="service-modal-title" id="modalServiceName"></h2>
@@ -1207,7 +1252,17 @@
             document.getElementById('modalServiceName').textContent = name;
             document.getElementById('modalServiceDescription').textContent = description;
             document.getElementById('modalServiceDuration').textContent = duration + ' minutes';
-            document.getElementById('modalServiceIcon').className = 'bi ' + iconClass;
+            const iconEl = document.getElementById('modalServiceIcon');
+            const imgEl = document.getElementById('modalServiceImg');
+            imgEl.classList.add('d-none');
+            iconEl.classList.remove('d-none');
+            if (iconClass && iconClass.startsWith('uploaded:')) {
+                imgEl.src = '/storage/' + iconClass.replace('uploaded:','');
+                imgEl.classList.remove('d-none');
+                iconEl.classList.add('d-none');
+            } else {
+                iconEl.className = 'bi ' + (iconClass || 'bi-gear');
+            }
             document.getElementById('serviceModal').classList.add('active');
             document.body.style.overflow = 'hidden';
         }
@@ -1242,20 +1297,14 @@
                         ToothTalk
                     </h3>
                     <p>
-                        Premium dental care services since 2005. We're committed to providing world-class dental treatments with cutting-edge technology and compassionate care.
+                        We offer premium dental care services since 2024. We're committed to providing utmost care and attention to your dental needs.
                     </p>
                     <div class="footer-social">
-                        <a href="#" aria-label="Facebook">
+                        <a href="https://www.facebook.com/profile.php?id=61555389276989" aria-label="Facebook">
                             <i class="bi bi-facebook"></i>
                         </a>
-                        <a href="#" aria-label="Twitter">
-                            <i class="bi bi-twitter"></i>
-                        </a>
-                        <a href="#" aria-label="Instagram">
+                        <a href="https://www.instagram.com/JValeradentalclinic" aria-label="Instagram">
                             <i class="bi bi-instagram"></i>
-                        </a>
-                        <a href="#" aria-label="LinkedIn">
-                            <i class="bi bi-linkedin"></i>
                         </a>
                     </div>
                 </div>
@@ -1265,9 +1314,8 @@
                     <h4>Quick Links</h4>
                     <ul>
                         <li><a href="{{ url('/') }}"><i class="bi bi-chevron-right"></i> Home</a></li>
-                        <li><a href="#"><i class="bi bi-chevron-right"></i> About Us</a></li>
-                        <li><a href="#"><i class="bi bi-chevron-right"></i> Services</a></li>
-                        <li><a href="#"><i class="bi bi-chevron-right"></i> Announcements</a></li>
+                        <li><a href="{{ url('about-us') }}"><i class="bi bi-chevron-right"></i> About Us</a></li>
+                        <li><a href="{{ url('announcement') }}"><i class="bi bi-chevron-right"></i> Announcements</a></li>
                         <li><a href="{{ route('login') }}"><i class="bi bi-chevron-right"></i> Patient Portal</a></li>
                     </ul>
                 </div>
@@ -1275,12 +1323,12 @@
                 <!-- Services -->
                 <div class="footer-section">
                     <h4>Our Services</h4>
-                    <ul>
-                        <li><a href="#"><i class="bi bi-chevron-right"></i> Cosmetic Dentistry</a></li>
-                        <li><a href="#"><i class="bi bi-chevron-right"></i> Laser Dentistry</a></li>
-                        <li><a href="#"><i class="bi bi-chevron-right"></i> Oral Surgery</a></li>
-                        <li><a href="#"><i class="bi bi-chevron-right"></i> Periodontics</a></li>
-                        <li><a href="#"><i class="bi bi-chevron-right"></i> Dental Crowns</a></li>
+                    <ul style="list-style-type:disc;">
+                        <li>General Dentistry</li>
+                        <li>Cosmetic Dentistry</li>
+                        <li>Orthodontics</li>
+                        <li>Teeth Whitening</li>
+                        <li>Emergency Care</li>
                     </ul>
                 </div>
 
@@ -1293,22 +1341,22 @@
                     </p>
                     <p>
                         <i class="bi bi-telephone-fill"></i>
-                        <span>(555) 123-4567</span>
+                        <span>(+63)915 622 9695</span>
                     </p>
                     <p>
                         <i class="bi bi-envelope-fill"></i>
-                        <span>info@toothtalk.com</span>
+                        <span>jvaleradentalclinic@gmail.com</span>
                     </p>
                     <p>
                         <i class="bi bi-clock-fill"></i>
-                        <span>Mon-Fri: 8am-6pm, Sat: 9am-2pm</span>
+                        <span>Tuesday to Saturday: 11:00 AM to 6:00 PM.</span>
                     </p>
                 </div>
             </div>
 
             <!-- Footer Bottom -->
             <div class="footer-bottom">
-                <p>&copy; {{ date('Y') }} ToothTalk Dental Clinic. All rights reserved. | Designed with <i class="bi bi-heart-fill" style="color: #ff5252;"></i> for healthy smiles</p>
+                <p>&copy; {{ date('Y') }} ToothTalk Appointment Scheduler for JValera Dental Clinic. All rights reserved. | Designed with <i class="bi bi-heart-fill" style="color: #ff5252;"></i> for healthy smiles</p>
             </div>
         </div>
     </footer>

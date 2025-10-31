@@ -46,10 +46,6 @@
 
         <!-- User Actions -->
         <div class="header-actions">
-            <!-- Dark Mode Toggle -->
-            <button class="icon-btn dark-mode-toggle-btn-mobile" onclick="toggleDarkMode(); return false;" title="Toggle Dark Mode">
-                <i class="bi bi-moon-stars" id="darkModeIcon"></i>
-            </button>
             <!-- Notifications -->
             <div class="dropdown">
                 <button class="icon-btn" type="button" data-bs-toggle="dropdown" id="notificationDropdownBtn">
@@ -120,15 +116,15 @@
                     <a class="dropdown-item" href="{{ route('patient-profile') }}">
                         <i class="bi bi-person me-2"></i>My Profile
                     </a>
-                    <a class="dropdown-item" href="{{ route('patient-calendar') }}">
-                        <i class="bi bi-calendar-check me-2"></i>My Appointments
-                    </a>
-                    <a class="dropdown-item" href="{{ route('patient-record') }}">
-                        <i class="bi bi-file-medical me-2"></i>Medical Records
-                    </a>
-                    <a class="dropdown-item" href="#">
-                        <i class="bi bi-gear me-2"></i>Settings
-                    </a>
+                    <div class="dropdown-item d-flex align-items-center justify-content-between py-2">
+                        <div class="d-flex align-items-center">
+                            <i id="dmLabelIcon" class="bi bi-moon-stars me-2"></i>
+                            <span id="dmLabelText">Light Mode</span>
+                        </div>
+                        <div class="form-check form-switch m-0">
+                            <input class="form-check-input" type="checkbox" id="patientDarkModeSwitch">
+                        </div>
+                    </div>
                     <div class="dropdown-divider"></div>
                     <a class="dropdown-item text-danger" href="#" id="patientLogoutBtn">
                         <i class="bi bi-box-arrow-right me-2"></i>Logout
@@ -244,11 +240,12 @@
 }
 
 .header-container {
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
-
+    padding: 0.75rem 2rem;
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 1rem;
 }
 
@@ -280,23 +277,22 @@
     opacity: 0.9;
 }
 
-.header-nav {
-    flex: 1;
-}
+.header-nav { flex: 1; }
 
 .nav-menu {
     display: flex;
     list-style: none;
-    gap: 0.15rem;
+    gap: 0.5rem;
     margin: 0;
     padding: 0;
+    justify-content: center;
 }
 
 .nav-item .nav-link {
     display: flex;
     align-items: center;
     gap: 0.4rem;
-    padding: 0.5rem 0.85rem;
+    padding: 0.55rem 1rem;
     color: rgba(255,255,255,0.9);
     text-decoration: none;
     border-radius: 8px;
@@ -323,7 +319,7 @@
 .header-actions {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.9rem;
 }
 
 .icon-btn {
@@ -434,6 +430,11 @@
     box-shadow: 0 10px 40px rgba(0,0,0,0.2);
     border: none;
 }
+
+.profile-dropdown .form-check-input {
+    cursor: pointer;
+}
+.profile-dropdown .form-check-input:focus { box-shadow: none; }
 
 .notification-item {
     display: flex;
@@ -958,6 +959,31 @@ document.addEventListener('DOMContentLoaded', function() {
             const logoutForm = document.getElementById('logout-form');
             if (logoutForm) {
                 logoutForm.submit();
+            }
+        });
+    }
+
+    // Dark mode switch in profile dropdown
+    const dmSwitch = document.getElementById('patientDarkModeSwitch');
+    if (dmSwitch) {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        dmSwitch.checked = currentTheme === 'dark';
+        const dmIcon = document.getElementById('dmLabelIcon');
+        const dmText = document.getElementById('dmLabelText');
+        if (dmIcon && dmText) {
+            if (currentTheme === 'dark') { dmIcon.className = 'bi bi-moon-stars me-2'; dmText.textContent = 'Dark Mode'; }
+            else { dmIcon.className = 'bi bi-sun me-2'; dmText.textContent = 'Light Mode'; }
+        }
+        dmSwitch.addEventListener('change', function() {
+            toggleDarkMode();
+            // sync state in case toggled elsewhere
+            const theme = document.documentElement.getAttribute('data-theme');
+            dmSwitch.checked = theme === 'dark';
+            const icon = document.getElementById('dmLabelIcon');
+            const label = document.getElementById('dmLabelText');
+            if (icon && label) {
+                if (theme === 'dark') { icon.className = 'bi bi-moon-stars me-2'; label.textContent = 'Dark Mode'; }
+                else { icon.className = 'bi bi-sun me-2'; label.textContent = 'Light Mode'; }
             }
         });
     }

@@ -109,6 +109,15 @@ class NotificationController extends Controller
                 // Recalculate end_datetime based on the final duration
                 $endDateTime = $appointmentRequest->requested_datetime->copy()->addMinutes($durationMinutes);
 
+                // Prepare notes - add "Emergency" prefix for walk-in requests
+                $notes = $appointmentRequest->reason;
+                if ($appointmentRequest->isWalkIn()) {
+                    // Check if "emergency" is already in the notes, if not add it
+                    if (stripos($notes, 'emergency') === false) {
+                        $notes = 'Emergency: ' . $notes;
+                    }
+                }
+
                 // Create the new appointment
                 $appointment = Appointment::create([
                     'patient_id' => $appointmentRequest->patient_id,
@@ -117,7 +126,7 @@ class NotificationController extends Controller
                     'end_datetime' => $endDateTime,
                     'duration_minutes' => $durationMinutes,
                     'status' => 'Confirmed',
-                    'notes' => $appointmentRequest->reason, // Use reason as notes
+                    'notes' => $notes,
                     'reason_for_visit' => $reasonForVisit
                 ]);
 

@@ -351,22 +351,22 @@
                     </p>
                     <p>
                         <i class="bi bi-telephone-fill"></i>
-                        <span>(555) 123-4567</span>
+                        <span>(+63)915 622 9695</span>
                     </p>
                     <p>
                         <i class="bi bi-envelope-fill"></i>
-                        <span>info@toothtalk.com</span>
+                        <span>jvaleradentalclinic@gmail.com</span>
                     </p>
                     <p>
                         <i class="bi bi-clock-fill"></i>
-                        <span>Mon-Fri: 8am-6pm, Sat: 9am-2pm</span>
+                        <span>Tuesday to Saturday: 11:00 AM to 6:00 PM.</span>
                     </p>
                 </div>
             </div>
 
             <!-- Footer Bottom -->
             <div class="footer-bottom">
-                <p>&copy; {{ date('Y') }} ToothTalk Dental Clinic. All rights reserved. | Designed with <i class="bi bi-heart-fill" style="color: #ff5252;"></i> for healthy smiles</p>
+                <p>&copy; {{ date('Y') }} ToothTalk Appointment Scheduler for JValera Dental Clinic. All rights reserved.  | Designed with <i class="bi bi-heart-fill" style="color: #ff5252;"></i> for healthy smiles</p>
             </div>
         </div>
     </footer>

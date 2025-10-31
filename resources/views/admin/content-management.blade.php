@@ -124,7 +124,7 @@
     </div>
 </div>
 
-<!-- Services Section -->
+<!-- Services Section (Compact Grid Table - st-*) -->
 <div class="row mb-5">
         <div class="col-12">
             <div class="card shadow-sm border-0">
@@ -135,47 +135,50 @@
                     </button>
                 </div>
                 <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table mb-0 service-table">
-                            <thead>
-                                <tr>
-                                    <th class="text-center" style="width: 60px;">ID</th>
-                                    <th class="text-center" style="width: 120px;">Icon</th>
-                                    <th class="text-start" style="width: 200px;">Service</th>
-                                    <th class="text-start" style="width: 150px;">Price</th>
-                                    <th class="text-start">Description</th>
-                                    <th class="text-start" style="width: 200px; padding-left: 1.5rem;">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="servicesTableBody">
-                                @forelse($services as $index => $service)
-                                <tr>
-                                    <td class="text-center align-middle">{{ $index + 1 }}</td>
-                                    <td class="text-center align-middle">
-                                        <div class="icon-wrapper">
-                                            <div class="service-icon-box">
-                                                <i class="bi {{ $service->icon_class ?? 'bi-gear' }}"></i>
-                                            </div>
-                                            <button class="btn-change" onclick="changeIcon({{ $service->id }})">Change</button>
-                                        </div>
-                                    </td>
-                                    <td class="align-middle">{{ $service->service_name }}</td>
-                                    <td class="align-middle">{{ number_format($service->price, 0, '.', ',') }}{{ strpos(strtolower($service->description), 'tooth') !== false ? ' (per tooth)' : '' }}</td>
-                                    <td class="description-cell align-middle">{{ $service->description }}</td>
-                                    <td class="align-middle">
-                                        <div class="action-buttons">
-                                            <button class="btn-edit" onclick="editService({{ $service->id }})">Edit</button>
-                                            <button class="btn-delete" onclick="deleteService({{ $service->id }})">Delete</button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                @empty
-                                <tr>
-                                    <td colspan="6" class="text-center py-4 text-muted">No services available</td>
-                                </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
+                    <div class="st-table" role="table" aria-label="Services">
+                        <div class="st-row st-head" role="row">
+                            <div class="st-cell text-center" style="width:60px" role="columnheader">ID</div>
+                            <div class="st-cell text-center" style="width:120px" role="columnheader">Icon</div>
+                            <div class="st-cell" role="columnheader">Service</div>
+                            <div class="st-cell text-center" style="width:120px" role="columnheader">Duration</div>
+                            <div class="st-cell" role="columnheader">Description</div>
+                            <div class="st-cell text-center" style="width:170px" role="columnheader">Action</div>
+                        </div>
+                        @forelse($services as $index => $service)
+                        <div class="st-row" role="row">
+                            <div class="st-cell text-center" role="cell">{{ $index + 1 }}</div>
+                            <div class="st-cell text-center" role="cell">
+                                <div class="st-icon-wrap">
+                                    <div class="st-icon-box">
+                                        @php $ic = $service->icon_class; @endphp
+                                        @if($ic && \Illuminate\Support\Str::startsWith($ic,'uploaded:'))
+                                            <img src="{{ asset('storage/' . \Illuminate\Support\Str::after($ic,'uploaded:')) }}" alt="icon" class="st-icon-img">
+                                        @else
+                                            <i class="bi {{ $ic ?: 'bi-gear' }}"></i>
+                                        @endif
+                                    </div>
+                                    <button type="button" class="st-btn-change" onclick="changeIcon({{ $service->id }})">Change</button>
+                                </div>
+                            </div>
+                            <div class="st-cell" role="cell">{{ $service->service_name }}</div>
+                            <div class="st-cell text-center" role="cell">{{ $service->default_duration_minutes ?? '—' }} mins.</div>
+                            <div class="st-cell" role="cell">{{ $service->description }}</div>
+                            <div class="st-cell text-center" role="cell">
+                                <div class="d-inline-flex gap-2">
+                                    <button type="button" class="btn-edit btn-icon" aria-label="Edit" title="Edit" onclick="editService({{ $service->id }})">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
+                                    <button type="button" class="btn-delete btn-icon" aria-label="Delete" title="Delete" onclick="deleteService({{ $service->id }})">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        @empty
+                        <div class="st-row">
+                            <div class="st-cell text-center" style="grid-column:1/-1">No services available</div>
+                        </div>
+                        @endforelse
                     </div>
                 </div>
             </div>
@@ -627,13 +630,18 @@
                             </label>
                             <div class="input-group input-group-lg">
                                 <span class="input-group-text bg-light">
+                                    <img id="edit_selected_icon_img" class="d-none theme-adapt" style="width:24px;height:24px;object-fit:contain;" alt="icon">
                                     <i class="bi bi-gear fs-5" id="edit_selected_icon_preview"></i>
                                 </span>
                                 <input type="text" class="form-control" id="edit_icon_class" name="icon_class"
-                                       placeholder="Click 'Choose Icon' button to select" readonly>
+                                       placeholder="Click 'Choose Icon' or 'Upload Icon'" readonly>
                                 <button type="button" class="btn btn-outline-primary" onclick="openIconPicker('edit_icon_class', 'edit_selected_icon_preview')">
                                     <i class="bi bi-grid-3x3-gap me-1"></i>Choose Icon
                                 </button>
+                                <button type="button" class="btn btn-outline-secondary ms-2" id="btnUploadIcon">
+                                    <i class="bi bi-upload me-1"></i>Upload Icon
+                                </button>
+                                <input type="file" id="edit_icon_upload" name="icon_upload" class="d-none" accept="image/*,.ico">
                             </div>
                             <small class="form-text text-muted">
                                 <i class="bi bi-info-circle me-1"></i>Select an icon that represents this service
@@ -1003,7 +1011,14 @@ function editService(id) {
 
     // Update icon preview
     const iconPreview = document.getElementById('edit_selected_icon_preview');
-    if (service.icon_class) {
+    const iconImg = document.getElementById('edit_selected_icon_img');
+    iconImg.classList.add('d-none');
+    iconPreview.classList.remove('d-none');
+    if (service.icon_class && service.icon_class.startsWith('uploaded:')) {
+        iconImg.src = `/storage/${service.icon_class.replace('uploaded:','')}`;
+        iconImg.classList.remove('d-none');
+        iconPreview.classList.add('d-none');
+    } else if (service.icon_class) {
         iconPreview.className = service.icon_class + ' fs-5';
     } else {
         iconPreview.className = 'bi bi-gear fs-5';
@@ -1018,15 +1033,14 @@ document.getElementById('editServiceForm').addEventListener('submit', function(e
 
     const serviceId = document.getElementById('edit_service_id').value;
     const formData = new FormData(this);
-    const data = Object.fromEntries(formData.entries());
 
     fetch(`/admin/content-management/service/${serviceId}`, {
-        method: 'PUT',
+        method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
+            'X-HTTP-Method-Override': 'PUT',
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
         },
-        body: JSON.stringify(data)
+        body: formData
     })
     .then(response => response.json())
     .then(data => {
@@ -1109,6 +1123,30 @@ function showToast(message, type = 'info') {
         setTimeout(() => toast.remove(), 300);
     }, 3000);
 }
+
+// Upload Icon handlers (delegated to modal)
+document.addEventListener('click', function(e) {
+    const btn = e.target.closest('#btnUploadIcon');
+    if (!btn) return;
+    const modal = btn.closest('.modal');
+    const input = modal ? modal.querySelector('#edit_icon_upload') : document.getElementById('edit_icon_upload');
+    if (input) input.click();
+});
+
+document.addEventListener('change', function(e) {
+    if (e.target && e.target.id === 'edit_icon_upload') {
+        const file = e.target.files[0];
+        if (!file) return;
+        const modal = e.target.closest('.modal');
+        const img = modal ? modal.querySelector('#edit_selected_icon_img') : document.getElementById('edit_selected_icon_img');
+        const icon = modal ? modal.querySelector('#edit_selected_icon_preview') : document.getElementById('edit_selected_icon_preview');
+        const cls = modal ? modal.querySelector('#edit_icon_class') : document.getElementById('edit_icon_class');
+        img.src = URL.createObjectURL(file);
+        img.classList.remove('d-none');
+        icon.classList.add('d-none');
+        if (cls) cls.value = 'uploaded:pending';
+    }
+});
 
 // Save Mail Template Function
 function saveMailTemplate(type) {

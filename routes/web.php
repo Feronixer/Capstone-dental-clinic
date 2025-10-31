@@ -85,6 +85,7 @@ Route::middleware(['auth:admin'])->group(function(): void{
 
 
     Route::get('/admin/appointment', [AppointmentController::class,'index'])->name('admin-appointment');
+    Route::get('/admin/appointment/table', [AppointmentController::class,'table'])->name('admin-appointment.table');
     Route::get('/admin/appointment/appointments', [AppointmentController::class,'getAppointments'])->name('admin-appointment.get');
     Route::post('/admin/appointment', [AppointmentController::class,'store'])->name('admin-appointment.store');
     Route::get('/admin/appointment/{id}', [AppointmentController::class,'show'])->name('admin-appointment.show');
@@ -242,6 +243,7 @@ Route::middleware(['auth:staff'])->group(function(): void{
 
     // Staff Appointment Routes (No delete permission)
     Route::get('/staff/appointment', [App\Http\Controllers\Staff\AppointmentController::class,'index'])->name('staff-appointment');
+    Route::get('/staff/appointment/table', [App\Http\Controllers\Staff\AppointmentController::class,'table'])->name('staff-appointment.table');
     Route::get('/staff/appointment/appointments', [App\Http\Controllers\Staff\AppointmentController::class,'getAppointments'])->name('staff-appointment.get');
     Route::post('/staff/appointment', [App\Http\Controllers\Staff\AppointmentController::class,'store'])->name('staff-appointment.store');
     Route::get('/staff/appointment/{id}', [App\Http\Controllers\Staff\AppointmentController::class,'show'])->name('staff-appointment.show');

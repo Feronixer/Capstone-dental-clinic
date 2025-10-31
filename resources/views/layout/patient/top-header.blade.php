@@ -21,23 +21,25 @@
 
 <style>
 .top-header-bar {
-    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-    color: #78350f;
+    background: linear-gradient(135deg, #0a2a6b 0%, #0b3b91 100%);
+    color: #ffffff;
     font-size: 0.9rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .announcement-ticker {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 0.75rem 2rem;
+    padding: 0.6rem 2rem;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    justify-content: space-between;
+    gap: 1rem;
 }
 
 .announcement-ticker i {
     font-size: 1.1rem;
+    color: #ffffff;
     animation: pulse 2s infinite;
 }
 
@@ -46,16 +48,16 @@
     50% { opacity: 0.7; }
 }
 
-.announcement-content {
-    flex: 1;
-    overflow: hidden;
-}
+.announcement-content { flex: 1; overflow: hidden; }
 
 .announcement-text {
     display: block;
     animation: scroll-left 30s linear infinite;
     white-space: nowrap;
+    color: #ffffff;
 }
+
+.announcement-text strong { color: #ffffff; }
 
 @keyframes scroll-left {
     0% {
@@ -74,9 +76,9 @@
     width: 24px;
     height: 24px;
     border-radius: 50%;
-    background: rgba(120, 53, 15, 0.15);
+    background: rgba(255, 255, 255, 0.15);
     border: none;
-    color: #78350f;
+    color: #ffffff;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -85,8 +87,16 @@
 }
 
 .close-announcement:hover {
-    background: rgba(120, 53, 15, 0.25);
+    background: rgba(255, 255, 255, 0.25);
 }
+
+/* Dark mode: keep the same navy styling and ensure text is readable */
+[data-theme="dark"] .top-header-bar { background: linear-gradient(135deg, #0a2a6b 0%, #0b3b91 100%) !important; color: #ffffff !important; }
+[data-theme="dark"] .announcement-ticker i { color: #ffffff !important; }
+[data-theme="dark"] .announcement-text { color: #ffffff !important; }
+[data-theme="dark"] .announcement-text strong { color: #ffffff !important; }
+[data-theme="dark"] .close-announcement { background: rgba(255,255,255,0.15) !important; color: #ffffff !important; }
+[data-theme="dark"] .close-announcement:hover { background: rgba(255,255,255,0.25) !important; }
 
 @media (max-width: 768px) {
     .announcement-ticker {

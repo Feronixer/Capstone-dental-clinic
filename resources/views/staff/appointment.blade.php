@@ -61,6 +61,9 @@
 
                 <!-- Action Buttons -->
                 <div class="d-flex gap-2">
+                    <a href="{{ route('staff-appointment.table') }}" class="btn btn-info" title="Table View">
+                        <i class="bi bi-table me-1"></i>Table View
+                    </a>
                     <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#blockTimeModal">
                         <i class="bi bi-x-circle me-1"></i>Block Off Time
                     </button>

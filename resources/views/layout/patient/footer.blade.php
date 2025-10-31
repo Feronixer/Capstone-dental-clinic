@@ -11,20 +11,14 @@
                     </div>
                 </div>
                 <p class="footer-description">
-                    Providing exceptional dental care with state-of-the-art technology and compassionate service since 2010.
+                    Providing exceptional dental care with state-of-the-art technology and compassionate service since 2024.
                 </p>
                 <div class="footer-social">
-                    <a href="#" class="social-link" title="Facebook">
+                    <a href="https://www.facebook.com/profile.php?id=61555389276989" class="social-link" title="Facebook">
                         <i class="bi bi-facebook"></i>
                     </a>
-                    <a href="#" class="social-link" title="Instagram">
+                    <a href="https://www.instagram.com/JValeradentalclinic" class="social-link" title="Instagram">
                         <i class="bi bi-instagram"></i>
-                    </a>
-                    <a href="#" class="social-link" title="Twitter">
-                        <i class="bi bi-twitter-x"></i>
-                    </a>
-                    <a href="#" class="social-link" title="LinkedIn">
-                        <i class="bi bi-linkedin"></i>
                     </a>
                 </div>
             </div>
@@ -44,7 +38,7 @@
             <!-- Services -->
             <div class="footer-section">
                 <h4 class="footer-heading">Our Services</h4>
-                <ul class="footer-services-list">
+                <ul class="footer-services-list" style="list-style-type:disc;">
                     <li>General Dentistry</li>
                     <li>Cosmetic Dentistry</li>
                     <li>Orthodontics</li>
@@ -63,7 +57,7 @@
                     </li>
                     <li>
                         <i class="bi bi-telephone-fill"></i>
-                        <span>+63 15 622 9695</span>
+                        <span>(+63)915 622 9695</span>
                     </li>
                     <li>
                         <i class="bi bi-envelope-fill"></i>
@@ -71,7 +65,7 @@
                     </li>
                     <li>
                         <i class="bi bi-clock-fill"></i>
-                        <span>Mon-Sat: 9:00 AM - 6:00 PM</span>
+                        <span>Tuesday-Saturday: 11:00 AM - 6:00 PM</span>
                     </li>
                 </ul>
             </div>
