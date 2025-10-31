@@ -47,5 +47,46 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ asset('js/app.js') }}"></script>
+
+    {{-- Session monitoring for cross-tab logout detection --}}
+    <script>
+        (function() {
+            // Check if we're on patient portal
+            const isPatientPortal = window.location.pathname.startsWith('/patient/');
+
+            if (!isPatientPortal) return;
+
+            // Monitor localStorage for logout events
+            window.addEventListener('storage', function(e) {
+                if (e.key === 'patient_logout_event' || e.key === 'auth_logout_event') {
+                    // Patient logged out in another tab
+                    window.location.href = '{{ route("login") }}';
+                }
+            });
+
+            // Also poll for session changes (backup method)
+            let lastSessionCheck = Date.now();
+            setInterval(function() {
+                // Check for logout events in localStorage
+                const logoutEvent = localStorage.getItem('patient_logout_event');
+                const generalLogoutEvent = localStorage.getItem('auth_logout_event');
+
+                if (logoutEvent || generalLogoutEvent) {
+                    window.location.href = '{{ route("login") }}';
+                    return;
+                }
+
+                // Check if session active flag was cleared (indicates logout in another tab)
+                const sessionActive = localStorage.getItem('patient_session_active');
+                if (!sessionActive) {
+                    window.location.href = '{{ route("login") }}';
+                    return;
+                }
+            }, 2000); // Check every 2 seconds
+
+            // Set patient session active flag
+            localStorage.setItem('patient_session_active', Date.now().toString());
+        })();
+    </script>
 </body>
 </html>

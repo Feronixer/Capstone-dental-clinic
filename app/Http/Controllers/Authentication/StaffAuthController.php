@@ -34,28 +34,34 @@ class StaffAuthController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'username' => ['required', 'string'],
+            'email_username' => ['required', 'string'],
             'password' => ['required', 'min:8'],
         ]);
 
-        // Try to find user by username
-        $user = User::where('username', $request->username)->first();
+        // Try to find user by username or email
+        $emailUsername = $request->email_username;
+        $user = User::where(function($query) use ($emailUsername) {
+                        $query->where('username', $emailUsername)
+                              ->orWhere('email', $emailUsername);
+                    })->first();
 
         if (!$user) {
             return back()->withErrors([
-                'error' => 'Invalid staff credentials. Please check your username and password.',
-            ])->withInput($request->only('username'));
+                'error' => 'Invalid staff credentials. Please check your email/username and password.',
+            ])->withInput($request->only('email_username'));
         }
 
         // Check if user is staff (role_id = 2 ONLY)
         if ($user->role_id !== 2) {
             return back()->withErrors([
                 'error' => 'Access denied. This portal is for staff members only.',
-            ])->withInput($request->only('username'));
+            ])->withInput($request->only('email_username'));
         }
 
-        // Attempt login with username and password using staff guard
-        if (Auth::guard('staff')->attempt(['username' => $request->username, 'password' => $request->password])) {
+        // Verify password manually and then authenticate
+        if (Hash::check($request->password, $user->password)) {
+            // Manually log in the user using the staff guard
+            Auth::guard('staff')->login($user);
             $request->session()->regenerate();
 
             // Check if staff must change password (first-time login)
@@ -71,8 +77,8 @@ class StaffAuthController extends Controller
         }
 
         return back()->withErrors([
-            'error' => 'Invalid staff credentials. Please check your username and password.',
-        ])->withInput($request->only('username'));
+            'error' => 'Invalid staff credentials. Please check your email/username and password.',
+        ])->withInput($request->only('email_username'));
     }
 
     /**
@@ -282,12 +288,20 @@ class StaffAuthController extends Controller
     {
         $username = Auth::guard('staff')->user()->username ?? 'Unknown';
 
+        // Logout from all guards to ensure complete session cleanup
+        Auth::guard('web')->logout();
         Auth::guard('staff')->logout();
+        Auth::guard('admin')->logout();
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
         \Log::info("Staff member '$username' logged out");
 
+        // Set session flag to notify other tabs via localStorage
+        $request->session()->put('staff_logout_flag', time());
+
+        // Redirect to staff login portal
         return redirect()->route('staff.login')->with('success', 'Logged out successfully');
     }
 }

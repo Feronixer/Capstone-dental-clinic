@@ -33,16 +33,29 @@ class AuthController extends Controller
     }
 
     public function login(Request $request) {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
+        $request->validate([
+            'email_username' => ['required', 'string'],
             'password' => ['required', 'min:8'],
-
         ]);
-        if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
 
-            // Get authenticated user
-            $user = Auth::user();
+        // Try to find user by username or email
+        $emailUsername = $request->email_username;
+        $user = User::where(function($query) use ($emailUsername) {
+                        $query->where('username', $emailUsername)
+                              ->orWhere('email', $emailUsername);
+                    })->first();
+
+        if (!$user) {
+            return back()->withErrors([
+                'error' => 'The provided credentials do not match our records.',
+            ])->withInput($request->only('email_username'));
+        }
+
+        // Verify password manually and then authenticate
+        if (Hash::check($request->password, $user->password)) {
+            // Manually log in the user using the web guard
+            Auth::login($user);
+            $request->session()->regenerate();
 
             // Check if user must change password (first-time login)
             if ($user->must_change_password) {
@@ -133,10 +146,19 @@ class AuthController extends Controller
 
     public function logout(Request $request): RedirectResponse
     {
-        Auth::logout();
+        // Logout from all guards to ensure complete session cleanup
+        Auth::guard('web')->logout();
+        Auth::guard('staff')->logout();
+        Auth::guard('admin')->logout();
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect('/login')->with('success','Logged out successfully');
+
+        // Set session flag to notify other tabs via localStorage
+        $request->session()->put('patient_logout_flag', time());
+
+        // Redirect to patient login portal
+        return redirect()->route('login')->with('success','Logged out successfully');
     }
 
     public function addUser(Request $request)

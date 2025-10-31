@@ -148,7 +148,8 @@
     /* Services Section */
     .services-section {
         padding: 5rem 3rem;
-        background: white;
+        background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
+        position: relative;
     }
 
     .services-container {
@@ -159,101 +160,211 @@
     .services-title {
         font-size: 2.5rem;
         font-weight: 800;
-        color: #263238;
+        color: #1e293b;
         text-align: center;
-        margin-bottom: 1rem;
-        letter-spacing: 1px;
-    }
-
-    .services-description {
-        text-align: center;
-        color: #546e7a;
-        font-size: 1rem;
-        line-height: 1.6;
         margin-bottom: 3rem;
+        letter-spacing: 1px;
+        text-transform: uppercase;
     }
 
-    .services-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    .services-carousel-wrapper {
+        position: relative;
+        padding: 0 60px;
+    }
+
+    .services-carousel {
+        display: flex;
         gap: 2rem;
-        max-width: 1200px;
-        margin: 0 auto;
+        overflow-x: hidden;
+        scroll-behavior: smooth;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .services-carousel::-webkit-scrollbar {
+        display: none;
     }
 
     .service-card {
         background: white;
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border-radius: 20px;
+        padding: 2rem;
+        min-width: 250px;
+        max-width: 250px;
+        flex-shrink: 0;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
         transition: all 0.3s ease;
         cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
     }
 
     .service-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 12px 40px rgba(33, 150, 243, 0.2);
+        transform: translateY(-10px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
     }
 
     .service-icon-box {
-        background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
-        padding: 2.5rem;
+        width: 80px;
+        height: 80px;
         display: flex;
         align-items: center;
         justify-content: center;
-        height: 140px;
+        margin-bottom: 1.5rem;
     }
 
     .service-icon-box i {
         font-size: 3rem;
-        color: white;
+        color: #1e293b;
     }
 
-    .service-content {
-        padding: 1.5rem;
-        background: white;
-    }
-
-    .service-content h3 {
-        font-size: 1.2rem;
+    .service-card h3 {
+        font-size: 1.1rem;
         font-weight: 700;
-        color: #263238;
+        color: #1e293b;
+        text-transform: uppercase;
+        margin: 0;
+        line-height: 1.4;
+    }
+
+    .carousel-nav-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: white;
+        border: none;
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transition: all 0.3s ease;
+        z-index: 10;
+    }
+
+    .carousel-nav-btn:hover {
+        background: #f1f5f9;
+        transform: translateY(-50%) scale(1.1);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .carousel-nav-btn.prev {
+        left: 0;
+    }
+
+    .carousel-nav-btn.next {
+        right: 0;
+    }
+
+    .carousel-nav-btn i {
+        font-size: 1.5rem;
+        color: #1e293b;
+    }
+
+    .carousel-nav-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* Service Modal */
+    .service-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .service-modal.active {
+        display: flex;
+    }
+
+    .service-modal-content {
+        background: white;
+        border-radius: 20px;
+        padding: 2.5rem;
+        max-width: 500px;
+        width: 90%;
+        position: relative;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .service-modal-close {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: #64748b;
+        transition: color 0.2s;
+    }
+
+    .service-modal-close:hover {
+        color: #1e293b;
+    }
+
+    .service-modal-icon {
+        width: 80px;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+    }
+
+    .service-modal-icon i {
+        font-size: 3rem;
+        color: #0d9488;
+    }
+
+    .service-modal-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #1e293b;
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+
+    .service-modal-description {
+        font-size: 1rem;
+        color: #64748b;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+
+    .service-modal-duration {
+        background: #f1f5f9;
+        padding: 1rem;
+        border-radius: 12px;
+        text-align: center;
+        margin-top: 1rem;
+    }
+
+    .service-modal-duration-label {
+        font-size: 0.85rem;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
         margin-bottom: 0.5rem;
     }
 
-    .service-price {
-        display: flex;
-        align-items: baseline;
-        gap: 0.5rem;
-        margin-bottom: 0.8rem;
-        flex-wrap: wrap;
-    }
-
-    .price-label {
-        font-size: 0.75rem;
-        color: #90a4ae;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        font-weight: 600;
-    }
-
-    .price-amount {
-        font-size: 1.4rem;
-        font-weight: 800;
-        color: #2196F3;
-        line-height: 1;
-    }
-
-    .price-note {
-        font-size: 0.75rem;
-        color: #78909c;
-        font-style: italic;
-    }
-
-    .service-content p {
-        font-size: 0.9rem;
-        color: #78909c;
-        line-height: 1.6;
+    .service-modal-duration-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #0d9488;
     }
 
     @media (max-width: 1200px) {
@@ -305,9 +416,8 @@
             padding: 4rem 2rem;
         }
 
-        .services-grid {
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
+        .services-carousel-wrapper {
+            padding: 0 50px;
         }
     }
 
@@ -496,40 +606,110 @@
 <section class="services-section">
     <div class="services-container">
         <h2 class="services-title">OUR SERVICES</h2>
-        <p class="services-description">
-            We offer a comprehensive range of premium dental services using the latest<br>
-            technology and techniques to ensure optimal oral health and beautiful smiles.
-        </p>
 
-        <div class="services-grid">
-            @forelse($services as $service)
-            <!-- Service Card: {{ $service->service_name }} -->
-            <div class="service-card">
-                <div class="service-icon-box">
-                    <i class="bi {{ $service->icon_class ?? 'bi-gear' }}"></i>
-                </div>
-                <div class="service-content">
-                    <h3>{{ $service->service_name }}</h3>
-                    <div class="service-price">
-                        <span class="price-label">Starting at</span>
-                        <span class="price-amount">₱{{ number_format($service->price, 0, '.', ',') }}</span>
-                        @if(strpos(strtolower($service->description), 'tooth') !== false)
-                            <span class="price-note">per tooth</span>
-                        @endif
+        <div class="services-carousel-wrapper">
+            <button class="carousel-nav-btn prev" onclick="scrollServices('prev')" id="servicesPrevBtn">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+
+            <div class="services-carousel" id="servicesCarousel">
+                @forelse($services as $service)
+                <div class="service-card" onclick="openServiceModal({{ $service->id }}, '{{ $service->service_name }}', '{{ addslashes($service->description) }}', {{ $service->default_duration_minutes }}, '{{ $service->icon_class ?? 'bi-gear' }}')">
+                    <div class="service-icon-box">
+                        <i class="bi {{ $service->icon_class ?? 'bi-gear' }}"></i>
                     </div>
-                    <p>{{ $service->description }}</p>
+                    <h3>{{ $service->service_name }}</h3>
                 </div>
+                @empty
+                <div class="col-12 text-center py-5" style="color: white; min-width: 100%;">
+                    <i class="bi bi-inbox" style="font-size: 4rem; opacity: 0.5;"></i>
+                    <p class="mt-3">No services available at the moment</p>
+                </div>
+                @endforelse
             </div>
-            @empty
-            <!-- No Services Available -->
-            <div class="col-12 text-center py-5">
-                <i class="bi bi-inbox" style="font-size: 4rem; opacity: 0.2;"></i>
-                <p class="text-muted mt-3">No services available at the moment</p>
-            </div>
-            @endforelse
+
+            <button class="carousel-nav-btn next" onclick="scrollServices('next')" id="servicesNextBtn">
+                <i class="bi bi-chevron-right"></i>
+            </button>
         </div>
     </div>
 </section>
+
+<!-- Service Modal -->
+<div class="service-modal" id="serviceModal" onclick="closeServiceModalOnBackdrop(event)">
+    <div class="service-modal-content" onclick="event.stopPropagation()">
+        <button class="service-modal-close" onclick="closeServiceModal()">
+            <i class="bi bi-x-lg"></i>
+        </button>
+        <div class="service-modal-icon">
+            <i class="bi" id="modalServiceIcon"></i>
+        </div>
+        <h2 class="service-modal-title" id="modalServiceName"></h2>
+        <p class="service-modal-description" id="modalServiceDescription"></p>
+        <div class="service-modal-duration">
+            <div class="service-modal-duration-label">Duration</div>
+            <div class="service-modal-duration-value" id="modalServiceDuration"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Services Carousel
+    function scrollServices(direction) {
+        const carousel = document.getElementById('servicesCarousel');
+        const scrollAmount = 270; // card width (250px) + gap (20px)
+        const maxScroll = carousel.scrollWidth - carousel.clientWidth;
+
+        if (direction === 'next') {
+            const currentScroll = carousel.scrollLeft;
+            const nextScroll = currentScroll + scrollAmount;
+
+            if (nextScroll >= maxScroll - 10) {
+                // At the end, loop back to the beginning
+                carousel.scrollTo({ left: 0, behavior: 'smooth' });
+            } else {
+                carousel.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+            }
+        } else {
+            const currentScroll = carousel.scrollLeft;
+
+            if (currentScroll <= 10) {
+                // At the beginning, loop to the end
+                carousel.scrollTo({ left: maxScroll, behavior: 'smooth' });
+            } else {
+                carousel.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+            }
+        }
+    }
+
+    // Service Modal
+    function openServiceModal(id, name, description, duration, iconClass) {
+        document.getElementById('modalServiceName').textContent = name;
+        document.getElementById('modalServiceDescription').textContent = description;
+        document.getElementById('modalServiceDuration').textContent = duration + ' minutes';
+        document.getElementById('modalServiceIcon').className = 'bi ' + iconClass;
+        document.getElementById('serviceModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeServiceModal() {
+        document.getElementById('serviceModal').classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    function closeServiceModalOnBackdrop(event) {
+        if (event.target.id === 'serviceModal') {
+            closeServiceModal();
+        }
+    }
+
+    // Close modal on ESC key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeServiceModal();
+        }
+    });
+</script>
 
 <!-- Feedback Section -->
 <section class="feedback-section" id="feedback">

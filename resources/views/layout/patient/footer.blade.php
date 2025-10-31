@@ -4,7 +4,7 @@
             <!-- About Section -->
             <div class="footer-section">
                 <div class="footer-logo">
-                    <img src="{{ asset('images/logo.png') }}" alt="JValera Dental Clinic" class="footer-logo-img">
+                    <img src="{{ asset('images/logo5.png') }}" alt="JValera Dental Clinic" class="footer-logo-img">
                     <div>
                         <h3 class="footer-brand">JValera Dental Clinic</h3>
                         <p class="footer-tagline">Your smile is our priority</p>
@@ -36,20 +36,20 @@
                     <li><a href="{{ route('patient-home') }}">Home</a></li>
                     <li><a href="{{ route('patient-calendar') }}">Calendar</a></li>
                     <li><a href="{{ route('patient-announcement') }}">Announcements</a></li>
-                    <li><a href="#">My Records</a></li>
-                    <li><a href="#">About Us</a></li>
+                    <li><a href="{{ route('patient-record') }}">My Records</a></li>
+                    <li><a href="{{ route('patient-about') }}">About Us</a></li>
                 </ul>
             </div>
 
             <!-- Services -->
             <div class="footer-section">
                 <h4 class="footer-heading">Our Services</h4>
-                <ul class="footer-links">
-                    <li><a href="#">General Dentistry</a></li>
-                    <li><a href="#">Cosmetic Dentistry</a></li>
-                    <li><a href="#">Orthodontics</a></li>
-                    <li><a href="#">Teeth Whitening</a></li>
-                    <li><a href="#">Emergency Care</a></li>
+                <ul class="footer-services-list">
+                    <li>General Dentistry</li>
+                    <li>Cosmetic Dentistry</li>
+                    <li>Orthodontics</li>
+                    <li>Teeth Whitening</li>
+                    <li>Emergency Care</li>
                 </ul>
             </div>
 
@@ -180,10 +180,22 @@
 }
 
 .footer-links,
-.footer-contact {
+.footer-contact,
+.footer-services-list {
     list-style: none;
     padding: 0;
     margin: 0;
+}
+
+.footer-services-list {
+    list-style-type: disc;
+    padding-left: 1.5rem;
+}
+
+.footer-services-list li {
+    color: rgba(255,255,255,0.8);
+    margin-bottom: 0.75rem;
+    line-height: 1.6;
 }
 
 .footer-links li {

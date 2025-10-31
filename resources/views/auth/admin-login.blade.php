@@ -4,9 +4,6 @@
 @if (session('success'))
     <x-toast-message type="success" :message="session('success')" />
 @endif
-@if ($errors->has('error'))
-    <x-toast-message type="danger" :message="$errors->first('error')" />
-@endif
     <div class="login-card">
         <div class="login-card-content">
             <div class="text-center mb-4">
@@ -19,17 +16,38 @@
             <form action="{{ route('admin.login.submit') }}" method="POST">
                 @csrf
                 <div class="mb-3">
-                    <label for="username" class="form-label">Username</label>
+                    <label for="email_username" class="form-label">Email or Username</label>
                     <div class="input-group">
                         <span class="input-group-text bg-primary text-white">
                             <i class="bi bi-person-badge-fill"></i>
                         </span>
-                        <input type="text" class="form-control @error('username') is-invalid @enderror"
-                               name="username" placeholder="Enter admin username" value="{{ old('username') }}" required autofocus>
+                        <input type="text" class="form-control @error('email_username') is-invalid @enderror @error('username') is-invalid @enderror @error('email') is-invalid @enderror"
+                               name="email_username" id="email_username" placeholder="Enter email or username" value="{{ old('email_username') ?: old('username') }}" required autofocus>
                     </div>
-                    @error('username')
-                        <p class="text-danger mt-1">* {{ $message }}</p>
+                    @error('email_username')
+                        <div class="alert alert-danger-custom mt-2" role="alert">
+                            <i class="bi bi-exclamation-circle-fill me-2"></i>
+                            <span>{{ $message }}</span>
+                        </div>
                     @enderror
+                    @error('username')
+                        <div class="alert alert-danger-custom mt-2" role="alert">
+                            <i class="bi bi-exclamation-circle-fill me-2"></i>
+                            <span>{{ $message }}</span>
+                        </div>
+                    @enderror
+                    @error('email')
+                        <div class="alert alert-danger-custom mt-2" role="alert">
+                            <i class="bi bi-exclamation-circle-fill me-2"></i>
+                            <span>{{ $message }}</span>
+                        </div>
+                    @enderror
+                    @if($errors->has('error'))
+                        <div class="alert alert-danger-custom mt-2" role="alert">
+                            <i class="bi bi-exclamation-circle-fill me-2"></i>
+                            <span>{{ $errors->first('error') }}</span>
+                        </div>
+                    @endif
                 </div>
                 <div class="mb-4">
                     <label for="password" class="form-label">Password</label>
@@ -44,7 +62,10 @@
                         </button>
                     </div>
                     @error('password')
-                        <p class="text-danger mt-1">* {{ $message }}</p>
+                        <div class="alert alert-danger-custom mt-2" role="alert">
+                            <i class="bi bi-exclamation-circle-fill me-2"></i>
+                            <span>{{ $message }}</span>
+                        </div>
                     @enderror
                 </div>
                 <button type="submit" class="btn-custom-primary w-100 bg-primary border-primary">

@@ -7,6 +7,7 @@ use App\Models\Appointment;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class StaffDashboard extends Controller
 {
@@ -15,6 +16,17 @@ class StaffDashboard extends Controller
      */
     public function index()
     {
+        // Ensure user is authenticated as staff (role_id = 2)
+        if (!Auth::guard('staff')->check()) {
+            return redirect()->route('staff.login')->withErrors(['error' => 'Please login as staff to access this page.']);
+        }
+
+        $user = Auth::guard('staff')->user();
+        if ($user->role_id !== 2) {
+            Auth::guard('staff')->logout();
+            return redirect()->route('staff.login')->withErrors(['error' => 'Access denied. This portal is for staff members only.']);
+        }
+
         // Get current month and year for calendar
         $currentMonth = Carbon::now()->month;
         $currentYear = Carbon::now()->year;

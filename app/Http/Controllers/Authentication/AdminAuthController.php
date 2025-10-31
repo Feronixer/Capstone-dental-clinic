@@ -34,28 +34,34 @@ class AdminAuthController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'username' => ['required', 'string'],
+            'email_username' => ['required', 'string'],
             'password' => ['required', 'min:8'],
         ]);
 
-        // Try to find user by username
-        $user = User::where('username', $request->username)->first();
+        // Try to find user by username or email
+        $emailUsername = $request->email_username;
+        $user = User::where(function($query) use ($emailUsername) {
+                        $query->where('username', $emailUsername)
+                              ->orWhere('email', $emailUsername);
+                    })->first();
 
         if (!$user) {
             return back()->withErrors([
-                'error' => 'Invalid admin credentials. Please check your username and password.',
-            ])->withInput($request->only('username'));
+                'error' => 'Invalid admin credentials. Please check your email/username and password.',
+            ])->withInput($request->only('email_username'));
         }
 
         // Check if user is admin (role_id = 1 ONLY)
         if ($user->role_id !== 1) {
             return back()->withErrors([
                 'error' => 'Access denied. This portal is for administrators only.',
-            ])->withInput($request->only('username'));
+            ])->withInput($request->only('email_username'));
         }
 
-        // Attempt login with username and password using admin guard
-        if (Auth::guard('admin')->attempt(['username' => $request->username, 'password' => $request->password])) {
+        // Verify password manually and then authenticate
+        if (Hash::check($request->password, $user->password)) {
+            // Manually log in the user using the admin guard
+            Auth::guard('admin')->login($user);
             $request->session()->regenerate();
 
             // Check if admin must change password (first-time login)
@@ -72,7 +78,7 @@ class AdminAuthController extends Controller
 
         return back()->withErrors([
             'error' => 'Invalid credentials. Please try again.',
-        ])->withInput($request->only('username'));
+        ])->withInput($request->only('email_username'));
     }
 
     /**
@@ -273,14 +279,21 @@ class AdminAuthController extends Controller
     {
         $username = Auth::guard('admin')->user()->username ?? 'unknown';
 
+        // Logout from all guards to ensure complete session cleanup
+        Auth::guard('web')->logout();
+        Auth::guard('staff')->logout();
         Auth::guard('admin')->logout();
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
         \Log::info("Administrator '{$username}' logged out");
 
-        return redirect()->route('admin.login')
-            ->with('success', 'You have been logged out successfully.');
+        // Set session flag to notify other tabs via localStorage
+        $request->session()->put('admin_logout_flag', time());
+
+        // Redirect to admin login portal
+        return redirect()->route('admin.login')->with('success', 'You have been logged out successfully.');
     }
 }
 

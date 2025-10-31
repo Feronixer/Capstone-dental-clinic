@@ -2,10 +2,9 @@
     <div class="header-container">
         <!-- Logo Section -->
         <div class="header-logo">
-            <img src="{{ asset('images/logo3.png') }}" alt="JValera Dental Clinic" class="logo-img">
+            <img src="{{ asset('images/logo4.png') }}" alt="JValera Dental Clinic" class="logo-img">
             <div class="logo-text">
-                <span class="clinic-name">JValera</span>
-                <span class="clinic-subtitle">Dental Clinic</span>
+                <span class="clinic-name">TOOTHTALK</span>
             </div>
         </div>
 

@@ -71,7 +71,8 @@ Route::post('/staff/reset-password/verify', [StaffAuthController::class, 'verify
 Route::get('/staff/reset-password', [StaffAuthController::class, 'showResetForm'])->name('staff.password.reset.form');
 Route::post('/staff/reset-password', [StaffAuthController::class, 'resetPassword'])->name('staff.password.reset');
 
-Route::middleware(['auth:web,admin,staff'])->group(function(): void{
+// Admin Routes - Only accessible by admin guard (role_id = 1)
+Route::middleware(['auth:admin'])->group(function(): void{
     //Admin Routes
     Route::get('/admin/dashboard', [AdminDashboardController::class,'index'])->name('admin-dashboard');
 
@@ -148,11 +149,8 @@ Route::middleware(['auth:web,admin,staff'])->group(function(): void{
     Route::get('/admin/activity-logs/data', [\App\Http\Controllers\Admin\ActivityLogController::class,'getLogs'])->name('admin-activity-logs.data');
     Route::get('/admin/activity-logs/{id}', [\App\Http\Controllers\Admin\ActivityLogController::class,'show'])->name('admin-activity-logs.show');
 
-    // Staff Patient Record Access Routes (Staff Only)
-    Route::get('/staff/patient-records', [PatientRecordAccessController::class,'index'])->name('staff-patient-records');
-    Route::get('/staff/patient-records/search', [PatientRecordAccessController::class,'searchPatients'])->name('staff-patient-records.search');
-    Route::get('/staff/patient-records/{id}', [PatientRecordAccessController::class,'getPatientDetails'])->name('staff-patient-records.details');
-    Route::get('/staff/patient-records/{id}/export', [PatientRecordAccessController::class,'exportPatientRecord'])->name('staff-patient-records.export');
+    // Admin Logout Route
+    Route::post('/admin/logout', [AdminAuthController::class,'logout'])->name('admin.logout');
 
     // Test Email Route (for development/testing)
     Route::get('/admin/test-email', function() {
@@ -202,6 +200,15 @@ Route::middleware(['auth:web,admin,staff'])->group(function(): void{
             </div>';
         }
     })->name('admin.test-email');
+});
+
+// Staff Routes - Only accessible by staff guard (role_id = 2)
+Route::middleware(['auth:staff'])->group(function(): void{
+    // Staff Patient Record Access Routes (Staff Only)
+    Route::get('/staff/patient-records', [PatientRecordAccessController::class,'index'])->name('staff-patient-records');
+    Route::get('/staff/patient-records/search', [PatientRecordAccessController::class,'searchPatients'])->name('staff-patient-records.search');
+    Route::get('/staff/patient-records/{id}', [PatientRecordAccessController::class,'getPatientDetails'])->name('staff-patient-records.details');
+    Route::get('/staff/patient-records/{id}/export', [PatientRecordAccessController::class,'exportPatientRecord'])->name('staff-patient-records.export');
 
     // Staff Post-Procedural Routes
     Route::get('/staff/post-procedural', [StaffPostProceduralController::class,'index'])->name('staff-post-procedural');
@@ -221,50 +228,6 @@ Route::middleware(['auth:web,admin,staff'])->group(function(): void{
     Route::put('/staff/post-procedural/progress-notes/{id}', [StaffPostProceduralController::class,'updateProgressNote']);
     Route::post('/staff/post-procedural/store-progress-notes', [StaffPostProceduralController::class,'storeProgressNotes']);
     Route::delete('/staff/post-procedural/progress-notes/{id}', [StaffPostProceduralController::class,'destroyProgressNote']);
-
-    //Logout Routes
-    Route::post('/logout', [AuthController::class,'logout'])->name('logout');
-    Route::post('/admin/logout', [AdminAuthController::class,'logout'])->name('admin.logout');
-    Route::post('/staff/logout', [StaffAuthController::class,'logout'])->name('staff.logout');
-
-    // Patient Routes
-    Route::get('/patient/dashboard', [PatientDashboardController::class, 'index'])->name('patient-dashboard');
-    Route::get('/patient/home', [PatientDashboardController::class, 'index'])->name('patient-home');
-    Route::get('/patient/calendar', [CalendarController::class, 'index'])->name('patient-calendar');
-    Route::post('/patient/calendar/submit-request', [CalendarController::class, 'submitRequest'])->name('patient-calendar.submit-request');
-    Route::get('/patient/profile', [PatientProfileController::class, 'index'])->name('patient-profile');
-    Route::get('/patient/record', [PatientRecord::class, 'index'])->name('patient-record');
-    Route::get('/patient/record/{id}', [PatientRecord::class, 'show'])->name('patient-record.show');
-    Route::get('/patient/record/{id}/download', [PatientRecord::class, 'download'])->name('patient-record.download');
-    Route::get('/patient/records/all', [PatientRecord::class, 'getRecords'])->name('patient-records.all');
-    Route::post('/patient/profile/update', [PatientProfileController::class, 'update'])->name('patient-profile.update');
-    Route::get('/patient/history/{id}', [PatientRecord::class, 'showHistory'])->name('patient-history.show');
-    Route::get('/patient/history/{id}/download', [PatientRecord::class, 'downloadHistory'])->name('patient-history.download');
-    Route::get('/patient/progress-note/{id}', [PatientRecord::class, 'showProgressNote'])->name('patient-progress-note.show');
-    Route::get('/patient/progress-note/{id}/download', [PatientRecord::class, 'downloadProgressNote'])->name('patient-progress-note.download');
-    Route::get('/patient/announcement', [AnnouncementController::class, 'index'])->name('patient-announcement');
-    Route::get('/patient/about', function() {
-        return view('patient.aboutUs');
-    })->name('patient-about');
-
-    // Patient Notification Routes
-    Route::get('/patient/notifications', [App\Http\Controllers\Patient\NotificationController::class, 'index'])->name('patient-notifications');
-    Route::get('/patient/notifications/recent', [App\Http\Controllers\Patient\NotificationController::class, 'getRecent'])->name('patient-notifications.recent');
-    Route::get('/patient/notifications/unread-count', [App\Http\Controllers\Patient\NotificationController::class, 'getUnreadCount'])->name('patient-notifications.unread-count');
-    Route::post('/patient/notifications/{id}/read', [App\Http\Controllers\Patient\NotificationController::class, 'markAsRead'])->name('patient-notifications.mark-read');
-    Route::post('/patient/notifications/{id}/unread', [App\Http\Controllers\Patient\NotificationController::class, 'markAsUnread'])->name('patient-notifications.mark-unread');
-    Route::post('/patient/notifications/mark-all-read', [App\Http\Controllers\Patient\NotificationController::class, 'markAllAsRead'])->name('patient-notifications.mark-all-read');
-    Route::delete('/patient/notifications/{id}', [App\Http\Controllers\Patient\NotificationController::class, 'destroy'])->name('patient-notifications.destroy');
-    Route::post('/patient/notifications/clear-read', [App\Http\Controllers\Patient\NotificationController::class, 'clearRead'])->name('patient-notifications.clear-read');
-
-    // Patient Feedback Routes
-    Route::get('/patient/feedback', [FeedbackController::class, 'index'])->name('patient-feedback');
-    Route::get('/patient/feedback/appointments', [FeedbackController::class, 'getCompletedAppointments'])->name('patient-feedback.appointments');
-    Route::get('/patient/feedback/debug', [FeedbackController::class, 'debugAppointments'])->name('patient-feedback.debug');
-    Route::post('/patient/feedback/submit', [FeedbackController::class, 'submitFeedback'])->name('patient-feedback.submit');
-    Route::get('/patient/feedback/history', [FeedbackController::class, 'getFeedbackHistory'])->name('patient-feedback.history');
-
-    Route::post('/patient/logout', [AuthController::class,'logout'])->name('patient.logout');
 
     Route::get('/staff/dashboard',[StaffDashboard::class, 'index'])->name('staff-dashboard');
 
@@ -318,5 +281,51 @@ Route::middleware(['auth:web,admin,staff'])->group(function(): void{
     Route::get('/staff/notifications', [App\Http\Controllers\Staff\NotificationController::class,'index'])->name('staff-notification');
     Route::post('/staff/notifications/approve/{id}', [App\Http\Controllers\Staff\NotificationController::class,'approveRequest'])->name('staff-notification.approve');
     Route::post('/staff/notifications/deny/{id}', [App\Http\Controllers\Staff\NotificationController::class,'denyRequest'])->name('staff-notification.deny');
+
+    // Staff Logout Route
+    Route::post('/staff/logout', [StaffAuthController::class,'logout'])->name('staff.logout');
+});
+
+// Patient Routes - Only accessible by web guard (role_id = 3)
+Route::middleware(['auth:web'])->group(function(): void{
+    Route::get('/patient/dashboard', [PatientDashboardController::class, 'index'])->name('patient-dashboard');
+    Route::get('/patient/home', [PatientDashboardController::class, 'index'])->name('patient-home');
+    Route::get('/patient/calendar', [CalendarController::class, 'index'])->name('patient-calendar');
+    Route::post('/patient/calendar/submit-request', [CalendarController::class, 'submitRequest'])->name('patient-calendar.submit-request');
+    Route::get('/patient/profile', [PatientProfileController::class, 'index'])->name('patient-profile');
+    Route::get('/patient/record', [PatientRecord::class, 'index'])->name('patient-record');
+    Route::get('/patient/record/{id}', [PatientRecord::class, 'show'])->name('patient-record.show');
+    Route::get('/patient/record/{id}/download', [PatientRecord::class, 'download'])->name('patient-record.download');
+    Route::get('/patient/records/all', [PatientRecord::class, 'getRecords'])->name('patient-records.all');
+    Route::post('/patient/profile/update', [PatientProfileController::class, 'update'])->name('patient-profile.update');
+    Route::get('/patient/history/{id}', [PatientRecord::class, 'showHistory'])->name('patient-history.show');
+    Route::get('/patient/history/{id}/download', [PatientRecord::class, 'downloadHistory'])->name('patient-history.download');
+    Route::get('/patient/progress-note/{id}', [PatientRecord::class, 'showProgressNote'])->name('patient-progress-note.show');
+    Route::get('/patient/progress-note/{id}/download', [PatientRecord::class, 'downloadProgressNote'])->name('patient-progress-note.download');
+    Route::get('/patient/announcement', [AnnouncementController::class, 'index'])->name('patient-announcement');
+    Route::get('/patient/about', function() {
+        return view('patient.aboutUs');
+    })->name('patient-about');
+
+    // Patient Notification Routes
+    Route::get('/patient/notifications', [App\Http\Controllers\Patient\NotificationController::class, 'index'])->name('patient-notifications');
+    Route::get('/patient/notifications/recent', [App\Http\Controllers\Patient\NotificationController::class, 'getRecent'])->name('patient-notifications.recent');
+    Route::get('/patient/notifications/unread-count', [App\Http\Controllers\Patient\NotificationController::class, 'getUnreadCount'])->name('patient-notifications.unread-count');
+    Route::post('/patient/notifications/{id}/read', [App\Http\Controllers\Patient\NotificationController::class, 'markAsRead'])->name('patient-notifications.mark-read');
+    Route::post('/patient/notifications/{id}/unread', [App\Http\Controllers\Patient\NotificationController::class, 'markAsUnread'])->name('patient-notifications.mark-unread');
+    Route::post('/patient/notifications/mark-all-read', [App\Http\Controllers\Patient\NotificationController::class, 'markAllAsRead'])->name('patient-notifications.mark-all-read');
+    Route::delete('/patient/notifications/{id}', [App\Http\Controllers\Patient\NotificationController::class, 'destroy'])->name('patient-notifications.destroy');
+    Route::post('/patient/notifications/clear-read', [App\Http\Controllers\Patient\NotificationController::class, 'clearRead'])->name('patient-notifications.clear-read');
+
+    // Patient Feedback Routes
+    Route::get('/patient/feedback', [FeedbackController::class, 'index'])->name('patient-feedback');
+    Route::get('/patient/feedback/appointments', [FeedbackController::class, 'getCompletedAppointments'])->name('patient-feedback.appointments');
+    Route::get('/patient/feedback/debug', [FeedbackController::class, 'debugAppointments'])->name('patient-feedback.debug');
+    Route::post('/patient/feedback/submit', [FeedbackController::class, 'submitFeedback'])->name('patient-feedback.submit');
+    Route::get('/patient/feedback/history', [FeedbackController::class, 'getFeedbackHistory'])->name('patient-feedback.history');
+
+    // Patient Logout Route
+    Route::post('/logout', [AuthController::class,'logout'])->name('logout');
+    Route::post('/patient/logout', [AuthController::class,'logout'])->name('patient.logout');
 });
 

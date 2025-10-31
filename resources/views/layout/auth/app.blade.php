@@ -12,5 +12,39 @@
 <body>
     {{-- Section --}}
     @yield('content')
+
+    {{-- Cross-tab logout notification --}}
+    <script>
+        (function() {
+            // Determine which login page we're on
+            const path = window.location.pathname;
+            let logoutEventKey = 'auth_logout_event';
+
+            if (path.includes('/admin/login')) {
+                logoutEventKey = 'admin_logout_event';
+            } else if (path.includes('/staff/login')) {
+                logoutEventKey = 'staff_logout_event';
+            } else if (path.includes('/login') && !path.includes('/admin') && !path.includes('/staff')) {
+                logoutEventKey = 'patient_logout_event';
+            }
+
+            // Notify other tabs that user logged out and landed on login page
+            localStorage.setItem(logoutEventKey, Date.now().toString());
+
+            // Also set general logout event
+            localStorage.setItem('auth_logout_event', Date.now().toString());
+
+            // Clear session active flags
+            localStorage.removeItem('admin_session_active');
+            localStorage.removeItem('staff_session_active');
+            localStorage.removeItem('patient_session_active');
+
+            // Clean up events after a short delay
+            setTimeout(function() {
+                localStorage.removeItem(logoutEventKey);
+                localStorage.removeItem('auth_logout_event');
+            }, 500);
+        })();
+    </script>
 </body>
 </html>

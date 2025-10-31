@@ -20,11 +20,15 @@ class HomeController extends Controller
         $faqs = ChatbotFaq::where('is_active', true)->orderBy('order')->get(['question','answer']);
         $services = Service::orderBy('id')->get();
 
-        return view("home", [
-            'chatbotSetting' => $setting,
-            'chatbotFaqs' => $faqs,
-            'services' => $services,
-        ]);
+        return response()
+            ->view("home", [
+                'chatbotSetting' => $setting,
+                'chatbotFaqs' => $faqs,
+                'services' => $services,
+            ])
+            ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
     }
 
     public function showAnnouncement() {

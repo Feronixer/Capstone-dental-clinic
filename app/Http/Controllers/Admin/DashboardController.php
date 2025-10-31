@@ -7,6 +7,7 @@ use App\Models\Appointment;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
@@ -15,6 +16,17 @@ class DashboardController extends Controller
      */
     public function index()
     {
+        // Ensure user is authenticated as admin (role_id = 1)
+        if (!Auth::guard('admin')->check()) {
+            return redirect()->route('admin.login')->withErrors(['error' => 'Please login as administrator to access this page.']);
+        }
+
+        $user = Auth::guard('admin')->user();
+        if ($user->role_id !== 1) {
+            Auth::guard('admin')->logout();
+            return redirect()->route('admin.login')->withErrors(['error' => 'Access denied. This portal is for administrators only.']);
+        }
+
         // Get current month and year for calendar
         $currentMonth = Carbon::now()->month;
         $currentYear = Carbon::now()->year;

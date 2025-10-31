@@ -19,5 +19,46 @@
     <main>
         @yield('content')
     </main>
+
+    {{-- Session monitoring for cross-tab logout detection --}}
+    <script>
+        (function() {
+            // Check if we're on admin portal
+            const isAdminPortal = window.location.pathname.startsWith('/admin/');
+
+            if (!isAdminPortal) return;
+
+            // Monitor localStorage for logout events
+            window.addEventListener('storage', function(e) {
+                if (e.key === 'admin_logout_event' || e.key === 'auth_logout_event') {
+                    // Admin logged out in another tab
+                    window.location.href = '{{ route("admin.login") }}';
+                }
+            });
+
+            // Also poll for session changes (backup method)
+            let lastSessionCheck = Date.now();
+            setInterval(function() {
+                // Check for logout events in localStorage
+                const logoutEvent = localStorage.getItem('admin_logout_event');
+                const generalLogoutEvent = localStorage.getItem('auth_logout_event');
+
+                if (logoutEvent || generalLogoutEvent) {
+                    window.location.href = '{{ route("admin.login") }}';
+                    return;
+                }
+
+                // Check if session active flag was cleared (indicates logout in another tab)
+                const sessionActive = localStorage.getItem('admin_session_active');
+                if (!sessionActive) {
+                    window.location.href = '{{ route("admin.login") }}';
+                    return;
+                }
+            }, 2000); // Check every 2 seconds
+
+            // Set admin session active flag
+            localStorage.setItem('admin_session_active', Date.now().toString());
+        })();
+    </script>
 </body>
 </html>

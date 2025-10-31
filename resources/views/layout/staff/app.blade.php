@@ -19,5 +19,46 @@
     <main>
         @yield('content')
     </main>
+
+    {{-- Session monitoring for cross-tab logout detection --}}
+    <script>
+        (function() {
+            // Check if we're on staff portal
+            const isStaffPortal = window.location.pathname.startsWith('/staff/');
+
+            if (!isStaffPortal) return;
+
+            // Monitor localStorage for logout events
+            window.addEventListener('storage', function(e) {
+                if (e.key === 'staff_logout_event' || e.key === 'auth_logout_event') {
+                    // Staff logged out in another tab
+                    window.location.href = '{{ route("staff.login") }}';
+                }
+            });
+
+            // Also poll for session changes (backup method)
+            let lastSessionCheck = Date.now();
+            setInterval(function() {
+                // Check for logout events in localStorage
+                const logoutEvent = localStorage.getItem('staff_logout_event');
+                const generalLogoutEvent = localStorage.getItem('auth_logout_event');
+
+                if (logoutEvent || generalLogoutEvent) {
+                    window.location.href = '{{ route("staff.login") }}';
+                    return;
+                }
+
+                // Check if session active flag was cleared (indicates logout in another tab)
+                const sessionActive = localStorage.getItem('staff_session_active');
+                if (!sessionActive) {
+                    window.location.href = '{{ route("staff.login") }}';
+                    return;
+                }
+            }, 2000); // Check every 2 seconds
+
+            // Set staff session active flag
+            localStorage.setItem('staff_session_active', Date.now().toString());
+        })();
+    </script>
 </body>
 </html>
