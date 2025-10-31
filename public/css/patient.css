@@ -247,6 +247,110 @@
     margin-bottom: 1.5rem;
 }
 
+/* Dark Mode for Patient Portal */
+[data-theme="dark"] .main-wrapper {
+    background-color: var(--dm-bg-primary) !important;
+}
+
+[data-theme="dark"] .patient-table thead {
+    background: var(--dm-bg-tertiary) !important;
+}
+
+[data-theme="dark"] .empty-state-icon {
+    color: var(--dm-text-muted) !important;
+}
+
+[data-theme="dark"] .empty-state-title {
+    color: var(--dm-text-secondary) !important;
+}
+
+[data-theme="dark"] .empty-state-description {
+    color: var(--dm-text-muted) !important;
+}
+
+[data-theme="dark"] .patient-card {
+    background-color: var(--dm-card-bg) !important;
+    border-color: var(--dm-border-color) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .patient-card-header {
+    border-bottom-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .patient-card-title {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .patient-card-subtitle {
+    color: var(--dm-text-muted) !important;
+}
+
+[data-theme="dark"] .form-label {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .patient-table thead {
+    background: var(--dm-bg-tertiary) !important;
+}
+
+[data-theme="dark"] .patient-table th {
+    color: var(--dm-text-secondary) !important;
+    border-bottom-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .patient-table td {
+    border-bottom-color: var(--dm-border-color) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .patient-table tbody tr:hover {
+    background: var(--dm-bg-tertiary) !important;
+}
+
+[data-theme="dark"] .mobile-menu-overlay {
+    background: var(--dm-card-bg) !important;
+}
+
+[data-theme="dark"] .mobile-nav-item {
+    border-bottom-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .mobile-nav-link {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .mobile-nav-link:hover {
+    background: var(--dm-bg-tertiary) !important;
+}
+
+[data-theme="dark"] .mobile-user-info-section {
+    background: var(--dm-bg-secondary) !important;
+    border-bottom-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .mobile-user-info-section h6 {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .mobile-user-info-section small {
+    color: var(--dm-text-muted) !important;
+}
+
+[data-theme="dark"] .mobile-user-actions-section {
+    background: var(--dm-bg-secondary) !important;
+    border-top-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .mobile-action-item {
+    color: var(--dm-text-primary) !important;
+    border-bottom-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .mobile-action-item:hover {
+    background: var(--dm-bg-tertiary) !important;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .main-content-area {

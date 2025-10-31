@@ -91,6 +91,125 @@
 {{-- Staff cannot delete users --}}
 {{-- @include('admin.account-management.change-password-modal') --}}
 
+<style>
+    /* Dark Mode Account Management - Fix Table Header, Rows and Pagination */
+    [data-theme="dark"] .table > thead > tr > th {
+        background-color: var(--dm-bg-tertiary) !important;
+        border-bottom-color: var(--dm-border-color) !important;
+        color: var(--dm-text-primary) !important;
+    }
+
+    [data-theme="dark"] .table > thead > tr > th .sortable-form .btn-link {
+        color: var(--dm-text-primary) !important;
+    }
+
+    [data-theme="dark"] .table > thead > tr > th .sortable-form .btn-link:hover {
+        color: var(--primary-color) !important;
+    }
+
+    [data-theme="dark"] .table > thead > tr > th .sortable-form .btn-link.active {
+        color: var(--primary-color) !important;
+    }
+
+    [data-theme="dark"] .table > thead > tr > th .text-secondary {
+        color: var(--dm-text-secondary) !important;
+    }
+
+    [data-theme="dark"] .table.table-striped > tbody > tr:nth-of-type(odd) {
+        background-color: var(--dm-bg-secondary) !important;
+    }
+
+    [data-theme="dark"] .table.table-striped > tbody > tr:nth-of-type(even) {
+        background-color: var(--dm-card-bg) !important;
+    }
+
+    [data-theme="dark"] .table.table-hover > tbody > tr:hover {
+        background-color: var(--dm-bg-tertiary) !important;
+    }
+
+    [data-theme="dark"] .table > tbody > tr > td {
+        color: var(--dm-text-primary) !important;
+        background-color: inherit !important;
+    }
+
+    [data-theme="dark"] #users-pagination .pagination .page-link {
+        background-color: var(--dm-card-bg) !important;
+        border-color: var(--dm-border-color) !important;
+        color: var(--dm-text-primary) !important;
+    }
+
+    [data-theme="dark"] #users-pagination .pagination .page-link:hover {
+        background-color: var(--dm-bg-tertiary) !important;
+        border-color: var(--dm-border-color) !important;
+        color: var(--dm-text-primary) !important;
+    }
+
+    [data-theme="dark"] #users-pagination .pagination .page-item.active .page-link {
+        background-color: var(--primary-color) !important;
+        border-color: var(--primary-color) !important;
+        color: white !important;
+    }
+
+    [data-theme="dark"] #users-pagination .pagination .page-item.disabled .page-link {
+        background-color: var(--dm-bg-secondary) !important;
+        border-color: var(--dm-border-color) !important;
+        color: var(--dm-text-muted) !important;
+        opacity: 0.6;
+    }
+
+    /* Fix form-floating text overlap in dark mode */
+    [data-theme="dark"] .form-floating > .form-control,
+    [data-theme="dark"] .form-floating > .form-select {
+        background-color: var(--dm-input-bg, #0f172a) !important;
+        border-color: var(--dm-input-border, #334155) !important;
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    [data-theme="dark"] .form-floating > .form-control:focus,
+    [data-theme="dark"] .form-floating > .form-select:focus {
+        background-color: var(--dm-input-bg, #0f172a) !important;
+        border-color: var(--primary-color, #3b82f6) !important;
+        color: var(--dm-text-primary, #f1f5f9) !important;
+        box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25) !important;
+    }
+
+    [data-theme="dark"] .form-floating > .form-control::placeholder {
+        color: transparent !important;
+        opacity: 0 !important;
+    }
+
+    [data-theme="dark"] .form-floating > .form-control:not(:placeholder-shown),
+    [data-theme="dark"] .form-floating > .form-control:focus {
+        padding-top: 1.625rem !important;
+        padding-bottom: 0.625rem !important;
+    }
+
+    [data-theme="dark"] .form-floating > .form-control:not(:placeholder-shown) ~ label,
+    [data-theme="dark"] .form-floating > .form-control:focus ~ label {
+        opacity: 0.65 !important;
+        transform: scale(0.85) translateY(-0.5rem) translateX(0.15rem) !important;
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    [data-theme="dark"] .form-floating > label {
+        color: var(--dm-text-muted, #94a3b8) !important;
+        background-color: transparent !important;
+        padding: 0.5rem 0.75rem !important;
+        pointer-events: none !important;
+        border: 0 !important;
+        transform-origin: 0 0 !important;
+        height: 100% !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+    }
+
+    [data-theme="dark"] .form-floating > .form-control:focus ~ label::after,
+    [data-theme="dark"] .form-floating > .form-select:focus ~ label::after {
+        background-color: var(--dm-input-bg, #0f172a) !important;
+    }
+</style>
+
 <script>
 $(document).ready(function () {
     let isLoading = false;

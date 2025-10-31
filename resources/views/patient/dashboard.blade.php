@@ -8,6 +8,56 @@
         padding: 0;
     }
 
+    [data-theme="dark"] .main-wrapper {
+        background: linear-gradient(135deg, var(--dm-bg-primary, #1e293b) 0%, var(--dm-bg-secondary, #0f172a) 100%) !important;
+    }
+
+    /* Dark Mode Hero Section */
+    [data-theme="dark"] .hero-title {
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    [data-theme="dark"] .hero-title .highlight {
+        color: #60a5fa !important;
+    }
+
+    [data-theme="dark"] .hero-description {
+        color: var(--dm-text-muted, #94a3b8) !important;
+    }
+
+    [data-theme="dark"] .badge {
+        background: rgba(59, 130, 246, 0.2) !important;
+        color: #93c5fd !important;
+    }
+
+    [data-theme="dark"] .main-card {
+        background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%) !important;
+        box-shadow: 0 20px 60px rgba(30, 64, 175, 0.4) !important;
+    }
+
+    [data-theme="dark"] .feature-card {
+        background: var(--dm-card-bg, #1e293b) !important;
+        border: 1px solid var(--dm-border-color, #334155) !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    [data-theme="dark"] .feature-card:hover {
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4) !important;
+    }
+
+    [data-theme="dark"] .feature-text h4 {
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    [data-theme="dark"] .feature-text p {
+        color: var(--dm-text-muted, #94a3b8) !important;
+    }
+
+    [data-theme="dark"] .feature-icon {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.2) 100%) !important;
+        color: #93c5fd !important;
+    }
+
     /* Hero Section */
     .hero-section {
         display: flex;
@@ -152,6 +202,10 @@
         position: relative;
     }
 
+    [data-theme="dark"] .services-section {
+        background: linear-gradient(135deg, #065f46 0%, #047857 100%) !important;
+    }
+
     .services-container {
         max-width: 1400px;
         margin: 0 auto;
@@ -165,6 +219,10 @@
         margin-bottom: 3rem;
         letter-spacing: 1px;
         text-transform: uppercase;
+    }
+
+    [data-theme="dark"] .services-title {
+        color: #f1f5f9 !important;
     }
 
     .services-carousel-wrapper {
@@ -199,6 +257,32 @@
         flex-direction: column;
         align-items: center;
         text-align: center;
+    }
+
+    [data-theme="dark"] .service-card {
+        background: var(--dm-card-bg, #1e293b) !important;
+        border: 1px solid var(--dm-border-color, #334155) !important;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+    }
+
+    [data-theme="dark"] .service-card:hover {
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    [data-theme="dark"] .service-icon-box i {
+        color: #10b981 !important;
+    }
+
+    [data-theme="dark"] .service-card h3 {
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    [data-theme="dark"] .services-empty-state {
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    [data-theme="dark"] .services-empty-state i {
+        opacity: 0.4 !important;
     }
 
     .service-card:hover {
@@ -245,6 +329,20 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         transition: all 0.3s ease;
         z-index: 10;
+    }
+
+    [data-theme="dark"] .carousel-nav-btn {
+        background: var(--dm-card-bg, #1e293b) !important;
+        border: 1px solid var(--dm-border-color, #334155) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+    }
+
+    [data-theme="dark"] .carousel-nav-btn:hover {
+        background: var(--dm-bg-tertiary, #334155) !important;
+    }
+
+    [data-theme="dark"] .carousel-nav-btn i {
+        color: var(--dm-text-primary, #f1f5f9) !important;
     }
 
     .carousel-nav-btn:hover {
@@ -297,6 +395,39 @@
         width: 90%;
         position: relative;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    [data-theme="dark"] .service-modal-content {
+        background: var(--dm-card-bg, #1e293b) !important;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6) !important;
+    }
+
+    [data-theme="dark"] .service-modal-title {
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    [data-theme="dark"] .service-modal-description {
+        color: var(--dm-text-muted, #94a3b8) !important;
+    }
+
+    [data-theme="dark"] .service-modal-close {
+        color: var(--dm-text-muted, #94a3b8) !important;
+    }
+
+    [data-theme="dark"] .service-modal-close:hover {
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    [data-theme="dark"] .service-modal-duration {
+        background: var(--dm-bg-secondary, #0f172a) !important;
+    }
+
+    [data-theme="dark"] .service-modal-duration-label {
+        color: var(--dm-text-muted, #94a3b8) !important;
+    }
+
+    [data-theme="dark"] .service-modal-duration-value {
+        color: #10b981 !important;
     }
 
     .service-modal-close {
@@ -621,7 +752,7 @@
                     <h3>{{ $service->service_name }}</h3>
                 </div>
                 @empty
-                <div class="col-12 text-center py-5" style="color: white; min-width: 100%;">
+                <div class="col-12 text-center py-5 services-empty-state" style="color: white; min-width: 100%;">
                     <i class="bi bi-inbox" style="font-size: 4rem; opacity: 0.5;"></i>
                     <p class="mt-3">No services available at the moment</p>
                 </div>
@@ -795,10 +926,10 @@
                     </div>
                 </div>
 
-                <div id="noAppointmentsMessage" style="display: none;" class="text-center py-4">
-                    <i class="bi bi-calendar-x" style="font-size: 3rem; opacity: 0.3;"></i>
-                    <p class="text-muted mt-3">No completed appointments to rate</p>
-                </div>
+                    <div id="noAppointmentsMessage" style="display: none;" class="text-center py-4 no-appointments-message">
+                        <i class="bi bi-calendar-x" style="font-size: 3rem; opacity: 0.3;"></i>
+                        <p class="text-muted mt-3">No completed appointments to rate</p>
+                    </div>
             </div>
         </div>
     </div>
@@ -872,6 +1003,10 @@
         background: #f8f9fa;
     }
 
+    [data-theme="dark"] .feedback-section {
+        background: var(--dm-bg-primary, #1e293b) !important;
+    }
+
     .feedback-container {
         max-width: 1000px;
         margin: 0 auto;
@@ -887,6 +1022,10 @@
         flex-direction: column;
         align-items: center;
         gap: 0.75rem;
+    }
+
+    [data-theme="dark"] .feedback-title {
+        color: var(--dm-text-primary, #f1f5f9) !important;
     }
 
     .title-badge {
@@ -919,6 +1058,10 @@
         margin-bottom: 3rem;
     }
 
+    [data-theme="dark"] .feedback-description {
+        color: var(--dm-text-muted, #94a3b8) !important;
+    }
+
     .feedback-cards {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -935,6 +1078,24 @@
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
         transition: all 0.3s ease;
         position: relative;
+    }
+
+    [data-theme="dark"] .feedback-action-card {
+        background: var(--dm-card-bg, #1e293b) !important;
+        border: 1px solid var(--dm-border-color, #334155) !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    [data-theme="dark"] .feedback-action-card:hover {
+        box-shadow: 0 8px 30px rgba(59, 130, 246, 0.2) !important;
+    }
+
+    [data-theme="dark"] .feedback-action-card h3 {
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    [data-theme="dark"] .feedback-action-card p {
+        color: var(--dm-text-muted, #94a3b8) !important;
     }
 
     .feedback-action-card:hover {
@@ -1045,6 +1206,23 @@
         border-radius: 12px;
         padding: 1.5rem;
         margin-bottom: 1rem;
+    }
+
+    [data-theme="dark"] .history-card {
+        background: var(--dm-card-bg, #1e293b) !important;
+        border-color: var(--dm-border-color, #334155) !important;
+    }
+
+    [data-theme="dark"] .history-card h6 {
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    [data-theme="dark"] .history-card p {
+        color: var(--dm-text-muted, #94a3b8) !important;
+    }
+
+    [data-theme="dark"] .history-card small {
+        color: var(--dm-text-muted, #94a3b8) !important;
     }
 
     .history-stars {
@@ -1605,6 +1783,115 @@ function loadPendingFeedbackCount() {
         .chatbot-widget { right: 16px; left: 16px; width: auto; }
         .chatbot-messages { height: 240px; }
         .chatbot-toggle-btn { right: 16px; bottom: 16px; }
+    }
+
+    /* Dark Mode for Chatbot */
+    [data-theme="dark"] .chatbot-widget {
+        background: var(--dm-card-bg, #1e293b) !important;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6) !important;
+        border: 1px solid var(--dm-border-color, #334155) !important;
+    }
+
+    [data-theme="dark"] .chatbot-messages {
+        border-bottom-color: var(--dm-border-color, #334155) !important;
+    }
+
+    [data-theme="dark"] .message.bot {
+        background: var(--dm-bg-secondary, #0f172a) !important;
+        color: var(--dm-text-primary, #f1f5f9) !important;
+        border-color: var(--dm-border-color, #334155) !important;
+    }
+
+    [data-theme="dark"] .chip {
+        background: var(--dm-bg-tertiary, #334155) !important;
+        color: #93c5fd !important;
+        border-color: var(--dm-border-color, #475569) !important;
+    }
+
+    [data-theme="dark"] .chip:hover {
+        background: var(--dm-bg-secondary, #1e293b) !important;
+    }
+
+    [data-theme="dark"] .chatbot-input input[type="text"] {
+        background: var(--dm-bg-secondary, #0f172a) !important;
+        border-color: var(--dm-border-color, #334155) !important;
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    [data-theme="dark"] .chatbot-input input[type="text"]::placeholder {
+        color: var(--dm-text-muted, #64748b) !important;
+    }
+
+    [data-theme="dark"] .chatbot-input input[type="text"]:focus {
+        border-color: #60a5fa !important;
+        box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2) !important;
+    }
+
+    [data-theme="dark"] .typing-indicator {
+        background: var(--dm-bg-secondary, #0f172a) !important;
+    }
+
+    [data-theme="dark"] .typing-indicator span {
+        background: #60a5fa !important;
+    }
+
+    /* Dark Mode for Modals */
+    [data-theme="dark"] .modal-content {
+        background: var(--dm-card-bg, #1e293b) !important;
+        border-color: var(--dm-border-color, #334155) !important;
+    }
+
+    [data-theme="dark"] .modal-header {
+        border-bottom-color: var(--dm-border-color, #334155) !important;
+    }
+
+    [data-theme="dark"] .modal-title {
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    [data-theme="dark"] .form-label {
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    [data-theme="dark"] .form-select,
+    [data-theme="dark"] .form-control {
+        background: var(--dm-bg-secondary, #0f172a) !important;
+        border-color: var(--dm-border-color, #334155) !important;
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    [data-theme="dark"] .form-select:focus,
+    [data-theme="dark"] .form-control:focus {
+        background: var(--dm-bg-secondary, #0f172a) !important;
+        border-color: #3b82f6 !important;
+        color: var(--dm-text-primary, #f1f5f9) !important;
+        box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25) !important;
+    }
+
+    [data-theme="dark"] .form-control::placeholder {
+        color: var(--dm-text-muted, #64748b) !important;
+    }
+
+    [data-theme="dark"] .btn-close {
+        filter: invert(1) grayscale(100%) brightness(200%);
+    }
+
+    [data-theme="dark"] .no-appointments-message i {
+        opacity: 0.3 !important;
+        color: var(--dm-text-muted, #64748b) !important;
+    }
+
+    [data-theme="dark"] .no-appointments-message .text-muted {
+        color: var(--dm-text-muted, #94a3b8) !important;
+    }
+
+    [data-theme="dark"] #feedbackHistory .text-center .text-muted {
+        color: var(--dm-text-muted, #94a3b8) !important;
+    }
+
+    [data-theme="dark"] #feedbackHistory .text-center i {
+        opacity: 0.3 !important;
+        color: var(--dm-text-muted, #64748b) !important;
     }
 </style>
 

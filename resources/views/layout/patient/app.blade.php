@@ -1,11 +1,18 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>JValera Dental Clinic - Patient Portal</title>
+    <script>
+        // Initialize dark mode on page load
+        (function() {
+            const savedTheme = localStorage.getItem('darkMode') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
 
     <!-- Stylesheets -->
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
@@ -87,6 +94,61 @@
             // Set patient session active flag
             localStorage.setItem('patient_session_active', Date.now().toString());
         })();
+    </script>
+
+    {{-- Dark Mode Toggle Script --}}
+    <script>
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('darkMode', newTheme);
+
+            // Update icon in navigation
+            const darkModeLinks = document.querySelectorAll('.dark-mode-toggle-btn');
+            darkModeLinks.forEach(link => {
+                const icon = link.querySelector('i');
+                const span = link.querySelector('span');
+                if (newTheme === 'dark') {
+                    if (icon) icon.className = 'bi bi-sun';
+                    if (span) span.textContent = 'Light Mode';
+                } else {
+                    if (icon) icon.className = 'bi bi-moon-stars';
+                    if (span) span.textContent = 'Dark Mode';
+                }
+            });
+
+            // Update icon in patient header
+            const darkModeIcon = document.getElementById('darkModeIcon');
+            if (darkModeIcon) {
+                darkModeIcon.className = newTheme === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
+            }
+        }
+
+        // Update icon on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const darkModeIcon = document.getElementById('darkModeIcon');
+            if (darkModeIcon) {
+                darkModeIcon.className = currentTheme === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
+            }
+
+            // Update navigation icons
+            const darkModeLinks = document.querySelectorAll('.dark-mode-toggle-btn');
+            darkModeLinks.forEach(link => {
+                const icon = link.querySelector('i');
+                const span = link.querySelector('span');
+                if (currentTheme === 'dark') {
+                    if (icon) icon.className = 'bi bi-sun';
+                    if (span) span.textContent = 'Light Mode';
+                } else {
+                    if (icon) icon.className = 'bi bi-moon-stars';
+                    if (span) span.textContent = 'Dark Mode';
+                }
+            });
+        });
     </script>
 </body>
 </html>

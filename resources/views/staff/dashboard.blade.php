@@ -368,7 +368,7 @@
     </div>
 
     <!-- Recent Patient Feedback Section -->
-    <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);">
+    <div class="card border-0 shadow-sm mb-4 feedback-section-card" style="background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);">
         <div class="card-header border-0 pt-4 pb-2" style="background: transparent;">
             <div class="d-flex align-items-center mb-2">
                 <div class="rounded-circle d-flex align-items-center justify-center me-3"
@@ -376,14 +376,14 @@
                     <i class="bi bi-chat-dots-fill text-white" style="font-size: 1.5rem;"></i>
                 </div>
                 <div>
-                    <h5 class="mb-0 fw-bold" style="color: #00695c; font-size: 1.5rem;">Recent Patient Feedback</h5>
+                    <h5 class="mb-0 fw-bold feedback-section-title" style="color: #00695c; font-size: 1.5rem;">Recent Patient Feedback</h5>
                     <small class="text-muted">Latest Review from patients</small>
                 </div>
             </div>
         </div>
         <div class="card-body pt-2">
             @if($recentFeedback->isEmpty())
-                <div class="text-center py-5" style="background: white; border-radius: 12px;">
+                <div class="text-center py-5 feedback-empty-state" style="background: white; border-radius: 12px;">
                     <i class="bi bi-chat-left-dots" style="font-size: 3rem; opacity: 0.3; color: #00bcd4;"></i>
                     <p class="mt-3 mb-0 text-muted">No patient feedback yet</p>
                 </div>
@@ -552,6 +552,97 @@
                 overflow-x: auto;
             }
         }
+
+        /* Dark Mode Styles for Feedback Section */
+        [data-theme="dark"] .feedback-section-card {
+            background: linear-gradient(135deg, var(--dm-bg-primary, #1e293b) 0%, var(--dm-bg-secondary, #0f172a) 100%) !important;
+        }
+
+        [data-theme="dark"] .card-header[style*="background: transparent"] {
+            background: transparent !important;
+        }
+
+        [data-theme="dark"] .feedback-section-title {
+            color: var(--dm-text-primary, #f1f5f9) !important;
+        }
+
+        [data-theme="dark"] .card-header .text-muted {
+            color: var(--dm-text-muted, #94a3b8) !important;
+        }
+
+        [data-theme="dark"] .feedback-empty-state {
+            background: var(--dm-card-bg, #1e293b) !important;
+            border: 1px solid var(--dm-border-color, #334155) !important;
+        }
+
+        [data-theme="dark"] .feedback-empty-state .text-muted {
+            color: var(--dm-text-muted, #94a3b8) !important;
+        }
+
+        [data-theme="dark"] .feedback-empty-state i[style*="color: #00bcd4"] {
+            color: #17a2b8 !important;
+            opacity: 0.5 !important;
+        }
+
+        [data-theme="dark"] .feedback-table-wrapper {
+            background: var(--dm-card-bg, #1e293b) !important;
+            border: 1px solid var(--dm-border-color, #334155) !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+        }
+
+        [data-theme="dark"] .feedback-table thead {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
+            color: white !important;
+        }
+
+        [data-theme="dark"] .feedback-table thead th {
+            color: white !important;
+        }
+
+        [data-theme="dark"] .feedback-row {
+            border-bottom-color: var(--dm-border-color, #334155) !important;
+        }
+
+        [data-theme="dark"] .feedback-row:hover {
+            background: var(--dm-bg-tertiary, #334155) !important;
+            transform: translateX(5px);
+        }
+
+        [data-theme="dark"] .feedback-row td {
+            color: var(--dm-text-primary, #f1f5f9) !important;
+        }
+
+        [data-theme="dark"] .feedback-row strong[style*="color: #00695c"] {
+            color: var(--dm-text-primary, #f1f5f9) !important;
+        }
+
+        [data-theme="dark"] .service-name {
+            color: var(--dm-text-primary, #f1f5f9) !important;
+        }
+
+        [data-theme="dark"] .feedback-comment {
+            color: var(--dm-text-primary, #f1f5f9) !important;
+        }
+
+        [data-theme="dark"] .feedback-comment em[style*="color: #00695c"] {
+            color: var(--dm-text-primary, #f1f5f9) !important;
+        }
+
+        [data-theme="dark"] .feedback-comment span[style*="color: #00bcd4"] {
+            color: #17a2b8 !important;
+        }
+
+        [data-theme="dark"] .submission-info small[style*="color: #00695c"] {
+            color: var(--dm-text-muted, #94a3b8) !important;
+        }
+
+        [data-theme="dark"] .rating-stars i[style*="color: #00bcd4"] {
+            color: #17a2b8 !important;
+        }
+
+        [data-theme="dark"] .rating-stars i[style*="color: #ccc"] {
+            color: var(--dm-border-color, #475569) !important;
+        }
     </style>
 
     <!-- Analytics Row -->
@@ -713,6 +804,111 @@
 .mini-calendar-day.today .appointment-count-completed {
     color: white;
     opacity: 0.8;
+}
+
+/* Dark Mode Styles for Mini Calendar */
+[data-theme="dark"] .mini-calendar {
+    background: transparent !important;
+}
+
+[data-theme="dark"] .mini-calendar-header {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+    font-weight: 600 !important;
+}
+
+[data-theme="dark"] .mini-calendar-day {
+    background: var(--dm-card-bg, #1e293b) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+    border: 1px solid var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] .mini-calendar-day:hover {
+    background: var(--dm-bg-tertiary, #334155) !important;
+    transform: translateY(-2px);
+    border-color: #3b82f6 !important;
+}
+
+[data-theme="dark"] .mini-calendar-day.has-appointments {
+    background: rgba(59, 130, 246, 0.2) !important;
+    border: 2px solid #3b82f6 !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .mini-calendar-day.has-appointments:hover {
+    background: rgba(59, 130, 246, 0.3) !important;
+}
+
+[data-theme="dark"] .mini-calendar-day.has-completed-appointments {
+    background: var(--dm-bg-secondary, #0f172a) !important;
+    border: 2px solid var(--dm-border-color, #475569) !important;
+    color: var(--dm-text-muted, #94a3b8) !important;
+}
+
+[data-theme="dark"] .mini-calendar-day.has-completed-appointments:hover {
+    background: var(--dm-bg-tertiary, #334155) !important;
+}
+
+[data-theme="dark"] .mini-calendar-day.today {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    color: white !important;
+    font-weight: bold !important;
+    border: 2px solid #3b82f6 !important;
+}
+
+[data-theme="dark"] .mini-calendar-day.other-month {
+    background: var(--dm-bg-secondary, #0f172a) !important;
+    opacity: 0.4 !important;
+    color: var(--dm-text-muted, #64748b) !important;
+}
+
+[data-theme="dark"] .appointment-count {
+    font-size: 0.65rem;
+    color: #93c5fd !important;
+    margin-top: 2px;
+    font-weight: 600 !important;
+}
+
+[data-theme="dark"] .appointment-count-completed {
+    font-size: 0.65rem;
+    color: var(--dm-text-muted, #94a3b8) !important;
+    margin-top: 2px;
+    font-style: italic;
+}
+
+[data-theme="dark"] .mini-calendar-day.today .appointment-count {
+    color: white !important;
+}
+
+[data-theme="dark"] .mini-calendar-day.today .appointment-count-completed {
+    color: white !important;
+    opacity: 0.9 !important;
+}
+
+[data-theme="dark"] .mini-calendar-day.has-appointments .appointment-count {
+    color: #93c5fd !important;
+}
+
+/* Dark mode for calendar card */
+[data-theme="dark"] .card.border-0.shadow-sm {
+    background: var(--dm-card-bg, #1e293b) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] .card-header.bg-white {
+    background: var(--dm-card-bg, #1e293b) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] .card-header h5 {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .card-header #currentMonthYear {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .card-body {
+    background: var(--dm-card-bg, #1e293b) !important;
 }
 </style>
 

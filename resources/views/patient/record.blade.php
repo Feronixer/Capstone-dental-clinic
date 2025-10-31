@@ -244,6 +244,185 @@
         font-size: 0.8rem;
     }
 }
+
+/* ============================================
+   DARK MODE STYLES FOR PATIENT RECORDS PAGE
+   ============================================ */
+
+/* Page Header Box Dark Mode */
+[data-theme="dark"] .page-header-box {
+    background: var(--dm-card-bg, #1e293b) !important;
+    border-color: #3b82f6 !important;
+}
+
+[data-theme="dark"] .page-header-box h1 {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+/* Records Table Section Dark Mode */
+[data-theme="dark"] .records-table-section {
+    background: var(--dm-card-bg, #1e293b) !important;
+    border: 1px solid var(--dm-border-color, #334155) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Sort Control Dark Mode */
+[data-theme="dark"] div[style*="background: #f8fafc"] {
+    background: var(--dm-bg-secondary, #1e293b) !important;
+    border-bottom-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] label[style*="color: #475569"] {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .form-select {
+    background: var(--dm-input-bg, #0f172a) !important;
+    border-color: #14b8a6 !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .form-select:focus {
+    background: var(--dm-input-bg, #0f172a) !important;
+    border-color: #14b8a6 !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+/* Table Header Dark Mode */
+[data-theme="dark"] .records-table thead {
+    background: #14b8a6 !important;
+}
+
+[data-theme="dark"] .records-table thead th {
+    color: white !important;
+}
+
+/* Table Body Dark Mode */
+[data-theme="dark"] .records-table tbody tr {
+    border-bottom-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] .records-table tbody tr:nth-child(even) {
+    background: var(--dm-bg-primary, #0f172a) !important;
+}
+
+[data-theme="dark"] .records-table tbody tr:hover {
+    background: var(--dm-bg-tertiary, #334155) !important;
+}
+
+[data-theme="dark"] .records-table tbody td {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .form-name {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .form-date {
+    color: var(--dm-text-muted, #94a3b8) !important;
+}
+
+/* Empty State Dark Mode */
+[data-theme="dark"] .text-center[style*="color: #64748b"] {
+    color: var(--dm-text-muted, #94a3b8) !important;
+}
+
+[data-theme="dark"] .text-center i[style*="font-size: 3rem"] {
+    opacity: 0.5 !important;
+    color: var(--dm-text-muted, #64748b) !important;
+}
+
+/* Form Preview Section Dark Mode */
+[data-theme="dark"] .form-preview-section {
+    background: var(--dm-card-bg, #1e293b) !important;
+    border: 1px solid var(--dm-border-color, #334155) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .form-preview-title {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+    border-bottom-color: #3b82f6 !important;
+}
+
+/* Preview Header Dark Mode */
+[data-theme="dark"] .preview-header {
+    border-bottom-color: #3b82f6 !important;
+}
+
+/* Section Title Dark Mode */
+[data-theme="dark"] .section-title {
+    background: var(--dm-bg-secondary, #1e293b) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+    border-left-color: #3b82f6 !important;
+}
+
+/* Form Fields Dark Mode */
+[data-theme="dark"] .field-label {
+    color: var(--dm-text-muted, #94a3b8) !important;
+}
+
+[data-theme="dark"] .field-value {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+/* Checkbox Items Dark Mode */
+[data-theme="dark"] .checkbox-item {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+/* Empty Preview Panel Dark Mode */
+[data-theme="dark"] .form-preview-section .text-center.text-muted {
+    color: var(--dm-text-muted, #94a3b8) !important;
+}
+
+[data-theme="dark"] .form-preview-section .text-center i {
+    opacity: 0.3 !important;
+    color: var(--dm-text-muted, #64748b) !important;
+}
+
+/* Alert Dark Mode */
+[data-theme="dark"] .alert {
+    background: var(--dm-card-bg, #1e293b) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .alert-info {
+    background: rgba(59, 130, 246, 0.15) !important;
+    border-color: #3b82f6 !important;
+    color: #93c5fd !important;
+}
+
+[data-theme="dark"] .alert-danger {
+    background: rgba(239, 68, 68, 0.15) !important;
+    border-color: #ef4444 !important;
+    color: #fca5a5 !important;
+}
+
+/* Inline Styles Dark Mode Overrides */
+[data-theme="dark"] div[style*="border-bottom: 2px solid #2196F3"] {
+    border-bottom-color: #3b82f6 !important;
+}
+
+[data-theme="dark"] h2[style*="color: #2196F3"] {
+    color: #60a5fa !important;
+}
+
+[data-theme="dark"] span[style*="color: #2196F3"] {
+    color: #60a5fa !important;
+}
+
+[data-theme="dark"] div[style*="border-bottom: 2px solid #10b981"] {
+    border-bottom-color: #14b8a6 !important;
+}
+
+[data-theme="dark"] h2[style*="color: #10b981"] {
+    color: #14b8a6 !important;
+}
+
+[data-theme="dark"] span[style*="color: #10b981"] {
+    color: #14b8a6 !important;
+}
 </style>
 
 <div class="records-container">

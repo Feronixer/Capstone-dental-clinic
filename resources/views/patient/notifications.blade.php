@@ -357,6 +357,275 @@
         font-size: 0.9rem;
     }
 }
+
+/* ============================================
+   DARK MODE STYLES FOR PATIENT NOTIFICATIONS
+   ============================================ */
+
+/* Container Dark Mode */
+[data-theme="dark"] .notifications-container {
+    background: transparent !important;
+}
+
+/* Header Dark Mode */
+[data-theme="dark"] .notifications-title {
+    color: var(--dm-text-primary) !important;
+}
+
+/* Action Buttons Dark Mode */
+[data-theme="dark"] .btn-mark-all-read {
+    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%) !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .btn-mark-all-read:hover {
+    background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%) !important;
+}
+
+[data-theme="dark"] .btn-clear-read {
+    background: var(--dm-card-bg) !important;
+    color: var(--dm-text-primary) !important;
+    border-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .btn-clear-read:hover {
+    background: var(--dm-bg-tertiary) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+/* Filter Buttons Dark Mode */
+[data-theme="dark"] .filter-btn {
+    background: var(--dm-card-bg) !important;
+    color: var(--dm-text-primary) !important;
+    border-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .filter-btn:hover {
+    background: var(--dm-bg-tertiary) !important;
+    color: var(--dm-text-primary) !important;
+    border-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .filter-btn.active {
+    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%) !important;
+    color: white !important;
+    border-color: #2196F3 !important;
+}
+
+[data-theme="dark"] .filter-btn.active:hover {
+    background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%) !important;
+    color: white !important;
+}
+
+/* Notification Cards Dark Mode */
+[data-theme="dark"] .notification-card {
+    background: var(--dm-card-bg) !important;
+    border-color: var(--dm-border-color) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .notification-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5) !important;
+    background: var(--dm-bg-secondary) !important;
+}
+
+[data-theme="dark"] .notification-card.unread {
+    background: linear-gradient(to right, rgba(33, 150, 243, 0.15) 0%, var(--dm-card-bg) 100%) !important;
+    border-left-color: #2196F3 !important;
+}
+
+/* Notification Content Dark Mode */
+[data-theme="dark"] .notification-title {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .notification-time {
+    color: var(--dm-text-muted) !important;
+}
+
+[data-theme="dark"] .notification-message {
+    color: var(--dm-text-primary) !important;
+}
+
+/* Action Buttons in Cards Dark Mode */
+[data-theme="dark"] .btn-mark-read {
+    background: rgba(59, 130, 246, 0.2) !important;
+    color: #60a5fa !important;
+    border: 1px solid rgba(59, 130, 246, 0.3) !important;
+}
+
+[data-theme="dark"] .btn-mark-read:hover {
+    background: rgba(59, 130, 246, 0.3) !important;
+    color: #93c5fd !important;
+}
+
+[data-theme="dark"] .btn-mark-unread {
+    background: rgba(245, 158, 11, 0.2) !important;
+    color: #fbbf24 !important;
+    border: 1px solid rgba(245, 158, 11, 0.3) !important;
+}
+
+[data-theme="dark"] .btn-mark-unread:hover {
+    background: rgba(245, 158, 11, 0.3) !important;
+    color: #fcd34d !important;
+}
+
+[data-theme="dark"] .btn-delete {
+    background: rgba(239, 68, 68, 0.2) !important;
+    color: #f87171 !important;
+    border: 1px solid rgba(239, 68, 68, 0.3) !important;
+}
+
+[data-theme="dark"] .btn-delete:hover {
+    background: rgba(239, 68, 68, 0.3) !important;
+    color: #fca5a5 !important;
+}
+
+/* Empty State Dark Mode */
+[data-theme="dark"] .empty-icon {
+    background: var(--dm-bg-secondary) !important;
+}
+
+[data-theme="dark"] .empty-icon i {
+    color: var(--dm-text-muted) !important;
+}
+
+[data-theme="dark"] .empty-title {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .empty-text {
+    color: var(--dm-text-muted) !important;
+}
+
+/* Pagination Dark Mode */
+[data-theme="dark"] .pagination-wrapper {
+    background: var(--dm-card-bg) !important;
+    border-color: var(--dm-border-color) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .pagination-info {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .pagination-info strong {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .pagination .page-link {
+    background: var(--dm-card-bg) !important;
+    border-color: var(--dm-border-color) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .pagination .page-link:hover {
+    background: var(--dm-bg-tertiary) !important;
+    border-color: var(--dm-border-color) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .pagination .page-item.active .page-link {
+    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%) !important;
+    border-color: #2196F3 !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .pagination .page-item.disabled .page-link {
+    background: var(--dm-bg-secondary) !important;
+    border-color: var(--dm-border-color) !important;
+    color: var(--dm-text-muted) !important;
+}
+
+/* Modal Dark Mode */
+[data-theme="dark"] .modern-modal .modal-header {
+    background: linear-gradient(135deg, var(--dm-bg-tertiary) 0%, var(--dm-bg-secondary) 100%) !important;
+}
+
+[data-theme="dark"] .modern-modal .modal-title {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .modern-modal .modal-body {
+    background: var(--dm-card-bg) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .modern-modal .modal-body p {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .modern-modal .modal-body small.text-muted {
+    color: var(--dm-text-muted) !important;
+}
+
+[data-theme="dark"] .modern-modal .modal-footer {
+    background: var(--dm-bg-tertiary) !important;
+}
+
+[data-theme="dark"] .modern-modal .btn-close {
+    filter: brightness(0) invert(1) !important;
+    opacity: 0.8;
+}
+
+[data-theme="dark"] .modern-modal .btn-close:hover {
+    opacity: 1 !important;
+}
+
+/* Confirm Icons Dark Mode */
+[data-theme="dark"] .confirm-icon {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.2) 100%) !important;
+}
+
+[data-theme="dark"] .confirm-icon.danger {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.2) 100%) !important;
+}
+
+[data-theme="dark"] .confirm-icon.warning {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.2) 100%) !important;
+}
+
+/* Buttons in Modals Dark Mode */
+[data-theme="dark"] .modern-modal .btn-secondary {
+    background: var(--dm-bg-tertiary) !important;
+    color: var(--dm-text-primary) !important;
+    border-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .modern-modal .btn-secondary:hover {
+    background: var(--dm-bg-secondary) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+/* Notification View Modal Dark Mode */
+[data-theme="dark"] .notification-modal-body {
+    background: var(--dm-card-bg) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .notification-timestamp {
+    color: var(--dm-text-muted) !important;
+}
+
+[data-theme="dark"] .notification-message-view {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .notification-modal-footer {
+    background: var(--dm-bg-tertiary) !important;
+    border-top-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .btn-close-modal {
+    background: var(--dm-bg-secondary) !important;
+    color: var(--dm-text-primary) !important;
+    border-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .btn-close-modal:hover {
+    background: var(--dm-bg-tertiary) !important;
+    color: var(--dm-text-primary) !important;
+}
 </style>
 
 <div class="notifications-container">
@@ -397,7 +666,9 @@
         @forelse($notifications as $notification)
             <div class="notification-card {{ !$notification->is_read ? 'unread' : '' }}"
                  data-id="{{ $notification->id }}"
-                 data-read="{{ $notification->is_read ? 'true' : 'false' }}">
+                 data-read="{{ $notification->is_read ? 'true' : 'false' }}"
+                 onclick="viewNotification({{ $notification->id }})"
+                 style="cursor: pointer;">
                 <div class="notification-icon-wrapper {{ $notification->icon_color }}">
                     <i class="bi {{ $notification->icon_class }}"></i>
                 </div>
@@ -407,7 +678,7 @@
                         <span class="notification-time">{{ $notification->time_ago }}</span>
                     </div>
                     <p class="notification-message">{{ $notification->message }}</p>
-                    <div class="notification-actions">
+                    <div class="notification-actions" onclick="event.stopPropagation();">
                         @if(!$notification->is_read)
                             <button class="btn-action btn-mark-read" onclick="markAsRead({{ $notification->id }})">
                                 <i class="bi bi-check"></i>
@@ -584,6 +855,35 @@
     </div>
 </div>
 
+<!-- View Notification Modal -->
+<div class="modal fade" id="viewNotificationModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content notification-modal-content">
+            <div class="notification-modal-header" id="viewNotificationHeader">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="notification-icon-wrapper-view" id="viewNotificationIcon">
+                        <i class="bi" id="viewNotificationIconClass"></i>
+                    </div>
+                    <h5 class="notification-modal-title mb-0" id="viewNotificationTitle">Notification Details</h5>
+                </div>
+                <button type="button" class="notification-modal-close" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="notification-modal-body" id="viewNotificationBody">
+                <div class="notification-meta-info">
+                    <span class="notification-timestamp" id="viewNotificationTime"></span>
+                    <span class="notification-status-badge" id="viewNotificationStatus"></span>
+                </div>
+                <div class="notification-message-view" id="viewNotificationMessage"></div>
+            </div>
+            <div class="notification-modal-footer">
+                <button type="button" class="btn-close-modal" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
 /* Modal Styles */
 .modern-modal {
@@ -693,11 +993,243 @@
     background: #cbd5e1;
     color: #475569;
 }
+
+/* Notification View Modal Styles */
+.notification-modal-content {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    max-width: 550px;
+    width: 100%;
+}
+
+.notification-modal-header {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    padding: 1.5rem 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: none;
+}
+
+.notification-icon-wrapper-view {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+}
+
+.notification-icon-wrapper-view i {
+    font-size: 1.5rem;
+    color: white;
+}
+
+.notification-modal-title {
+    font-weight: 700;
+    font-size: 1.35rem;
+    color: white;
+    margin: 0;
+}
+
+.notification-modal-close {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.5rem;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    padding: 0;
+}
+
+.notification-modal-close:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+}
+
+.notification-modal-body {
+    padding: 1.75rem;
+    background: white;
+}
+
+.notification-meta-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+}
+
+.notification-timestamp {
+    font-size: 0.875rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.notification-status-badge {
+    display: inline-block;
+    padding: 0.375rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.notification-status-badge.badge-read {
+    background: #10b981;
+    color: white;
+}
+
+.notification-status-badge.badge-unread {
+    background: #3b82f6;
+    color: white;
+}
+
+.notification-message-view {
+    color: #1e293b;
+    line-height: 1.7;
+    font-size: 1rem;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin-bottom: 0;
+}
+
+.notification-modal-footer {
+    padding: 1.25rem 1.75rem;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-close-modal {
+    background: #e2e8f0;
+    color: #64748b;
+    border: none;
+    padding: 0.625rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-close-modal:hover {
+    background: #cbd5e1;
+    color: #475569;
+}
+
+/* Icon color adjustments for different notification types */
+.notification-icon-wrapper-view.bg-success {
+    background: rgba(16, 185, 129, 0.2) !important;
+}
+
+.notification-icon-wrapper-view.bg-warning {
+    background: rgba(245, 158, 11, 0.2) !important;
+}
+
+.notification-icon-wrapper-view.bg-info {
+    background: rgba(59, 130, 246, 0.2) !important;
+}
+
+.notification-icon-wrapper-view.bg-danger {
+    background: rgba(239, 68, 68, 0.2) !important;
+}
+
+.notification-icon-wrapper-view.bg-primary {
+    background: rgba(59, 130, 246, 0.2) !important;
+}
+
+.notification-modal-header.bg-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+}
+
+.notification-modal-header.bg-warning {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+}
+
+.notification-modal-header.bg-info {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+}
+
+.notification-modal-header.bg-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+}
+
+.notification-modal-header.bg-primary {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+}
 </style>
 
 <script>
 const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 let currentNotificationId = null;
+
+// View notification details
+async function viewNotification(id) {
+    try {
+        const response = await fetch(`/patient/notifications/${id}`, {
+            method: 'GET',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'Content-Type': 'application/json',
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            const notification = data.notification;
+            const modal = new bootstrap.Modal(document.getElementById('viewNotificationModal'));
+
+            // Update modal header with icon color
+            const header = document.getElementById('viewNotificationHeader');
+            header.className = `notification-modal-header ${notification.icon_color}`;
+
+            // Update modal content
+            document.getElementById('viewNotificationTitle').textContent = notification.title;
+            document.getElementById('viewNotificationMessage').textContent = notification.message;
+            document.getElementById('viewNotificationTime').textContent = notification.created_at;
+            document.getElementById('viewNotificationIconClass').className = `bi ${notification.icon_class}`;
+            document.getElementById('viewNotificationIcon').className = `notification-icon-wrapper-view ${notification.icon_color}`;
+
+            // Update status badge
+            const statusBadge = document.getElementById('viewNotificationStatus');
+            if (notification.is_read) {
+                statusBadge.textContent = 'Read';
+                statusBadge.className = 'notification-status-badge badge-read';
+            } else {
+                statusBadge.textContent = 'Unread';
+                statusBadge.className = 'notification-status-badge badge-unread';
+            }
+
+            modal.show();
+
+            // Reload page after modal is closed if notification was unread (to update UI)
+            if (!notification.is_read) {
+                const modalElement = document.getElementById('viewNotificationModal');
+                modalElement.addEventListener('hidden.bs.modal', function handler() {
+                    location.reload();
+                    modalElement.removeEventListener('hidden.bs.modal', handler);
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to load notification details');
+    }
+}
 
 // Mark notification as read
 async function markAsRead(id) {

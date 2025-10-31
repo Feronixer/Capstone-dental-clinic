@@ -46,6 +46,10 @@
 
         <!-- User Actions -->
         <div class="header-actions">
+            <!-- Dark Mode Toggle -->
+            <button class="icon-btn dark-mode-toggle-btn-mobile" onclick="toggleDarkMode(); return false;" title="Toggle Dark Mode">
+                <i class="bi bi-moon-stars" id="darkModeIcon"></i>
+            </button>
             <!-- Notifications -->
             <div class="dropdown">
                 <button class="icon-btn" type="button" data-bs-toggle="dropdown" id="notificationDropdownBtn">
@@ -126,7 +130,7 @@
                         <i class="bi bi-gear me-2"></i>Settings
                     </a>
                     <div class="dropdown-divider"></div>
-                    <a class="dropdown-item text-danger" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                    <a class="dropdown-item text-danger" href="#" id="patientLogoutBtn">
                         <i class="bi bi-box-arrow-right me-2"></i>Logout
                     </a>
                     <form id="logout-form" action="{{ route('patient.logout') }}" method="POST" style="display: none;">
@@ -222,7 +226,7 @@
                 <i class="bi bi-bell"></i>
                 <span>Notifications</span>
             </a>
-            <a class="mobile-action-item mobile-action-logout" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+            <a class="mobile-action-item mobile-action-logout" href="#" id="mobilePatientLogoutBtn">
                 <i class="bi bi-box-arrow-right"></i>
                 <span>Logout</span>
             </a>
@@ -913,4 +917,179 @@ async function markNotificationAsRead(id, event) {
         console.error('Error marking notification as read:', error);
     }
 }
+
+// Logout Confirmation Modal
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof bootstrap === 'undefined') {
+        console.error('Bootstrap is not loaded');
+        return;
+    }
+
+    // Desktop logout button
+    const patientLogoutBtn = document.getElementById('patientLogoutBtn');
+    if (patientLogoutBtn) {
+        patientLogoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const modalElement = document.getElementById('patientLogoutModal');
+            if (modalElement) {
+                const logoutModal = new bootstrap.Modal(modalElement);
+                logoutModal.show();
+            }
+        });
+    }
+
+    // Mobile logout button
+    const mobilePatientLogoutBtn = document.getElementById('mobilePatientLogoutBtn');
+    if (mobilePatientLogoutBtn) {
+        mobilePatientLogoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const modalElement = document.getElementById('patientLogoutModal');
+            if (modalElement) {
+                const logoutModal = new bootstrap.Modal(modalElement);
+                logoutModal.show();
+            }
+        });
+    }
+
+    // Confirm logout button
+    const confirmLogoutBtn = document.getElementById('confirmPatientLogoutBtn');
+    if (confirmLogoutBtn) {
+        confirmLogoutBtn.addEventListener('click', function() {
+            const logoutForm = document.getElementById('logout-form');
+            if (logoutForm) {
+                logoutForm.submit();
+            }
+        });
+    }
+});
 </script>
+
+<!-- Patient Logout Confirmation Modal -->
+<div class="modal fade" id="patientLogoutModal" tabindex="-1" aria-labelledby="patientLogoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content logout-modal-content">
+            <div class="modal-body text-center p-4">
+                <div class="logout-icon-wrapper mb-3">
+                    <i class="bi bi-box-arrow-right text-white"></i>
+                </div>
+                <h5 class="logout-modal-title mb-2" id="patientLogoutModalLabel">Logout</h5>
+                <p class="logout-modal-message mb-4">Are you sure you want to logout?</p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <button type="button" class="btn btn-cancel-logout" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-confirm-logout" id="confirmPatientLogoutBtn">Logout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Logout Modal Styles */
+    .logout-modal-content {
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(37, 99, 235, 0.3);
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    }
+
+    .logout-icon-wrapper {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto;
+        background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 8px 20px rgba(100, 116, 139, 0.4);
+    }
+
+    .logout-icon-wrapper i {
+        font-size: 2.5rem;
+        color: white;
+    }
+
+    .logout-modal-title {
+        font-size: 1.375rem !important;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+    }
+
+    .logout-modal-message {
+        font-size: 1rem;
+        color: #64748b;
+        margin-bottom: 1.5rem;
+    }
+
+    .btn-cancel-logout {
+        background: #ffffff;
+        color: #64748b;
+        border: 2px solid #e2e8f0;
+        padding: 0.625rem 1.75rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-cancel-logout:hover {
+        background: #f8fafc;
+        color: #2563eb;
+        border-color: #2563eb;
+        transform: translateY(-2px);
+    }
+
+    .btn-confirm-logout {
+        background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+        color: white;
+        border: none;
+        padding: 0.625rem 1.75rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-confirm-logout:hover {
+        background: linear-gradient(135deg, #475569 0%, #334155 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(100, 116, 139, 0.4);
+    }
+
+    /* Dark Mode Styles for Logout Modal */
+    [data-theme="dark"] .logout-modal-content {
+        background: linear-gradient(135deg, var(--dm-card-bg, #1e293b) 0%, var(--dm-bg-secondary, #0f172a) 100%) !important;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    [data-theme="dark"] .logout-modal-title {
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    [data-theme="dark"] .logout-modal-message {
+        color: var(--dm-text-muted, #94a3b8) !important;
+    }
+
+    [data-theme="dark"] .btn-cancel-logout {
+        background: var(--dm-bg-tertiary, #334155) !important;
+        color: var(--dm-text-primary, #f1f5f9) !important;
+        border-color: var(--dm-border-color, #334155) !important;
+    }
+
+    [data-theme="dark"] .btn-cancel-logout:hover {
+        background: var(--dm-bg-secondary, #1e293b) !important;
+        color: var(--dm-text-primary, #f1f5f9) !important;
+        border-color: #3b82f6 !important;
+    }
+
+    [data-theme="dark"] .btn-confirm-logout {
+        background: linear-gradient(135deg, #64748b 0%, #475569 100%) !important;
+        color: white !important;
+    }
+
+    [data-theme="dark"] .btn-confirm-logout:hover {
+        background: linear-gradient(135deg, #475569 0%, #334155 100%) !important;
+        color: white !important;
+    }
+</style>

@@ -119,24 +119,200 @@
     /* Pagination Styling */
     .pagination {
         margin-top: 2rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
     }
 
     .pagination .page-link {
         color: #667eea;
         border: 1px solid #e2e8f0;
-        border-radius: 5px;
-        margin: 0 3px;
+        border-radius: 8px;
+        margin: 0 2px;
+        padding: 0.5rem 1rem;
+        min-width: 40px;
+        text-align: center;
+        background: white;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 500;
     }
 
     .pagination .page-link:hover {
         background-color: #667eea;
-        color: white;
+        color: white !important;
         border-color: #667eea;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
     }
 
     .pagination .page-item.active .page-link {
-        background-color: #667eea;
-        border-color: #667eea;
+        background-color: #667eea !important;
+        border-color: #667eea !important;
+        color: white !important;
+        font-weight: 600;
+    }
+
+    .pagination .page-item.disabled .page-link {
+        background-color: #f7fafc;
+        border-color: #e2e8f0;
+        color: #a0aec0;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    .pagination .page-item.disabled .page-link:hover {
+        transform: none;
+        box-shadow: none;
+        background-color: #f7fafc;
+        color: #a0aec0;
+    }
+
+    /* Fix chevron arrows in pagination */
+    .pagination .page-link svg,
+    .pagination .page-link i {
+        font-size: 1rem !important;
+        width: 1rem !important;
+        height: 1rem !important;
+    }
+
+    .pagination .page-link[aria-label="Previous"],
+    .pagination .page-link[aria-label="Next"] {
+        font-size: 1rem !important;
+    }
+
+    .pagination .page-link::before,
+    .pagination .page-link::after {
+        font-size: 1rem !important;
+    }
+
+    .pagination li {
+        list-style: none;
+        display: inline-block;
+    }
+
+    .pagination .page-link {
+        line-height: 1.5;
+        text-decoration: none;
+    }
+
+    .pagination .page-link[aria-hidden="true"] {
+        font-size: 1rem !important;
+    }
+
+    /* Showing results text */
+    .pagination-info {
+        color: #4a5568;
+        font-size: 0.9rem;
+        margin-right: 1rem;
+    }
+
+    .pagination-info strong {
+        color: #667eea;
+        font-weight: 600;
+    }
+
+    /* Dark Mode Styles */
+    [data-theme="dark"] .archive-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        color: white !important;
+    }
+
+    [data-theme="dark"] .archive-card {
+        background: var(--dm-card-bg, #1e293b) !important;
+        border-left-color: #667eea !important;
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    [data-theme="dark"] .archive-date {
+        color: #a78bfa !important;
+    }
+
+    [data-theme="dark"] .archive-title {
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    [data-theme="dark"] .archive-content {
+        color: var(--dm-text-secondary, #cbd5e1) !important;
+    }
+
+    [data-theme="dark"] .archive-meta {
+        border-top-color: var(--dm-border-color, #334155) !important;
+        color: var(--dm-text-muted, #94a3b8) !important;
+    }
+
+    [data-theme="dark"] .archive-meta i {
+        color: #667eea !important;
+    }
+
+    [data-theme="dark"] .empty-state {
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    [data-theme="dark"] .empty-state i {
+        color: var(--dm-text-muted, #94a3b8) !important;
+    }
+
+    [data-theme="dark"] .empty-state h4 {
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    [data-theme="dark"] .empty-state p {
+        color: var(--dm-text-muted, #94a3b8) !important;
+    }
+
+    [data-theme="dark"] .back-button {
+        background: var(--dm-bg-secondary, #1e293b) !important;
+        color: #a78bfa !important;
+        border: 1px solid var(--dm-border-color, #334155) !important;
+    }
+
+    [data-theme="dark"] .back-button:hover {
+        background: var(--dm-bg-tertiary, #334155) !important;
+        color: #c4b5fd !important;
+    }
+
+    /* Dark Mode Pagination */
+    [data-theme="dark"] .pagination .page-link {
+        background: var(--dm-card-bg, #1e293b) !important;
+        border-color: var(--dm-border-color, #334155) !important;
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    [data-theme="dark"] .pagination .page-link:hover {
+        background-color: #667eea !important;
+        border-color: #667eea !important;
+        color: white !important;
+    }
+
+    [data-theme="dark"] .pagination .page-item.active .page-link {
+        background-color: #667eea !important;
+        border-color: #667eea !important;
+        color: white !important;
+    }
+
+    [data-theme="dark"] .pagination .page-item.disabled .page-link {
+        background-color: var(--dm-bg-tertiary, #334155) !important;
+        border-color: var(--dm-border-color, #475569) !important;
+        color: var(--dm-text-muted, #64748b) !important;
+        opacity: 0.5;
+    }
+
+    [data-theme="dark"] .pagination .page-item.disabled .page-link:hover {
+        background-color: var(--dm-bg-tertiary, #334155) !important;
+        color: var(--dm-text-muted, #64748b) !important;
+    }
+
+    [data-theme="dark"] .pagination-info {
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    [data-theme="dark"] .pagination-info strong {
+        color: #a78bfa !important;
     }
 </style>
 
@@ -214,8 +390,15 @@
             </div>
 
             <!-- Pagination -->
-            <div class="d-flex justify-content-center">
+            <div class="d-flex justify-content-center align-items-center flex-wrap gap-3 mt-4">
+                <div class="pagination-info">
+                    Showing <strong>{{ $archives->firstItem() }}</strong>
+                    to <strong>{{ $archives->lastItem() }}</strong>
+                    of <strong>{{ $archives->total() }}</strong> results
+                </div>
+                <nav>
                 {{ $archives->links() }}
+                </nav>
             </div>
         @else
             <!-- Empty State -->

@@ -11,15 +11,16 @@
 
 .profile-page-padding {
     background: white;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(33, 150, 243, 0.1);
+    padding: 2.5rem;
+    border: 1px solid #e3f2fd;
 }
 
 .account-container {
     display: grid;
-    grid-template-columns: 300px 1fr;
-    gap: 2rem;
+    grid-template-columns: 320px 1fr;
+    gap: 2.5rem;
 }
 
 /* Sidebar */
@@ -27,168 +28,233 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1rem;
-    padding: 2rem;
-    background: #f8f9fa;
-    border-radius: 12px;
+    gap: 1.5rem;
+    padding: 2.5rem 2rem;
+    background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(25, 118, 210, 0.25);
 }
 
 .sidebar-avatar {
-    width: 150px;
-    height: 150px;
+    width: 160px;
+    height: 160px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
-    border: 4px solid #2196F3;
+    background: white;
+    border: 5px solid rgba(255, 255, 255, 0.3);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 3.5rem;
     font-weight: 700;
-    color: white;
+    color: #1976D2;
     text-transform: uppercase;
     letter-spacing: 2px;
-    box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease;
+}
+
+.sidebar-avatar:hover {
+    transform: scale(1.05);
 }
 
 .profile-name {
-    font-size: 1.5rem;
+    font-size: 1.75rem;
     font-weight: 700;
-    color: #2C3E50;
+    color: white;
     text-align: center;
-    margin: 1rem 0;
+    margin: 0.5rem 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .profile-action-btn {
     width: 100%;
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 6px;
+    padding: 0.875rem 1.5rem;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
     font-weight: 600;
+    font-size: 0.95rem;
     cursor: pointer;
-    transition: all 0.3s;
-    background: #546e7a;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.15);
     color: white;
+    backdrop-filter: blur(10px);
 }
 
 .profile-action-btn:hover {
-    background: #455a64;
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.5);
     transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .profile-action-btn.logout {
-    background: #ef5350;
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
 }
 
 .profile-action-btn.logout:hover {
-    background: #e53935;
+    background: rgba(255, 87, 87, 0.9);
+    border-color: rgba(255, 87, 87, 1);
 }
 
 /* Profile Details */
 .profile-details-area {
-    padding: 1rem;
+    padding: 1.5rem;
+    background: linear-gradient(to bottom, #ffffff 0%, #f8fbff 100%);
+    border-radius: 12px;
+    border: 1px solid #e3f2fd;
 }
 
 .details-row {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 1.5rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.75rem;
 }
 
 .detail-block {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.625rem;
+    padding: 1rem;
+    background: white;
+    border-radius: 8px;
+    border: 2px solid #1976D2;
+    transition: all 0.3s ease;
+}
+
+.detail-block:hover {
+    border-color: #1565C0;
+    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.15);
 }
 
 .detail-block-label {
     font-weight: 700;
-    color: #546e7a;
-    font-size: 0.9rem;
+    color: #000000;
+    font-size: 0.875rem;
     text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
 }
 
 .detail-block input,
 .detail-block select {
-    padding: 0.75rem;
-    border: 2px solid #e0e0e0;
-    border-radius: 6px;
+    padding: 0.875rem 1rem;
+    border: 2px solid #1976D2;
+    border-radius: 8px;
     font-size: 1rem;
+    background: #f8fbff;
+    transition: all 0.3s ease;
+    color: #000000;
+}
+
+.detail-block input:hover,
+.detail-block select:hover {
+    border-color: #1565C0;
     background: white;
-    transition: all 0.3s;
+}
+
+/* Force dark mode override for all inputs - comprehensive */
+[data-theme="dark"] .detail-block input,
+[data-theme="dark"] .detail-block input[type="text"],
+[data-theme="dark"] .detail-block input[type="email"],
+[data-theme="dark"] .detail-block input[type="date"],
+[data-theme="dark"] .detail-block input[type="number"],
+[data-theme="dark"] .detail-block input[type="tel"],
+[data-theme="dark"] .detail-block select {
+    background: var(--dm-input-bg, #0f172a) !important;
+    background-color: var(--dm-input-bg, #0f172a) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
 }
 
 .detail-block input:focus,
 .detail-block select:focus {
     outline: none;
-    border-color: #2196F3;
+    border-color: #1565C0;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.2);
+    color: #000000;
 }
 
 .edit-button-container {
     display: flex;
     justify-content: flex-end;
     gap: 1rem;
-    margin-top: 2rem;
+    margin-top: 2.5rem;
+    padding-top: 2rem;
+    border-top: 2px solid #e3f2fd;
 }
 
 .btn-update {
-    background: #4caf50;
+    background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
     color: white;
     border: none;
-    padding: 0.75rem 2rem;
-    border-radius: 6px;
+    padding: 0.875rem 2.5rem;
+    border-radius: 8px;
     font-weight: 600;
+    font-size: 1rem;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
 }
 
 .btn-update:hover {
-    background: #45a049;
+    background: linear-gradient(135deg, #1565C0 0%, #0d47a1 100%);
     transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(25, 118, 210, 0.4);
 }
 
 .btn-cancel {
-    background: #757575;
-    color: white;
-    border: none;
-    padding: 0.75rem 2rem;
-    border-radius: 6px;
+    background: white;
+    color: #1976D2;
+    border: 2px solid #1976D2;
+    padding: 0.875rem 2.5rem;
+    border-radius: 8px;
     font-weight: 600;
+    font-size: 1rem;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.3s ease;
 }
 
 .btn-cancel:hover {
-    background: #616161;
+    background: #e3f2fd;
+    border-color: #1565C0;
+    color: #1565C0;
+    transform: translateY(-2px);
 }
 
 /* Validation Messages */
 .alert {
-    padding: 1rem;
-    border-radius: 6px;
+    padding: 1rem 1.25rem;
+    border-radius: 8px;
     margin-bottom: 1rem;
+    border-left: 4px solid;
 }
 
 .alert-success {
-    background: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
+    background: #e8f5e9;
+    color: #1b5e20;
+    border-left-color: #4caf50;
+    border: 2px solid #c8e6c9;
 }
 
 .alert-danger {
-    background: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
+    background: #ffebee;
+    color: #b71c1c;
+    border-left-color: #ef5350;
+    border: 2px solid #ffcdd2;
 }
 
 .is-invalid {
-    border-color: #dc3545 !important;
+    border-color: #ef5350 !important;
 }
 
 .invalid-feedback {
-    color: #dc3545;
+    color: #ef5350;
     font-size: 0.875rem;
     margin-top: 0.25rem;
+    font-weight: 500;
 }
 
 @media (max-width: 768px) {
@@ -204,6 +270,202 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* ============================================
+   DARK MODE STYLES FOR PATIENT PROFILE PAGE
+   ============================================ */
+
+/* Profile Container Dark Mode */
+[data-theme="dark"] .profile-container {
+    background: transparent !important;
+}
+
+/* Profile Page Padding Dark Mode - Force override white background */
+[data-theme="dark"] .profile-page-padding,
+[data-theme="dark"] div.profile-page-padding,
+[data-theme="dark"] .profile-page-padding[class] {
+    background: var(--dm-card-bg, #1e293b) !important;
+    background-color: var(--dm-card-bg, #1e293b) !important;
+    border: 1px solid var(--dm-border-color, #334155) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Additional override for any white background inheritance */
+[data-theme="dark"] .profile-container .profile-page-padding,
+[data-theme="dark"] .profile-page-padding,
+[data-theme="dark"] div.profile-page-padding {
+    background: var(--dm-card-bg, #1e293b) !important;
+    background-color: var(--dm-card-bg, #1e293b) !important;
+    background-image: none !important;
+}
+
+/* Profile Sidebar Dark Mode */
+[data-theme="dark"] .profile-sidebar {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+    border: 1px solid var(--dm-border-color, #334155) !important;
+}
+
+/* Sidebar Avatar Dark Mode */
+[data-theme="dark"] .sidebar-avatar {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    border-color: rgba(59, 130, 246, 0.3) !important;
+    color: white !important;
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3) !important;
+}
+
+[data-theme="dark"] .sidebar-avatar:hover {
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.5) !important;
+}
+
+/* Profile Name Dark Mode */
+[data-theme="dark"] .profile-name {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+/* Profile Action Buttons Dark Mode */
+[data-theme="dark"] .profile-action-btn {
+    background: var(--dm-bg-tertiary, #334155) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+    border: 1px solid var(--dm-border-color, #475569) !important;
+}
+
+[data-theme="dark"] .profile-action-btn:hover {
+    background: var(--dm-bg-primary, #0f172a) !important;
+    border-color: #3b82f6 !important;
+}
+
+[data-theme="dark"] .profile-action-btn.logout {
+    background: #ef4444 !important;
+    border-color: #ef4444 !important;
+}
+
+[data-theme="dark"] .profile-action-btn.logout:hover {
+    background: #dc2626 !important;
+    border-color: #dc2626 !important;
+}
+
+/* Profile Details Area Dark Mode */
+[data-theme="dark"] .profile-details-area {
+    background: linear-gradient(to bottom, var(--dm-card-bg, #1e293b) 0%, var(--dm-bg-secondary, #1e293b) 100%) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+/* Details Row Dark Mode */
+[data-theme="dark"] .details-row {
+    background: transparent !important;
+}
+
+/* Detail Block Dark Mode */
+[data-theme="dark"] .detail-block {
+    background: var(--dm-bg-tertiary, #334155) !important;
+    border-color: var(--dm-border-color, #475569) !important;
+}
+
+[data-theme="dark"] .detail-block:hover {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15) !important;
+}
+
+/* Detail Block Label Dark Mode - Ensure labels are light colored */
+[data-theme="dark"] .detail-block-label {
+    color: var(--dm-text-muted, #94a3b8) !important;
+}
+
+/* Form Inputs Dark Mode - All input types - Remove duplicate and ensure comprehensive */
+[data-theme="dark"] .profile-details-area .detail-block input,
+[data-theme="dark"] .profile-details-area .detail-block input[type="text"],
+[data-theme="dark"] .profile-details-area .detail-block input[type="email"],
+[data-theme="dark"] .profile-details-area .detail-block input[type="date"],
+[data-theme="dark"] .profile-details-area .detail-block input[type="number"],
+[data-theme="dark"] .profile-details-area .detail-block input[type="tel"],
+[data-theme="dark"] .profile-details-area .detail-block select {
+    background: var(--dm-input-bg, #0f172a) !important;
+    background-color: var(--dm-input-bg, #0f172a) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .detail-block input:focus,
+[data-theme="dark"] .detail-block select:focus {
+    background: var(--dm-input-bg, #0f172a) !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .detail-block input::placeholder {
+    color: var(--dm-text-muted, #64748b) !important;
+    opacity: 0.7 !important;
+}
+
+/* Read-only Age Input Dark Mode */
+[data-theme="dark"] input[readonly],
+[data-theme="dark"] input[readonly][style*="background: #f5f5f5"] {
+    background: var(--dm-bg-tertiary, #334155) !important;
+    border-color: var(--dm-border-color, #475569) !important;
+    color: var(--dm-text-muted, #94a3b8) !important;
+    cursor: not-allowed !important;
+}
+
+/* Select dropdown options dark mode */
+[data-theme="dark"] .detail-block select option {
+    background: var(--dm-input-bg, #0f172a) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+/* Account Container Dark Mode */
+[data-theme="dark"] .account-container {
+    background: transparent !important;
+}
+
+/* Update Button Dark Mode */
+[data-theme="dark"] .btn-update {
+    background: #22c55e !important;
+}
+
+[data-theme="dark"] .btn-update:hover {
+    background: #16a34a !important;
+}
+
+/* Cancel Button Dark Mode */
+[data-theme="dark"] .btn-cancel {
+    background: var(--dm-bg-tertiary, #334155) !important;
+    border: 1px solid var(--dm-border-color, #475569) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .btn-cancel:hover {
+    background: var(--dm-bg-primary, #0f172a) !important;
+    border-color: #3b82f6 !important;
+}
+
+/* Alert Dark Mode */
+[data-theme="dark"] .alert {
+    background: var(--dm-card-bg, #1e293b) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] .alert-success {
+    background: rgba(34, 197, 94, 0.15) !important;
+    color: #86efac !important;
+    border-color: #22c55e !important;
+}
+
+[data-theme="dark"] .alert-danger {
+    background: rgba(239, 68, 68, 0.15) !important;
+    color: #fca5a5 !important;
+    border-color: #ef4444 !important;
+}
+
+/* Invalid Input Dark Mode */
+[data-theme="dark"] .is-invalid {
+    border-color: #ef4444 !important;
+}
+
+[data-theme="dark"] .invalid-feedback {
+    color: #fca5a5 !important;
+}
 </style>
 
 <div class="profile-container">
@@ -217,7 +479,7 @@
         </div>
     </div>
 
-    <div class="profile-page-padding">
+    <div class="profile-page-padding" id="profileMainCard">
         <!-- Validation Messages -->
         <div id="validation-messages" style="display: none;"></div>
 
@@ -269,7 +531,7 @@
                         </div>
                         <div class="detail-block">
                             <span class="detail-block-label">Age</span>
-                            <input type="number" id="age" value="{{ $userInfo->age ?? '' }}" readonly style="background: #f5f5f5;">
+                            <input type="number" id="age" value="{{ $userInfo->age ?? '' }}" readonly style="background: #e3f2fd; border-color: #1976D2; color: #000000;">
                         </div>
                         <div class="detail-block">
                             <span class="detail-block-label">Sex *</span>
@@ -304,6 +566,32 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Force dark mode background for profile card
+    function applyDarkModeStyles() {
+        const theme = document.documentElement.getAttribute('data-theme');
+        const profileCard = document.getElementById('profileMainCard');
+
+        if (theme === 'dark' && profileCard) {
+            profileCard.style.setProperty('background', '#1e293b', 'important');
+            profileCard.style.setProperty('background-color', '#1e293b', 'important');
+            profileCard.style.setProperty('border', '1px solid #334155', 'important');
+        } else if (profileCard) {
+            profileCard.style.removeProperty('background');
+            profileCard.style.removeProperty('background-color');
+            profileCard.style.removeProperty('border');
+        }
+    }
+
+    // Apply on load
+    applyDarkModeStyles();
+
+    // Watch for theme changes
+    const observer = new MutationObserver(applyDarkModeStyles);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['data-theme']
+    });
+
     const profileForm = document.getElementById('profileForm');
     const birthdayInput = document.getElementById('birthday');
     const ageInput = document.getElementById('age');

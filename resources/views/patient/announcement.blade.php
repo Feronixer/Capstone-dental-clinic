@@ -199,6 +199,10 @@
         border-top: 2px solid #f0f0f0;
     }
 
+    [data-theme="dark"] .announcement-details {
+        border-top-color: var(--dm-border-color, #334155) !important;
+    }
+
     .detail-item {
         display: flex;
         align-items: center;
@@ -403,6 +407,152 @@
             transform: translateY(0);
         }
     }
+
+    /* ============================================
+       DARK MODE STYLES FOR ANNOUNCEMENT PAGE
+       ============================================ */
+
+    /* Main Page Dark Mode */
+    [data-theme="dark"] .announcement-page {
+        background: linear-gradient(135deg, var(--dm-bg-primary, #0f172a) 0%, var(--dm-bg-secondary, #1e293b) 100%) !important;
+    }
+
+    /* Page Header Dark Mode */
+    [data-theme="dark"] .page-header h1 {
+        background: linear-gradient(135deg, #60a5fa, #14b8a6) !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        background-clip: text !important;
+    }
+
+    [data-theme="dark"] .page-header p {
+        color: var(--dm-text-muted, #94a3b8) !important;
+    }
+
+    /* Announcement Card Dark Mode */
+    [data-theme="dark"] .announcement-card {
+        background: var(--dm-card-bg, #1e293b) !important;
+        border-color: var(--dm-border-color, #334155) !important;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+    }
+
+    [data-theme="dark"] .announcement-card:hover {
+        box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    /* Banner remains the same (blue gradient) - already has good contrast */
+
+    /* Content Section Dark Mode */
+    [data-theme="dark"] .announcement-content-section {
+        background: transparent !important;
+    }
+
+    /* Announcement Message Dark Mode */
+    [data-theme="dark"] .announcement-message {
+        background: linear-gradient(135deg, var(--dm-bg-secondary, #1e293b) 0%, var(--dm-card-bg, #1e293b) 100%) !important;
+        border-left-color: #3b82f6 !important;
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    /* Detail Items Dark Mode */
+    [data-theme="dark"] .detail-item {
+        background: var(--dm-bg-primary, #0f172a) !important;
+        color: var(--dm-text-primary, #f1f5f9) !important;
+        border: 1px solid var(--dm-border-color, #334155) !important;
+    }
+
+    [data-theme="dark"] .detail-item:hover {
+        background: var(--dm-bg-tertiary, #334155) !important;
+        border-color: #3b82f6 !important;
+    }
+
+    [data-theme="dark"] .detail-item i {
+        color: #60a5fa !important;
+    }
+
+    [data-theme="dark"] .detail-item span {
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    /* Archive Section Header Dark Mode */
+    [data-theme="dark"] .archive-section-header h2 {
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    [data-theme="dark"] .archive-section-header p {
+        color: var(--dm-text-muted, #94a3b8) !important;
+    }
+
+    /* Archive Cards Dark Mode */
+    [data-theme="dark"] .archive-card {
+        background: var(--dm-card-bg, #1e293b) !important;
+        border-color: var(--dm-border-color, #334155) !important;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    [data-theme="dark"] .archive-card:hover {
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+    }
+
+    [data-theme="dark"] .archive-card::before {
+        background: linear-gradient(135deg, transparent 0%, rgba(59, 130, 246, 0.1) 100%) !important;
+    }
+
+    [data-theme="dark"] .archive-date {
+        color: var(--dm-text-muted, #94a3b8) !important;
+    }
+
+    [data-theme="dark"] .archive-date i {
+        color: var(--dm-text-muted, #94a3b8) !important;
+    }
+
+    [data-theme="dark"] .archive-title {
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    [data-theme="dark"] .archive-content {
+        color: var(--dm-text-muted, #94a3b8) !important;
+    }
+
+    /* Empty State Dark Mode */
+    [data-theme="dark"] .empty-state {
+        background: var(--dm-card-bg, #1e293b) !important;
+        border: 1px solid var(--dm-border-color, #334155) !important;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    [data-theme="dark"] .empty-state i {
+        color: #60a5fa !important;
+        opacity: 0.6 !important;
+    }
+
+    [data-theme="dark"] .empty-state h3 {
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    [data-theme="dark"] .empty-state p {
+        color: var(--dm-text-muted, #94a3b8) !important;
+    }
+
+    /* Image Wrapper Dark Mode */
+    [data-theme="dark"] .announcement-image-wrapper {
+        background: var(--dm-bg-primary, #0f172a) !important;
+        border: 1px solid var(--dm-border-color, #334155) !important;
+    }
+
+    /* Event Message with Teal Border Dark Mode */
+    [data-theme="dark"] .announcement-message[style*="border-left-color: var(--accent-teal)"] {
+        border-left-color: #14b8a6 !important;
+        background: linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, var(--dm-bg-secondary, #1e293b) 100%) !important;
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    /* Event Detail Items with Teal Icons Dark Mode */
+    [data-theme="dark"] .detail-item i[style*="color: var(--accent-teal)"] {
+        color: #14b8a6 !important;
+    }
+
+    /* Badges remain the same (they have good contrast) */
 
     /* Responsive */
     @media (max-width: 768px) {

@@ -237,6 +237,68 @@
         height: 300px;
     }
 }
+
+/* ============================================
+   DARK MODE STYLES FOR ABOUT US PAGE
+   ============================================ */
+
+/* Main Page Dark Mode */
+[data-theme="dark"] .about-page {
+    background: var(--dm-bg-primary, #0f172a) !important;
+}
+
+[data-theme="dark"] .about-container {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+/* Header Dark Mode */
+[data-theme="dark"] .about-main-title {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .about-clinic-title {
+    color: #14b8a6 !important;
+}
+
+/* Content Grid Dark Mode */
+[data-theme="dark"] .about-content-grid {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+/* Description Dark Mode */
+[data-theme="dark"] .about-description {
+    color: var(--dm-text-muted, #94a3b8) !important;
+}
+
+/* Image Section Dark Mode - Keep teal background but adjust if needed */
+[data-theme="dark"] .about-image-section {
+    background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%) !important;
+}
+
+/* Dentist card text is already white, which is good */
+
+/* Location Section Dark Mode */
+[data-theme="dark"] .location-section {
+    border-top-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] .location-title {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .location-address {
+    color: var(--dm-text-muted, #94a3b8) !important;
+}
+
+[data-theme="dark"] .location-address i {
+    color: #14b8a6 !important;
+}
+
+/* Map Container Dark Mode */
+[data-theme="dark"] .map-container {
+    border: 1px solid var(--dm-border-color, #334155) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+}
 </style>
 
 <div class="about-page">

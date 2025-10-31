@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,6 +11,13 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        // Initialize dark mode on page load
+        (function() {
+            const savedTheme = localStorage.getItem('darkMode') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
 </head>
 <body class="admin-body">
     {{-- Navigation Menu --}}
@@ -59,6 +66,55 @@
             // Set admin session active flag
             localStorage.setItem('admin_session_active', Date.now().toString());
         })();
+    </script>
+
+    {{-- Dark Mode Toggle Script --}}
+    <script>
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('darkMode', newTheme);
+
+            // Update icon in navigation
+            const darkModeLinks = document.querySelectorAll('.dark-mode-toggle-btn');
+            darkModeLinks.forEach(link => {
+                const icon = link.querySelector('i');
+                const span = link.querySelector('span');
+                if (newTheme === 'dark') {
+                    if (icon) icon.className = 'bi bi-sun';
+                    if (span) span.textContent = 'Light Mode';
+                } else {
+                    if (icon) icon.className = 'bi bi-moon-stars';
+                    if (span) span.textContent = 'Dark Mode';
+                }
+            });
+
+            // Update icon in patient header
+            const darkModeIcon = document.getElementById('darkModeIcon');
+            if (darkModeIcon) {
+                darkModeIcon.className = newTheme === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
+            }
+        }
+
+        // Update icon on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const darkModeLinks = document.querySelectorAll('.dark-mode-toggle-btn');
+            darkModeLinks.forEach(link => {
+                const icon = link.querySelector('i');
+                const span = link.querySelector('span');
+                if (currentTheme === 'dark') {
+                    if (icon) icon.className = 'bi bi-sun';
+                    if (span) span.textContent = 'Light Mode';
+                } else {
+                    if (icon) icon.className = 'bi bi-moon-stars';
+                    if (span) span.textContent = 'Dark Mode';
+                }
+            });
+        });
     </script>
 </body>
 </html>

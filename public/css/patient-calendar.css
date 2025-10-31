@@ -1,5 +1,230 @@
 /* Patient Calendar Styles */
 
+/* Dark Mode Overrides */
+[data-theme="dark"] .calendar-container {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .page-title {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .page-subtitle {
+    color: var(--dm-text-muted) !important;
+}
+
+[data-theme="dark"] .sidebar-card {
+    background: var(--dm-card-bg) !important;
+    color: var(--dm-text-primary) !important;
+    border: 1px solid var(--dm-border-color) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .sidebar-title {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .nav-btn {
+    background: var(--dm-input-bg) !important;
+    border-color: var(--dm-border-color) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .nav-btn:hover {
+    background: var(--dm-bg-tertiary) !important;
+    border-color: #3b82f6 !important;
+}
+
+[data-theme="dark"] .mini-cal-day.header {
+    color: var(--dm-text-muted) !important;
+}
+
+[data-theme="dark"] .mini-cal-day {
+    background: var(--dm-card-bg) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .mini-cal-day.current {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .mini-cal-day.has-appointment,
+[data-theme="dark"] .mini-cal-day.has-events {
+    background: rgba(59, 130, 246, 0.2) !important;
+    color: #60a5fa !important;
+}
+
+[data-theme="dark"] .mini-cal-day:not(.header):not(.current):hover {
+    background: var(--dm-bg-tertiary) !important;
+}
+
+[data-theme="dark"] .calendar-main {
+    background: var(--dm-card-bg) !important;
+    border: 1px solid var(--dm-border-color) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Month View Calendar Dark Mode */
+[data-theme="dark"] .calendar-grid,
+[data-theme="dark"] .month-view {
+    background: transparent !important;
+}
+
+[data-theme="dark"] .calendar-day {
+    background: var(--dm-card-bg) !important;
+    border-color: var(--dm-border-color) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .calendar-day:hover {
+    background: var(--dm-bg-tertiary) !important;
+}
+
+[data-theme="dark"] .calendar-day.today {
+    background: rgba(59, 130, 246, 0.2) !important;
+    border-color: #3b82f6 !important;
+}
+
+[data-theme="dark"] .calendar-day.other-month {
+    background: var(--dm-bg-primary) !important;
+    opacity: 0.5 !important;
+    color: var(--dm-text-muted) !important;
+}
+
+[data-theme="dark"] .day-number {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .calendar-day.today {
+    border: 2px solid #3b82f6 !important;
+    background: rgba(59, 130, 246, 0.1) !important;
+}
+
+[data-theme="dark"] .calendar-day.today .day-number {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    color: white !important;
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 50% !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-weight: 700 !important;
+}
+
+[data-theme="dark"] .day-number {
+    color: var(--dm-text-primary) !important;
+    font-weight: 600 !important;
+}
+
+[data-theme="dark"] .calendar-day .day-number {
+    color: var(--dm-text-primary) !important;
+    font-weight: 600 !important;
+}
+
+[data-theme="dark"] .calendar-day:not(.today) .day-number {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .appointment-item {
+    color: white !important;
+}
+
+[data-theme="dark"] .appointment-item.pending {
+    background: #fbbf24 !important;
+}
+
+[data-theme="dark"] .appointment-item.confirmed {
+    background: #3b82f6 !important;
+}
+
+[data-theme="dark"] .appointment-item.completed {
+    background: #10b981 !important;
+}
+
+[data-theme="dark"] .appointment-item.cancelled {
+    background: #ef4444 !important;
+}
+
+/* Calendar Header Row Dark Mode */
+[data-theme="dark"] .calendar-header-row {
+    background: var(--dm-bg-secondary) !important;
+    border-bottom: 2px solid var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .calendar-header-cell {
+    background: var(--dm-bg-secondary) !important;
+    color: var(--dm-text-primary) !important;
+    border-right: 1px solid var(--dm-border-color) !important;
+    font-weight: 600 !important;
+}
+
+[data-theme="dark"] .calendar-header-cell:last-child {
+    border-right: none !important;
+}
+
+/* Calendar Body Dark Mode */
+[data-theme="dark"] .calendar-body {
+    background: transparent !important;
+}
+
+[data-theme="dark"] .calendar-week {
+    border-bottom: 1px solid var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .calendar-day.empty {
+    background: var(--dm-bg-primary) !important;
+    opacity: 0.3 !important;
+}
+
+[data-theme="dark"] .calendar-day:not(.empty) {
+    border-right: 1px solid var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .calendar-day:not(.empty):last-child {
+    border-right: none !important;
+}
+
+/* Event Items Dark Mode */
+[data-theme="dark"] .event-item {
+    color: white !important;
+    font-weight: 500 !important;
+    padding: 0.25rem 0.5rem !important;
+    border-radius: 4px !important;
+    margin: 0.125rem 0 !important;
+    font-size: 0.75rem !important;
+}
+
+[data-theme="dark"] .event-item.pending {
+    background: #fbbf24 !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .event-item.confirmed {
+    background: #3b82f6 !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .event-item.completed {
+    background: #10b981 !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .event-item.cancelled {
+    background: #ef4444 !important;
+    color: white !important;
+}
+
+/* Ensure calendar grid background is dark */
+[data-theme="dark"] .calendar-grid {
+    background: transparent !important;
+}
+
+[data-theme="dark"] .month-grid {
+    background: transparent !important;
+}
+
 .calendar-container {
     max-width: 1400px;
     margin: 0 auto;

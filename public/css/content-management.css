@@ -14,6 +14,18 @@
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
     --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
     --shadow-lg: 0 10px 25px rgba(37, 99, 235, 0.15);
+
+    /* Dark Mode Colors */
+    --dm-bg-primary: #0f172a;
+    --dm-bg-secondary: #1e293b;
+    --dm-bg-tertiary: #334155;
+    --dm-text-primary: #f1f5f9;
+    --dm-text-secondary: #cbd5e1;
+    --dm-text-muted: #94a3b8;
+    --dm-border-color: #334155;
+    --dm-card-bg: #1e293b;
+    --dm-input-bg: #0f172a;
+    --dm-input-border: #334155;
 }
 
 html {
@@ -30,9 +42,518 @@ body.admin-body {
     display: flex !important;
 }
 
+/* Dark Mode Overrides for Content Management */
+[data-theme="dark"] body.admin-body {
+    background: linear-gradient(135deg, var(--dm-bg-primary) 0%, var(--dm-bg-secondary) 100%) !important;
+}
+
+[data-theme="dark"] .container-fluid,
+[data-theme="dark"] .row,
+[data-theme="dark"] .col {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] h6 {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .image-preview img {
+    border-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .placeholder-image {
+    background: linear-gradient(135deg, var(--dm-bg-tertiary) 0%, var(--dm-bg-secondary) 100%) !important;
+    border-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .mail-template-editor {
+    background: var(--dm-bg-secondary) !important;
+}
+
+[data-theme="dark"] .mail-template-editor textarea {
+    background: var(--dm-input-bg) !important;
+    border-color: var(--dm-border-color) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .mail-preview {
+    background: linear-gradient(135deg, var(--dm-card-bg) 0%, var(--dm-bg-secondary) 100%) !important;
+}
+
+[data-theme="dark"] .mail-preview p {
+    color: var(--dm-text-primary) !important;
+}
+
+/* Service Table Dark Mode */
+[data-theme="dark"] .service-table {
+    background: var(--dm-card-bg) !important;
+    border-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .service-table thead {
+    background: var(--dm-bg-tertiary) !important;
+    border-bottom-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .service-table thead th {
+    background: var(--dm-bg-tertiary) !important;
+    color: var(--dm-text-primary) !important;
+    border-bottom-color: var(--dm-border-color) !important;
+}
+
+/* Force text alignment for table headers in dark mode */
+[data-theme="dark"] .service-table thead th.text-center {
+    text-align: center !important;
+}
+
+[data-theme="dark"] .service-table thead th.text-start {
+    text-align: left !important;
+}
+
+[data-theme="dark"] .service-table tbody td {
+    background-color: transparent !important;
+    color: var(--dm-text-primary) !important;
+    border-bottom-color: var(--dm-border-color) !important;
+}
+
+/* Force text alignment for table cells in dark mode */
+[data-theme="dark"] .service-table tbody td.text-center {
+    text-align: center !important;
+}
+
+[data-theme="dark"] .service-table tbody td.text-start {
+    text-align: left !important;
+}
+
+[data-theme="dark"] .service-table tbody tr {
+    background: var(--dm-card-bg) !important;
+}
+
+/* Alternate row colors in dark mode */
+[data-theme="dark"] .service-table tbody tr:nth-of-type(odd) {
+    background: var(--dm-card-bg) !important;
+}
+
+[data-theme="dark"] .service-table tbody tr:nth-of-type(even) {
+    background: var(--dm-bg-secondary) !important;
+}
+
+[data-theme="dark"] .service-table tbody tr:hover {
+    background: var(--dm-bg-tertiary) !important;
+}
+
+[data-theme="dark"] .service-table tbody tr:last-child td {
+    border-bottom: none !important;
+}
+
+/* Service icon box dark mode */
+[data-theme="dark"] .service-icon-box {
+    background: var(--dm-bg-secondary) !important;
+    border-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .service-icon-box i {
+    color: #14b8a6 !important;
+}
+
+/* Icon wrapper dark mode */
+[data-theme="dark"] .icon-wrapper {
+    color: var(--dm-text-primary) !important;
+}
+
+/* Change button dark mode */
+[data-theme="dark"] .btn-change {
+    background: #14b8a6 !important;
+    color: white !important;
+    border-color: #14b8a6 !important;
+}
+
+[data-theme="dark"] .btn-change:hover {
+    background: #0d9488 !important;
+    border-color: #0d9488 !important;
+    color: white !important;
+}
+
+/* Edit and Delete buttons dark mode - preserve colors but ensure visibility */
+[data-theme="dark"] .btn-edit {
+    background: #10b981 !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .btn-edit:hover {
+    background: #059669 !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .btn-delete {
+    background: #ef4444 !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .btn-delete:hover {
+    background: #dc2626 !important;
+    color: white !important;
+}
+
+/* Action buttons container */
+[data-theme="dark"] .action-buttons {
+    color: var(--dm-text-primary) !important;
+}
+
+/* Empty state text */
+[data-theme="dark"] .service-table tbody td.text-muted {
+    color: var(--dm-text-muted) !important;
+}
+
+/* Description cell dark mode */
+[data-theme="dark"] .description-cell {
+    color: var(--dm-text-primary) !important;
+}
+
+/* Table responsive container dark mode */
+[data-theme="dark"] .table-responsive {
+    background-color: transparent !important;
+}
+
+[data-theme="dark"] .card {
+    background: var(--dm-card-bg) !important;
+    border-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .card-header {
+    background: var(--dm-bg-tertiary) !important;
+    border-bottom-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .card-header h5 {
+    color: var(--dm-text-primary) !important;
+}
+
+/* Add Service button in card header */
+[data-theme="dark"] .card-header .btn-primary {
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%) !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .card-header .btn-primary:hover {
+    background: linear-gradient(135deg, var(--primary-blue-dark) 0%, var(--primary-blue) 100%) !important;
+    color: white !important;
+}
+
+/* Override bg-white class in card headers */
+[data-theme="dark"] .card-header.bg-white {
+    background: var(--dm-bg-tertiary) !important;
+}
+
+/* Text colors in dark mode */
+[data-theme="dark"] .text-primary {
+    color: var(--primary-blue-light) !important;
+}
+
+[data-theme="dark"] .text-muted {
+    color: var(--dm-text-muted) !important;
+}
+
 /* Preserve navigation font size */
 body.admin-body .navigation-bar-container {
     font-size: 16px !important;
+}
+
+/* ============================================
+   DARK MODE MODAL STYLES
+   ============================================ */
+
+/* Modal Content Dark Mode */
+[data-theme="dark"] .modal-content {
+    background-color: var(--dm-card-bg) !important;
+    border-color: var(--dm-border-color) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+/* Modal Header Dark Mode */
+[data-theme="dark"] .modal-header {
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%) !important;
+    border-bottom-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .modal-header.bg-white {
+    background: var(--dm-bg-tertiary) !important;
+}
+
+[data-theme="dark"] .modal-header.text-white {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .modal-title {
+    color: #ffffff !important;
+}
+
+/* Modal Header Close Button Dark Mode */
+[data-theme="dark"] .modal-header .btn-close,
+[data-theme="dark"] .modal-header .btn-close-white {
+    filter: brightness(0) invert(1) !important;
+    opacity: 0.8;
+}
+
+[data-theme="dark"] .modal-header .btn-close:hover,
+[data-theme="dark"] .modal-header .btn-close-white:hover {
+    opacity: 1 !important;
+}
+
+/* Modal Body Dark Mode */
+[data-theme="dark"] .modal-body {
+    background-color: var(--dm-card-bg) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+/* Modal Footer Dark Mode */
+[data-theme="dark"] .modal-footer {
+    background-color: var(--dm-bg-tertiary) !important;
+    border-top-color: var(--dm-border-color) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .modal-footer.bg-light {
+    background-color: var(--dm-bg-tertiary) !important;
+}
+
+/* Form Controls in Modals Dark Mode */
+[data-theme="dark"] .modal-body .form-control,
+[data-theme="dark"] .modal-body .form-select,
+[data-theme="dark"] .modal-body textarea {
+    background-color: var(--dm-input-bg) !important;
+    border-color: var(--dm-input-border) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .modal-body .form-control::placeholder,
+[data-theme="dark"] .modal-body textarea::placeholder {
+    color: var(--dm-text-muted) !important;
+    opacity: 0.7;
+}
+
+[data-theme="dark"] .modal-body .form-control:focus,
+[data-theme="dark"] .modal-body .form-select:focus {
+    background-color: var(--dm-input-bg) !important;
+    border-color: var(--primary-blue) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+/* Form Labels in Modals Dark Mode */
+[data-theme="dark"] .modal-body .form-label,
+[data-theme="dark"] .modal-body label {
+    color: var(--dm-text-primary) !important;
+}
+
+/* Small Text in Modals Dark Mode */
+[data-theme="dark"] .modal-body .form-text,
+[data-theme="dark"] .modal-body small,
+[data-theme="dark"] .modal-body .text-muted {
+    color: var(--dm-text-muted) !important;
+    opacity: 0.8;
+}
+
+/* Input Groups in Modals Dark Mode */
+[data-theme="dark"] .modal-body .input-group-text {
+    background-color: var(--dm-bg-tertiary) !important;
+    border-color: var(--dm-input-border) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+/* Delete/Confirmation Modal Dark Mode */
+[data-theme="dark"] .delete-modal-content {
+    background: linear-gradient(135deg, var(--dm-card-bg) 0%, var(--dm-bg-secondary) 100%) !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-theme="dark"] .delete-modal-title {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .delete-modal-message {
+    color: var(--dm-text-muted) !important;
+}
+
+/* Cancel Button Dark Mode */
+[data-theme="dark"] .btn-cancel {
+    background: var(--dm-bg-tertiary) !important;
+    color: var(--dm-text-primary) !important;
+    border-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .btn-cancel:hover {
+    background: var(--dm-bg-secondary) !important;
+    color: var(--dm-text-primary) !important;
+    border-color: var(--primary-blue) !important;
+}
+
+/* Delete Button Dark Mode - Keep red color */
+[data-theme="dark"] .btn-delete {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .btn-delete:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+    color: white !important;
+}
+
+/* Icon Picker Modal Dark Mode */
+[data-theme="dark"] #iconPickerModal .modal-content {
+    background-color: var(--dm-card-bg) !important;
+}
+
+[data-theme="dark"] #iconPickerModal .modal-header {
+    background: var(--dm-bg-tertiary) !important;
+    border-bottom-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] #iconPickerModal .modal-body {
+    background-color: var(--dm-card-bg) !important;
+}
+
+[data-theme="dark"] #iconPickerModal .form-control {
+    background-color: var(--dm-input-bg) !important;
+    border-color: var(--dm-input-border) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] #iconPickerModal .icon-picker-item {
+    background: var(--dm-bg-secondary) !important;
+    border-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] #iconPickerModal .icon-picker-item:hover {
+    background: var(--dm-bg-tertiary) !important;
+    border-color: var(--primary-blue) !important;
+}
+
+[data-theme="dark"] #iconPickerModal .icon-picker-item.selected {
+    background: var(--primary-blue) !important;
+    border-color: var(--primary-blue) !important;
+    color: white !important;
+}
+
+/* Toast Notifications Dark Mode */
+[data-theme="dark"] .custom-toast {
+    background: linear-gradient(135deg, var(--dm-card-bg) 0%, var(--dm-bg-secondary) 100%) !important;
+    border-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .custom-toast span {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .custom-toast-success {
+    background: linear-gradient(135deg, var(--dm-card-bg) 0%, rgba(34, 197, 94, 0.1) 100%) !important;
+    border-color: #22c55e !important;
+}
+
+[data-theme="dark"] .custom-toast-error {
+    background: linear-gradient(135deg, var(--dm-card-bg) 0%, rgba(239, 68, 68, 0.1) 100%) !important;
+    border-color: #ef4444 !important;
+}
+
+[data-theme="dark"] .custom-toast-info {
+    background: linear-gradient(135deg, var(--dm-card-bg) 0%, rgba(37, 99, 235, 0.1) 100%) !important;
+    border-color: var(--primary-blue) !important;
+}
+
+/* Alert in Modals Dark Mode */
+[data-theme="dark"] .modal-body .alert {
+    background-color: var(--dm-bg-secondary) !important;
+    border-color: var(--dm-border-color) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .modal-body .alert-info {
+    background-color: rgba(6, 182, 212, 0.1) !important;
+    border-color: #06b6d4 !important;
+    color: var(--dm-text-primary) !important;
+}
+
+/* Card in Modals Dark Mode */
+[data-theme="dark"] .modal-body .card {
+    background-color: var(--dm-bg-secondary) !important;
+    border-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .modal-body .card-header {
+    background-color: var(--dm-bg-tertiary) !important;
+    border-bottom-color: var(--dm-border-color) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .modal-body .card-body {
+    background-color: var(--dm-bg-secondary) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+/* Table in Modals Dark Mode */
+[data-theme="dark"] .modal-body .table {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .modal-body .table thead th {
+    background-color: var(--dm-bg-tertiary) !important;
+    border-color: var(--dm-border-color) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .modal-body .table tbody td {
+    background-color: transparent !important;
+    border-color: var(--dm-border-color) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+/* Nav Tabs in Modals Dark Mode */
+[data-theme="dark"] .modal-body .nav-tabs {
+    border-bottom-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .modal-body .nav-tabs .nav-link {
+    color: var(--dm-text-muted) !important;
+    border-color: transparent !important;
+}
+
+[data-theme="dark"] .modal-body .nav-tabs .nav-link:hover {
+    border-color: var(--dm-border-color) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .modal-body .nav-tabs .nav-link.active {
+    background-color: var(--dm-card-bg) !important;
+    border-color: var(--dm-border-color) var(--dm-border-color) var(--dm-card-bg) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+/* Dropdown in Modals Dark Mode */
+[data-theme="dark"] .modal-body .dropdown-menu {
+    background-color: var(--dm-card-bg) !important;
+    border-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .modal-body .dropdown-item {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .modal-body .dropdown-item:hover {
+    background-color: var(--dm-bg-tertiary) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+/* Badge in Modals Dark Mode */
+[data-theme="dark"] .modal-body .badge {
+    color: inherit !important;
+}
+
+/* Text Utilities in Modals Dark Mode */
+[data-theme="dark"] .modal-body .text-primary {
+    color: var(--primary-blue-light) !important;
+}
+
+[data-theme="dark"] .modal-body .text-secondary {
+    color: var(--dm-text-muted) !important;
 }
 
 body.admin-body main {

@@ -1,5 +1,186 @@
 /* Appointment Calendar Styles */
 
+/* Dark Mode Overrides */
+[data-theme="dark"] .calendar-container {
+    background: var(--dm-card-bg) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .calendar-header {
+    background: var(--dm-bg-tertiary, #334155) !important;
+    border-bottom-color: var(--dm-border-color, #334155) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .calendar-container h1,
+[data-theme="dark"] .calendar-container h2,
+[data-theme="dark"] .calendar-container h5 {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .calendar-container .text-dark {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .calendar-container .text-muted {
+    color: var(--dm-text-muted, #94a3b8) !important;
+}
+
+[data-theme="dark"] .status-dot {
+    opacity: 1 !important;
+}
+
+[data-theme="dark"] .calendar-grid {
+    background: var(--dm-card-bg) !important;
+}
+
+[data-theme="dark"] .calendar-day {
+    background: var(--dm-card-bg, #1e293b) !important;
+    border-right-color: var(--dm-border-color, #334155) !important;
+    border-bottom-color: var(--dm-border-color, #334155) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .calendar-day:hover {
+    background: var(--dm-bg-tertiary, #334155) !important;
+}
+
+[data-theme="dark"] .calendar-day.other-month {
+    background: var(--dm-bg-secondary, #0f172a) !important;
+    opacity: 0.5 !important;
+}
+
+[data-theme="dark"] .calendar-day.other-month .day-number {
+    color: var(--dm-text-muted, #64748b) !important;
+}
+
+[data-theme="dark"] .calendar-day.today {
+    background: var(--dm-bg-tertiary, #334155) !important;
+    border: 2px solid #3b82f6 !important;
+}
+
+[data-theme="dark"] .calendar-day.today .day-number {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+    font-weight: 700 !important;
+}
+
+[data-theme="dark"] .day-number {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+    font-weight: 600 !important;
+}
+
+[data-theme="dark"] .week-header {
+    background: var(--dm-bg-tertiary) !important;
+    border-bottom-color: var(--dm-border-color) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .day-header {
+    background: var(--dm-bg-tertiary) !important;
+    border-bottom-color: var(--dm-border-color) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .time-slot {
+    background: var(--dm-card-bg) !important;
+    border-bottom-color: var(--dm-border-color) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .time-slot:hover {
+    background: var(--dm-bg-tertiary) !important;
+}
+
+[data-theme="dark"] .time-label {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .time-content {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .date-picker-container {
+    background: var(--dm-card-bg) !important;
+    border-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .calendar-widget {
+    background: var(--dm-card-bg) !important;
+}
+
+[data-theme="dark"] .calendar-widget .calendar-header {
+    background: var(--dm-bg-tertiary) !important;
+    border-bottom-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .calendar-widget .calendar-header span {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .calendar-widget .calendar-grid {
+    background: var(--dm-card-bg) !important;
+    border-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .calendar-widget .calendar-day {
+    background: var(--dm-card-bg, #1e293b) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .calendar-widget .calendar-day:hover {
+    background: var(--dm-bg-tertiary, #334155) !important;
+}
+
+[data-theme="dark"] .calendar-widget .calendar-day.past-date {
+    background: var(--dm-bg-secondary, #0f172a) !important;
+    color: var(--dm-text-muted, #64748b) !important;
+    opacity: 0.5 !important;
+}
+
+[data-theme="dark"] .calendar-widget .calendar-day.past-date:hover {
+    background: var(--dm-bg-secondary, #0f172a) !important;
+}
+
+[data-theme="dark"] .calendar-widget .calendar-day.today {
+    background: var(--dm-bg-tertiary, #334155) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+    border: 2px solid #3b82f6 !important;
+}
+
+[data-theme="dark"] .calendar-widget .calendar-day.today.selected {
+    background: #3b82f6 !important;
+    color: white !important;
+    border-color: #3b82f6 !important;
+}
+
+/* Override inline styles for day headers (first 7 calendar-day elements) */
+[data-theme="dark"] .calendar-widget .calendar-grid > .calendar-day:nth-child(-n+7) {
+    background: var(--dm-bg-tertiary) !important;
+    color: var(--dm-text-primary) !important;
+    font-weight: 600;
+}
+
+/* Empty cells (other-month) */
+[data-theme="dark"] .calendar-widget .calendar-day[style*="visibility: hidden"] {
+    background: var(--dm-card-bg) !important;
+}
+
+/* Dark Mode Modal Footer Buttons */
+[data-theme="dark"] #blockTimeModal .modal-footer .btn-light,
+[data-theme="dark"] .modal-footer .btn-light {
+    background: var(--dm-card-bg) !important;
+    border-color: var(--dm-border-color) !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] #blockTimeModal .modal-footer .btn-light:hover,
+[data-theme="dark"] .modal-footer .btn-light:hover {
+    background: var(--dm-bg-tertiary) !important;
+    border-color: var(--dm-border-color) !important;
+    color: #ffffff !important;
+}
+
 .calendar-container {
     background: #fff;
     border-radius: 12px;
@@ -45,6 +226,47 @@
     position: relative;
     background: #fff;
     transition: background-color 0.2s;
+}
+
+/* Ensure appointment items are visible in dark mode */
+[data-theme="dark"] .appointment-item {
+    color: white !important;
+    font-weight: 500 !important;
+}
+
+[data-theme="dark"] .appointment-item.pending {
+    background: #F59E0B !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .appointment-item.confirmed {
+    background: #3B82F6 !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .appointment-item.completed {
+    background: #10B981 !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .appointment-item.blocked {
+    background: #EF4444 !important;
+    color: white !important;
+}
+
+/* Highlight days with appointments in dark mode */
+[data-theme="dark"] .calendar-day:has(.appointment-item) {
+    background: var(--dm-bg-secondary, #0f172a) !important;
+    border-left: 3px solid #3b82f6 !important;
+}
+
+[data-theme="dark"] .calendar-day:has(.appointment-item) .day-number {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+    font-weight: 700 !important;
+}
+
+[data-theme="dark"] .calendar-day:has(.appointment-item):hover {
+    background: var(--dm-bg-tertiary, #334155) !important;
 }
 
 .calendar-day:hover {

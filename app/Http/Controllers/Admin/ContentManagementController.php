@@ -38,7 +38,55 @@ class ContentManagementController extends Controller
     }
 
     /**
-     * Update announcement
+     * Create a new announcement (archives the old one)
+     */
+    public function createNewAnnouncement(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $existingAnnouncement = Announcement::first();
+
+        // Archive the old announcement if it exists
+        if ($existingAnnouncement) {
+            AnnouncementArchive::createFromAnnouncement($existingAnnouncement, auth()->id());
+            // Delete the old announcement
+            $existingAnnouncement->delete();
+        }
+
+        // Create new announcement
+        $announcement = new Announcement();
+        $announcement->title = $request->input('title');
+        $announcement->content = $request->input('content');
+
+        // Handle image upload
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('announcements', 'public');
+            $announcement->image_path = $path;
+        }
+
+        $announcement->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'New announcement created successfully. Old announcement has been archived.',
+            'data' => $announcement
+        ]);
+    }
+
+    /**
+     * Update announcement (does not archive)
      */
     public function updateAnnouncement(Request $request)
     {
@@ -59,10 +107,8 @@ class ContentManagementController extends Controller
         $announcement = Announcement::first();
 
         if (!$announcement) {
+            // If no announcement exists, create a new one
             $announcement = new Announcement();
-        } else {
-            // Archive the old announcement before updating
-            AnnouncementArchive::createFromAnnouncement($announcement, auth()->id());
         }
 
         $announcement->title = $request->input('title');
@@ -110,11 +156,9 @@ class ContentManagementController extends Controller
 
         if (!$announcement) {
             $announcement = new Announcement();
-        } else {
-            // Archive the old announcement before updating ticker
-            AnnouncementArchive::createFromAnnouncement($announcement, auth()->id());
         }
 
+        // Just update ticker, don't archive
         $announcement->ticker_text = $request->input('ticker_text');
         $announcement->show_ticker = $request->input('show_ticker', true);
         $announcement->save();

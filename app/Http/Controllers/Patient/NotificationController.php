@@ -82,6 +82,36 @@ class NotificationController extends Controller
     }
 
     /**
+     * Get notification details
+     */
+    public function show($id): JsonResponse
+    {
+        $notification = Notification::where('user_id', auth()->id())
+            ->findOrFail($id);
+
+        // Mark as read when viewed
+        if (!$notification->is_read) {
+            $notification->markAsRead();
+        }
+
+        return response()->json([
+            'success' => true,
+            'notification' => [
+                'id' => $notification->id,
+                'type' => $notification->type,
+                'title' => $notification->title,
+                'message' => $notification->message,
+                'icon_class' => $notification->icon_class,
+                'icon_color' => $notification->icon_color,
+                'is_read' => $notification->is_read,
+                'time_ago' => $notification->time_ago,
+                'created_at' => $notification->created_at->format('F d, Y \a\t g:i A'),
+                'data' => $notification->data,
+            ],
+        ]);
+    }
+
+    /**
      * Mark notification as read
      */
     public function markAsRead($id): JsonResponse

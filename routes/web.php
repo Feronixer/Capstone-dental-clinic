@@ -100,6 +100,7 @@ Route::middleware(['auth:admin'])->group(function(): void{
       Route::get('/admin/content-management', [ContentManagementController::class,'index'])->name('admin-content-management');
       Route::get('/admin/announcement-archives', [ContentManagementController::class,'announcementArchives'])->name('admin-announcement-archives');
       Route::post('/admin/content-management/announcement', [ContentManagementController::class,'updateAnnouncement'])->name('admin-content-management.announcement.update');
+      Route::post('/admin/content-management/announcement/new', [ContentManagementController::class,'createNewAnnouncement'])->name('admin-content-management.announcement.create');
       Route::post('/admin/content-management/ticker', [ContentManagementController::class,'updateTicker'])->name('admin-content-management.ticker.update');
       Route::post('/admin/content-management/service', [ContentManagementController::class,'storeService'])->name('admin-content-management.service.store');
     Route::put('/admin/content-management/service/{id}', [ContentManagementController::class,'updateService'])->name('admin-content-management.service.update');
@@ -257,6 +258,7 @@ Route::middleware(['auth:staff'])->group(function(): void{
       Route::get('/staff/content-management', [App\Http\Controllers\Staff\ContentManagementController::class,'index'])->name('staff-content-management');
       Route::get('/staff/announcement-archives', [App\Http\Controllers\Staff\ContentManagementController::class,'announcementArchives'])->name('staff-announcement-archives');
       Route::post('/staff/content-management/announcement', [App\Http\Controllers\Staff\ContentManagementController::class,'updateAnnouncement'])->name('staff-content-management.announcement.update');
+      Route::post('/staff/content-management/announcement/new', [App\Http\Controllers\Staff\ContentManagementController::class,'createNewAnnouncement'])->name('staff-content-management.announcement.create');
       Route::post('/staff/content-management/ticker', [App\Http\Controllers\Staff\ContentManagementController::class,'updateTicker'])->name('staff-content-management.ticker.update');
       Route::post('/staff/content-management/service', [App\Http\Controllers\Staff\ContentManagementController::class,'storeService'])->name('staff-content-management.service.store');
     Route::put('/staff/content-management/service/{id}', [App\Http\Controllers\Staff\ContentManagementController::class,'updateService'])->name('staff-content-management.service.update');
@@ -310,6 +312,7 @@ Route::middleware(['auth:web'])->group(function(): void{
     // Patient Notification Routes
     Route::get('/patient/notifications', [App\Http\Controllers\Patient\NotificationController::class, 'index'])->name('patient-notifications');
     Route::get('/patient/notifications/recent', [App\Http\Controllers\Patient\NotificationController::class, 'getRecent'])->name('patient-notifications.recent');
+    Route::get('/patient/notifications/{id}', [App\Http\Controllers\Patient\NotificationController::class, 'show'])->name('patient-notifications.show');
     Route::get('/patient/notifications/unread-count', [App\Http\Controllers\Patient\NotificationController::class, 'getUnreadCount'])->name('patient-notifications.unread-count');
     Route::post('/patient/notifications/{id}/read', [App\Http\Controllers\Patient\NotificationController::class, 'markAsRead'])->name('patient-notifications.mark-read');
     Route::post('/patient/notifications/{id}/unread', [App\Http\Controllers\Patient\NotificationController::class, 'markAsUnread'])->name('patient-notifications.mark-unread');

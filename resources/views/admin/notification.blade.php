@@ -404,6 +404,282 @@
         justify-content: center;
     }
 }
+
+/* ============================================
+   DARK MODE STYLES FOR APPOINTMENT REQUESTS
+   ============================================ */
+
+[data-theme="dark"] .notifications-container {
+    background: var(--dm-bg-primary) !important;
+}
+
+[data-theme="dark"] .notifications-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .notifications-header h1,
+[data-theme="dark"] .notifications-header p {
+    color: white !important;
+}
+
+/* Requests Grid Dark Mode */
+[data-theme="dark"] .requests-grid {
+    background: transparent !important;
+}
+
+/* Request Card Dark Mode */
+[data-theme="dark"] .request-card {
+    background: var(--dm-card-bg) !important;
+    border-color: var(--dm-border-color) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .request-card:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+    background: var(--dm-bg-secondary) !important;
+}
+
+/* Request Type Badge Dark Mode */
+[data-theme="dark"] .request-type-badge.walk-in {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(245, 158, 11, 0.2) 100%) !important;
+    color: #fbbf24 !important;
+    border: 1px solid rgba(251, 191, 36, 0.3) !important;
+}
+
+[data-theme="dark"] .request-type-badge.reschedule {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.2) 100%) !important;
+    color: #60a5fa !important;
+    border: 1px solid rgba(59, 130, 246, 0.3) !important;
+}
+
+[data-theme="dark"] .request-type-badge i {
+    color: inherit !important;
+}
+
+[data-theme="dark"] .request-header {
+    border-bottom-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .request-time {
+    color: var(--dm-text-muted) !important;
+}
+
+[data-theme="dark"] .request-time i {
+    color: var(--dm-text-muted) !important;
+}
+
+/* Patient Info Dark Mode */
+[data-theme="dark"] .patient-avatar {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .patient-name {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .patient-id {
+    color: var(--dm-text-muted) !important;
+}
+
+/* Detail Box Dark Mode */
+[data-theme="dark"] .detail-box {
+    background: linear-gradient(135deg, var(--dm-bg-secondary) 0%, var(--dm-bg-tertiary) 100%) !important;
+    border-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .detail-label {
+    color: var(--dm-text-muted) !important;
+}
+
+[data-theme="dark"] .detail-label i {
+    color: var(--dm-text-muted) !important;
+}
+
+[data-theme="dark"] .detail-value {
+    color: var(--dm-text-primary) !important;
+}
+
+/* Request Reason Dark Mode */
+[data-theme="dark"] .request-reason {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%) !important;
+    border-left-color: #f59e0b !important;
+}
+
+[data-theme="dark"] .request-reason-label {
+    color: #fbbf24 !important;
+}
+
+[data-theme="dark"] .request-reason-label i {
+    color: #fbbf24 !important;
+}
+
+[data-theme="dark"] .request-reason-text {
+    color: var(--dm-text-primary) !important;
+}
+
+/* Empty State Dark Mode */
+[data-theme="dark"] .empty-state {
+    background: var(--dm-card-bg) !important;
+    border-color: var(--dm-border-color) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .empty-icon {
+    color: var(--dm-text-muted) !important;
+}
+
+[data-theme="dark"] .empty-title {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .empty-text {
+    color: var(--dm-text-muted) !important;
+}
+
+/* Modal Dark Mode */
+[data-theme="dark"] .modal-content.modern-modal {
+    background-color: var(--dm-card-bg) !important;
+}
+
+[data-theme="dark"] .modal-header.gradient-header {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+}
+
+[data-theme="dark"] #approveModal .modal-header.gradient-header {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+}
+
+[data-theme="dark"] .modal-body {
+    background-color: var(--dm-card-bg) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .modal-body p,
+[data-theme="dark"] .modal-body h5 {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .modal-body .text-muted {
+    color: var(--dm-text-muted) !important;
+}
+
+[data-theme="dark"] .modal-footer.bg-light {
+    background: var(--dm-bg-tertiary) !important;
+}
+
+[data-theme="dark"] .modal-footer .btn-secondary {
+    background: var(--dm-bg-secondary) !important;
+    color: var(--dm-text-primary) !important;
+    border-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .modal-footer .btn-secondary:hover {
+    background: var(--dm-bg-tertiary) !important;
+}
+
+/* Deny Modal Dark Mode */
+[data-theme="dark"] .deny-modal-icon {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.2) 100%) !important;
+}
+
+[data-theme="dark"] .deny-modal-message {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .deny-reason-label {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .deny-reason-label i {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .deny-reason-input {
+    background-color: var(--dm-input-bg) !important;
+    border-color: var(--dm-input-border) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .deny-reason-input::placeholder {
+    color: var(--dm-text-muted) !important;
+    opacity: 0.7;
+}
+
+[data-theme="dark"] .deny-reason-input:focus {
+    border-color: #ef4444 !important;
+    background-color: var(--dm-input-bg) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .deny-warning-box {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%) !important;
+    border-left-color: #f59e0b !important;
+}
+
+[data-theme="dark"] .deny-warning-box p {
+    color: #fbbf24 !important;
+}
+
+[data-theme="dark"] .deny-warning-box i {
+    color: #f59e0b !important;
+}
+
+/* Approve Modal Dark Mode - inline styles override */
+[data-theme="dark"] #approveModal .modal-body div[style*="background: linear-gradient(135deg, #d1fae5"] {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.2) 100%) !important;
+}
+
+[data-theme="dark"] #approveModal .modal-body h5[style*="color: #1e293b"] {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .modal-body div[style*="background: linear-gradient(135deg, #d1fae5"] {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.2) 100%) !important;
+}
+
+[data-theme="dark"] .modal-body h5[style*="color: #1e293b"],
+[data-theme="dark"] .modal-body p[style*="color: #1e293b"] {
+    color: var(--dm-text-primary) !important;
+}
+
+/* Form Controls in Modal Dark Mode */
+[data-theme="dark"] .modal-body .form-control {
+    background-color: var(--dm-input-bg) !important;
+    border-color: var(--dm-input-border) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .modal-body .form-control:focus {
+    background-color: var(--dm-input-bg) !important;
+    border-color: var(--primary-color) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .modal-body .form-label {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .modal-body .alert-info {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.1) 100%) !important;
+    border-color: #3b82f6 !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .modal-body .alert-info strong {
+    color: var(--dm-text-primary) !important;
+}
+
+/* Close Button Dark Mode */
+[data-theme="dark"] .btn-close-white {
+    filter: brightness(0) invert(1) !important;
+    opacity: 0.8;
+}
+
+[data-theme="dark"] .btn-close-white:hover {
+    opacity: 1 !important;
+}
 </style>
 
 <div class="notifications-container">

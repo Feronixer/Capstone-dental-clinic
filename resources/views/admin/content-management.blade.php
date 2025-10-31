@@ -55,10 +55,13 @@
                                     <textarea class="form-control" id="announcementContent" name="content"
                                               rows="6" required>{{ $announcement->content ?? '' }}</textarea>
                                 </div>
-                                <div class="text-end">
+                                <div class="text-end d-flex gap-2 justify-content-end">
                                     <button type="submit" class="btn btn-primary px-4">
                                         <i class="bi bi-check-circle me-1"></i>EDIT
+                                    </button><button type="button" id="btnNewAnnouncement" class="btn btn-success px-4">
+                                        <i class="bi bi-plus-circle me-1"></i>NEW ANNOUNCEMENT
                                     </button>
+
                                 </div>
                             </div>
                         </div>
@@ -700,6 +703,25 @@
     </div>
 </div>
 
+<!-- New Announcement Confirmation Modal -->
+<div class="modal fade" id="newAnnouncementConfirmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content delete-modal-content">
+            <div class="modal-body text-center p-4">
+                <div class="delete-icon-wrapper mb-3">
+                    <i class="bi bi-exclamation-triangle text-warning"></i>
+                </div>
+                <h5 class="delete-modal-title mb-2">Create New Announcement</h5>
+                <p class="delete-modal-message mb-4">Are you sure you want to create a new announcement?<br>The current announcement will be archived.</p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <button type="button" class="btn btn-cancel" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmNewAnnouncementBtn">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Delete Service Confirmation Modal -->
 <div class="modal fade" id="deleteServiceModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-sm">
@@ -786,7 +808,79 @@
 <script>
 const servicesData = @json($services);
 
-// Announcement Form Handler
+// Variables for new announcement confirmation
+let pendingNewAnnouncementData = null;
+let pendingNewAnnouncementBtn = null;
+
+// New Announcement Button Handler
+document.getElementById('btnNewAnnouncement')?.addEventListener('click', function() {
+    const form = document.getElementById('announcementForm');
+    const formData = new FormData(form);
+
+    // Validate form
+    const title = document.getElementById('announcementTitle').value;
+    const content = document.getElementById('announcementContent').value;
+
+    if (!title || !content) {
+        showToast('Please fill in title and content', 'error');
+        return;
+    }
+
+    // Store form data and button reference for later use
+    pendingNewAnnouncementData = formData;
+    pendingNewAnnouncementBtn = this;
+
+    // Show confirmation modal instead of browser confirm
+    const confirmModal = new bootstrap.Modal(document.getElementById('newAnnouncementConfirmModal'));
+    confirmModal.show();
+});
+
+// Confirm New Announcement Handler
+document.getElementById('confirmNewAnnouncementBtn')?.addEventListener('click', function() {
+    if (!pendingNewAnnouncementData || !pendingNewAnnouncementBtn) return;
+
+    // Hide modal
+    const confirmModal = bootstrap.Modal.getInstance(document.getElementById('newAnnouncementConfirmModal'));
+    confirmModal.hide();
+
+    // Disable button and show loading
+    const btn = pendingNewAnnouncementBtn;
+    btn.disabled = true;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating...';
+
+    fetch('/admin/content-management/announcement/new', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: pendingNewAnnouncementData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('New announcement created successfully! Old announcement has been archived.', 'success');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showToast('Error creating new announcement: ' + (data.message || 'Unknown error'), 'error');
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Error creating new announcement', 'error');
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    })
+    .finally(() => {
+        // Clear pending data
+        pendingNewAnnouncementData = null;
+        pendingNewAnnouncementBtn = null;
+    });
+});
+
+// Announcement Form Handler (Edit only - does not archive)
 document.getElementById('announcementForm').addEventListener('submit', function(e) {
     e.preventDefault();
 

@@ -1,5 +1,41 @@
 /* Patient Records Page Styles */
 
+/* Dark Mode Overrides */
+[data-theme="dark"] .patient-records-container {
+    background: var(--dm-bg-primary) !important;
+}
+
+[data-theme="dark"] .page-header {
+    background: var(--dm-card-bg) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .patient-list {
+    background: var(--dm-card-bg) !important;
+}
+
+[data-theme="dark"] .patient-list::-webkit-scrollbar-track {
+    background: var(--dm-bg-secondary) !important;
+}
+
+[data-theme="dark"] .patient-item {
+    background: var(--dm-card-bg) !important;
+    border-bottom-color: var(--dm-border-color) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .patient-item:hover {
+    background: var(--dm-bg-tertiary) !important;
+}
+
+[data-theme="dark"] .patient-item.active {
+    background: linear-gradient(90deg, var(--dm-bg-tertiary) 0%, var(--dm-card-bg) 100%) !important;
+}
+
+[data-theme="dark"] .patient-item h6 {
+    color: var(--dm-text-primary) !important;
+}
+
 .patient-records-container {
     padding: 2rem;
     background: #f8f9fa;

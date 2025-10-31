@@ -1,4 +1,4 @@
-@extends('layout.admin.app')
+ @extends('layout.admin.app')
 @section('content')
 <div class="container-fluid px-4 py-4">
     <!-- Success Message -->

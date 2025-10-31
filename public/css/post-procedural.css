@@ -1,5 +1,383 @@
 /* Post-Procedural Compact Layout */
 
+/* Dark Mode Overrides */
+[data-theme="dark"] .post-procedural-container {
+    background: var(--dm-bg-primary) !important;
+}
+
+[data-theme="dark"] .sidebar-nav {
+    background: var(--dm-bg-secondary) !important;
+    border-right-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .sidebar-title {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .nav-item {
+    background: var(--dm-card-bg) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .nav-item span {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .main-content {
+    background: var(--dm-bg-primary) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .patient-search-section {
+    background: linear-gradient(135deg, var(--dm-bg-secondary) 0%, var(--dm-card-bg) 100%) !important;
+    border-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .search-results-dropdown {
+    background: var(--dm-card-bg) !important;
+    border-color: var(--dm-border-color) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .search-result-item {
+    border-bottom-color: var(--dm-border-color) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .search-result-item:hover {
+    background: var(--dm-bg-tertiary) !important;
+}
+
+[data-theme="dark"] .readonly-field {
+    background: var(--dm-bg-secondary) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] #patientRecordFormContainer {
+    background: var(--dm-card-bg) !important;
+    border-color: var(--dm-border-color) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] #patientRecordFormContainer::-webkit-scrollbar-track {
+    background: var(--dm-bg-secondary) !important;
+}
+
+[data-theme="dark"] .patient-selector {
+    background: var(--dm-bg-secondary) !important;
+    border-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .table-light {
+    background: var(--dm-bg-tertiary) !important;
+}
+
+[data-theme="dark"] .table-light th {
+    background: var(--dm-bg-tertiary) !important;
+    color: #ffffff !important;
+    border-bottom-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .table tbody tr:hover {
+    background: var(--dm-bg-tertiary) !important;
+}
+
+[data-theme="dark"] .table tbody td {
+    background: transparent !important;
+    color: #ffffff !important;
+    border-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .content-header {
+    background: var(--dm-card-bg) !important;
+    border-bottom-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .section-controls {
+    background: var(--dm-card-bg) !important;
+    border-bottom-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .control-group label,
+[data-theme="dark"] .control-group span {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .entries-select {
+    background: var(--dm-input-bg) !important;
+    border-color: var(--dm-input-border) !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .search-input {
+    background: var(--dm-input-bg) !important;
+    border-color: var(--dm-input-border) !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .input-group-text.bg-white {
+    background: var(--dm-input-bg) !important;
+    border-color: var(--dm-input-border) !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .input-group-text.bg-white i {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .table-footer {
+    background: var(--dm-card-bg) !important;
+    border-top-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .showing-info {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-outline-primary,
+[data-theme="dark"] .btn-outline-info,
+[data-theme="dark"] .btn-outline-secondary,
+[data-theme="dark"] .btn-outline-danger {
+    background: transparent !important;
+    border-color: var(--dm-border-color) !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-outline-primary:hover,
+[data-theme="dark"] .btn-outline-info:hover,
+[data-theme="dark"] .btn-outline-secondary:hover,
+[data-theme="dark"] .btn-outline-danger:hover {
+    background: var(--dm-bg-tertiary) !important;
+    border-color: var(--primary-color) !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .bg-white {
+    background: var(--dm-card-bg) !important;
+    border-color: var(--dm-border-color) !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .bg-white * {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .badge.bg-light {
+    background: var(--dm-bg-tertiary) !important;
+    color: #ffffff !important;
+    border-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .badge.bg-info {
+    background: var(--primary-color) !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .text-muted {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .page-title {
+    color: #ffffff !important;
+}
+
+/* Dark Mode Progress Notes Section */
+[data-theme="dark"] .nav-item.active {
+    background: linear-gradient(135deg, var(--dm-bg-tertiary) 0%, var(--dm-bg-secondary) 100%) !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .nav-item.active span {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] #progress-notes-section .patient-search-input {
+    background: var(--dm-input-bg) !important;
+    border-color: #17a2b8 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] #progress-notes-section .patient-search-input::placeholder {
+    color: var(--dm-text-muted) !important;
+}
+
+[data-theme="dark"] #progress-notes-section .bi-search {
+    color: #17a2b8 !important;
+}
+
+[data-theme="dark"] #progressNotesTableContainer .card-header {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
+    color: white !important;
+}
+
+[data-theme="dark"] #addProgressNoteRowBtn {
+    background: var(--dm-card-bg) !important;
+    border-color: var(--dm-border-color) !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] #addProgressNoteRowBtn:hover {
+    background: var(--dm-bg-tertiary) !important;
+    border-color: #17a2b8 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] #progressNotesTable thead.table-light {
+    background: var(--dm-bg-tertiary) !important;
+}
+
+[data-theme="dark"] #progressNotesTable thead.table-light th {
+    background: var(--dm-bg-tertiary) !important;
+    color: #ffffff !important;
+    border-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] #progressNotesTable tbody tr {
+    background: var(--dm-card-bg) !important;
+}
+
+[data-theme="dark"] #progressNotesTable tbody tr td {
+    background: transparent !important;
+    border-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] #progressNotesTable tbody tr td input[type="date"],
+[data-theme="dark"] #progressNotesTable tbody tr td textarea {
+    background: var(--dm-input-bg) !important;
+    border-color: var(--dm-input-border) !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] #progressNotesTable tbody tr td input[type="date"]::placeholder,
+[data-theme="dark"] #progressNotesTable tbody tr td textarea::placeholder {
+    color: var(--dm-text-muted) !important;
+}
+
+[data-theme="dark"] #progressNotesTable tbody tr td .btn-danger {
+    background: #dc3545 !important;
+    border-color: #dc3545 !important;
+    color: white !important;
+}
+
+[data-theme="dark"] #progressNotesTable tbody tr td .btn-danger:hover {
+    background: #c82333 !important;
+    border-color: #bd2130 !important;
+}
+
+[data-theme="dark"] #progress-notes-section .card {
+    border-color: #17a2b8 !important;
+}
+
+[data-theme="dark"] #progress-notes-section .card-header.text-info {
+    background: var(--dm-card-bg) !important;
+    border-bottom-color: #17a2b8 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] #progress-notes-section .card-header.text-info h6 {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] #progress-notes-section .alert-info {
+    background: linear-gradient(135deg, var(--dm-bg-secondary) 0%, var(--dm-card-bg) 100%) !important;
+    border-color: #17a2b8 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] #progress-notes-section .alert-info strong {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] #progress-notes-section .card[style*="background: linear-gradient"] {
+    background: linear-gradient(135deg, var(--dm-card-bg) 0%, var(--dm-bg-secondary) 100%) !important;
+}
+
+[data-theme="dark"] #progress-notes-section .form-control {
+    background: var(--dm-input-bg) !important;
+    border-color: var(--dm-input-border) !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] #progress-notes-section .form-control::placeholder {
+    color: var(--dm-text-muted) !important;
+}
+
+/* Dark Mode Patient Record Form Sections */
+[data-theme="dark"] .patient-record-wrapper .mb-4[style*="background: #f8f9fa"] {
+    background: var(--dm-card-bg) !important;
+    border-left-color: #0d6efd !important;
+}
+
+[data-theme="dark"] .patient-record-wrapper .mb-4[style*="background: #f8f9fa"] h6,
+[data-theme="dark"] .patient-record-wrapper .mb-4[style*="background: #f8f9fa"] .form-label {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .patient-record-wrapper .row[style*="background: #f8f9fa"] {
+    background: var(--dm-card-bg) !important;
+    border-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .patient-record-wrapper label[style*="color: #0a4275"],
+[data-theme="dark"] .patient-record-wrapper label[style*="color: #495057"],
+[data-theme="dark"] .patient-record-wrapper label[style*="color: #2c3e50"] {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .patient-record-wrapper .form-label.fw-bold {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .patient-record-wrapper .text-muted {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .patient-record-wrapper textarea {
+    background: var(--dm-input-bg) !important;
+    border-color: var(--dm-input-border) !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .patient-record-wrapper textarea::placeholder {
+    color: var(--dm-text-muted) !important;
+}
+
+/* Override inline styles more aggressively */
+[data-theme="dark"] div[style*="background: #f8f9fa"] {
+    background: var(--dm-card-bg) !important;
+}
+
+[data-theme="dark"] div[style*="background: #f8f9fa"] label,
+[data-theme="dark"] div[style*="background: #f8f9fa"] h6,
+[data-theme="dark"] div[style*="background: #f8f9fa"] span {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] label[style*="color: #0a4275"],
+[data-theme="dark"] label[style*="color: #495057"],
+[data-theme="dark"] label[style*="color: #2c3e50"],
+[data-theme="dark"] .form-label[style*="color: #0a4275"],
+[data-theme="dark"] .form-label[style*="color: #495057"],
+[data-theme="dark"] .form-label[style*="color: #2c3e50"] {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] input[style*="border: 2px solid #dee2e6"],
+[data-theme="dark"] input[style*="border: 1px solid #ced4da"],
+[data-theme="dark"] input[style*="border: 1px solid #dee2e6"],
+[data-theme="dark"] textarea[style*="border: 2px solid #dee2e6"],
+[data-theme="dark"] textarea[style*="border: 1px solid #ced4da"],
+[data-theme="dark"] textarea[style*="border: 1px solid #dee2e6"] {
+    background: var(--dm-input-bg) !important;
+    border-color: var(--dm-input-border) !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] input[style*="background: #e9ecef"] {
+    background: var(--dm-bg-secondary) !important;
+    color: #ffffff !important;
+}
+
 .post-procedural-container {
     padding: 0;
     margin: 0;

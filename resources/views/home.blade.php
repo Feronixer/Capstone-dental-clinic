@@ -23,6 +23,10 @@
             overflow-x: hidden;
         }
 
+        [data-theme="dark"] body {
+            background: linear-gradient(135deg, var(--dm-bg-primary) 0%, var(--dm-bg-secondary) 100%) !important;
+        }
+
         /* Navigation Bar */
         .navbar {
             display: flex;

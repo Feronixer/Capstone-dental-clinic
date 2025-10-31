@@ -352,7 +352,7 @@
     </div>
 
     <!-- Recent Patient Feedback Section -->
-    <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);">
+    <div class="card border-0 shadow-sm mb-4 feedback-section-card" style="background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);">
         <div class="card-header border-0 pt-4 pb-2" style="background: transparent;">
             <div class="d-flex align-items-center mb-2">
                 <div class="rounded-circle d-flex align-items-center justify-center me-3"
@@ -360,14 +360,14 @@
                     <i class="bi bi-chat-dots-fill text-white" style="font-size: 1.5rem;"></i>
                 </div>
                 <div>
-                    <h5 class="mb-0 fw-bold" style="color: #00695c; font-size: 1.5rem;">Recent Patient Feedback</h5>
+                    <h5 class="mb-0 fw-bold feedback-section-title" style="color: #00695c; font-size: 1.5rem;">Recent Patient Feedback</h5>
                     <small class="text-muted">Latest Review from patients</small>
                 </div>
             </div>
         </div>
         <div class="card-body pt-2">
             @if($recentFeedback->isEmpty())
-                <div class="text-center py-5" style="background: white; border-radius: 12px;">
+                <div class="text-center py-5 feedback-empty-state" style="background: white; border-radius: 12px;">
                     <i class="bi bi-chat-left-dots" style="font-size: 3rem; opacity: 0.3; color: #00bcd4;"></i>
                     <p class="mt-3 mb-0 text-muted">No patient feedback yet</p>
                 </div>
@@ -391,7 +391,7 @@
                                             <div class="patient-avatar me-3">
                                                 <i class="bi bi-person-fill"></i>
                                             </div>
-                                            <strong style="color: #00695c;">{{ $feedback['patient_name'] }}</strong>
+                                            <strong class="feedback-patient-name" style="color: #00695c;">{{ $feedback['patient_name'] }}</strong>
                                         </div>
                                     </td>
                                     <td>
@@ -412,7 +412,7 @@
                                         @if($feedback['comment'])
                                             <div class="feedback-comment">
                                                 <span style="color: #00bcd4; font-size: 1.5rem; font-weight: bold; margin-right: 0.3rem;">"</span>
-                                                <em style="color: #00695c; font-weight: 500;">{{ $feedback['comment'] }}</em>
+                                                <em class="feedback-comment-text" style="color: #00695c; font-weight: 500;">{{ $feedback['comment'] }}</em>
                                                 <span style="color: #00bcd4; font-size: 1.5rem; font-weight: bold; margin-left: 0.3rem;">"</span>
                                             </div>
                                         @else
@@ -421,7 +421,7 @@
                                     </td>
                                     <td>
                                         <div class="submission-info">
-                                            <small style="color: #00695c;">
+                                            <small class="feedback-submission-date" style="color: #00695c;">
                                                 <i class="bi bi-calendar-check me-1"></i>{{ $feedback['rated_at'] }}
                                             </small>
                                         </div>
@@ -441,6 +441,75 @@
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        [data-theme="dark"] .feedback-table-wrapper {
+            background: var(--dm-card-bg) !important;
+        }
+
+        [data-theme="dark"] .feedback-empty-state {
+            background: var(--dm-card-bg) !important;
+        }
+
+        /* Dark Mode Feedback Section */
+        [data-theme="dark"] .feedback-section-card {
+            background: linear-gradient(135deg, var(--dm-bg-primary) 0%, var(--dm-bg-secondary) 100%) !important;
+            border-color: var(--dm-border-color) !important;
+        }
+
+        [data-theme="dark"] .feedback-section-title {
+            color: var(--dm-text-primary) !important;
+        }
+
+        [data-theme="dark"] .feedback-row {
+            border-bottom-color: var(--dm-border-color) !important;
+        }
+
+        [data-theme="dark"] .feedback-row td {
+            color: var(--dm-text-primary) !important;
+        }
+
+        [data-theme="dark"] .feedback-patient-name {
+            color: var(--dm-text-primary) !important;
+        }
+
+        [data-theme="dark"] .service-name {
+            color: var(--dm-text-primary) !important;
+        }
+
+        [data-theme="dark"] .feedback-comment-text {
+            color: var(--dm-text-primary) !important;
+        }
+
+        [data-theme="dark"] .feedback-submission-date {
+            color: var(--dm-text-secondary) !important;
+        }
+
+        [data-theme="dark"] .feedback-table tbody tr {
+            background: transparent !important;
+        }
+
+        [data-theme="dark"] .feedback-table tbody tr:hover {
+            background: var(--dm-bg-tertiary) !important;
+        }
+
+        /* Dark Mode List Items */
+        [data-theme="dark"] .list-group-item {
+            background-color: var(--dm-card-bg) !important;
+            border-color: var(--dm-border-color) !important;
+            color: var(--dm-text-primary) !important;
+        }
+
+        [data-theme="dark"] .list-group-item h6 {
+            color: var(--dm-text-primary) !important;
+        }
+
+        [data-theme="dark"] .list-group-item .text-muted {
+            color: var(--dm-text-muted) !important;
+        }
+
+        [data-theme="dark"] .list-group-item:hover {
+            background-color: var(--dm-bg-tertiary) !important;
         }
 
         .feedback-table {
@@ -484,6 +553,10 @@
         .feedback-row:hover {
             background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 50%);
             transform: translateX(5px);
+        }
+
+        [data-theme="dark"] .feedback-row:hover {
+            background: linear-gradient(135deg, var(--dm-bg-tertiary) 0%, var(--dm-bg-secondary) 50%) !important;
         }
 
         .feedback-row td {
@@ -697,6 +770,84 @@
 .mini-calendar-day.today .appointment-count-completed {
     color: white;
     opacity: 0.8;
+}
+
+/* Dark Mode Calendar Styles */
+[data-theme="dark"] .mini-calendar-header {
+    color: var(--dm-text-secondary) !important;
+}
+
+[data-theme="dark"] .mini-calendar-day {
+    background: var(--dm-card-bg) !important;
+    color: var(--dm-text-primary) !important;
+    border: 1px solid var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .mini-calendar-day:hover {
+    background: var(--dm-bg-tertiary) !important;
+}
+
+[data-theme="dark"] .mini-calendar-day.other-month {
+    background: var(--dm-bg-secondary) !important;
+    color: var(--dm-text-muted) !important;
+    opacity: 0.5 !important;
+}
+
+[data-theme="dark"] .mini-calendar-day.has-appointments {
+    background: rgba(22, 160, 133, 0.2) !important;
+    border: 2px solid #16a085 !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .mini-calendar-day.has-completed-appointments {
+    background: var(--dm-bg-tertiary) !important;
+    border: 2px solid var(--dm-text-muted) !important;
+    color: var(--dm-text-secondary) !important;
+}
+
+[data-theme="dark"] .mini-calendar-day.today {
+    background: #16a085 !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .appointment-count {
+    color: #16a085 !important;
+}
+
+[data-theme="dark"] .mini-calendar-day.has-appointments .appointment-count {
+    color: #16a085 !important;
+}
+
+[data-theme="dark"] .appointment-count-completed {
+    color: var(--dm-text-muted) !important;
+}
+
+[data-theme="dark"] .mini-calendar-day.today .appointment-count {
+    color: white !important;
+}
+
+[data-theme="dark"] .mini-calendar-day.today .appointment-count-completed {
+    color: white !important;
+    opacity: 0.8 !important;
+}
+
+/* Dark Mode List Items */
+[data-theme="dark"] .list-group-item {
+    background-color: var(--dm-card-bg) !important;
+    border-color: var(--dm-border-color) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .list-group-item h6 {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .list-group-item .text-muted {
+    color: var(--dm-text-muted) !important;
+}
+
+[data-theme="dark"] .list-group-item:hover {
+    background-color: var(--dm-bg-tertiary) !important;
 }
 </style>
 
