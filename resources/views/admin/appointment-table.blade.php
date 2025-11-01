@@ -35,6 +35,7 @@
                                 <option value="Confirmed" {{ request('status') == 'Confirmed' ? 'selected' : '' }}>Confirmed ({{ $statusCounts['Confirmed'] ?? 0 }})</option>
                                 <option value="Completed" {{ request('status') == 'Completed' ? 'selected' : '' }}>Completed ({{ $statusCounts['Completed'] ?? 0 }})</option>
                                 <option value="Cancelled" {{ request('status') == 'Cancelled' ? 'selected' : '' }}>Cancelled ({{ $statusCounts['Cancelled'] ?? 0 }})</option>
+                                <option value="Missed" {{ request('status') == 'Missed' ? 'selected' : '' }}>Missed ({{ $statusCounts['Missed'] ?? 0 }})</option>
                             </select>
                         </div>
 
@@ -283,15 +284,6 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-info" id="change-status-btn">
-                    <i class="bi bi-arrow-repeat me-1"></i>Change Status
-                </button>
-                <button type="button" class="btn btn-warning" id="reschedule-appointment-btn">
-                    <i class="bi bi-calendar3 me-1"></i>Reschedule
-                </button>
-                <button type="button" class="btn btn-danger" id="delete-appointment-btn">
-                    <i class="bi bi-trash me-1"></i>Delete
-                </button>
             </div>
         </div>
     </div>
@@ -421,30 +413,9 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
 
         document.getElementById('appointment-details-content').innerHTML = detailsHTML;
-        document.getElementById('change-status-btn').setAttribute('data-appointment-id', appointment.id);
-        document.getElementById('reschedule-appointment-btn').setAttribute('data-appointment-id', appointment.id);
-        document.getElementById('delete-appointment-btn').setAttribute('data-appointment-id', appointment.id);
 
         new bootstrap.Modal(document.getElementById('appointmentDetailsModal')).show();
     }
-
-    // Redirect to calendar view for actions
-    document.getElementById('change-status-btn').addEventListener('click', function() {
-        const appointmentId = this.getAttribute('data-appointment-id');
-        window.location.href = `{{ route('admin-appointment') }}?view=month&appointment=${appointmentId}`;
-    });
-
-    document.getElementById('reschedule-appointment-btn').addEventListener('click', function() {
-        const appointmentId = this.getAttribute('data-appointment-id');
-        window.location.href = `{{ route('admin-appointment') }}?view=month&appointment=${appointmentId}`;
-    });
-
-    document.getElementById('delete-appointment-btn').addEventListener('click', function() {
-        const appointmentId = this.getAttribute('data-appointment-id');
-        if (confirm('Are you sure you want to delete this appointment? This action cannot be undone.')) {
-            window.location.href = `{{ route('admin-appointment') }}?view=month&appointment=${appointmentId}`;
-        }
-    });
 });
 
 function toggleSortOrder() {

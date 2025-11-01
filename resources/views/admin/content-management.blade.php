@@ -201,10 +201,6 @@
                                         type="button" role="tab">
                                     <i class="bi bi-send me-1"></i>Send Email
                                 </button>
-                                <button class="nav-link" data-bs-toggle="pill" data-bs-target="#bulk-email"
-                                        type="button" role="tab">
-                                    <i class="bi bi-people me-1"></i>Bulk Email
-                                </button>
                                 <button class="nav-link" data-bs-toggle="pill" data-bs-target="#initial-confirmation"
                                         type="button" role="tab">Initial Confirmation</button>
                                 <button class="nav-link" data-bs-toggle="pill" data-bs-target="#reminders"
@@ -213,8 +209,6 @@
                                         type="button" role="tab">Cancellation</button>
                                 <button class="nav-link" data-bs-toggle="pill" data-bs-target="#rescheduling"
                                         type="button" role="tab">Rescheduling</button>
-                                <button class="nav-link" data-bs-toggle="pill" data-bs-target="#follow-ups"
-                                        type="button" role="tab">Follow Ups</button>
                             </div>
                         </div>
 
@@ -224,11 +218,24 @@
                                 <!-- Send Email Tab -->
                                 <div class="tab-pane fade show active" id="send-email" role="tabpanel">
                                     <h6 class="fw-bold mb-3">
-                                        <i class="bi bi-envelope-fill me-2 text-primary"></i>Send Manual Email to Patient
+                                        <i class="bi bi-envelope-fill me-2 text-primary"></i>Send Email to Patient
                                     </h6>
-                                    <p class="text-muted mb-4">Select a patient with an appointment and choose the type of email to send.</p>
 
-                                    <div class="row">
+                                    <!-- Bulk Email Mode Toggle -->
+                                    <div class="alert alert-light border mb-4">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="bulkEmailMode" style="cursor: pointer;">
+                                            <label class="form-check-label fw-semibold" for="bulkEmailMode" style="cursor: pointer;">
+                                                <i class="bi bi-people me-1"></i>Enable Bulk Email Mode
+                                            </label>
+                                        </div>
+                                        <small class="text-muted d-block mt-1">Toggle to send emails to multiple patients at once</small>
+                                    </div>
+
+                                    <p class="text-muted mb-4" id="modeDescription">Select a patient with an appointment and choose the type of email to send.</p>
+
+                                    <!-- Single Email Form -->
+                                    <div class="row" id="singleEmailForm">
                                         <div class="col-md-6">
                                             <div class="mb-3">
                                                 <label for="selectPatient" class="form-label fw-semibold">Select Patient <span class="text-danger">*</span></label>
@@ -245,21 +252,9 @@
                                                 </select>
                                             </div>
 
-                                            <div class="mb-3">
-                                                <label for="selectEmailType" class="form-label fw-semibold">Email Type <span class="text-danger">*</span></label>
-                                                <select class="form-select" id="selectEmailType" required>
-                                                    <option value="">-- Choose email type --</option>
-                                                    <option value="initial_confirmation">Initial Confirmation</option>
-                                                    <option value="reminder">Reminder</option>
-                                                    <option value="cancellation">Cancellation Notice</option>
-                                                    <option value="rescheduling">Rescheduling Notice</option>
-                                                    <option value="follow_up">Follow Up</option>
-                                                </select>
-                                            </div>
-
                                             <div class="d-grid gap-2">
                                                 <button type="button" class="btn btn-primary btn-lg" id="btnSendEmail" disabled>
-                                                    <i class="bi bi-send-fill me-2"></i>Send Email
+                                                    <i class="bi bi-send-fill me-2"></i>Send Follow Up Email
                                                 </button>
                                             </div>
                                         </div>
@@ -273,7 +268,7 @@
                                                     <div id="emailPreviewContent">
                                                         <p class="text-muted text-center py-5">
                                                             <i class="bi bi-envelope" style="font-size: 3rem; opacity: 0.3;"></i><br>
-                                                            Select a patient and email type to preview
+                                                            Select a patient to preview
                                                         </p>
                                                     </div>
                                                 </div>
@@ -281,20 +276,48 @@
 
                                             <div class="alert alert-info mt-3" role="alert">
                                                 <i class="bi bi-lightbulb-fill me-2"></i>
-                                                <strong>Tip:</strong> The email will use the templates configured in the tabs below.
+                                                <strong>Tip:</strong> Sending a Follow Up email to patients.
                                             </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <!-- Bulk Email Tab -->
-                                <div class="tab-pane fade" id="bulk-email" role="tabpanel">
-                                    <h6 class="fw-bold mb-3">
-                                        <i class="bi bi-people-fill me-2 text-primary"></i>Send Bulk Email to Multiple Patients
-                                    </h6>
-                                    <p class="text-muted mb-4">Select a situation/filter to see patients with appointments that match, then send emails to multiple patients at once.</p>
+                                    <!-- Follow Up Template Editor (Static, always visible) -->
+                                    <div class="row mt-4" id="followUpTemplateEditor">
+                                        <div class="col-12">
+                                            <div class="card border-0 shadow-sm">
+                                                <div class="card-header bg-white border-bottom">
+                                                    <h6 class="fw-bold mb-0">
+                                                        <i class="bi bi-envelope-check me-2 text-primary"></i>Follow Up Email Template
+                                                    </h6>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-semibold">Template Content</label>
+                                                        <textarea class="form-control" id="follow-ups-template" rows="4"
+                                                                  data-type="follow_up">{{ $mailTemplates['follow_up']->content ?? 'Hi %firstname%, we hope you are doing well. Please schedule your follow-up appointment.' }}</textarea>
+                                                        <small class="text-muted">Use %firstname%, %service% for placeholders</small>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <div class="card bg-light border-0">
+                                                            <div class="card-body p-3">
+                                                                <small class="text-muted fw-bold d-block mb-2">Preview:</small>
+                                                                <p class="mb-0 small" id="follow-ups-preview">
+                                                                    Hi <span class="text-primary fw-bold">Angel Cuadernal</span>, we hope you are doing well.
+                                                                    Please schedule your follow-up appointment.
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <button class="btn btn-primary" onclick="saveMailTemplate('follow_up')">
+                                                            <i class="bi bi-check-circle me-1"></i>Save Template
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                                    <div class="row">
+                                    <!-- Bulk Email Form -->
+                                    <div class="row" id="bulkEmailForm" style="display: none;">
                                         <div class="col-md-5">
                                             <div class="mb-3">
                                                 <label for="selectSituation" class="form-label fw-semibold">Filter Patients By <span class="text-danger">*</span></label>
@@ -307,18 +330,6 @@
                                                     <option value="pending">Pending/Unconfirmed Appointments</option>
                                                     <option value="completed">Recently Completed (Last 7 Days)</option>
                                                     <option value="upcoming">All Upcoming Appointments</option>
-                                                </select>
-                                            </div>
-
-                                            <div class="mb-3">
-                                                <label for="selectBulkEmailType" class="form-label fw-semibold">Email Type <span class="text-danger">*</span></label>
-                                                <select class="form-select" id="selectBulkEmailType" required>
-                                                    <option value="">-- Choose email type --</option>
-                                                    <option value="initial_confirmation">Initial Confirmation</option>
-                                                    <option value="reminder">Reminder</option>
-                                                    <option value="cancellation">Cancellation Notice</option>
-                                                    <option value="rescheduling">Rescheduling Notice</option>
-                                                    <option value="follow_up">Follow Up</option>
                                                 </select>
                                             </div>
 
@@ -359,7 +370,7 @@
                                                             </label>
                                                         </div>
                                                         <button type="button" class="btn btn-success" id="btnSendBulkEmail" disabled>
-                                                            <i class="bi bi-send-fill me-2"></i>Send to Selected
+                                                            <i class="bi bi-send-fill me-2"></i>Send Follow Up to Selected
                                                         </button>
                                                     </div>
                                                 </div>
@@ -458,29 +469,6 @@
                                         <p id="rescheduling-preview">
                                             Hello <span class="text-primary fw-bold">Angel Cuadernal</span>, your appointment has been rescheduled to
                                             <span class="text-primary fw-bold">April 20, 2025 2:00 PM</span>.
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <!-- Follow Ups -->
-                                <div class="tab-pane fade" id="follow-ups" role="tabpanel">
-                                    <h6 class="fw-bold mb-3">Mail Structure</h6>
-                                    <div class="mail-template-editor p-3 border rounded bg-light mb-3">
-                                        <textarea class="form-control" id="follow-ups-template" rows="4"
-                                                  data-type="follow_up">{{ $mailTemplates['follow_up']->content ?? 'Hi %firstname%, we hope you are doing well. Please schedule your follow-up appointment.' }}</textarea>
-                                    </div>
-                                    <div class="text-end mb-3">
-                                        <button class="btn btn-primary" onclick="saveMailTemplate('follow_up')">
-                                            <i class="bi bi-check-circle me-1"></i>Edit Template
-                                        </button>
-                                    </div>
-
-                                    <h6 class="fw-bold mb-3">Mail Preview</h6>
-                                    <div class="mail-preview p-4 border rounded bg-white">
-                                        <h5 class="fw-bold mb-3">JValera Dental Clinic</h5>
-                                        <p id="follow-ups-preview">
-                                            Hi <span class="text-primary fw-bold">Angel Cuadernal</span>, we hope you are doing well.
-                                            Please schedule your follow-up appointment.
                                         </p>
                                     </div>
                                 </div>
@@ -1178,6 +1166,36 @@ function saveMailTemplate(type) {
     });
 }
 
+// Update template preview in tab (live preview as you type)
+function updateTemplatePreview(textarea) {
+    const type = textarea.dataset.type;
+    const content = textarea.value;
+
+    // Map template types to preview IDs
+    const previewMap = {
+        'initial_confirmation': 'initial-confirmation-preview',
+        'reminder': 'reminders-preview',
+        'cancellation': 'cancellation-preview',
+        'rescheduling': 'rescheduling-preview',
+        'follow_up': 'follow-ups-preview'
+    };
+
+    const previewId = previewMap[type];
+    if (!previewId) return;
+
+    const previewElement = document.getElementById(previewId);
+    if (!previewElement) return;
+
+    // Replace placeholders with sample data
+    const sampleContent = content
+        .replace(/%firstname%/g, '<span class="text-primary fw-bold">Angel Cuadernal</span>')
+        .replace(/%datetime%/g, '<span class="text-primary fw-bold">April 15, 2025 3:00 PM</span>')
+        .replace(/%rescheduledtime%/g, '<span class="text-primary fw-bold">April 20, 2025 2:00 PM</span>')
+        .replace(/%service%/g, '<span class="text-primary fw-bold">Flexible Dentures</span>');
+
+    previewElement.innerHTML = sampleContent;
+}
+
 // Change Icon Function
 function changeIcon(id) {
     const service = servicesData.find(s => s.id === id);
@@ -1204,6 +1222,45 @@ let selectedAppointmentData = null;
 // Load patients with appointments on page load
 document.addEventListener('DOMContentLoaded', function() {
     loadPatientsWithAppointments();
+
+    // Handle bulk email mode toggle
+    document.getElementById('bulkEmailMode')?.addEventListener('change', function(e) {
+        const isBulkMode = e.target.checked;
+        const singleForm = document.getElementById('singleEmailForm');
+        const bulkForm = document.getElementById('bulkEmailForm');
+        const modeDescription = document.getElementById('modeDescription');
+
+        if (isBulkMode) {
+            singleForm.style.display = 'none';
+            bulkForm.style.display = 'flex';
+            modeDescription.textContent = 'Select a filter to find multiple patients with matching appointments and send Follow Up emails.';
+        } else {
+            singleForm.style.display = 'flex';
+            bulkForm.style.display = 'none';
+            modeDescription.textContent = 'Select a patient with an appointment to send a Follow Up email.';
+        }
+
+        // Clear form fields when switching modes
+        if (isBulkMode) {
+            document.getElementById('selectSituation').value = '';
+            document.getElementById('btnLoadPatients').disabled = true;
+            document.getElementById('patientsList').innerHTML = '<p class="text-muted text-center py-5"><i class="bi bi-people" style="font-size: 3rem; opacity: 0.3;"></i><br>Select a filter and click "Load Patients" to see the list</p>';
+            document.getElementById('patientCount').textContent = '0 patients';
+        } else {
+            document.getElementById('selectPatient').value = '';
+            document.getElementById('selectAppointment').value = '';
+            document.getElementById('selectAppointment').disabled = true;
+            document.getElementById('btnSendEmail').disabled = true;
+            document.getElementById('emailPreviewContent').innerHTML = '<p class="text-muted text-center py-5"><i class="bi bi-envelope" style="font-size: 3rem; opacity: 0.3;"></i><br>Select a patient to preview</p>';
+        }
+    });
+
+    // Live preview for mail template edits
+    document.querySelectorAll('[data-type]').forEach(textarea => {
+        textarea.addEventListener('input', function() {
+            updateTemplatePreview(this);
+        });
+    });
 });
 
 // Load patients who have appointments
@@ -1287,69 +1344,25 @@ document.getElementById('selectAppointment')?.addEventListener('change', functio
     if (e.target.value) {
         const option = e.target.options[e.target.selectedIndex];
         selectedAppointmentData = JSON.parse(option.dataset.appointment);
-        updateEmailTypeOptions();
         updateEmailPreview();
     } else {
         selectedAppointmentData = null;
-        resetEmailTypeOptions();
         resetEmailPreview();
     }
-    updateSendButtonState();
-});
-
-// Update email type options based on appointment status
-function updateEmailTypeOptions() {
-    const emailTypeSelect = document.getElementById('selectEmailType');
-    const reschedulingOption = emailTypeSelect.querySelector('option[value="rescheduling"]');
-
-    if (reschedulingOption) {
-        if (selectedAppointmentData && selectedAppointmentData.rescheduled_at) {
-            // Appointment was rescheduled - enable the option
-            reschedulingOption.disabled = false;
-            reschedulingOption.textContent = 'Rescheduling Notice';
-        } else {
-            // Appointment was not rescheduled - disable the option
-            reschedulingOption.disabled = true;
-            reschedulingOption.textContent = 'Rescheduling Notice (Not available - appointment not rescheduled)';
-
-            // If rescheduling was selected, reset to empty
-            if (emailTypeSelect.value === 'rescheduling') {
-                emailTypeSelect.value = '';
-            }
-        }
-    }
-}
-
-// Reset email type options to default
-function resetEmailTypeOptions() {
-    const emailTypeSelect = document.getElementById('selectEmailType');
-    const reschedulingOption = emailTypeSelect.querySelector('option[value="rescheduling"]');
-
-    if (reschedulingOption) {
-        reschedulingOption.disabled = true;
-        reschedulingOption.textContent = 'Rescheduling Notice (Select appointment first)';
-    }
-
-    emailTypeSelect.value = '';
-}
-
-// Handle email type selection
-document.getElementById('selectEmailType')?.addEventListener('change', function(e) {
-    updateEmailPreview();
     updateSendButtonState();
 });
 
 // Update email preview
 function updateEmailPreview() {
-    const emailType = document.getElementById('selectEmailType').value;
     const previewDiv = document.getElementById('emailPreviewContent');
 
-    if (!selectedAppointmentData || !emailType) {
+    if (!selectedAppointmentData) {
         resetEmailPreview();
         return;
     }
 
-    // Get template for this email type
+    // Always use follow_up template
+    const emailType = 'follow_up';
     const textarea = document.querySelector(`[data-type="${emailType}"]`);
     let template = textarea ? textarea.value : '';
 
@@ -1375,7 +1388,7 @@ function updateEmailPreview() {
         <div class="mb-3">
             <strong>From:</strong> JValera Dental Clinic<br>
             <strong>To:</strong> ${patient.email}<br>
-            <strong>Type:</strong> ${getEmailTypeLabel(emailType)}
+            <strong>Type:</strong> Follow Up
         </div>
         <hr>
         <div style="padding: 15px; background: white; border-radius: 5px;">
@@ -1423,19 +1436,17 @@ function getEmailTypeLabel(type) {
 function updateSendButtonState() {
     const patientId = document.getElementById('selectPatient').value;
     const appointmentId = document.getElementById('selectAppointment').value;
-    const emailType = document.getElementById('selectEmailType').value;
     const btn = document.getElementById('btnSendEmail');
 
-    btn.disabled = !(patientId && appointmentId && emailType);
+    btn.disabled = !(patientId && appointmentId);
 }
 
 // Send email button click handler
 document.getElementById('btnSendEmail')?.addEventListener('click', function() {
     const appointmentId = document.getElementById('selectAppointment').value;
-    const emailType = document.getElementById('selectEmailType').value;
     const btn = this;
 
-    if (!appointmentId || !emailType) {
+    if (!appointmentId) {
         showToast('Please select all required fields', 'error');
         return;
     }
@@ -1445,7 +1456,7 @@ document.getElementById('btnSendEmail')?.addEventListener('click', function() {
     const originalText = btn.innerHTML;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sending...';
 
-    // Send email
+    // Send email (always follow_up)
     fetch('/admin/content-management/send-patient-email', {
         method: 'POST',
         headers: {
@@ -1454,19 +1465,15 @@ document.getElementById('btnSendEmail')?.addEventListener('click', function() {
         },
         body: JSON.stringify({
             appointment_id: appointmentId,
-            email_type: emailType
+            email_type: 'follow_up'
         })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showToast('Email sent successfully!', 'success');
-
             // Show success details
             const patient = selectedAppointmentData.patient;
-            const emailTypeLabel = getEmailTypeLabel(emailType);
-
-            showToast(`${emailTypeLabel} email sent to ${patient.email}`, 'success');
+            showToast(`Follow Up email sent to ${patient.email}`, 'success');
         } else {
             showToast('Error sending email: ' + (data.message || 'Unknown error'), 'error');
         }
@@ -1501,10 +1508,6 @@ document.getElementById('selectSituation')?.addEventListener('change', function(
     `;
     document.getElementById('patientCount').textContent = '0 patients';
     document.getElementById('btnSendBulkEmail').disabled = true;
-});
-
-document.getElementById('selectBulkEmailType')?.addEventListener('change', function() {
-    updateLoadPatientsButtonState();
 });
 
 function updateLoadPatientsButtonState() {
@@ -1644,19 +1647,14 @@ function updateSendBulkEmailButtonState() {
         selectAllCheckbox.indeterminate = selectedCheckboxes.length > 0 && selectedCheckboxes.length < allCheckboxes.length;
     }
 
-    btn.disabled = !(emailType && selectedCheckboxes.length > 0);
+    btn.disabled = selectedCheckboxes.length === 0;
 }
 
 // Send bulk email button click handler
 document.getElementById('btnSendBulkEmail')?.addEventListener('click', function() {
-    const emailType = document.getElementById('selectBulkEmailType').value;
+    const emailType = 'follow_up'; // Always follow_up
     const selectedCheckboxes = document.querySelectorAll('.patient-checkbox:checked');
     const btn = this;
-
-    if (!emailType) {
-        showToast('Please select an email type', 'error');
-        return;
-    }
 
     if (selectedCheckboxes.length === 0) {
         showToast('Please select at least one patient', 'error');
@@ -1681,7 +1679,7 @@ document.getElementById('btnSendBulkEmail')?.addEventListener('click', function(
     }
 
     // Confirm action
-    const confirmMessage = `Are you sure you want to send ${getEmailTypeLabel(emailType)} email to ${selectedCheckboxes.length} patient(s)?\n\nTotal appointments: ${appointmentIds.length}`;
+    const confirmMessage = `Are you sure you want to send Follow Up email to ${selectedCheckboxes.length} patient(s)?\n\nTotal appointments: ${appointmentIds.length}`;
     if (!confirm(confirmMessage)) {
         return;
     }
@@ -1691,7 +1689,7 @@ document.getElementById('btnSendBulkEmail')?.addEventListener('click', function(
     const originalText = btn.innerHTML;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sending...';
 
-    // Send bulk email
+    // Send bulk email (always follow_up)
     fetch('/admin/content-management/send-bulk-email', {
         method: 'POST',
         headers: {
@@ -1700,7 +1698,7 @@ document.getElementById('btnSendBulkEmail')?.addEventListener('click', function(
         },
         body: JSON.stringify({
             appointment_ids: appointmentIds,
-            email_type: emailType
+            email_type: 'follow_up'
         })
     })
     .then(response => response.json())

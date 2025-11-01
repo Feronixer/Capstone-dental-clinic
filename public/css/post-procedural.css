@@ -288,6 +288,21 @@
     color: #ffffff !important;
 }
 
+/* Dark Mode Patient Selection Alert */
+[data-theme="dark"] #selectedPatientInfoAlert,
+[data-theme="dark"] #selectedHistoryPatientInfoAlert,
+[data-theme="dark"] #selectedProgressNotePatientAlert {
+    background: linear-gradient(135deg, rgba(23, 162, 184, 0.2) 0%, rgba(19, 132, 150, 0.15) 100%) !important;
+    border-color: #17a2b8 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] #selectedPatientInfoAlert strong,
+[data-theme="dark"] #selectedHistoryPatientInfoAlert strong,
+[data-theme="dark"] #selectedProgressNotePatientAlert strong {
+    color: #93c5fd !important;
+}
+
 [data-theme="dark"] #progress-notes-section .card[style*="background: linear-gradient"] {
     background: linear-gradient(135deg, var(--dm-card-bg) 0%, var(--dm-bg-secondary) 100%) !important;
 }

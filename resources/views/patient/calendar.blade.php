@@ -63,30 +63,76 @@
                 </div>
             </div>
 
-            <!-- Legend -->
+            <!-- Pending Requests -->
             <div class="sidebar-card">
                 <h3 class="sidebar-title">
-                    <i class="bi bi-info-circle me-2"></i>Status Legend
+                    <i class="bi bi-hourglass-split me-2"></i>Pending Requests
                 </h3>
-                <div class="legend-list">
-                    <div class="legend-item">
-                        <span class="legend-dot pending"></span>
-                        <span class="legend-text">Pending</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-dot confirmed"></span>
-                        <span class="legend-text">Confirmed</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-dot completed"></span>
-                        <span class="legend-text">Completed</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-dot cancelled"></span>
-                        <span class="legend-text">Cancelled</span>
-                    </div>
+                <div id="pendingRequestsList" class="pending-requests-list">
+                    @forelse($pendingRequests as $request)
+                        <div class="pending-request-item">
+                            <div class="pending-request-header">
+                                <span class="request-type-badge {{ $request->request_type === 'walk-in' ? 'emergency' : $request->request_type }}">
+                                    <i class="bi {{ $request->request_type === 'walk-in' ? 'bi-lightning-charge-fill' : 'bi-arrow-repeat' }}"></i>
+                                    {{ $request->request_type === 'walk-in' ? 'Emergency' : 'Reschedule' }}
+                                </span>
+                            </div>
+                            <div class="pending-request-info">
+                                <div class="pending-request-service">
+                                    <i class="bi bi-heart-pulse me-1"></i>
+                                    {{ $request->service ? $request->service->service_name : $request->other_concern }}
+                                </div>
+                                <div class="pending-request-datetime">
+                                    <i class="bi bi-calendar-event me-1"></i>
+                                    {{ $request->requested_datetime->format('M d, Y') }}
+                                    <i class="bi bi-clock ms-2 me-1"></i>
+                                    {{ $request->requested_datetime->format('g:i A') }}
+                                </div>
+                                <div class="pending-request-status">
+                                    <i class="bi bi-hourglass-split me-1"></i>
+                                    {{ $request->created_at->diffForHumans() }}
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="text-center text-muted py-3">
+                            <i class="bi bi-check-circle mb-2" style="font-size: 2rem;"></i>
+                            <p class="mb-0">No pending requests</p>
+                        </div>
+                    @endforelse
                 </div>
-        </div>
+            </div>
+
+            <!-- Appointment History -->
+            <div class="sidebar-card">
+                <h3 class="sidebar-title">
+                    <i class="bi bi-archive me-2"></i>History
+                </h3>
+                <div id="appointmentHistory" class="history-list">
+                    @forelse($appointmentHistory as $appointment)
+                        <div class="history-item">
+                            <div class="history-date">
+                                <span class="history-day">{{ $appointment->start_datetime->format('d') }}</span>
+                                <span class="history-month">{{ $appointment->start_datetime->format('M') }}</span>
+                                <span class="history-year">{{ $appointment->start_datetime->format('Y') }}</span>
+                            </div>
+                            <div class="history-info">
+                                <div class="history-title">{{ $appointment->service ? $appointment->service->service_name : $appointment->reason_for_visit }}</div>
+                                <div class="history-time">
+                                    <i class="bi bi-clock me-1"></i>{{ $appointment->start_datetime->format('g:i A') }}
+                                </div>
+                            </div>
+                            <span class="status-badge history {{ strtolower($appointment->status) }}">{{ $appointment->status }}</span>
+                        </div>
+                    @empty
+                        <div class="text-center text-muted py-3">
+                            <i class="bi bi-inbox mb-2" style="font-size: 2rem;"></i>
+                            <p class="mb-0">No appointment history</p>
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+
     </aside>
 
         <!-- Main Calendar -->
@@ -116,7 +162,33 @@
             </div>
 
             <div class="calendar-wrapper">
-                <h2 id="currentPeriodDisplay" class="period-title">April 2025</h2>
+                <div class="period-header">
+                    <h2 id="currentPeriodDisplay" class="period-title">April 2025</h2>
+
+                    <!-- Status Legend -->
+                    <div class="legend-inline">
+                        <div class="legend-item">
+                            <span class="legend-dot pending"></span>
+                            <span class="legend-text">Pending</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot confirmed"></span>
+                            <span class="legend-text">Confirmed</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot completed"></span>
+                            <span class="legend-text">Completed</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot cancelled"></span>
+                            <span class="legend-text">Cancelled</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot blocked"></span>
+                            <span class="legend-text">Missed</span>
+                        </div>
+                    </div>
+                </div>
                 <div id="calendarContent" class="calendar-content">
                     <!-- Calendar will be rendered here -->
                 </div>
@@ -875,6 +947,17 @@
     opacity: 0.7;
 }
 
+.week-appointment.blocked {
+    background: #f3f4f6;
+    border-left-color: #6b7280;
+    cursor: not-allowed;
+}
+
+.week-appointment.blocked:hover {
+    transform: none;
+    box-shadow: none;
+}
+
 .week-apt-time {
     font-size: 0.75rem;
     font-weight: 600;
@@ -986,6 +1069,17 @@
     opacity: 0.8;
 }
 
+.day-appointment.blocked {
+    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+    border-left-color: #6b7280;
+    cursor: not-allowed;
+}
+
+.day-appointment.blocked:hover {
+    transform: none;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
 .day-apt-header {
     display: flex;
     justify-content: space-between;
@@ -1026,6 +1120,11 @@
 .day-apt-badge.cancelled {
     background: #fee2e2;
     color: #991b1b;
+}
+
+.day-apt-badge.blocked {
+    background: #e5e7eb;
+    color: #374151;
 }
 
 .day-apt-title {
@@ -1410,6 +1509,17 @@
     opacity: 0.7 !important;
 }
 
+[data-theme="dark"] .week-appointment.blocked {
+    background: rgba(107, 114, 128, 0.2) !important;
+    border-left-color: #9ca3af !important;
+    cursor: not-allowed !important;
+}
+
+[data-theme="dark"] .week-appointment.blocked:hover {
+    transform: none !important;
+    box-shadow: none !important;
+}
+
 [data-theme="dark"] .week-apt-time,
 [data-theme="dark"] .week-apt-title {
     color: var(--dm-text-primary, #f1f5f9) !important;
@@ -1458,6 +1568,22 @@
     background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.1) 100%) !important;
     border-left-color: #ef4444 !important;
     opacity: 0.8 !important;
+}
+
+[data-theme="dark"] .day-appointment.blocked {
+    background: linear-gradient(135deg, rgba(107, 114, 128, 0.2) 0%, rgba(107, 114, 128, 0.15) 100%) !important;
+    border-left-color: #9ca3af !important;
+    cursor: not-allowed !important;
+}
+
+[data-theme="dark"] .day-appointment.blocked:hover {
+    transform: none !important;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08) !important;
+}
+
+[data-theme="dark"] .day-apt-badge.blocked {
+    background: rgba(107, 114, 128, 0.3) !important;
+    color: var(--dm-text-muted, #94a3b8) !important;
 }
 
 [data-theme="dark"] .day-apt-time,
@@ -2377,6 +2503,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 const dateObj = new Date(selectedDate + 'T00:00:00');
                 const available = isTimeSlotAvailable(dateObj, selectedTime);
 
+                // Check if dark mode is active
+                const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+
                 // Create message div
                 messageDiv = document.createElement('div');
                 messageDiv.id = 'timeAvailabilityMessage';
@@ -2390,14 +2519,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 messageDiv.style.gap = '0.5rem';
 
                 if (available) {
-                    messageDiv.style.background = 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)';
-                    messageDiv.style.color = '#065f46';
-                    messageDiv.style.border = '2px solid #10b981';
+                    if (isDarkMode) {
+                        messageDiv.style.background = 'linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.1) 100%)';
+                        messageDiv.style.color = '#86efac';
+                        messageDiv.style.border = '2px solid #10b981';
+                    } else {
+                        messageDiv.style.background = 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)';
+                        messageDiv.style.color = '#065f46';
+                        messageDiv.style.border = '2px solid #10b981';
+                    }
                     messageDiv.innerHTML = '<i class="bi bi-check-circle-fill"></i> This time slot is available!';
                 } else {
-                    messageDiv.style.background = 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)';
-                    messageDiv.style.color = '#991b1b';
-                    messageDiv.style.border = '2px solid #ef4444';
+                    if (isDarkMode) {
+                        messageDiv.style.background = 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.1) 100%)';
+                        messageDiv.style.color = '#fca5a5';
+                        messageDiv.style.border = '2px solid #ef4444';
+                    } else {
+                        messageDiv.style.background = 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)';
+                        messageDiv.style.color = '#991b1b';
+                        messageDiv.style.border = '2px solid #ef4444';
+                    }
                     messageDiv.innerHTML = '<i class="bi bi-x-circle-fill"></i> This time slot is not available. Please select a different time.';
 
                     // Disable the submit button
@@ -2469,6 +2610,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 suggestionDiv.remove();
             }
 
+            // Check if dark mode is active
+            const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+
             if (availableSlots.length > 0) {
                 suggestionDiv = document.createElement('div');
                 suggestionDiv.id = 'timeSuggestionMessage';
@@ -2476,9 +2620,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 suggestionDiv.style.padding = '0.75rem';
                 suggestionDiv.style.borderRadius = '8px';
                 suggestionDiv.style.fontSize = '0.85rem';
-                suggestionDiv.style.background = 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)';
-                suggestionDiv.style.color = '#1e40af';
-                suggestionDiv.style.border = '2px solid #3b82f6';
+
+                if (isDarkMode) {
+                    suggestionDiv.style.background = 'linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.1) 100%)';
+                    suggestionDiv.style.color = '#93c5fd';
+                    suggestionDiv.style.border = '2px solid #3b82f6';
+                } else {
+                    suggestionDiv.style.background = 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)';
+                    suggestionDiv.style.color = '#1e40af';
+                    suggestionDiv.style.border = '2px solid #3b82f6';
+                }
+
                 suggestionDiv.innerHTML = `<i class="bi bi-info-circle-fill"></i> <strong>${availableSlots.length}</strong> time slots available on this date. Select a time to check availability.`;
 
                 const dateFormGroup = appointmentDateInput.closest('.form-group');
@@ -2492,9 +2644,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 suggestionDiv.style.padding = '0.75rem';
                 suggestionDiv.style.borderRadius = '8px';
                 suggestionDiv.style.fontSize = '0.85rem';
-                suggestionDiv.style.background = 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)';
-                suggestionDiv.style.color = '#92400e';
-                suggestionDiv.style.border = '2px solid #f59e0b';
+
+                if (isDarkMode) {
+                    suggestionDiv.style.background = 'linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.1) 100%)';
+                    suggestionDiv.style.color = '#fde68a';
+                    suggestionDiv.style.border = '2px solid #f59e0b';
+                } else {
+                    suggestionDiv.style.background = 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)';
+                    suggestionDiv.style.color = '#92400e';
+                    suggestionDiv.style.border = '2px solid #f59e0b';
+                }
+
                 suggestionDiv.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> No available time slots on this date. Please select a different date.';
 
                 const dateFormGroup = appointmentDateInput.closest('.form-group');

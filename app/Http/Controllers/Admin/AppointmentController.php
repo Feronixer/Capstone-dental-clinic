@@ -20,6 +20,9 @@ class AppointmentController extends Controller
      */
     public function index()
     {
+        // Auto-mark Confirmed appointments as Missed if they weren't completed on the appointment date
+        $this->autoMarkMissedAppointments();
+
         // Clean up expired blocked times
         $now = Carbon::now('Asia/Manila');
         \App\Models\BlockedTime::where('end_datetime', '<', $now)->delete();
@@ -129,7 +132,7 @@ class AppointmentController extends Controller
                 'service_id' => 'nullable|exists:services,id',
                 'start_datetime' => 'required|date',
                 'duration_minutes' => 'nullable|integer|min:15|max:480',
-                'status' => 'nullable|in:Pending,Confirmed,Completed,Cancelled',
+                'status' => 'nullable|in:Pending,Confirmed,Completed,Cancelled,Missed',
                 'notes' => 'nullable|string',
                 'reason_for_visit' => 'nullable|string|max:255',
                 'is_new_patient' => 'nullable|boolean'
@@ -197,17 +200,9 @@ class AppointmentController extends Controller
 
             \Log::info('Appointment created successfully:', ['id' => $appointment->id]);
 
-            // Send confirmation email to patient
-            try {
-                MailService::sendAppointmentEmail('initial_confirmation', $appointment->load(['patient.info', 'service']));
-            } catch (\Exception $e) {
-                \Log::error('Failed to send confirmation email:', ['error' => $e->getMessage()]);
-                // Don't fail the appointment creation if email fails
-            }
-
             // Send notification to patient
             try {
-                NotificationService::appointmentConfirmed($appointment);
+                NotificationService::appointmentCreated($appointment);
             } catch (\Exception $e) {
                 \Log::error('Failed to send notification:', ['error' => $e->getMessage()]);
             }
@@ -288,7 +283,7 @@ class AppointmentController extends Controller
                 'service_id' => 'nullable|exists:services,id',
                 'start_datetime' => 'required|date',
                 'duration_minutes' => 'nullable|integer|min:15|max:480',
-                'status' => 'nullable|in:Pending,Confirmed,Completed,Cancelled',
+                'status' => 'nullable|in:Pending,Confirmed,Completed,Cancelled,Missed',
                 'notes' => 'nullable|string',
                 'reason_for_visit' => 'nullable|string|max:255',
                 'is_new_patient' => 'nullable|boolean'
@@ -471,16 +466,17 @@ class AppointmentController extends Controller
             $oldStatus = $appointment->status;
 
             $validated = $request->validate([
-                'status' => 'required|in:Pending,Confirmed,Completed,Cancelled',
+                'status' => 'required|in:Pending,Confirmed,Completed,Cancelled,Missed',
                 'notes' => 'nullable|string|max:500'
             ]);
 
             // Validate status transitions
             $validTransitions = [
                 'Pending' => ['Confirmed', 'Cancelled'],
-                'Confirmed' => ['Completed', 'Cancelled'],
+                'Confirmed' => ['Completed'],
                 'Completed' => [], // Completed appointments cannot change status
-                'Cancelled' => [] // Cancelled appointments cannot change status
+                'Cancelled' => [], // Cancelled appointments cannot change status
+                'Missed' => [] // Missed appointments cannot change status
             ];
 
             if (!in_array($validated['status'], $validTransitions[$oldStatus] ?? [])) {
@@ -525,7 +521,8 @@ class AppointmentController extends Controller
                 $notificationMessages = [
                     'Confirmed' => "Your appointment for {$serviceName} on {$appointmentDate} has been confirmed.",
                     'Completed' => "Your appointment for {$serviceName} on {$appointmentDate} has been marked as completed.",
-                    'Cancelled' => "Your appointment for {$serviceName} on {$appointmentDate} has been cancelled."
+                    'Cancelled' => "Your appointment for {$serviceName} on {$appointmentDate} has been cancelled.",
+                    'Missed' => "Your appointment for {$serviceName} on {$appointmentDate} has been marked as missed."
                 ];
 
                 Notification::create([
@@ -534,7 +531,8 @@ class AppointmentController extends Controller
                     'title' => "Appointment {$validated['status']}",
                     'message' => $notificationMessages[$validated['status']] ?? "Your appointment status has been updated to {$validated['status']}.",
                     'icon' => $validated['status'] === 'Confirmed' ? 'bi-check-circle' :
-                             ($validated['status'] === 'Cancelled' ? 'bi-x-circle' : 'bi-info-circle'),
+                             ($validated['status'] === 'Cancelled' ? 'bi-x-circle' :
+                             ($validated['status'] === 'Missed' ? 'bi-exclamation-triangle' : 'bi-info-circle')),
                     'data' => json_encode([
                         'appointment_id' => $appointment->id,
                         'old_status' => $oldStatus,
@@ -543,6 +541,23 @@ class AppointmentController extends Controller
                         'date' => $appointmentDate
                     ])
                 ]);
+
+                // Send automated email based on status change
+                if ($validated['status'] === 'Confirmed') {
+                    try {
+                        MailService::sendAppointmentEmail('initial_confirmation', $appointment);
+                        \Log::info("Automated initial confirmation email sent for appointment {$appointment->id}");
+                    } catch (\Exception $e) {
+                        \Log::error("Failed to send automated initial confirmation email: " . $e->getMessage());
+                    }
+                } elseif ($validated['status'] === 'Cancelled') {
+                    try {
+                        MailService::sendAppointmentEmail('cancellation', $appointment);
+                        \Log::info("Automated cancellation email sent for appointment {$appointment->id}");
+                    } catch (\Exception $e) {
+                        \Log::error("Failed to send automated cancellation email: " . $e->getMessage());
+                    }
+                }
             } catch (\Exception $e) {
                 \Log::error('Failed to send status change notification:', ['error' => $e->getMessage()]);
             }
@@ -697,7 +712,7 @@ class AppointmentController extends Controller
         // Sorting
         $sortBy = $request->get('sort_by', 'start_datetime');
         $sortOrder = $request->get('sort_order', 'desc');
-        
+
         $validSortFields = ['id', 'start_datetime', 'status', 'duration_minutes', 'rescheduled_at', 'patient_id', 'service_id', 'created_at'];
         if (!in_array($sortBy, $validSortFields)) {
             $sortBy = 'start_datetime';
@@ -727,6 +742,7 @@ class AppointmentController extends Controller
             'Confirmed' => Appointment::where('status', 'Confirmed')->whereNotIn('status', ['blocked'])->count(),
             'Completed' => Appointment::where('status', 'Completed')->whereNotIn('status', ['blocked'])->count(),
             'Cancelled' => Appointment::where('status', 'Cancelled')->whereNotIn('status', ['blocked'])->count(),
+            'Missed' => Appointment::where('status', 'Missed')->whereNotIn('status', ['blocked'])->count(),
         ];
         $rescheduledCount = Appointment::whereNotNull('rescheduled_at')->whereNotIn('status', ['blocked'])->count();
         $emergencyCount = Appointment::where(function($q) {
@@ -744,7 +760,7 @@ class AppointmentController extends Controller
             ->orderBy('month', 'desc')
             ->get()
             ->map(function($item) {
-                $monthName = \Carbon\Carbon::create($item->year, $item->month, 1)->format('F Y');
+                $monthName = Carbon::create($item->year, $item->month, 1)->format('F Y');
                 return [
                     'value' => $item->month . '-' . $item->year,
                     'label' => $monthName
@@ -759,5 +775,63 @@ class AppointmentController extends Controller
             'totalCount',
             'availableMonths'
         ))->with('perPage', $perPage)->with('search', $request->get('search', ''));
+    }
+
+    /**
+     * Auto-mark Confirmed appointments as Missed if they weren't completed on the appointment date
+     */
+    private function autoMarkMissedAppointments()
+    {
+        try {
+            $now = Carbon::now('Asia/Manila');
+            $todayStart = $now->copy()->startOfDay();
+
+            // Get all confirmed appointments that are from yesterday or earlier
+            $confirmedAppointments = Appointment::where('status', 'Confirmed')
+                ->whereDate('start_datetime', '<', $todayStart)
+                ->get();
+
+            foreach ($confirmedAppointments as $appointment) {
+                // Mark as missed
+                $appointment->update([
+                    'status' => 'Missed',
+                    'notes' => ($appointment->notes ?? '') . "\n\n[" . $now->format('Y-m-d H:i') . "] Automatically marked as Missed."
+                ]);
+
+                // Send notification to patient
+                try {
+                    $patientName = $appointment->patient->info ?
+                        trim($appointment->patient->info->first_name . ' ' . $appointment->patient->info->last_name) :
+                        $appointment->patient->name;
+
+                    $serviceName = $appointment->service ? $appointment->service->service_name : $appointment->reason_for_visit;
+                    $appointmentDate = $appointment->start_datetime->format('F j, Y \a\t g:i A');
+
+                    Notification::create([
+                        'user_id' => $appointment->patient_id,
+                        'type' => 'appointment_status',
+                        'title' => 'Appointment Missed',
+                        'message' => "Your appointment for {$serviceName} on {$appointmentDate} has been marked as missed.",
+                        'icon' => 'bi-exclamation-triangle',
+                        'data' => json_encode([
+                            'appointment_id' => $appointment->id,
+                            'old_status' => 'Confirmed',
+                            'new_status' => 'Missed',
+                            'service' => $serviceName,
+                            'date' => $appointmentDate
+                        ])
+                    ]);
+                } catch (\Exception $e) {
+                    \Log::error('Failed to send missed appointment notification:', ['error' => $e->getMessage()]);
+                }
+
+                \Log::info('Auto-marked appointment as missed:', [
+                    'appointment_id' => $appointment->id,
+                    'patient_id' => $appointment->patient_id
+                ]);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error auto-marking missed appointments:', ['error' => $e->getMessage()]);
+        }
     }
 }

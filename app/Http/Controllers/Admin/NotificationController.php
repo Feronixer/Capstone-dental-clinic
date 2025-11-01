@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\AppointmentRequest;
 use App\Models\Appointment;
 use App\Models\Notification;
+use App\Services\MailService;
 use Carbon\Carbon;
 
 class NotificationController extends Controller
@@ -156,6 +157,22 @@ class NotificationController extends Controller
                         'appointment_time' => $formattedTime,
                     ]
                 ]);
+
+                // Send automated email based on request type
+                try {
+                    if ($appointmentRequest->request_type === 'reschedule') {
+                        // For reschedule requests, send rescheduling email
+                        MailService::sendAppointmentEmail('rescheduling', $appointment);
+                        \Log::info("Automated rescheduling email sent for approved reschedule request {$appointmentRequest->id}, appointment {$appointment->id}");
+                    } elseif ($appointmentRequest->isWalkIn()) {
+                        // For emergency/walk-in requests, send initial confirmation email
+                        MailService::sendAppointmentEmail('initial_confirmation', $appointment);
+                        \Log::info("Automated initial confirmation email sent for approved walk-in request {$appointmentRequest->id}, appointment {$appointment->id}");
+                    }
+                } catch (\Exception $e) {
+                    \Log::error("Failed to send automated email for approved request: " . $e->getMessage());
+                    // Don't fail the approval if email fails
+                }
 
                 // Commit the transaction
                 \DB::commit();

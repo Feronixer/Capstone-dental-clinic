@@ -41,6 +41,22 @@ class CalendarController extends Controller
             ->limit(5)
             ->get();
 
+        // Get pending appointment requests
+        $pendingRequests = AppointmentRequest::where('patient_id', auth()->id())
+            ->where('status', 'Pending')
+            ->with(['service', 'existingAppointment'])
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
+
+        // Get appointment history (past appointments, including cancelled)
+        $appointmentHistory = Appointment::where('patient_id', auth()->id())
+            ->where('start_datetime', '<', Carbon::now())
+            ->with(['service'])
+            ->orderBy('start_datetime', 'desc')
+            ->limit(10)
+            ->get();
+
         // Get ALL appointments (from all patients) for conflict checking - exclude cancelled
         $allAppointments = Appointment::where('start_datetime', '>=', Carbon::now()->startOfDay())
             ->where('status', '!=', 'Cancelled')
@@ -52,20 +68,24 @@ class CalendarController extends Controller
                 ];
             });
 
-        // Get blocked times for conflict checking
+        // Get blocked times for conflict checking and display
         $blockedTimes = \App\Models\BlockedTime::where('start_datetime', '>=', Carbon::now()->startOfDay())
             ->get()
             ->map(function($blockedTime) {
                 return [
+                    'id' => $blockedTime->id,
+                    'title' => $blockedTime->title,
                     'start_datetime' => $blockedTime->start_datetime->format('Y-m-d H:i:s'),
                     'end_datetime' => $blockedTime->end_datetime->format('Y-m-d H:i:s'),
+                    'duration_minutes' => $blockedTime->duration_minutes,
+                    'notes' => $blockedTime->notes,
                 ];
             });
 
         // Get services for the form
         $services = Service::active()->orderBy('service_name')->get();
 
-        return view("patient.calendar", compact('appointments', 'upcomingAppointments', 'services', 'allAppointments', 'blockedTimes'));
+        return view("patient.calendar", compact('appointments', 'upcomingAppointments', 'pendingRequests', 'appointmentHistory', 'services', 'allAppointments', 'blockedTimes'));
     }
 
     /**
@@ -99,6 +119,13 @@ class CalendarController extends Controller
                 $existingAppointment = Appointment::with('service')->find($request->existing_appointment_id);
 
                 if ($existingAppointment) {
+                    // Prevent rescheduling of Missed appointments
+                    if ($existingAppointment->status === 'Missed') {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Cannot reschedule missed appointments. Please book a new appointment instead.'
+                        ], 400);
+                    }
                     $serviceId = $existingAppointment->service_id;
                     $otherConcern = $existingAppointment->service_id ? null : $existingAppointment->reason_for_visit;
 

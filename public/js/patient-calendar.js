@@ -127,6 +127,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Get appointments for this day
                     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayCount).padStart(2, '0')}`;
                     const dayAppointments = getAppointmentsForDate(dateStr);
+                    const dayBlockedTimes = getBlockedTimesForDate(dateStr);
 
                     let appointmentsHtml = '';
                     dayAppointments.forEach(apt => {
@@ -152,6 +153,40 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <div class="event-title">${title}</div>
                             </div>
                         `;
+                    });
+
+                    // Add blocked times
+                    dayBlockedTimes.forEach(blocked => {
+                        const startTime = new Date(blocked.start_datetime);
+                        const endTime = new Date(blocked.end_datetime);
+                        // Check if it's a full day closure (00:00 to 23:59)
+                        const isFullDayClosure = startTime.getHours() === 0 && startTime.getMinutes() === 0 &&
+                                                 endTime.getHours() === 23 && endTime.getMinutes() === 59;
+
+                        const title = blocked.title || 'Clinic Unavailable';
+                        const displayTitle = (title === 'Clinic Closed' || isFullDayClosure) ? 'Clinic Closed' : title;
+
+                        if (isFullDayClosure) {
+                            // Full day closure - don't show time
+                            appointmentsHtml += `
+                                <div class="event-item blocked" data-blocked-time-id="${blocked.id}">
+                                    <div class="event-title">${displayTitle}</div>
+                                </div>
+                            `;
+                        } else {
+                            // Partial day block - show time
+                            const time = startTime.toLocaleTimeString('en-US', {
+                                hour: 'numeric',
+                                minute: '2-digit',
+                                hour12: true
+                            });
+                            appointmentsHtml += `
+                                <div class="event-item blocked" data-blocked-time-id="${blocked.id}">
+                                    <div class="event-time">${time}</div>
+                                    <div class="event-title">${displayTitle}</div>
+                                </div>
+                            `;
+                        }
                     });
 
                     html += `
@@ -192,6 +227,16 @@ document.addEventListener('DOMContentLoaded', function() {
         return window.patientAppointments.filter(apt => {
             const aptDate = apt.start_datetime.split(' ')[0];
             return aptDate === dateStr;
+        });
+    }
+
+    // Get blocked times for a specific date
+    function getBlockedTimesForDate(dateStr) {
+        if (!window.blockedTimes) return [];
+
+        return window.blockedTimes.filter(blocked => {
+            const blockedDate = blocked.start_datetime.split(' ')[0];
+            return blockedDate === dateStr;
         });
     }
 
@@ -482,6 +527,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 opacity: 0.7;
             }
 
+            .event-item.blocked {
+                background: #f3f4f6;
+                border-left-color: #6b7280;
+                cursor: not-allowed;
+            }
+
+            .event-item.blocked:hover {
+                transform: none;
+                box-shadow: none;
+            }
+
             .event-time {
                 font-weight: 600;
                 color: #1e293b;
@@ -542,6 +598,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     return aptHour === hour;
                 });
 
+                // Get all blocked times for the day (not filtered by hour yet)
+                const allDayBlockedTimes = getBlockedTimesForDate(dateStr);
+
                 let cellContent = '';
                 dayAppointments.forEach(apt => {
                     const time = new Date(apt.start_datetime).toLocaleTimeString('en-US', {
@@ -560,6 +619,43 @@ document.addEventListener('DOMContentLoaded', function() {
                             <div class="week-apt-title">${title}</div>
                         </div>
                     `;
+                });
+
+                // Add blocked times
+                allDayBlockedTimes.forEach(blocked => {
+                    const startTime = new Date(blocked.start_datetime);
+                    const endTime = new Date(blocked.end_datetime);
+                    // Check if it's a full day closure (00:00 to 23:59)
+                    const isFullDayClosure = startTime.getHours() === 0 && startTime.getMinutes() === 0 &&
+                                             endTime.getHours() === 23 && endTime.getMinutes() === 59;
+
+                    const title = blocked.title || 'Clinic Unavailable';
+                    const displayTitle = (title === 'Clinic Closed' || isFullDayClosure) ? 'Clinic Closed' : title;
+
+                    if (isFullDayClosure && hour === 8) {
+                        // Full day closure - show only at first hour (8 AM) without time
+                        cellContent += `
+                            <div class="week-appointment blocked full-day-closure" data-blocked-time-id="${blocked.id}">
+                                <div class="week-apt-title">${displayTitle}</div>
+                            </div>
+                        `;
+                    } else if (!isFullDayClosure) {
+                        // Partial day block - show time only in its hour slot
+                        const blockedHour = startTime.getHours();
+                        if (blockedHour === hour) {
+                            const time = startTime.toLocaleTimeString('en-US', {
+                                hour: 'numeric',
+                                minute: '2-digit',
+                                hour12: true
+                            });
+                            cellContent += `
+                                <div class="week-appointment blocked" data-blocked-time-id="${blocked.id}">
+                                    <div class="week-apt-time">${time}</div>
+                                    <div class="week-apt-title">${displayTitle}</div>
+                                </div>
+                            `;
+                        }
+                    }
                 });
 
                 html += `<div class="week-cell">${cellContent}</div>`;
@@ -583,6 +679,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const hours = Array.from({length: 13}, (_, i) => i + 8); // 8 AM to 8 PM
         const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
         const dayAppointments = getAppointmentsForDate(dateStr);
+        const dayBlockedTimes = getBlockedTimesForDate(dateStr);
 
         const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'long' });
         const dateFormatted = currentDate.toLocaleDateString('en-US', {
@@ -609,6 +706,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 return aptHour === hour;
             });
 
+            // Get blocked times for this hour (including full-day closures that should show at 8 AM)
+            const hourBlockedTimes = dayBlockedTimes.filter(blocked => {
+                const startTime = new Date(blocked.start_datetime);
+                const endTime = new Date(blocked.end_datetime);
+                // Check if it's a full day closure
+                const isFullDayClosure = startTime.getHours() === 0 && startTime.getMinutes() === 0 &&
+                                         endTime.getHours() === 23 && endTime.getMinutes() === 59;
+
+                if (isFullDayClosure) {
+                    // Full day closures show at hour 8 (first visible hour)
+                    return hour === 8;
+                } else {
+                    // Partial blocks show in their actual hour
+                    const blockedHour = startTime.getHours();
+                    return blockedHour === hour;
+                }
+            });
+
             html += `
                 <div class="day-time-row">
                     <div class="day-time-label">
@@ -617,7 +732,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="day-time-content">
             `;
 
+            let hasItems = false;
+
             if (hourAppointments.length > 0) {
+                hasItems = true;
                 hourAppointments.forEach(apt => {
                     const startTime = new Date(apt.start_datetime).toLocaleTimeString('en-US', {
                         hour: 'numeric',
@@ -647,7 +765,64 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                     `;
                 });
-            } else {
+            }
+
+            // Add blocked times
+            if (hourBlockedTimes.length > 0) {
+                hasItems = true;
+                hourBlockedTimes.forEach(blocked => {
+                    const startTimeObj = new Date(blocked.start_datetime);
+                    const endTimeObj = new Date(blocked.end_datetime);
+                    // Check if it's a full day closure (00:00 to 23:59)
+                    const isFullDayClosure = startTimeObj.getHours() === 0 && startTimeObj.getMinutes() === 0 &&
+                                             endTimeObj.getHours() === 23 && endTimeObj.getMinutes() === 59;
+
+                    const title = blocked.title || 'Clinic Unavailable';
+                    const displayTitle = (title === 'Clinic Closed' || isFullDayClosure) ? 'Clinic Closed' : title;
+
+                    if (isFullDayClosure && hour === 8) {
+                        // Full day closure - show only at first hour (8 AM) without time
+                        html += `
+                            <div class="day-appointment blocked full-day-closure" data-blocked-time-id="${blocked.id}">
+                                <div class="day-apt-header">
+                                    <span class="day-apt-badge blocked">Clinic Closed</span>
+                                </div>
+                                <div class="day-apt-title">${displayTitle}</div>
+                                ${blocked.notes ? `<div class="day-apt-notes"><i class="bi bi-sticky me-1"></i>${blocked.notes}</div>` : ''}
+                            </div>
+                        `;
+                    } else if (!isFullDayClosure) {
+                        // Partial day block - show time only in its hour slot
+                        const blockedHour = startTimeObj.getHours();
+                        if (blockedHour === hour) {
+                            const startTime = startTimeObj.toLocaleTimeString('en-US', {
+                                hour: 'numeric',
+                                minute: '2-digit',
+                                hour12: true
+                            });
+                            const endTime = endTimeObj.toLocaleTimeString('en-US', {
+                                hour: 'numeric',
+                                minute: '2-digit',
+                                hour12: true
+                            });
+                            html += `
+                                <div class="day-appointment blocked" data-blocked-time-id="${blocked.id}">
+                                    <div class="day-apt-header">
+                                        <div class="day-apt-time">
+                                            <i class="bi bi-clock me-1"></i>${startTime} - ${endTime}
+                                        </div>
+                                        <span class="day-apt-badge blocked">Unavailable</span>
+                                    </div>
+                                    <div class="day-apt-title">${displayTitle}</div>
+                                    ${blocked.notes ? `<div class="day-apt-notes"><i class="bi bi-sticky me-1"></i>${blocked.notes}</div>` : ''}
+                                </div>
+                            `;
+                        }
+                    }
+                });
+            }
+
+            if (!hasItems) {
                 html += '<div class="day-empty-slot">No appointments</div>';
             }
 

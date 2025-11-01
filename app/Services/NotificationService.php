@@ -10,6 +10,27 @@ use Carbon\Carbon;
 class NotificationService
 {
     /**
+     * Create an appointment created notification
+     */
+    public static function appointmentCreated(Appointment $appointment): void
+    {
+        $appointmentDate = $appointment->start_datetime->format('F j, Y');
+        $appointmentTime = $appointment->start_datetime->format('g:i A');
+
+        Notification::create([
+            'user_id' => $appointment->patient_id,
+            'type' => Notification::TYPE_GENERAL,
+            'title' => 'Appointment Created',
+            'message' => "A new appointment has been scheduled for you on {$appointmentDate} at {$appointmentTime}.",
+            'data' => [
+                'appointment_id' => $appointment->id,
+                'appointment_date' => $appointmentDate,
+                'appointment_time' => $appointmentTime,
+            ],
+        ]);
+    }
+
+    /**
      * Create an appointment confirmed notification
      */
     public static function appointmentConfirmed(Appointment $appointment): void
