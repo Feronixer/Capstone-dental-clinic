@@ -28,8 +28,72 @@ class AppointmentController extends Controller
         $now = Carbon::now('Asia/Manila');
         \App\Models\BlockedTime::where('end_datetime', '<', $now)->delete();
 
-        $currentMonth = request('month', Carbon::now()->month);
-        $currentYear = request('year', Carbon::now()->year);
+        // CRITICAL: Get server's actual current date/time (fault tolerant - cannot be manipulated)
+        $serverNow = Carbon::now('Asia/Manila');
+        $serverMonth = $serverNow->month;
+        $serverYear = $serverNow->year;
+        $serverDay = $serverNow->day;
+
+        // Get requested month/year from URL (may be manipulated by client)
+        $requestedMonth = (int) request('month', $serverMonth);
+        $requestedYear = (int) request('year', $serverYear);
+
+        // CRITICAL: Validate that requested date is not too far in the future (detect time manipulation)
+        // Allow viewing up to 2 years in the future (for legitimate future planning)
+        // But if requested date is more than 7 days ahead of server date, likely manipulation
+        $maxFutureDate = $serverNow->copy()->addYears(2);
+        $suspiciousFutureDate = $serverNow->copy()->addDays(7);
+
+        // Create a date from requested month/year (first day of that month)
+        $requestedDate = Carbon::create($requestedYear, $requestedMonth, 1, 0, 0, 0, 'Asia/Manila');
+
+        // If requested date is more than 7 days ahead, likely time manipulation (redirect to server date)
+        if ($requestedDate->gt($suspiciousFutureDate) && $requestedDate->month != $serverMonth) {
+            \Log::warning('Time manipulation detected - requested date suspiciously ahead', [
+                'requested_month' => $requestedMonth,
+                'requested_year' => $requestedYear,
+                'server_month' => $serverMonth,
+                'server_year' => $serverYear,
+                'server_date' => $serverNow->format('Y-m-d H:i:s'),
+                'days_ahead' => $serverNow->diffInDays($requestedDate)
+            ]);
+
+            // Redirect to server's current date (remove month/year from URL to use defaults)
+            return redirect()->route('staff-appointment', ['view' => request('view', 'month')])
+                ->with('error', 'Invalid date detected. Showing current month.');
+        }
+
+        // If requested date is too far in the future (more than 2 years), also redirect
+        if ($requestedDate->gt($maxFutureDate)) {
+            \Log::warning('Time manipulation detected - requested date too far in future', [
+                'requested_month' => $requestedMonth,
+                'requested_year' => $requestedYear,
+                'server_month' => $serverMonth,
+                'server_year' => $serverYear,
+                'server_date' => $serverNow->format('Y-m-d H:i:s')
+            ]);
+
+            // Redirect to server's current date (remove month/year from URL to use defaults)
+            return redirect()->route('staff-appointment', ['view' => request('view', 'month')])
+                ->with('error', 'Invalid date requested. Showing current month.');
+        }
+
+        // Also check if requested date is too far in the past (more than 1 year)
+        $minPastDate = $serverNow->copy()->subYear();
+        if ($requestedDate->lt($minPastDate)) {
+            \Log::warning('Invalid past date requested', [
+                'requested_month' => $requestedMonth,
+                'requested_year' => $requestedYear,
+                'server_date' => $serverNow->format('Y-m-d H:i:s')
+            ]);
+
+            // Redirect to server's current date
+            return redirect()->route('staff-appointment', ['view' => request('view', 'month')])
+                ->with('error', 'Invalid date requested. Showing current month.');
+        }
+
+        $currentMonth = $requestedMonth;
+        $currentYear = $requestedYear;
 
         // Create date range to cover the current month and adjacent months (for week/day views that span months)
         $startDate = Carbon::create($currentYear, $currentMonth, 1)->startOfMonth()->subMonth();

@@ -99,10 +99,13 @@ Route::middleware(['auth:admin'])->group(function(): void{
     Route::post('/admin/blocked-time', [App\Http\Controllers\Admin\BlockedTimeController::class, 'store'])->name('admin-blocked-time.store');
     Route::put('/admin/blocked-time/{id}', [App\Http\Controllers\Admin\BlockedTimeController::class, 'update'])->name('admin-blocked-time.update');
     Route::post('/admin/blocked-time/{id}/delete', [App\Http\Controllers\Admin\BlockedTimeController::class, 'destroy'])->name('admin-blocked-time.destroy');
-    Route::get('/admin/blocked-time/future/count', [App\Http\Controllers\Admin\BlockedTimeController::class, 'getFutureCount'])->name('admin-blocked-time.future.count');
-    Route::post('/admin/blocked-time/future/clear', [App\Http\Controllers\Admin\BlockedTimeController::class, 'clearFuture'])->name('admin-blocked-time.future.clear');
+    Route::get('/admin/blocked-time/future/clinic-closed/count', [App\Http\Controllers\Admin\BlockedTimeController::class, 'getFutureClinicClosedCount'])->name('admin-blocked-time.clinic-closed.count');
+    Route::post('/admin/blocked-time/future/clinic-closed/clear', [App\Http\Controllers\Admin\BlockedTimeController::class, 'clearFutureClinicClosed'])->name('admin-blocked-time.clinic-closed.clear');
+    Route::get('/admin/blocked-time/future/block-off-time/count', [App\Http\Controllers\Admin\BlockedTimeController::class, 'getFutureBlockOffTimeCount'])->name('admin-blocked-time.block-off-time.count');
+    Route::post('/admin/blocked-time/future/block-off-time/clear', [App\Http\Controllers\Admin\BlockedTimeController::class, 'clearFutureBlockOffTime'])->name('admin-blocked-time.block-off-time.clear');
       Route::get('/admin/content-management', [ContentManagementController::class,'index'])->name('admin-content-management');
       Route::get('/admin/announcement-archives', [ContentManagementController::class,'announcementArchives'])->name('admin-announcement-archives');
+      Route::delete('/admin/announcement-archives/{id}', [ContentManagementController::class,'deleteArchive'])->name('admin-announcement-archives.delete');
       Route::post('/admin/content-management/announcement', [ContentManagementController::class,'updateAnnouncement'])->name('admin-content-management.announcement.update');
       Route::post('/admin/content-management/announcement/new', [ContentManagementController::class,'createNewAnnouncement'])->name('admin-content-management.announcement.create');
       Route::post('/admin/content-management/ticker', [ContentManagementController::class,'updateTicker'])->name('admin-content-management.ticker.update');
@@ -259,12 +262,15 @@ Route::middleware(['auth:staff'])->group(function(): void{
     Route::post('/staff/blocked-time', [App\Http\Controllers\Staff\BlockedTimeController::class, 'store'])->name('staff-blocked-time.store');
     Route::put('/staff/blocked-time/{id}', [App\Http\Controllers\Staff\BlockedTimeController::class, 'update'])->name('staff-blocked-time.update');
     Route::post('/staff/blocked-time/{id}/delete', [App\Http\Controllers\Staff\BlockedTimeController::class, 'destroy'])->name('staff-blocked-time.destroy');
-    Route::get('/staff/blocked-time/future/count', [App\Http\Controllers\Staff\BlockedTimeController::class, 'getFutureCount'])->name('staff-blocked-time.future.count');
-    Route::post('/staff/blocked-time/future/clear', [App\Http\Controllers\Staff\BlockedTimeController::class, 'clearFuture'])->name('staff-blocked-time.future.clear');
+    Route::get('/staff/blocked-time/future/clinic-closed/count', [App\Http\Controllers\Staff\BlockedTimeController::class, 'getFutureClinicClosedCount'])->name('staff-blocked-time.clinic-closed.count');
+    Route::post('/staff/blocked-time/future/clinic-closed/clear', [App\Http\Controllers\Staff\BlockedTimeController::class, 'clearFutureClinicClosed'])->name('staff-blocked-time.clinic-closed.clear');
+    Route::get('/staff/blocked-time/future/block-off-time/count', [App\Http\Controllers\Staff\BlockedTimeController::class, 'getFutureBlockOffTimeCount'])->name('staff-blocked-time.block-off-time.count');
+    Route::post('/staff/blocked-time/future/block-off-time/clear', [App\Http\Controllers\Staff\BlockedTimeController::class, 'clearFutureBlockOffTime'])->name('staff-blocked-time.block-off-time.clear');
 
       // Staff Content Management Routes (No delete permission for services)
       Route::get('/staff/content-management', [App\Http\Controllers\Staff\ContentManagementController::class,'index'])->name('staff-content-management');
       Route::get('/staff/announcement-archives', [App\Http\Controllers\Staff\ContentManagementController::class,'announcementArchives'])->name('staff-announcement-archives');
+      Route::delete('/staff/announcement-archives/{id}', [App\Http\Controllers\Staff\ContentManagementController::class,'deleteArchive'])->name('staff-announcement-archives.delete');
       Route::post('/staff/content-management/announcement', [App\Http\Controllers\Staff\ContentManagementController::class,'updateAnnouncement'])->name('staff-content-management.announcement.update');
       Route::post('/staff/content-management/announcement/new', [App\Http\Controllers\Staff\ContentManagementController::class,'createNewAnnouncement'])->name('staff-content-management.announcement.create');
       Route::post('/staff/content-management/ticker', [App\Http\Controllers\Staff\ContentManagementController::class,'updateTicker'])->name('staff-content-management.ticker.update');

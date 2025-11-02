@@ -187,7 +187,7 @@
 }
 
 .btn-update {
-    background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
     color: white;
     border: none;
     padding: 0.875rem 2.5rem;
@@ -196,13 +196,13 @@
     font-size: 1rem;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
 }
 
 .btn-update:hover {
-    background: linear-gradient(135deg, #1565C0 0%, #0d47a1 100%);
+    background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(25, 118, 210, 0.4);
+    box-shadow: 0 6px 16px rgba(33, 150, 243, 0.4);
 }
 
 .btn-cancel {
@@ -421,11 +421,13 @@
 
 /* Update Button Dark Mode */
 [data-theme="dark"] .btn-update {
-    background: #22c55e !important;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
 }
 
 [data-theme="dark"] .btn-update:hover {
-    background: #16a34a !important;
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4) !important;
 }
 
 /* Cancel Button Dark Mode */
@@ -466,6 +468,42 @@
 [data-theme="dark"] .invalid-feedback {
     color: #fca5a5 !important;
 }
+
+/* ============================================
+   DATE PICKER / CALENDAR DARK MODE STYLES
+   ============================================ */
+
+/* Date Input Dark Mode - Base Styles */
+[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    opacity: 0.8;
+    cursor: pointer;
+}
+
+[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+}
+
+/* Date Picker Dropdown Dark Mode */
+[data-theme="dark"] input[type="date"]::-webkit-datetime-edit-text,
+[data-theme="dark"] input[type="date"]::-webkit-datetime-edit-month-field,
+[data-theme="dark"] input[type="date"]::-webkit-datetime-edit-day-field,
+[data-theme="dark"] input[type="date"]::-webkit-datetime-edit-year-field {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+/* Date Picker Popup Dark Mode Styles */
+[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23f1f5f9' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z'/%3E%3C/svg%3E");
+}
+
+/* For browsers that support pseudo-elements on date inputs */
+[data-theme="dark"] input[type="date"]::after {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+/* Shadow DOM styles for date picker (requires JavaScript or user agent stylesheet) */
+/* These will be applied via JavaScript since we can't directly style shadow DOM */
 </style>
 
 <div class="profile-container">
@@ -708,6 +746,73 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         document.getElementById('validation-messages').style.display = 'none';
     }
+
+    // Apply dark mode styles to date picker calendar widget
+    function applyDatePickerDarkMode() {
+        const theme = document.documentElement.getAttribute('data-theme');
+        
+        if (theme === 'dark') {
+            // Create and inject dark mode styles for date picker
+            const styleId = 'date-picker-dark-mode';
+            if (!document.getElementById(styleId)) {
+                const style = document.createElement('style');
+                style.id = styleId;
+                style.textContent = `
+                    /* Date Picker Dark Mode - Override browser defaults */
+                    input[type="date"]::-webkit-calendar-picker-indicator {
+                        filter: invert(1) brightness(1.2);
+                        opacity: 0.9;
+                        cursor: pointer;
+                    }
+                    
+                    input[type="date"]::-webkit-calendar-picker-indicator:hover {
+                        opacity: 1;
+                        filter: invert(1) brightness(1.5);
+                    }
+                    
+                    /* Style the date input text fields in dark mode */
+                    input[type="date"]::-webkit-datetime-edit-text,
+                    input[type="date"]::-webkit-datetime-edit-month-field,
+                    input[type="date"]::-webkit-datetime-edit-day-field,
+                    input[type="date"]::-webkit-datetime-edit-year-field {
+                        color: #f1f5f9 !important;
+                        background: transparent !important;
+                    }
+                    
+                    input[type="date"]::-webkit-datetime-edit-text:hover,
+                    input[type="date"]::-webkit-datetime-edit-month-field:hover,
+                    input[type="date"]::-webkit-datetime-edit-day-field:hover,
+                    input[type="date"]::-webkit-datetime-edit-year-field:hover {
+                        background: rgba(59, 130, 246, 0.1) !important;
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        } else {
+            // Remove dark mode styles
+            const styleElement = document.getElementById('date-picker-dark-mode');
+            if (styleElement) {
+                styleElement.remove();
+            }
+        }
+    }
+
+    // Apply on load
+    applyDatePickerDarkMode();
+
+    // Watch for theme changes
+    const datePickerObserver = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+                applyDatePickerDarkMode();
+            }
+        });
+    });
+    
+    datePickerObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['data-theme']
+    });
 });
 </script>
 

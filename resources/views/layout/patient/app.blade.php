@@ -34,6 +34,58 @@
             background: #f5f7fa;
             color: #333;
         }
+
+        /* Global Scrollbar Styles - White & Blue Theme */
+        ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #ffffff;
+            border-radius: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            border-radius: 6px;
+            border: 2px solid #ffffff;
+            transition: background 0.3s ease;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+        }
+
+        ::-webkit-scrollbar-corner {
+            background: #ffffff;
+        }
+
+        [data-theme="dark"] ::-webkit-scrollbar-track {
+            background: var(--dm-bg-secondary, #1e293b);
+        }
+
+        [data-theme="dark"] ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            border-color: var(--dm-bg-secondary, #1e293b);
+        }
+
+        [data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+        }
+
+        [data-theme="dark"] ::-webkit-scrollbar-corner {
+            background: var(--dm-bg-secondary, #1e293b);
+        }
+
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: #2196F3 #ffffff;
+        }
+
+        [data-theme="dark"] * {
+            scrollbar-color: #2196F3 var(--dm-bg-secondary, #1e293b);
+        }
     </style>
 </head>
 <body>

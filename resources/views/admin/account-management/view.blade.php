@@ -10,27 +10,38 @@
     <div class="admin-dashboard">
         <div class="row">
             <div class="col-lg-12 mb-4">
-                <div class="card">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white border-bottom py-3">
+                        <h5 class="mb-0 fw-bold" style="font-size: 28px; color: #0d6efd;">User Management</h5>
+                    </div>
                     <div class="card-body p-4" id="users-table">
-                        <h5 class="m-0">User Management</h5>
-                        <hr>
-                        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                            <div>
-                                <form id="per-page-form" class="d-inline">
-                                    <span class="me-2">Show</span>
-                                    <select name="per_page" class="form-select d-inline w-auto">
-                                        <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
-                                        <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
-                                        <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                        <!-- Enhanced Controls Section -->
+                        <div class="account-controls-section mb-4">
+                            <div class="row g-3 align-items-end">
+                                <!-- Left: Show Entries -->
+                                <div class="col-md-6 col-lg-3">
+                                    <form id="per-page-form">
+                                        <label class="form-label fw-semibold small mb-1">
+                                            <i class="bi bi-list-ol me-1 text-primary"></i>Show Entries
+                                        </label>
+                                        <select name="per_page" class="form-select form-select-sm">
+                                            <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10 entries</option>
+                                            <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25 entries</option>
+                                            <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 entries</option>
                                     </select>
-                                    <span class="ms-2">entries</span>
                                 </form>
                             </div>
-                            <div class="d-flex align-items-center gap-2 flex-wrap">
-                                <div class="filter-by">
-                                    <span>Filter by Role:</span>
-                                    <select id="filter-role" name="role" class="form-select d-inline w-auto">
-                                        <option value="">--</option>
+                                
+                                <!-- Right: Filter and Search -->
+                                <div class="col-md-6 col-lg-9">
+                                    <div class="row g-3">
+                                        <!-- Filter by Role -->
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-semibold small mb-1">
+                                                <i class="bi bi-funnel me-1 text-primary"></i>Filter by Role
+                                            </label>
+                                            <select id="filter-role" name="role" class="form-select form-select-sm">
+                                                <option value="">All Roles</option>
                                         @foreach ($roles as $role)
                                             <option value="{{ $role->id }}" {{ request('role') == $role->id ? 'selected' : '' }}>
                                                 {{ $role->role }}
@@ -38,17 +49,30 @@
                                         @endforeach
                                     </select>
                                 </div>
-                                <div class="search-bar">
-                                    <input type="text" id="search-input" name="search" placeholder="Search" value="{{ request('search') }}">
-                                    <i class="bi bi-search"></i>
+                                        
+                                        <!-- Search -->
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-semibold small mb-1">
+                                                <i class="bi bi-search me-1 text-primary"></i>Search
+                                            </label>
+                                            <div class="search-bar-wrapper position-relative">
+                                                <input type="text" id="search-input" name="search" 
+                                                       class="form-control form-control-sm ps-5" 
+                                                       placeholder="Search by name, email, username..." 
+                                                       value="{{ request('search') }}">
+                                                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="table-responsive" style="min-height: 540px;">
-                            <table class="table table-striped table-bordered table-hover">
-                                <thead>
+                        <!-- Enhanced Table Section -->
+                        <div class="table-responsive enhanced-table-container" style="min-height: 540px;">
+                            <table class="table table-hover align-middle enhanced-table">
+                                <thead class="table-header-enhanced">
                                     <tr>
-                                        <x-table.th column="id" label="ID" center="true" />
+                                        <x-table.th column="id" label="No." center="true" />
                                         <x-table.th column="username" label="Username" />
                                         <x-table.th column="name" label="Name" />
                                         <x-table.th column="email" label="Email" />
@@ -57,25 +81,26 @@
                                         <th class="text-center">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody id="users-table-body">
+                                <tbody id="users-table-body" class="table-body-enhanced">
                                     @include('admin.partials.users-table', ['users' => $users])
                                 </tbody>
                                 <tr id="loader" style="display: none;">
-                                    <td colspan="7" class="align-middle text-center">
+                                    <td colspan="7" class="align-middle text-center py-5">
                                         <div class="d-flex align-items-center justify-content-center gap-2">
-                                            <div class="spinner-border text-secondary" role="status">
+                                            <div class="spinner-border text-primary" role="status" style="width: 2rem; height: 2rem;">
                                                 <span class="visually-hidden">Loading...</span>
                                             </div>
-                                            Loading...
+                                            <span class="text-muted">Loading users...</span>
                                         </div>
                                     </td>
                                 </tr>
                             </table>
                         </div>
-                        <div class="d-flex justify-content-between align-items-center flex-wrap m-2" id="users-pagination">
-                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
-                                <i class="bi bi-person-plus-fill"></i>
-                                <p class="d-inline ms-1">Add User</p>
+                        
+                        <!-- Enhanced Pagination Section -->
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mt-4 pt-3 border-top" id="users-pagination">
+                            <button class="btn btn-primary btn-enhanced-add" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                                <i class="bi bi-person-plus-fill me-2"></i>Add User
                             </button>
                             <x-table.pagination :paginator="$users" />
                         </div>
@@ -92,70 +117,434 @@
 {{-- @include('admin.account-management.change-password-modal') --}}
 
 <style>
-    /* Dark Mode Account Management - Fix Table Header, Rows and Pagination */
-    [data-theme="dark"] .table > thead > tr > th {
-        background-color: var(--dm-bg-tertiary) !important;
-        border-bottom-color: var(--dm-border-color) !important;
-        color: var(--dm-text-primary) !important;
+/* ============================================
+   ENHANCED ACCOUNT MANAGEMENT STYLES
+   Blue Accent Theme: #0d6efd (Staff) / #3498db (Admin)
+   ============================================ */
+
+/* Card and Container Enhancements */
+.card {
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.card-header {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border-bottom: 2px solid #e9ecef;
+}
+
+.card-body {
+    background: #ffffff;
+}
+
+/* Controls Section */
+.account-controls-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.account-controls-section .form-label {
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+    color: #495057;
+}
+
+.account-controls-section .form-label i {
+    color: #0d6efd;
+}
+
+.account-controls-section .form-select-sm,
+.account-controls-section .form-control-sm {
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.account-controls-section .form-select-sm:focus,
+.account-controls-section .form-control-sm:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+
+.search-bar-wrapper i {
+    z-index: 10;
+    pointer-events: none;
+}
+
+/* Enhanced Table Styles */
+.enhanced-table-container {
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #e9ecef;
+}
+
+.enhanced-table {
+    margin-bottom: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table-header-enhanced {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+}
+
+.table-header-enhanced th {
+    background: transparent !important;
+    color: #ffffff !important;
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 1rem 0.75rem;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.table-header-enhanced th .sortable-form .btn-link {
+    color: #ffffff !important;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.table-header-enhanced th .sortable-form .btn-link:hover {
+    color: #dbeafe !important;
+    transform: translateY(-1px);
+}
+
+.table-header-enhanced th .sortable-form .btn-link.active {
+    color: #dbeafe !important;
+}
+
+.table-header-enhanced th .text-secondary {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.table-body-enhanced tr {
+    transition: all 0.2s ease;
+    border-bottom: 1px solid #f1f3f5;
+}
+
+.table-body-enhanced tr:hover {
+    background-color: #f8f9fa;
+    transform: translateX(2px);
+    box-shadow: 0 2px 4px rgba(13, 110, 253, 0.1);
+}
+
+.table-body-enhanced td {
+    padding: 1rem 0.75rem;
+    vertical-align: middle;
+    font-size: 0.9rem;
+    color: #495057;
+}
+
+.table-body-enhanced tr:nth-of-type(even) {
+    background-color: #ffffff;
+}
+
+.table-body-enhanced tr:nth-of-type(odd) {
+    background-color: #f8f9fa;
+}
+
+/* Enhanced Action Buttons */
+.table-body-enhanced .btn {
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    margin: 0 2px;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.table-body-enhanced .btn-primary {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    color: #ffffff;
+}
+
+.table-body-enhanced .btn-primary:hover {
+    background: linear-gradient(135deg, #0a58ca 0%, #084298 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
     }
 
-    [data-theme="dark"] .table > thead > tr > th .sortable-form .btn-link {
-        color: var(--dm-text-primary) !important;
+.table-body-enhanced .btn-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: #ffffff;
+}
+
+.table-body-enhanced .btn-danger:hover {
+    background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+}
+
+.table-body-enhanced .btn i {
+    font-size: 1rem;
+}
+
+/* Enhanced Add User Button */
+.btn-enhanced-add {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    border: none;
+    border-radius: 8px;
+    padding: 0.625rem 1.5rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(13, 110, 253, 0.2);
+}
+
+.btn-enhanced-add:hover {
+    background: linear-gradient(135deg, #0a58ca 0%, #084298 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.4);
+}
+
+.btn-enhanced-add:active {
+    transform: translateY(0);
+}
+
+/* Enhanced Pagination */
+#users-pagination .pagination {
+    margin-bottom: 0;
+}
+
+#users-pagination .pagination .page-link {
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+    color: #495057;
+    padding: 0.5rem 0.75rem;
+    margin: 0 2px;
+    transition: all 0.2s ease;
+}
+
+#users-pagination .pagination .page-link:hover {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: #ffffff;
+    transform: translateY(-1px);
+}
+
+#users-pagination .pagination .page-item.active .page-link {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    border-color: #0d6efd;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+#users-pagination .pagination .page-item.disabled .page-link {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+    color: #adb5bd;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .account-controls-section .row {
+        gap: 1rem !important;
     }
 
-    [data-theme="dark"] .table > thead > tr > th .sortable-form .btn-link:hover {
-        color: var(--primary-color) !important;
+    .account-controls-section .col-md-6,
+    .account-controls-section .col-lg-3,
+    .account-controls-section .col-lg-9 {
+        width: 100% !important;
+        flex: 0 0 100% !important;
+    }
+    
+    .enhanced-table-container {
+        overflow-x: auto;
+    }
+    
+    .table-body-enhanced {
+        font-size: 0.85rem;
+    }
+    
+    .table-body-enhanced td {
+        padding: 0.75rem 0.5rem;
+        white-space: nowrap;
+    }
+    
+    .btn-enhanced-add {
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+    
+    #users-pagination {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+    
+    #users-pagination .pagination {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+}
+
+/* ============================================
+   DARK MODE STYLES
+   ============================================ */
+
+[data-theme="dark"] .card {
+    background: var(--dm-card-bg, #1e293b) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] .card-header {
+    background: linear-gradient(135deg, var(--dm-card-bg, #1e293b) 0%, var(--dm-bg-tertiary, #334155) 100%) !important;
+    border-bottom-color: var(--dm-border-color, #334155) !important;
     }
 
-    [data-theme="dark"] .table > thead > tr > th .sortable-form .btn-link.active {
-        color: var(--primary-color) !important;
+[data-theme="dark"] .card-header h5 {
+    color: #60a5fa !important;
+}
+
+[data-theme="dark"] .card-body {
+    background: var(--dm-card-bg, #1e293b) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .account-controls-section {
+    background: linear-gradient(135deg, var(--dm-bg-secondary, #1e293b) 0%, var(--dm-card-bg, #1e293b) 100%) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] .account-controls-section .form-label {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .account-controls-section .form-label i {
+    color: #60a5fa !important;
     }
 
-    [data-theme="dark"] .table > thead > tr > th .text-secondary {
-        color: var(--dm-text-secondary) !important;
+[data-theme="dark"] .account-controls-section .form-select-sm,
+[data-theme="dark"] .account-controls-section .form-control-sm {
+    background-color: var(--dm-input-bg, #0f172a) !important;
+    border-color: var(--dm-input-border, #334155) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .account-controls-section .form-select-sm:focus,
+[data-theme="dark"] .account-controls-section .form-control-sm:focus {
+    background-color: var(--dm-input-bg, #0f172a) !important;
+    border-color: #60a5fa !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+    box-shadow: 0 0 0 0.2rem rgba(96, 165, 250, 0.25) !important;
     }
 
-    [data-theme="dark"] .table.table-striped > tbody > tr:nth-of-type(odd) {
-        background-color: var(--dm-bg-secondary) !important;
+[data-theme="dark"] .search-bar-wrapper i {
+    color: var(--dm-text-muted, #94a3b8) !important;
+}
+
+[data-theme="dark"] .enhanced-table-container {
+    border-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] .table-header-enhanced {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+}
+
+[data-theme="dark"] .table-header-enhanced th {
+    background: transparent !important;
+    color: #ffffff !important;
+    border-bottom-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+[data-theme="dark"] .table-header-enhanced th .sortable-form .btn-link {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .table-header-enhanced th .sortable-form .btn-link:hover {
+    color: #dbeafe !important;
     }
 
-    [data-theme="dark"] .table.table-striped > tbody > tr:nth-of-type(even) {
-        background-color: var(--dm-card-bg) !important;
+[data-theme="dark"] .table-header-enhanced th .sortable-form .btn-link.active {
+    color: #dbeafe !important;
+}
+
+[data-theme="dark"] .table-header-enhanced th .text-secondary {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+[data-theme="dark"] .table-body-enhanced tr:nth-of-type(even) {
+    background-color: var(--dm-card-bg, #1e293b) !important;
     }
 
-    [data-theme="dark"] .table.table-hover > tbody > tr:hover {
-        background-color: var(--dm-bg-tertiary) !important;
+[data-theme="dark"] .table-body-enhanced tr:nth-of-type(odd) {
+    background-color: var(--dm-bg-secondary, #1e293b) !important;
+}
+
+[data-theme="dark"] .table-body-enhanced tr:hover {
+    background-color: var(--dm-bg-tertiary, #334155) !important;
     }
 
-    [data-theme="dark"] .table > tbody > tr > td {
-        color: var(--dm-text-primary) !important;
-        background-color: inherit !important;
+[data-theme="dark"] .table-body-enhanced td {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+    border-bottom-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] .table-body-enhanced .btn-primary {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+}
+
+[data-theme="dark"] .table-body-enhanced .btn-primary:hover {
+    background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+}
+
+[data-theme="dark"] .table-body-enhanced .btn-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+}
+
+[data-theme="dark"] .table-body-enhanced .btn-danger:hover {
+    background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+}
+
+[data-theme="dark"] .btn-enhanced-add {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+}
+
+[data-theme="dark"] .btn-enhanced-add:hover {
+    background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
     }
 
     [data-theme="dark"] #users-pagination .pagination .page-link {
-        background-color: var(--dm-card-bg) !important;
-        border-color: var(--dm-border-color) !important;
-        color: var(--dm-text-primary) !important;
+    background-color: var(--dm-card-bg, #1e293b) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
     }
 
     [data-theme="dark"] #users-pagination .pagination .page-link:hover {
-        background-color: var(--dm-bg-tertiary) !important;
-        border-color: var(--dm-border-color) !important;
-        color: var(--dm-text-primary) !important;
+    background-color: #2563eb !important;
+    border-color: #2563eb !important;
+    color: #ffffff !important;
     }
 
     [data-theme="dark"] #users-pagination .pagination .page-item.active .page-link {
-        background-color: var(--primary-color) !important;
-        border-color: var(--primary-color) !important;
-        color: white !important;
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+    border-color: #2563eb !important;
+    color: #ffffff !important;
     }
 
     [data-theme="dark"] #users-pagination .pagination .page-item.disabled .page-link {
-        background-color: var(--dm-bg-secondary) !important;
-        border-color: var(--dm-border-color) !important;
-        color: var(--dm-text-muted) !important;
+    background-color: var(--dm-bg-secondary, #1e293b) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+    color: var(--dm-text-muted, #94a3b8) !important;
         opacity: 0.6;
     }
+
+[data-theme="dark"] #users-pagination {
+    border-top-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] #loader .text-muted {
+    color: var(--dm-text-muted, #94a3b8) !important;
+}
 
     /* Fix form-floating text overlap in dark mode */
     [data-theme="dark"] .form-floating > .form-control,
@@ -168,9 +557,9 @@
     [data-theme="dark"] .form-floating > .form-control:focus,
     [data-theme="dark"] .form-floating > .form-select:focus {
         background-color: var(--dm-input-bg, #0f172a) !important;
-        border-color: var(--primary-color, #3b82f6) !important;
+    border-color: #60a5fa !important;
         color: var(--dm-text-primary, #f1f5f9) !important;
-        box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25) !important;
+    box-shadow: 0 0 0 0.25rem rgba(96, 165, 250, 0.25) !important;
     }
 
     [data-theme="dark"] .form-floating > .form-control::placeholder {

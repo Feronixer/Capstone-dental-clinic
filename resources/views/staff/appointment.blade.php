@@ -5,7 +5,12 @@
     <!-- Header Section -->
     <div class="row mb-4">
         <div class="col-12">
-            <h1 class="h2 text-dark fw-bold mb-2">Schedule</h1>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h1 class="h2 fw-bold mb-0" style="color: #0d6efd;">Schedule</h1>
+                <a href="{{ route('staff-appointment.table') }}" class="btn btn-outline-primary" title="Table View">
+                    <i class="bi bi-archive text-primary me-1"></i>Table View
+                </a>
+            </div>
             <p class="text-muted mb-0" id="appointment-summary">
                 {{ $appointments->count() }} Appointments are set for {{ \Carbon\Carbon::createFromDate($currentYear, $currentMonth, 1)->format('F Y') }}
             </p>
@@ -38,6 +43,10 @@
                         <small class="text-muted">Completed</small>
                     </div>
                     <div class="d-flex align-items-center gap-1">
+                        <div class="status-dot bg-secondary"></div>
+                        <small class="text-muted">Missed</small>
+                    </div>
+                    <div class="d-flex align-items-center gap-1">
                         <div class="status-dot bg-danger"></div>
                         <small class="text-muted">Blocked</small>
                     </div>
@@ -54,16 +63,10 @@
                     <button class="btn btn-outline-secondary btn-sm" id="next-period">
                         <i class="bi bi-chevron-right"></i>
                     </button>
-                    <button class="btn btn-outline-secondary btn-sm" id="today-btn">
-                        <i class="bi bi-calendar3"></i>
-                    </button>
                 </div>
 
                 <!-- Action Buttons -->
                 <div class="d-flex gap-2">
-                    <a href="{{ route('staff-appointment.table') }}" class="btn btn-info" title="Table View">
-                        <i class="bi bi-table me-1"></i>Table View
-                    </a>
                     <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#blockTimeModal">
                         <i class="bi bi-x-circle me-1"></i>Block Off Time
                     </button>
@@ -107,45 +110,45 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="appointmentForm">
-                <div class="modal-body">
+                <div class="modal-body appointment-modal-body">
                     <input type="hidden" id="appointment_id" name="id">
 
                     <!-- Validation Messages -->
-                    <div id="validation-messages" class="mb-3" style="display: none;">
+                    <div id="validation-messages" class="mb-2" style="display: none;">
                         <!-- Messages will appear here -->
                     </div>
 
                     <!-- Patient Search Section -->
-                    <div class="mb-4">
-                        <label for="patient_search" class="form-label fw-bold">Search Patient Name *</label>
-                        <div class="input-group">
+                    <div class="mb-3">
+                        <label for="patient_search" class="form-label fw-bold appointment-label">Search Patient Name *</label>
+                        <div class="input-group input-group-sm">
                             <div class="position-relative flex-grow-1">
-                            <input type="text" class="form-control" id="patient_search" name="patient_search" placeholder="Enter patient name or ID" required>
-                                <div id="patient-results" class="mt-2" style="display: none;">
+                            <input type="text" class="form-control form-control-sm" id="patient_search" name="patient_search" placeholder="Enter patient name or ID" required>
+                                <div id="patient-results" class="mt-1" style="display: none;">
                                     <!-- Patient search results will appear here -->
                                 </div>
                             </div>
-                            <a href="#" class="btn btn-link text-primary" id="add-new-patient">
-                                <i class="bi bi-box-arrow-up-right me-1"></i>or Add New Patient First
+                            <a href="#" class="btn btn-link text-primary btn-sm p-1" id="add-new-patient" style="font-size: 0.75rem; white-space: nowrap;">
+                                <i class="bi bi-box-arrow-up-right me-1"></i>Add New Patient
                             </a>
                         </div>
                         <input type="hidden" id="patient_id" name="patient_id">
                     </div>
 
                     <!-- Date and Time Selection -->
-                    <div class="row">
+                    <div class="row g-2">
                         <!-- Date Picker -->
-                        <div class="col-md-6 mb-4">
-                            <label class="form-label fw-bold">Date</label>
-                            <div class="date-picker-container">
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label fw-bold appointment-label mb-1">Date</label>
+                            <div class="date-picker-container appointment-calendar">
                                 <div class="calendar-widget" id="calendar-widget">
                                     <div class="calendar-header">
-                                        <button type="button" class="btn btn-sm btn-outline-secondary" id="prev-month">
-                                            <i class="bi bi-chevron-left"></i>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary p-1" id="prev-month" style="width: 24px; height: 24px; padding: 0 !important;">
+                                            <i class="bi bi-chevron-left" style="font-size: 0.75rem;"></i>
                                         </button>
-                                        <span id="current-month-year">October 2025</span>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary" id="next-month">
-                                            <i class="bi bi-chevron-right"></i>
+                                        <span id="current-month-year" style="font-size: 0.8rem;">October 2025</span>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary p-1" id="next-month" style="width: 24px; height: 24px; padding: 0 !important;">
+                                            <i class="bi bi-chevron-right" style="font-size: 0.75rem;"></i>
                                         </button>
                                     </div>
                                     <div class="calendar-grid" id="modal-calendar">
@@ -154,12 +157,12 @@
                                 </div>
                             </div>
                             <input type="hidden" id="selected_date" name="selected_date">
-                            <div class="form-text">Click on a date to select it</div>
+                            <div class="form-text" style="font-size: 0.7rem; margin-top: 0.25rem;">Click on a date to select it</div>
                         </div>
 
                         <!-- Time Slot Selection -->
-                        <div class="col-md-6 mb-4">
-                            <label class="form-label fw-bold">Select Time Slot</label>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label fw-bold appointment-label mb-1">Select Time Slot</label>
                             <div class="time-slots-container">
                                 <div class="time-slots-list" id="time-slots-list">
                                     <div class="form-check">
@@ -230,17 +233,37 @@
                                         <input class="form-check-input" type="radio" name="time_slot" id="slot17" value="17:00-17:30">
                                         <label class="form-check-label" for="slot17">05:00 PM</label>
                                     </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="time_slot" id="slot18" value="17:30-18:00">
+                                        <label class="form-check-label" for="slot18">05:30 PM</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="time_slot" id="slot19" value="18:00-18:30">
+                                        <label class="form-check-label" for="slot19">06:00 PM</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="time_slot" id="slot20" value="18:30-19:00">
+                                        <label class="form-check-label" for="slot20">06:30 PM</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="time_slot" id="slot21" value="19:00-19:30">
+                                        <label class="form-check-label" for="slot21">07:00 PM</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="time_slot" id="slot22" value="19:30-20:00">
+                                        <label class="form-check-label" for="slot22">07:30 PM</label>
+                                    </div>
                                 </div>
-                                <div class="form-check mt-3">
+                                <div class="form-check mt-2">
                                     <input class="form-check-input" type="radio" name="time_slot" id="custom_time" value="custom">
-                                    <label class="form-check-label" for="custom_time">Custom Time</label>
+                                    <label class="form-check-label" for="custom_time" style="font-size: 0.8rem;">Custom Time</label>
                                 </div>
-                                <div id="custom-time-inputs" class="mt-3" style="display: none;">
+                                <div id="custom-time-inputs" class="mt-2" style="display: none;">
                                     <div class="row">
                                         <div class="col-12">
-                                            <label for="custom_start_time" class="form-label">Start Time</label>
-                                            <input type="time" class="form-control" id="custom_start_time" name="custom_start_time">
-                                            <div class="form-text">End time will be calculated automatically based on service duration</div>
+                                            <label for="custom_start_time" class="form-label" style="font-size: 0.8rem;">Start Time</label>
+                                            <input type="time" class="form-control form-control-sm" id="custom_start_time" name="custom_start_time">
+                                            <div class="form-text" style="font-size: 0.7rem;">End time calculated automatically</div>
                                         </div>
                                     </div>
                                 </div>
@@ -249,9 +272,9 @@
                     </div>
 
                     <!-- Service Name -->
-                    <div class="mb-4">
-                        <label for="service_name" class="form-label fw-bold">Service Name *</label>
-                        <select class="form-select" id="service_name" name="service_name" required>
+                    <div class="mb-3">
+                        <label for="service_name" class="form-label fw-bold appointment-label mb-1">Service Name *</label>
+                        <select class="form-select form-select-sm" id="service_name" name="service_name" required>
                             <option value="">Select a service</option>
                             @foreach($services as $service)
                                 <option value="{{ $service->id }}"
@@ -262,17 +285,17 @@
                                 </option>
                             @endforeach
                         </select>
-                        <div id="service-info" class="mt-2" style="display: none;">
-                            <small class="text-muted" id="service-description"></small>
+                        <div id="service-info" class="mt-1" style="display: none;">
+                            <small class="text-muted" id="service-description" style="font-size: 0.75rem;"></small>
                             <br>
-                            <small class="text-muted" id="service-duration"></small>
+                            <small class="text-muted" id="service-duration" style="font-size: 0.75rem;"></small>
                         </div>
                     </div>
 
                     <!-- Notes -->
-                    <div class="mb-4">
-                        <label for="notes" class="form-label fw-bold">Notes</label>
-                        <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Add any relevant notes..."></textarea>
+                    <div class="mb-2">
+                        <label for="notes" class="form-label fw-bold appointment-label mb-1">Notes</label>
+                        <textarea class="form-control form-control-sm" id="notes" name="notes" rows="2" placeholder="Add any relevant notes..." style="font-size: 0.875rem;"></textarea>
                     </div>
 
                     <!-- New Patient Checkbox -->
@@ -285,9 +308,9 @@
                         </div>
                     </div> --}}
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-success">Schedule</button>
+                <div class="modal-footer py-2">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Schedule</button>
                 </div>
             </form>
         </div>
@@ -531,6 +554,26 @@
                                         <input class="form-check-input" type="radio" name="reschedule_time_slot" id="reschedule_slot17" value="17:00-17:30">
                                         <label class="form-check-label" for="reschedule_slot17">05:00 PM</label>
                                     </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="reschedule_time_slot" id="reschedule_slot18" value="17:30-18:00">
+                                        <label class="form-check-label" for="reschedule_slot18">05:30 PM</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="reschedule_time_slot" id="reschedule_slot19" value="18:00-18:30">
+                                        <label class="form-check-label" for="reschedule_slot19">06:00 PM</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="reschedule_time_slot" id="reschedule_slot20" value="18:30-19:00">
+                                        <label class="form-check-label" for="reschedule_slot20">06:30 PM</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="reschedule_time_slot" id="reschedule_slot21" value="19:00-19:30">
+                                        <label class="form-check-label" for="reschedule_slot21">07:00 PM</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="reschedule_time_slot" id="reschedule_slot22" value="19:30-20:00">
+                                        <label class="form-check-label" for="reschedule_slot22">07:30 PM</label>
+                                    </div>
                                 </div>
                                 <div class="form-check mt-3">
                                     <input class="form-check-input" type="radio" name="reschedule_time_slot" id="reschedule_custom_time" value="custom">
@@ -596,87 +639,103 @@
 
 <!-- Block Time Modal -->
 <div class="modal fade" id="blockTimeModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg" style="max-width: 700px;">
         <div class="modal-content">
             <div class="modal-header border-0">
-                <h5 class="modal-title fw-bold" id="blockTimeModalTitle">Block of Time</h5>
+                <div class="d-flex align-items-center gap-2">
+                    <h5 class="modal-title fw-bold mb-0" id="blockTimeModalTitle">Block OFF Time</h5>
+                    <i class="bi bi-info-circle text-info"
+                       data-bs-toggle="tooltip"
+                       data-bs-placement="right"
+                       data-bs-html="true"
+                       title="Going on vacation? Taking some time off? Block off time on your calendar to prevent clients from booking appointments (existing appointments will remain on your calendar)."
+                       style="cursor: help; font-size: 1.1rem;"></i>
+                </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="blockTimeForm">
-                <div class="modal-body">
+                <div class="modal-body" style="max-height: 60vh; overflow-y: auto; padding: 1.5rem;">
                     <input type="hidden" id="block_time_id" name="id">
 
-                    <!-- Description Text -->
-                    <p class="text-muted small mb-3">
-                        Going on vacation? Taking some time off? Block off time on your calendar to prevent clients from booking appointments (existing appointments will remain on your calendar).
-                    </p>
-
-                    <!-- Block Off Time Header -->
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <label class="form-label fw-bold mb-0">BLOCK OFF TIME:</label>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="block_multiple_days">
-                            <label class="form-check-label text-muted" for="block_multiple_days" style="cursor: pointer;">
-                                Clinic Closed (Multiple Days)
+                    <!-- Block Off Time Section -->
+                    <div class="mb-3">
+                        <!-- Switchable Tabs -->
+                        <div class="btn-group w-100 mb-2" role="group" aria-label="Block time type selection">
+                            <input type="radio" class="btn-check" name="block_time_type" id="block_off_time_tab" value="block_off_time" autocomplete="off" checked>
+                            <label class="btn btn-outline-primary" for="block_off_time_tab">
+                                Specific Time
                             </label>
-                        </div>
+
+                            <input type="radio" class="btn-check" name="block_time_type" id="clinic_closed_tab" value="clinic_closed" autocomplete="off">
+                            <label class="btn btn-outline-primary" for="clinic_closed_tab">
+                                Clinic Closed
+                            </label>
                     </div>
 
                     <!-- Time Selection (Single Day Mode) -->
-                    <div class="row mb-3" id="time_selection_section">
+                        <div class="row mb-2" id="time_selection_section">
                         <div class="col-6">
-                            <label for="block_start_time" class="form-label">Start Time</label>
+                                <label for="block_start_time" class="form-label fw-medium">
+                                    <i class="bi bi-clock me-1"></i>Start Time
+                                </label>
                             <input type="time" class="form-control" id="block_start_time" name="start_time" required>
                         </div>
                         <div class="col-6">
-                            <label for="block_end_time" class="form-label">End Time</label>
+                                <label for="block_end_time" class="form-label fw-medium">
+                                    <i class="bi bi-clock-fill me-1"></i>End Time
+                                </label>
                             <input type="time" class="form-control" id="block_end_time" name="end_time" required>
                         </div>
                     </div>
 
                     <!-- Date Selection (Single Day Mode) -->
-                    <div class="mb-3" id="single_date_section">
-                        <label for="block_date" class="form-label">DATE</label>
+                        <div class="mb-2" id="single_date_section">
+                            <label for="block_date" class="form-label fw-medium">
+                                <i class="bi bi-calendar3 me-1"></i>Date
+                            </label>
                         <input type="date" class="form-control" id="block_date" name="date">
                     </div>
 
-                    <!-- Multi-Day Date Selection (Hidden by default) -->
+                        <!-- Multi-Day Date Selection (Hidden by default) -->
                     <div class="mb-3" id="multi_day_section" style="display: none;">
-                        <label class="form-label fw-bold">SELECT DATE RANGE</label>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="block_start_date_input" class="form-label">Start Date</label>
-                                <input type="date" class="form-control" id="block_start_date_input" name="start_date">
-                                <div class="form-text">First day to close the clinic</div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="block_start_date_input" class="form-label fw-medium">
+                                        <i class="bi bi-calendar-event me-1"></i>Start Date
+                                    </label>
+                                    <input type="date" class="form-control" id="block_start_date_input" name="start_date">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="block_end_date_input" class="form-label fw-medium">
+                                        <i class="bi bi-calendar-event-fill me-1"></i>End Date
+                                    </label>
+                                    <input type="date" class="form-control" id="block_end_date_input" name="end_date">
+                                </div>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="block_end_date_input" class="form-label">End Date</label>
-                                <input type="date" class="form-control" id="block_end_date_input" name="end_date">
-                                <div class="form-text">Last day to close the clinic</div>
-                            </div>
+                            <div class="alert alert-info border-0 bg-light py-2 mt-2">
+                                <i class="bi bi-info-circle me-1"></i>
+                                <small class="text-muted">The clinic will be marked as closed for the entire day(s) in this date range.</small>
                         </div>
-                        <div class="form-text text-muted">
-                            <i class="bi bi-info-circle me-1"></i>The clinic will be marked as closed for the entire day(s) in this date range.
                         </div>
                     </div>
 
-                    <!-- Repeat Functionality -->
-                    <div class="mb-3">
+                    <!-- Repeat Section -->
+                    <div class="mb-3 pb-2 border-bottom">
                         <button type="button" class="btn btn-outline-secondary btn-sm" id="repeat-toggle-btn">
                             <i class="bi bi-arrow-repeat me-1"></i>Repeat
                         </button>
                     </div>
 
                     <!-- Repeat Options Section (Hidden by default) -->
-                    <div class="mb-3 border rounded p-3 bg-light" id="repeat-options-section" style="display: none;">
-                        <h6 class="fw-bold mb-3">
+                    <div class="mb-3 border rounded p-2 bg-light" id="repeat-options-section" style="display: none;">
+                        <h6 class="fw-bold mb-2" style="font-size: 0.9rem;">
                             <i class="bi bi-arrow-repeat me-2"></i>Repeat Settings
                         </h6>
 
                         <!-- Repeat Frequency -->
-                        <div class="mb-3">
-                            <label for="repeat_frequency" class="form-label fw-bold">Repeat Frequency</label>
-                            <select class="form-select" id="repeat_frequency" name="repeat_frequency">
+                        <div class="mb-2">
+                            <label for="repeat_frequency" class="form-label fw-bold" style="font-size: 0.85rem; margin-bottom: 0.25rem;">Repeat Frequency</label>
+                            <select class="form-select form-select-sm" id="repeat_frequency" name="repeat_frequency">
                                 <option value="">Select frequency...</option>
                                 <option value="daily">Daily</option>
                                 <option value="weekly">Weekly</option>
@@ -686,73 +745,92 @@
                         </div>
 
                         <!-- Custom Interval (Hidden by default) -->
-                        <div class="mb-3" id="custom-interval-section" style="display: none;">
-                            <label for="custom_interval" class="form-label fw-bold">Every (days)</label>
-                            <input type="number" class="form-control" id="custom_interval" name="custom_interval" min="1" max="365" placeholder="e.g., 2 for every 2 days">
-                            <div class="form-text">Enter the number of days between each repetition</div>
+                        <div class="mb-2" id="custom-interval-section" style="display: none;">
+                            <label for="custom_interval" class="form-label fw-bold" style="font-size: 0.85rem; margin-bottom: 0.25rem;">Every (days)</label>
+                            <input type="number" class="form-control form-control-sm" id="custom_interval" name="custom_interval" min="1" max="365" placeholder="e.g., 2 for every 2 days">
+                            <div class="form-text" style="font-size: 0.75rem;">Enter the number of days between each repetition</div>
                         </div>
 
                         <!-- Repeat End Options -->
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Repeat Until</label>
-                            <div class="form-check mb-2">
+                        <div class="mb-2">
+                            <label class="form-label fw-bold" style="font-size: 0.85rem; margin-bottom: 0.25rem;">Repeat Until</label>
+                            <div class="form-check mb-1">
                                 <input class="form-check-input" type="radio" name="repeat_end_type" id="repeat_end_date" value="date" checked>
-                                <label class="form-check-label" for="repeat_end_date">
+                                <label class="form-check-label" for="repeat_end_date" style="font-size: 0.85rem;">
                                     Specific Date
                                 </label>
                             </div>
-                            <div class="form-check mb-2">
+                            <div class="form-check mb-1">
                                 <input class="form-check-input" type="radio" name="repeat_end_type" id="repeat_end_count" value="count">
-                                <label class="form-check-label" for="repeat_end_count">
+                                <label class="form-check-label" for="repeat_end_count" style="font-size: 0.85rem;">
                                     Number of Occurrences
                                 </label>
                             </div>
                         </div>
 
                         <!-- Repeat End Date Input -->
-                        <div class="mb-3" id="repeat-end-date-section">
-                            <label for="repeat_end_date_input" class="form-label fw-bold">Repeat Until Date</label>
-                            <input type="date" class="form-control" id="repeat_end_date_input" name="repeat_end_date">
-                            <div class="form-text">The last date this closure pattern will repeat (not the closure end date)</div>
+                        <div class="mb-2" id="repeat-end-date-section">
+                            <label for="repeat_end_date_input" class="form-label fw-bold" style="font-size: 0.85rem; margin-bottom: 0.25rem;">Repeat Until Date</label>
+                            <input type="date" class="form-control form-control-sm" id="repeat_end_date_input" name="repeat_end_date">
+                            <div class="form-text" style="font-size: 0.75rem;">The last date this closure pattern will repeat (not the closure end date)</div>
                         </div>
 
                         <!-- Occurrence Count Input -->
-                        <div class="mb-3" id="repeat-end-count-section" style="display: none;">
-                            <label for="repeat_occurrence_count" class="form-label fw-bold">Number of Occurrences</label>
-                            <input type="number" class="form-control" id="repeat_occurrence_count" name="repeat_occurrence_count" min="1" max="365" placeholder="e.g., 10">
-                            <div class="form-text">Total number of times this will repeat</div>
+                        <div class="mb-2" id="repeat-end-count-section" style="display: none;">
+                            <label for="repeat_occurrence_count" class="form-label fw-bold" style="font-size: 0.85rem; margin-bottom: 0.25rem;">Number of Occurrences</label>
+                            <input type="number" class="form-control form-control-sm" id="repeat_occurrence_count" name="repeat_occurrence_count" min="1" max="365" placeholder="e.g., 10">
+                            <div class="form-text" style="font-size: 0.75rem;">Total number of times this will repeat</div>
                         </div>
 
                         <!-- Preview Section -->
-                        <div class="alert alert-info mt-3 mb-0" id="repeat-preview" style="display: none;">
+                        <div class="alert alert-info mt-2 mb-0 py-2" id="repeat-preview" style="display: none; font-size: 0.8rem;">
                             <strong><i class="bi bi-info-circle me-1"></i>Preview:</strong>
-                            <div id="repeat-preview-content" class="mt-2"></div>
+                            <div id="repeat-preview-content" class="mt-1"></div>
                         </div>
                     </div>
 
                     <!-- Notes -->
                     <div class="mb-3">
-                        <label for="block_description" class="form-label">Notes (Reason for blocking)</label>
-                        <textarea class="form-control" id="block_description" name="description" rows="4"
-                                  placeholder="e.g., Vacation, Holiday, Maintenance"></textarea>
+                        <label for="block_description" class="form-label fw-bold" style="font-size: 0.9rem;">Notes (Reason for blocking)</label>
+                        <textarea class="form-control" id="block_description" name="description" rows="3"
+                                  placeholder="e.g., Vacation, Holiday, Maintenance" style="font-size: 0.875rem;"></textarea>
                     </div>
 
                     <input type="hidden" id="block_title" name="title" value="Blocked Time">
                     <input type="hidden" name="type" value="blocked_time">
                     <input type="hidden" name="status" value="blocked">
                     <input type="hidden" name="color" value="#DC2626">
-                </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-warning px-4 me-auto" id="clear-all-future-blocks-btn" title="Delete all future closed time slots">
-                        <i class="bi bi-calendar-x me-1"></i>Clear All Future Closed Times
-                    </button>
-                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Cancel</button>
+
+                    <!-- Action Buttons (Create/Cancel) - Directly under Notes -->
+                    <div class="d-flex justify-content-end gap-2 pt-2 border-top mt-3">
+                        <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle me-1"></i>Cancel
+                        </button>
                     <button type="submit" class="btn btn-success px-4" id="save-block-time-btn">
-                        <span id="save-block-btn-text">Create</span>
+                            <i class="bi bi-check-circle me-1"></i><span id="save-block-btn-text">Create</span>
                     </button>
-                    <button type="button" class="btn btn-danger px-4 ms-2" id="delete-block-time-btn" style="display: none;">
+                        <button type="button" class="btn btn-danger px-4" id="delete-block-time-btn" style="display: none;">
                         <i class="bi bi-trash me-1"></i>Remove Blocked Time
                     </button>
+                    </div>
+                </div>
+
+                <!-- Clear Buttons Section (Separate from main form) -->
+                <div class="modal-footer border-top bg-light px-4 py-3">
+                    <div class="w-100">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-info-circle text-muted me-2"></i>
+                            <small class="text-muted fw-semibold">Quick Actions:</small>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-orange px-4" id="clear-block-off-time-btn" title="Clear all future block off times (partial time blocks only)">
+                                <i class="bi bi-clock-history me-1"></i>Clear Specific Time
+                            </button>
+                            <button type="button" class="btn btn-danger px-4" id="clear-clinic-closed-btn" title="Clear all future clinic closed days (full day closures only)">
+                                <i class="bi bi-calendar-x me-1"></i>Clear Clinic Closed
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </form>
         </div>
@@ -844,7 +922,8 @@
 </div>
 
 <!-- Clear All Future Blocked Times Confirmation Modal -->
-<div class="modal fade" id="clearAllFutureBlocksModal" tabindex="-1">
+<!-- Clear Clinic Closed Modal -->
+<div class="modal fade" id="clearClinicClosedModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header border-0 pb-0">
@@ -855,16 +934,16 @@
                     <div class="mx-auto mb-3" style="width: 80px; height: 80px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                         <i class="bi bi-calendar-x text-white" style="font-size: 2.5rem;"></i>
                     </div>
-                    <h4 class="fw-bold text-dark mb-2">Clear All Future Closed Times</h4>
-                    <p class="text-muted mb-0">Are you sure you want to delete all future closed time slots? This action cannot be undone.</p>
+                    <h4 class="fw-bold text-dark mb-2">Clear Clinic Closed Days</h4>
+                    <p class="text-muted mb-0">Are you sure you want to delete all future clinic closed days (full day closures only)? This action cannot be undone.</p>
                     <p class="text-warning mt-2 mb-0">
-                        <i class="bi bi-info-circle me-1"></i><strong>Note:</strong> Past dates will not be affected.
+                        <i class="bi bi-info-circle me-1"></i><strong>Note:</strong> Past dates will not be affected. This will only clear full-day closures, not partial block off times.
                     </p>
                 </div>
                 <div class="bg-light rounded p-3 mb-4">
                     <div class="d-flex align-items-center justify-content-center">
                         <i class="bi bi-calendar-check text-warning me-2"></i>
-                        <span class="fw-medium" id="future-blocks-count">Loading...</span>
+                        <span class="fw-medium" id="clinic-closed-count">Loading...</span>
                     </div>
                 </div>
             </div>
@@ -872,8 +951,45 @@
                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">
                     <i class="bi bi-x-circle me-1"></i>Cancel
                 </button>
-                <button type="button" class="btn btn-warning" id="confirm-clear-all-future-btn">
-                    <i class="bi bi-calendar-x me-1"></i>Clear All Future Closed Times
+                <button type="button" class="btn btn-danger" id="confirm-clear-clinic-closed-btn">
+                    <i class="bi bi-calendar-x me-1"></i>Clear Clinic Closed
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Clear Block Off Time Modal -->
+<div class="modal fade" id="clearBlockOffTimeModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-4">
+                    <div class="mx-auto mb-3" style="width: 80px; height: 80px; background: linear-gradient(135deg, #dc2626, #b91c1c); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-clock-history text-white" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-2">Clear Specific Times</h4>
+                    <p class="text-muted mb-0">Are you sure you want to delete all future block off times (partial time blocks only)? This action cannot be undone.</p>
+                    <p class="text-warning mt-2 mb-0">
+                        <i class="bi bi-info-circle me-1"></i><strong>Note:</strong> Past dates will not be affected. This will only clear partial time blocks, not full-day clinic closures.
+                    </p>
+                </div>
+                <div class="bg-light rounded p-3 mb-4">
+                    <div class="d-flex align-items-center justify-content-center">
+                        <i class="bi bi-clock-history text-danger me-2"></i>
+                        <span class="fw-medium" id="block-off-time-count">Loading...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-orange" id="confirm-clear-block-off-time-btn">
+                    <i class="bi bi-clock-history me-1"></i>Clear Specific Time
                 </button>
             </div>
         </div>
@@ -948,7 +1064,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Server timestamp is in seconds, convert to milliseconds
                 const serverTimestampMs = data.server_timestamp * 1000;
                 serverTimeOffset = serverTimestampMs - clientNow;
-                
+
                 console.log('Server time synced:', {
                     server_time: data.server_time,
                     client_time: new Date(clientNow).toISOString(),
@@ -983,9 +1099,96 @@ document.addEventListener('DOMContentLoaded', function() {
         return new Date();
     }
 
-    // Sync server time on page load
-    syncServerTime();
-    
+    // CRITICAL: Validate and fix date manipulation on page load
+    async function validateAndFixDate() {
+        // Wait for server time to sync first
+        await syncServerTime();
+
+        if (!serverTimeData) {
+            console.warn('Server time not synced, cannot validate date');
+            return;
+        }
+
+        // Get server's actual date
+        const serverTime = getServerTime();
+        const serverYear = serverTime.getFullYear();
+        const serverMonth = serverTime.getMonth() + 1; // JavaScript months are 0-indexed
+        const serverDay = serverTime.getDate();
+
+        // Get displayed date from URL or currentDate
+        const urlParams = new URLSearchParams(window.location.search);
+        const displayedMonth = parseInt(urlParams.get('month')) || currentDate.getMonth() + 1;
+        const displayedYear = parseInt(urlParams.get('year')) || currentDate.getFullYear();
+
+        // Create server date and displayed date for comparison
+        const serverDate = new Date(serverYear, serverMonth - 1, serverDay);
+        const displayedDate = new Date(displayedYear, displayedMonth - 1, 1);
+
+        // Calculate difference in days
+        const daysDiff = Math.round((displayedDate - serverDate) / (1000 * 60 * 60 * 24));
+
+        // CRITICAL: If displayed date is more than 7 days in the future, likely manipulation detected
+        // (allow small buffer for legitimate future viewing, but catch obvious manipulation)
+        if (daysDiff > 7) {
+            console.warn('Date manipulation detected - forcing reload to server date', {
+                displayed_month: displayedMonth,
+                displayed_year: displayedYear,
+                server_month: serverMonth,
+                server_year: serverYear,
+                days_diff: daysDiff
+            });
+
+            // Force reload to server's current date
+            const url = new URL(window.location.href);
+            url.searchParams.delete('month');
+            url.searchParams.delete('year');
+            // Keep view parameter if present
+            const view = urlParams.get('view');
+            if (view) {
+                url.searchParams.set('view', view);
+            }
+
+            // Show error message and reload
+            alert('Invalid date detected. Redirecting to current month...');
+            window.location.href = url.toString();
+            return;
+        }
+
+        // Also check if displayed date is more than 30 days in the past (likely manipulation)
+        if (daysDiff < -30) {
+            console.warn('Invalid past date detected - forcing reload to server date', {
+                displayed_month: displayedMonth,
+                displayed_year: displayedYear,
+                server_month: serverMonth,
+                server_year: serverYear,
+                days_diff: daysDiff
+            });
+
+            // Force reload to server's current date
+            const url = new URL(window.location.href);
+            url.searchParams.delete('month');
+            url.searchParams.delete('year');
+            const view = urlParams.get('view');
+            if (view) {
+                url.searchParams.set('view', view);
+            }
+
+            alert('Invalid date detected. Redirecting to current month...');
+            window.location.href = url.toString();
+            return;
+        }
+    }
+
+    // Sync server time on page load and validate date
+    validateAndFixDate().then(() => {
+        // Only generate calendar after date validation passes
+        generateCalendar();
+    }).catch((error) => {
+        console.error('Error validating date:', error);
+        // Fallback: generate calendar anyway, but server-side validation will catch errors
+        generateCalendar();
+    });
+
     // Re-sync server time periodically (every 5 minutes) and before critical operations
     setInterval(syncServerTime, 5 * 60 * 1000);
 
@@ -1049,9 +1252,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Merge for display purposes
     let allCalendarItems = [...appointments, ...blockedTimes];
 
-    // Initialize calendar
+    // Initialize calendar view button
     setActiveButton(currentView);
-    generateCalendar();
+    // Calendar generation happens in validateAndFixDate() promise chain above
 
     // View toggle functionality
     document.querySelectorAll('.view-toggle').forEach(button => {
@@ -1104,19 +1307,6 @@ document.addEventListener('DOMContentLoaded', function() {
         navigatePeriod(1);
     });
 
-    document.getElementById('today-btn').addEventListener('click', function() {
-        // CRITICAL: Use server time to determine "today" (fault tolerant)
-        const serverNow = getServerTime();
-        const month = serverNow.getMonth() + 1; // JavaScript months are 0-indexed
-        const year = serverNow.getFullYear();
-
-        // Reload page with today's month, year, and preserve current view
-        const url = new URL(window.location.href);
-        url.searchParams.set('month', month);
-        url.searchParams.set('year', year);
-        url.searchParams.set('view', currentView); // Preserve the current view
-        window.location.href = url.toString();
-    });
 
     // Appointment form handling
     document.getElementById('appointmentForm').addEventListener('submit', function(e) {
@@ -1136,7 +1326,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('repeat-toggle-btn').addEventListener('click', function() {
         const repeatSection = document.getElementById('repeat-options-section');
         isRepeatEnabled = !isRepeatEnabled;
-        
+
         if (isRepeatEnabled) {
             repeatSection.style.display = 'block';
             this.classList.add('btn-primary');
@@ -1179,7 +1369,7 @@ document.addEventListener('DOMContentLoaded', function() {
         radio.addEventListener('change', function() {
             const endDateSection = document.getElementById('repeat-end-date-section');
             const endCountSection = document.getElementById('repeat-end-count-section');
-            
+
             if (this.value === 'date') {
                 endDateSection.style.display = 'block';
                 endCountSection.style.display = 'none';
@@ -1222,11 +1412,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Helper function to check if clinic closed tab is selected
+    function isClinicClosedSelected() {
+        const clinicClosedTab = document.getElementById('clinic_closed_tab');
+        return clinicClosedTab && clinicClosedTab.checked;
+    }
+
     // Function to update repeat preview
     function updateRepeatPreview() {
         const previewDiv = document.getElementById('repeat-preview');
         const previewContent = document.getElementById('repeat-preview-content');
-        const isMultipleDays = document.getElementById('block_multiple_days').checked;
+        const isMultipleDays = isClinicClosedSelected();
 
         const frequency = document.getElementById('repeat_frequency').value;
         const endType = document.querySelector('input[name="repeat_end_type"]:checked').value;
@@ -1252,7 +1448,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             closureStartDate = new Date(startDate + 'T00:00:00');
             closureEndDate = new Date(endDate + 'T23:59:00');
-        } else {
+                } else {
             const blockDate = document.getElementById('block_date').value;
             const startTime = document.getElementById('block_start_time').value;
             const endTime = document.getElementById('block_end_time').value;
@@ -1301,11 +1497,11 @@ document.addEventListener('DOMContentLoaded', function() {
             previewText = `Will repeat ${repeatOccurrences.length} occurrence(s) until ${repeatEndDate}.`;
         } else {
             const lastOccurrence = repeatOccurrences[repeatOccurrences.length - 1];
-            const lastDateStr = isMultipleDays 
+            const lastDateStr = isMultipleDays
                 ? formatDate(lastOccurrence.end)
                 : formatDate(lastOccurrence.start);
             previewText = `Will repeat ${repeatOccurrences.length} occurrence(s). Last occurrence ends: ${lastDateStr}.`;
-        }
+    }
 
         // Show first few occurrences
         const firstFew = repeatOccurrences.slice(0, 5);
@@ -1314,9 +1510,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 return `${formatDate(occ.start)} to ${formatDate(occ.end)}`;
             } else {
                 return formatDate(occ.start);
-            }
+        }
         }).join(', ');
-        
+
         if (repeatOccurrences.length > 5) {
             occurrencesText += ` ... and ${repeatOccurrences.length - 5} more`;
         }
@@ -1368,51 +1564,67 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Helper function to format date
     function formatDate(date) {
-        return date.toLocaleDateString('en-US', { 
-            weekday: 'short', 
-            month: 'short', 
+        return date.toLocaleDateString('en-US', {
+            weekday: 'short',
+            month: 'short',
             day: 'numeric',
             year: 'numeric'
-        }) + ' ' + date.toLocaleTimeString('en-US', { 
-            hour: '2-digit', 
+        }) + ' ' + date.toLocaleTimeString('en-US', {
+            hour: '2-digit',
             minute: '2-digit',
-            hour12: true 
+            hour12: true
         });
     }
 
-    // Toggle between single day and multi-day mode
-    document.getElementById('block_multiple_days').addEventListener('change', function(e) {
-        const isMultiple = e.target.checked;
-        const timeSection = document.getElementById('time_selection_section');
-        const singleSection = document.getElementById('single_date_section');
-        const multiSection = document.getElementById('multi_day_section');
-        const blockDateField = document.getElementById('block_date');
-        const startTimeField = document.getElementById('block_start_time');
-        const endTimeField = document.getElementById('block_end_time');
+    // Toggle between single day and multi-day mode using tabs
+    document.querySelectorAll('input[name="block_time_type"]').forEach(radio => {
+        radio.addEventListener('change', function(e) {
+            const isMultiple = this.value === 'clinic_closed';
+            const timeSection = document.getElementById('time_selection_section');
+            const singleSection = document.getElementById('single_date_section');
+            const multiSection = document.getElementById('multi_day_section');
+            const blockDateField = document.getElementById('block_date');
+            const startTimeField = document.getElementById('block_start_time');
+            const endTimeField = document.getElementById('block_end_time');
+            const repeatToggleBtn = document.getElementById('repeat-toggle-btn');
+            const repeatToggleContainer = repeatToggleBtn.parentElement; // Get the parent div
 
-        if (isMultiple) {
-            timeSection.style.display = 'none';
-            singleSection.style.display = 'none';
-            multiSection.style.display = 'block';
-            blockDateField.removeAttribute('required');
-            startTimeField.removeAttribute('required');
-            endTimeField.removeAttribute('required');
-        } else {
-            timeSection.style.display = 'flex';
-            singleSection.style.display = 'block';
-            multiSection.style.display = 'none';
-            blockDateField.setAttribute('required', 'required');
-            startTimeField.setAttribute('required', 'required');
-            endTimeField.setAttribute('required', 'required');
-            // Clear multi-day date inputs
-            document.getElementById('block_start_date_input').value = '';
-            document.getElementById('block_end_date_input').value = '';
-        }
-        
-        // Update repeat preview if repeat is enabled
-        if (isRepeatEnabled) {
-            updateRepeatPreview();
-        }
+            if (isMultiple) {
+                timeSection.style.display = 'none';
+                singleSection.style.display = 'none';
+                multiSection.style.display = 'block';
+                blockDateField.removeAttribute('required');
+                startTimeField.removeAttribute('required');
+                endTimeField.removeAttribute('required');
+                // Hide Repeat button when clinic closed is selected
+                repeatToggleContainer.style.display = 'none';
+                // Also hide repeat options if open
+                const repeatOptionsSection = document.getElementById('repeat-options-section');
+                if (repeatOptionsSection) {
+                    repeatOptionsSection.style.display = 'none';
+                    isRepeatEnabled = false;
+                    repeatToggleBtn.classList.remove('btn-primary');
+                    repeatToggleBtn.classList.add('btn-outline-secondary');
+                }
+            } else {
+                timeSection.style.display = 'flex';
+                singleSection.style.display = 'block';
+                multiSection.style.display = 'none';
+                blockDateField.setAttribute('required', 'required');
+                startTimeField.setAttribute('required', 'required');
+                endTimeField.setAttribute('required', 'required');
+                // Show Repeat button when block off time is selected
+                repeatToggleContainer.style.display = 'block';
+                // Clear multi-day date inputs
+                document.getElementById('block_start_date_input').value = '';
+                document.getElementById('block_end_date_input').value = '';
+            }
+
+            // Update repeat preview if repeat is enabled
+            if (isRepeatEnabled) {
+                updateRepeatPreview();
+    }
+        });
     });
 
     // Patient search functionality
@@ -2094,15 +2306,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (overlappingItem) {
                     const conflictType = overlappingItem.status === 'blocked' ? 'blocked time' : 'appointment';
                     const isBlocked = overlappingItem.status === 'blocked';
-                    
+
                     if (isBlocked) {
                         // Check if it's a full day closure
                         const blockStart = parseLocalDateTime(overlappingItem.start_datetime);
                         const blockEnd = parseLocalDateTime(overlappingItem.end_datetime);
-                        const isFullDayClosure = blockStart && blockEnd && 
+                        const isFullDayClosure = blockStart && blockEnd &&
                             blockStart.getHours() === 0 && blockStart.getMinutes() === 0 &&
                             blockEnd.getHours() === 23 && blockEnd.getMinutes() === 59;
-                        
+
                         // Show conflict modal
                         const conflictDate = new Date(selectedDate).toLocaleDateString('en-US', {
                             weekday: 'long',
@@ -2111,12 +2323,12 @@ document.addEventListener('DOMContentLoaded', function() {
                             day: 'numeric'
                         });
                         // Get end time from the form
-                        const endTimeField = document.getElementById('custom_start_time').value 
-                            ? document.getElementById('custom_start_time').value 
+                        const endTimeField = document.getElementById('custom_start_time').value
+                            ? document.getElementById('custom_start_time').value
                             : document.querySelector('input[name="time_slot"]:checked')?.value?.split('-')[1] || endTime;
                         const conflictTime = `${startTime} - ${endTimeField}`;
-                        
-                        document.getElementById('conflictTitle').textContent = isFullDayClosure 
+
+                        document.getElementById('conflictTitle').textContent = isFullDayClosure
                             ? 'Clinic is Closed on This Date'
                             : 'Time Slot is Blocked';
                         document.getElementById('conflictMessage').textContent = isFullDayClosure
@@ -2124,17 +2336,17 @@ document.addEventListener('DOMContentLoaded', function() {
                             : 'This time slot is blocked. Please select a different time slot.';
                         document.getElementById('conflictDate').textContent = conflictDate;
                         document.getElementById('conflictTime').textContent = conflictTime;
-                        
+
                         // Close appointment modal temporarily
                         const appointmentModal = bootstrap.Modal.getInstance(document.getElementById('appointmentModal'));
                         if (appointmentModal) {
                             appointmentModal.hide();
                         }
-                        
+
                         // Show conflict modal after a short delay
                         setTimeout(() => {
                             new bootstrap.Modal(document.getElementById('appointmentConflictModal')).show();
-                            
+
                             // When conflict modal is closed, reopen appointment modal
                             document.getElementById('appointmentConflictModal').addEventListener('hidden.bs.modal', function onHidden() {
                                 if (appointmentModal) {
@@ -2144,7 +2356,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             }, { once: true });
                         }, 300);
                     } else {
-                        showFieldError('time-slots-list', `This time slot conflicts with an existing ${conflictType}`);
+                    showFieldError('time-slots-list', `This time slot conflicts with an existing ${conflictType}`);
                     }
                     isValid = false;
                 }
@@ -2299,44 +2511,44 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 console.error('Appointment operation failed:', errorMessage);
-                
+
                 // Check if error is due to blocked/closed time
                 if (errorMessage.includes('closed') || errorMessage.includes('blocked')) {
                     // Show conflict modal
                     const selectedDate = document.getElementById('selected_date').value;
                     const timeSlot = document.querySelector('input[name="time_slot"]:checked');
                     let selectedTime = '';
-                    
+
                     if (timeSlot && timeSlot.value !== 'custom') {
                         selectedTime = timeSlot.value.split('-')[0];
                     } else if (timeSlot && timeSlot.value === 'custom') {
                         selectedTime = document.getElementById('custom_start_time').value;
                     }
-                    
+
                     const conflictDate = new Date(selectedDate).toLocaleDateString('en-US', {
                         weekday: 'long',
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric'
                     });
-                    
+
                     document.getElementById('conflictTitle').textContent = errorMessage.includes('closed')
                         ? 'Clinic is Closed on This Date'
                         : 'Time Slot is Blocked';
                     document.getElementById('conflictMessage').textContent = errorMessage;
                     document.getElementById('conflictDate').textContent = conflictDate;
                     document.getElementById('conflictTime').textContent = selectedTime || 'Selected time';
-                    
+
                     // Close appointment modal temporarily
                     const appointmentModal = bootstrap.Modal.getInstance(document.getElementById('appointmentModal'));
                     if (appointmentModal) {
                         appointmentModal.hide();
                     }
-                    
+
                     // Show conflict modal after a short delay
                     setTimeout(() => {
                         new bootstrap.Modal(document.getElementById('appointmentConflictModal')).show();
-                        
+
                         // When conflict modal is closed, reopen appointment modal
                         document.getElementById('appointmentConflictModal').addEventListener('hidden.bs.modal', function onHidden() {
                             if (appointmentModal) {
@@ -2346,7 +2558,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         }, { once: true });
                     }, 300);
                 } else {
-                    showValidationMessage(errorMessage, 'error');
+                showValidationMessage(errorMessage, 'error');
                 }
             } else {
                 // Handle unexpected response format - but if we got here, the request succeeded
@@ -2376,7 +2588,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Handle repeat block time functionality
     function handleRepeatBlockTime() {
-        const isMultipleDays = document.getElementById('block_multiple_days').checked;
+        const isMultipleDays = isClinicClosedSelected();
         const description = document.getElementById('block_description').value;
         const frequency = document.getElementById('repeat_frequency').value;
         const customInterval = document.getElementById('custom_interval').value;
@@ -2406,26 +2618,26 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         let closureStartDate, closureEndDate;
-        
+
         if (isMultipleDays) {
             // For multiple days closure
             const startDate = document.getElementById('block_start_date_input').value;
             const endDate = document.getElementById('block_end_date_input').value;
-            
+
             if (!startDate || !endDate) {
                 showValidationMessage('Please select both start and end dates for the closure', 'error');
                 return;
             }
-            
+
             // Validate that end date is after start date
             const startDateObj = new Date(startDate);
             const endDateObj = new Date(endDate);
-            
+
             if (endDateObj < startDateObj) {
                 showValidationMessage('End date must be after start date', 'error');
                 return;
             }
-            
+
             closureStartDate = new Date(startDate + 'T00:00:00');
             closureEndDate = new Date(endDate + 'T23:59:00');
         } else {
@@ -2433,12 +2645,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const blockDate = document.getElementById('block_date').value;
             const startTime = document.getElementById('block_start_time').value;
             const endTime = document.getElementById('block_end_time').value;
-            
+
             if (!blockDate || !startTime || !endTime) {
                 showValidationMessage('Date and time are required', 'error');
                 return;
             }
-            
+
             closureStartDate = new Date(blockDate + 'T' + startTime);
             closureEndDate = new Date(blockDate + 'T' + endTime);
         }
@@ -2449,11 +2661,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Generate repeat occurrences (each occurrence is a date range or single day)
         const repeatOccurrences = generateRepeatDateRanges(
-            closureStartDate, 
-            closureEndDate, 
-            frequency, 
-            customInterval, 
-            repeatEndDateTime, 
+            closureStartDate,
+            closureEndDate,
+            frequency,
+            customInterval,
+            repeatEndDateTime,
             count
         );
 
@@ -2482,7 +2694,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Create blocked times for each occurrence
         const createPromises = [];
-        
+
         repeatOccurrences.forEach(occurrence => {
             if (isMultipleDays) {
                 // For date ranges, create blocks for each day in the range
@@ -2491,14 +2703,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     const dateStr = currentDate.toISOString().split('T')[0];
                     const startDateTimeStr = `${dateStr} 00:00:00`;
                     const endDateTimeStr = `${dateStr} 23:59:00`;
-                    
+
                     const blockData = {
                         title: 'Clinic Closed',
                         start_time: startDateTimeStr,
                         end_time: endDateTimeStr,
                         description: description || 'Recurring clinic closure'
                     };
-                    
+
                     createPromises.push(
                         fetch('/staff/blocked-time', {
                             method: 'POST',
@@ -2510,7 +2722,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             body: JSON.stringify(blockData)
                         }).then(response => response.json())
                     );
-                    
+
                     // Move to next day
                     currentDate.setDate(currentDate.getDate() + 1);
                 }
@@ -2519,17 +2731,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 const dateStr = new Date(occurrence.start).toISOString().split('T')[0];
                 const startTime = new Date(occurrence.start).toTimeString().slice(0, 5);
                 const endTime = new Date(occurrence.end).toTimeString().slice(0, 5);
-                
+
                 const startDateTimeStr = `${dateStr} ${startTime}:00`;
                 const endDateTimeStr = `${dateStr} ${endTime}:00`;
-                
+
                 const blockData = {
                     title: 'Blocked Time',
                     start_time: startDateTimeStr,
                     end_time: endDateTimeStr,
                     description: description || 'Recurring blocked time'
                 };
-                
+
                 createPromises.push(
                     fetch('/staff/blocked-time', {
                         method: 'POST',
@@ -2554,13 +2766,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     bootstrap.Modal.getInstance(document.getElementById('blockTimeModal')).hide();
 
                     // Show success modal
-                    const successTitle = isMultipleDays 
-                        ? 'Recurring Clinic Closures Created Successfully!' 
+                    const successTitle = isMultipleDays
+                        ? 'Recurring Clinic Closures Created Successfully!'
                         : 'Recurring Blocks Created Successfully!';
                     const successMessage = isMultipleDays
                         ? `${successCount} day(s) of recurring clinic closure have been created${failCount > 0 ? ` (${failCount} failed)` : ''}. The clinic will be unavailable for appointments during these recurring periods.`
                         : `${successCount} recurring block(s) have been created${failCount > 0 ? ` (${failCount} failed)` : ''}. The clinic will be unavailable for appointments during these recurring periods.`;
-                    
+
                     showBlockTimeSuccessModal(successTitle, successMessage);
 
                     setTimeout(() => {
@@ -2607,7 +2819,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Calculate next occurrence start date based on frequency
             let nextStartDate = new Date(currentStartDate);
-            
+
             switch (frequency) {
                 case 'daily':
                     nextStartDate.setDate(nextStartDate.getDate() + 1);
@@ -2654,7 +2866,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function saveBlockTime() {
-        const isMultipleDays = document.getElementById('block_multiple_days').checked;
+        const isMultipleDays = isClinicClosedSelected();
         const blockId = document.getElementById('block_time_id').value;
         const isUpdate = blockId && blockId !== '';
 
@@ -2689,7 +2901,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Validate that end date is after start date
             const startDateObj = new Date(startDate);
             const endDateObj = new Date(endDate);
-            
+
             if (endDateObj < startDateObj) {
                 showValidationMessage('End date must be after start date', 'error');
                 return;
@@ -2749,10 +2961,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     if (successCount > 0) {
                         bootstrap.Modal.getInstance(document.getElementById('blockTimeModal')).hide();
-                        
+
                         // Show success modal
                         document.getElementById('blockSuccessTitle').textContent = 'Clinic Closed Successfully!';
-                        document.getElementById('blockSuccessMessage').textContent = 
+                        document.getElementById('blockSuccessMessage').textContent =
                             `${successCount} day(s) marked as closed${failCount > 0 ? ` (${failCount} failed)` : ''}. The clinic will be unavailable for appointments during this period.`;
                         new bootstrap.Modal(document.getElementById('blockTimeSuccessModal')).show();
 
@@ -2857,7 +3069,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Show success modal
                     const message = isUpdate ? 'Blocked time updated successfully!' : 'Time blocked successfully!';
                     document.getElementById('blockSuccessTitle').textContent = isUpdate ? 'Time Block Updated!' : 'Time Blocked Successfully!';
-                    document.getElementById('blockSuccessMessage').textContent = isUpdate 
+                    document.getElementById('blockSuccessMessage').textContent = isUpdate
                         ? 'The blocked time has been updated. No appointments can be scheduled during this period.'
                         : 'The time has been blocked and no appointments can be scheduled during this period.';
                     new bootstrap.Modal(document.getElementById('blockTimeSuccessModal')).show();
@@ -3014,10 +3226,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Flag to track if we're editing a blocked time
     let isEditingBlockedTime = false;
 
-    // Clear all future blocked times button
-    document.getElementById('clear-all-future-blocks-btn').addEventListener('click', function() {
-        // Fetch count of future blocked times
-        fetch('/staff/blocked-time/future/count', {
+    // Clear Clinic Closed button
+    document.getElementById('clear-clinic-closed-btn').addEventListener('click', function() {
+        // Fetch count of future clinic closed days
+        fetch('/staff/blocked-time/future/clinic-closed/count', {
             method: 'GET',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -3028,35 +3240,35 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             const count = data.count || 0;
-            const countText = count === 0 
-                ? 'No future closed times found'
-                : `${count} future closed time slot(s) will be deleted`;
-            
-            document.getElementById('future-blocks-count').textContent = countText;
-            
+            const countText = count === 0
+                ? 'No future clinic closed days found'
+                : `${count} future clinic closed day(s) will be deleted`;
+
+            document.getElementById('clinic-closed-count').textContent = countText;
+
             if (count === 0) {
-                // Show message that there are no future blocks
-                showValidationMessage('No future closed times to clear.', 'info');
+                // Show message that there are no future clinic closed days
+                showValidationMessage('No future clinic closed days to clear.', 'info');
                 return;
             }
-            
+
             // Show confirmation modal
-            new bootstrap.Modal(document.getElementById('clearAllFutureBlocksModal')).show();
+            new bootstrap.Modal(document.getElementById('clearClinicClosedModal')).show();
         })
         .catch(error => {
-            console.error('Error fetching future blocks count:', error);
-            showValidationMessage('Error loading future closed times count.', 'error');
+            console.error('Error fetching future clinic closed count:', error);
+            showValidationMessage('Error loading future clinic closed days count.', 'error');
         });
     });
 
-    // Confirm clear all future blocked times
-    document.getElementById('confirm-clear-all-future-btn').addEventListener('click', function() {
+    // Confirm clear clinic closed
+    document.getElementById('confirm-clear-clinic-closed-btn').addEventListener('click', function() {
         const confirmBtn = this;
         const originalText = confirmBtn.innerHTML;
         confirmBtn.disabled = true;
         confirmBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Clearing...';
 
-        fetch('/staff/blocked-time/future/clear', {
+        fetch('/staff/blocked-time/future/clinic-closed/clear', {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -3068,34 +3280,129 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             if (data.success) {
                 // Close confirmation modal
-                bootstrap.Modal.getInstance(document.getElementById('clearAllFutureBlocksModal')).hide();
-                
+                bootstrap.Modal.getInstance(document.getElementById('clearClinicClosedModal')).hide();
+
                 // Close block time modal
                 bootstrap.Modal.getInstance(document.getElementById('blockTimeModal')).hide();
 
                 // Show success message
-                showValidationMessage(data.message || `Successfully cleared ${data.deleted_count || 0} future closed time slot(s)!`, 'success');
+                showValidationMessage(data.message || `Successfully cleared ${data.deleted_count || 0} future clinic closed day(s)!`, 'success');
 
                 // Reload page after delay
                 setTimeout(() => {
                     reloadWithCurrentMonth();
                 }, 1500);
             } else {
-                showValidationMessage(data.message || 'Error clearing future closed times.', 'error');
+                showValidationMessage(data.message || 'Error clearing future clinic closed days.', 'error');
                 confirmBtn.innerHTML = originalText;
                 confirmBtn.disabled = false;
             }
         })
         .catch(error => {
-            console.error('Error clearing future blocked times:', error);
-            showValidationMessage('Error clearing future closed times. Please try again.', 'error');
+            console.error('Error clearing future clinic closed days:', error);
+            showValidationMessage('Error clearing future clinic closed days. Please try again.', 'error');
             confirmBtn.innerHTML = originalText;
             confirmBtn.disabled = false;
         });
     });
 
+    // Clear Specific Time button
+    document.getElementById('clear-block-off-time-btn').addEventListener('click', function() {
+        // Fetch count of future block off times
+        fetch('/staff/blocked-time/future/block-off-time/count', {
+            method: 'GET',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const count = data.count || 0;
+            const countText = count === 0
+                ? 'No future block off times found'
+                : `${count} future block off time(s) will be deleted`;
+
+            document.getElementById('block-off-time-count').textContent = countText;
+
+            if (count === 0) {
+                // Show message that there are no future block off times
+                showValidationMessage('No future block off times to clear.', 'info');
+                return;
+            }
+
+            // Show confirmation modal
+            new bootstrap.Modal(document.getElementById('clearBlockOffTimeModal')).show();
+        })
+        .catch(error => {
+            console.error('Error fetching future block off time count:', error);
+            showValidationMessage('Error loading future block off times count.', 'error');
+        });
+    });
+
+    // Confirm clear block off time
+    document.getElementById('confirm-clear-block-off-time-btn').addEventListener('click', function() {
+        const confirmBtn = this;
+        const originalText = confirmBtn.innerHTML;
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Clearing...';
+
+        fetch('/staff/blocked-time/future/block-off-time/clear', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Close confirmation modal
+                bootstrap.Modal.getInstance(document.getElementById('clearBlockOffTimeModal')).hide();
+
+                // Close block time modal
+                bootstrap.Modal.getInstance(document.getElementById('blockTimeModal')).hide();
+
+                // Show success message
+                showValidationMessage(data.message || `Successfully cleared ${data.deleted_count || 0} future block off time(s)!`, 'success');
+
+                // Reload page after delay
+                setTimeout(() => {
+                    reloadWithCurrentMonth();
+                }, 1500);
+            } else {
+                showValidationMessage(data.message || 'Error clearing future block off times.', 'error');
+                confirmBtn.innerHTML = originalText;
+                confirmBtn.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error clearing future block off times:', error);
+            showValidationMessage('Error clearing future block off times. Please try again.', 'error');
+            confirmBtn.innerHTML = originalText;
+            confirmBtn.disabled = false;
+        });
+    });
+
+    // Initialize tooltips for the info icon
+    const blockTimeModal = document.getElementById('blockTimeModal');
+    if (blockTimeModal) {
+        const infoIcon = blockTimeModal.querySelector('[data-bs-toggle="tooltip"]');
+        if (infoIcon) {
+            new bootstrap.Tooltip(infoIcon);
+        }
+    }
+
     // Reset block time modal when opening for new block
     document.getElementById('blockTimeModal').addEventListener('show.bs.modal', function(event) {
+        // Initialize tooltip when modal is shown
+        const infoIcon = this.querySelector('[data-bs-toggle="tooltip"]');
+        if (infoIcon && !bootstrap.Tooltip.getInstance(infoIcon)) {
+            new bootstrap.Tooltip(infoIcon);
+        }
+
         // Only reset if we're NOT editing an existing blocked time
         if (!isEditingBlockedTime) {
             // Reset form for new block time
@@ -3105,7 +3412,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('block_date').value = '';
             document.getElementById('block_start_time').value = '';
             document.getElementById('block_end_time').value = '';
-            document.getElementById('blockTimeModalTitle').textContent = 'Block of Time';
+            document.getElementById('blockTimeModalTitle').textContent = 'Block OFF Time';
             document.getElementById('save-block-btn-text').textContent = 'Create';
             document.getElementById('delete-block-time-btn').style.display = 'none';
 
@@ -3113,9 +3420,12 @@ document.addEventListener('DOMContentLoaded', function() {
             isRepeatEnabled = false;
             document.getElementById('repeat-options-section').style.display = 'none';
             const repeatBtn = document.getElementById('repeat-toggle-btn');
+            const repeatToggleContainer = repeatBtn.parentElement;
             repeatBtn.classList.remove('btn-primary');
             repeatBtn.classList.add('btn-outline-secondary');
             repeatBtn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Repeat';
+            // Show Repeat button container (will be hidden if checkbox is checked)
+            repeatToggleContainer.style.display = 'block';
             document.getElementById('repeat_frequency').value = '';
             document.getElementById('custom_interval').value = '';
             document.getElementById('repeat_end_date_input').value = '';
@@ -3128,7 +3438,10 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('repeat-preview').style.display = 'none';
 
             // Reset multi-day fields
-            document.getElementById('block_multiple_days').checked = false;
+            document.getElementById('block_off_time_tab').checked = true;
+            document.getElementById('clinic_closed_tab').checked = false;
+            // Trigger change event to update UI
+            document.getElementById('block_off_time_tab').dispatchEvent(new Event('change'));
             document.getElementById('block_start_date_input').value = '';
             document.getElementById('block_end_date_input').value = '';
 
@@ -3145,6 +3458,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Reset the editing flag when modal is closed
     document.getElementById('blockTimeModal').addEventListener('hidden.bs.modal', function() {
         isEditingBlockedTime = false;
+
+        // Dispose tooltip when modal is hidden to prevent memory leaks
+        const infoIcon = this.querySelector('[data-bs-toggle="tooltip"]');
+        if (infoIcon) {
+            const tooltipInstance = bootstrap.Tooltip.getInstance(infoIcon);
+            if (tooltipInstance) {
+                tooltipInstance.dispose();
+            }
+        }
     });
 
     function editAppointment(id) {
@@ -3469,7 +3791,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (dayNumber >= 1 && dayNumber <= daysInMonth) {
                     // This is a valid day in the current month
                     const cellDate = new Date(modalCurrentDate.getFullYear(), modalCurrentDate.getMonth(), dayNumber);
-                    dayElement.textContent = dayNumber;
+
+                    // Set text content explicitly
+                    dayElement.textContent = String(dayNumber);
+                    dayElement.setAttribute('data-day', dayNumber);
+
+                    // Ensure element is visible
+                    dayElement.style.visibility = 'visible';
+                    dayElement.style.opacity = '1';
+                    dayElement.style.display = 'flex';
 
             if (isToday(cellDate)) {
                 dayElement.classList.add('today');
@@ -3530,6 +3860,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Empty cell for days outside current month
                     dayElement.textContent = '';
                     dayElement.style.visibility = 'hidden'; // Hide empty cells
+                    dayElement.style.opacity = '0';
                 }
 
             calendarGrid.appendChild(dayElement);
@@ -4205,7 +4536,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const [hours, minutes] = startTime.split(':').map(Number);
 
         const appointmentDateTime = new Date(year, month - 1, day, hours, minutes);
-        
+
         // CRITICAL: Check if appointment is in the past using SERVER time (fault tolerant)
         const serverNow = getServerTime();
         if (appointmentDateTime <= serverNow) {
@@ -4568,5 +4899,710 @@ document.addEventListener('DOMContentLoaded', function() {
 
 });
 </script>
+
+<style>
+/* Dark Mode Fix for Cancel Button in Block Time Modal */
+[data-theme="dark"] #blockTimeModal .btn-light {
+    background-color: var(--dm-bg-secondary, #1e293b) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] #blockTimeModal .btn-light:hover {
+    background-color: var(--dm-bg-tertiary, #334155) !important;
+    border-color: var(--dm-border-color, #475569) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] #blockTimeModal .btn-light i {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+/* Dark Mode Fix for Clock and Calendar Icons in Block Time Modal */
+[data-theme="dark"] #blockTimeModal .form-label i,
+[data-theme="dark"] #blockTimeModal .form-label .bi-clock,
+[data-theme="dark"] #blockTimeModal .form-label .bi-clock-fill,
+[data-theme="dark"] #blockTimeModal .form-label .bi-calendar3,
+[data-theme="dark"] #blockTimeModal .form-label .bi-calendar-event,
+[data-theme="dark"] #blockTimeModal .form-label .bi-calendar-event-fill {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+/* Dark Mode Fix for Native Date/Time Input Icons */
+[data-theme="dark"] #blockTimeModal input[type="date"]::-webkit-calendar-picker-indicator,
+[data-theme="dark"] #blockTimeModal input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) brightness(2) !important;
+    cursor: pointer;
+    opacity: 0.8;
+}
+
+[data-theme="dark"] #blockTimeModal input[type="date"]::-webkit-calendar-picker-indicator:hover,
+[data-theme="dark"] #blockTimeModal input[type="time"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+}
+
+/* Firefox dark mode fix for date/time inputs */
+[data-theme="dark"] #blockTimeModal input[type="date"],
+[data-theme="dark"] #blockTimeModal input[type="time"] {
+    color-scheme: dark;
+}
+
+/* Orange Button Styles */
+.btn-orange {
+    background-color: #ff6b35;
+    border-color: #ff6b35;
+    color: white;
+}
+
+.btn-orange:hover {
+    background-color: #e55a2b;
+    border-color: #e55a2b;
+    color: white;
+}
+
+.btn-orange:focus {
+    background-color: #e55a2b;
+    border-color: #e55a2b;
+    color: white;
+    box-shadow: 0 0 0 0.25rem rgba(255, 107, 53, 0.5);
+}
+
+/* Dark Mode Orange Button */
+[data-theme="dark"] .btn-orange {
+    background-color: #ff6b35;
+    border-color: #ff6b35;
+    color: white;
+}
+
+[data-theme="dark"] .btn-orange:hover {
+    background-color: #ff8555;
+    border-color: #ff8555;
+    color: white;
+}
+
+/* Add Appointment Modal - Compact Design */
+#appointmentModal .modal-dialog {
+    max-width: 1100px;
+    margin: 1rem auto;
+}
+
+#appointmentModal .modal-content {
+    max-height: calc(100vh - 2rem);
+    display: flex;
+    flex-direction: column;
+}
+
+#appointmentModal .modal-header {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #dee2e6;
+    flex-shrink: 0;
+}
+
+#appointmentModal .modal-header .modal-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0d6efd;
+}
+
+#appointmentModal .appointment-modal-body {
+    padding: 1rem;
+    overflow-y: auto;
+    flex: 1;
+    max-height: calc(100vh - 140px);
+}
+
+#appointmentModal .appointment-label {
+    font-size: 0.85rem;
+    margin-bottom: 0.375rem;
+    color: #495057;
+}
+
+/* Compact Calendar Widget */
+#appointmentModal .appointment-calendar {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    overflow: visible;
+    background: #fff;
+    min-height: auto;
+    max-height: none;
+    height: auto;
+}
+
+#appointmentModal .calendar-widget {
+    background: #fff;
+    width: 100%;
+    min-height: auto;
+    max-height: none;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
+}
+
+#appointmentModal .calendar-widget .calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.25rem 0.5rem;
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    flex-shrink: 0;
+    min-height: 28px;
+    height: 28px;
+}
+
+#appointmentModal .calendar-widget .calendar-header span {
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.75rem;
+}
+
+#appointmentModal .calendar-widget .calendar-header button {
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+}
+
+#appointmentModal .calendar-widget .calendar-grid {
+    grid-template-columns: repeat(7, 1fr) !important;
+    grid-auto-rows: 20px !important;
+    gap: 1px;
+    background: #e9ecef;
+    padding: 2px;
+    min-height: 0;
+    height: auto;
+    max-height: none;
+    overflow: visible;
+    border: none;
+    border-radius: 0;
+    flex: 1;
+    display: grid;
+}
+
+#appointmentModal .calendar-widget .calendar-day {
+    background: #fff !important;
+    padding: 0;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    min-height: 20px !important;
+    height: 20px !important;
+    max-height: 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 0.7rem !important;
+    border: 1px solid #e9ecef;
+    font-weight: 500;
+    color: #000 !important;
+    overflow: visible !important;
+    line-height: 1 !important;
+    white-space: nowrap;
+    position: relative;
+    z-index: 1;
+}
+
+#appointmentModal .calendar-widget .calendar-day:hover {
+    background: #e9ecef !important;
+}
+
+#appointmentModal .calendar-widget .calendar-day.selected {
+    background: #0d6efd !important;
+    color: white !important;
+    border-color: #0d6efd !important;
+    font-weight: 600;
+}
+
+#appointmentModal .calendar-widget .calendar-day.today {
+    background: #e3f2fd !important;
+    font-weight: 600;
+}
+
+#appointmentModal .calendar-widget .calendar-day.today.selected {
+    background: #0d6efd !important;
+    color: white !important;
+}
+
+#appointmentModal .calendar-widget .calendar-day.past-date {
+    background: #f8f9fa !important;
+    color: #6c757d !important;
+    cursor: not-allowed !important;
+    opacity: 0.5 !important;
+}
+
+/* Compact Time Slots - Fit All Without Scrolling */
+#appointmentModal .time-slots-container {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 0.5rem;
+    min-height: auto;
+    max-height: none;
+    height: auto;
+    overflow: visible;
+}
+
+#appointmentModal .time-slots-list {
+    max-height: none;
+    height: auto;
+    overflow: visible;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.2rem;
+}
+
+#appointmentModal .time-slots-list .form-check {
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    padding: 0.25rem 0.375rem;
+    margin: 0;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    min-height: 28px;
+}
+
+#appointmentModal .time-slots-list .form-check:hover {
+    background-color: #f8f9fa;
+    border-color: #0d6efd;
+}
+
+#appointmentModal .time-slots-list .form-check-label {
+    font-size: 0.75rem;
+    color: #495057;
+    cursor: pointer;
+    flex: 1;
+    margin: 0;
+    padding-left: 0.2rem;
+    white-space: nowrap;
+}
+
+#appointmentModal .time-slots-list .form-check.selected {
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+    color: white !important;
+}
+
+#appointmentModal .time-slots-list .form-check.selected .form-check-label {
+    color: white !important;
+    font-weight: 600;
+}
+
+#appointmentModal .time-slots-list .form-check.disabled,
+#appointmentModal .time-slots-list .form-check.time-slot-blocked {
+    background-color: #f8d7da !important;
+    border-color: #f5c6cb !important;
+    cursor: not-allowed !important;
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+#appointmentModal .time-slots-list .form-check.disabled .form-check-label,
+#appointmentModal .time-slots-list .form-check.time-slot-blocked .form-check-label {
+    color: #721c24 !important;
+    text-decoration: line-through;
+}
+
+/* Dark Mode - Add Appointment Modal */
+[data-theme="dark"] #appointmentModal .modal-content {
+    background: var(--dm-card-bg, #1e293b) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] #appointmentModal .modal-header {
+    background: var(--dm-bg-secondary, #1e293b) !important;
+    border-bottom-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] #appointmentModal .modal-header .modal-title {
+    color: #00EAFF !important;
+}
+
+[data-theme="dark"] #appointmentModal .btn-close {
+    filter: invert(1);
+}
+
+[data-theme="dark"] #appointmentModal .appointment-label {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] #appointmentModal .form-control,
+[data-theme="dark"] #appointmentModal .form-select {
+    background: var(--dm-bg-secondary, #1e293b) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] #appointmentModal .form-control:focus,
+[data-theme="dark"] #appointmentModal .form-select:focus {
+    background: var(--dm-bg-secondary, #1e293b) !important;
+    border-color: #00EAFF !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+    box-shadow: 0 0 0 0.25rem rgba(0, 234, 255, 0.25) !important;
+}
+
+[data-theme="dark"] #appointmentModal .btn-link {
+    color: #00EAFF !important;
+}
+
+[data-theme="dark"] #appointmentModal .btn-link:hover {
+    color: #5CECFF !important;
+    text-shadow: 0 0 8px rgba(0, 234, 255, 0.5);
+}
+
+[data-theme="dark"] #appointmentModal .appointment-calendar {
+    background: var(--dm-bg-secondary, #1e293b) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] #appointmentModal .calendar-widget {
+    background: var(--dm-bg-secondary, #1e293b) !important;
+}
+
+[data-theme="dark"] #appointmentModal .calendar-widget .calendar-header {
+    background: var(--dm-bg-tertiary, #334155) !important;
+    border-bottom-color: var(--dm-border-color, #475569) !important;
+}
+
+[data-theme="dark"] #appointmentModal .calendar-widget .calendar-header span {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] #appointmentModal .calendar-widget .calendar-header button {
+    border-color: var(--dm-border-color, #475569) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] #appointmentModal .calendar-widget .calendar-header button:hover {
+    background: var(--dm-bg-tertiary, #475569) !important;
+    border-color: #00EAFF !important;
+    color: #00EAFF !important;
+}
+
+[data-theme="dark"] #appointmentModal .calendar-widget .calendar-grid {
+    background: var(--dm-bg-tertiary, #334155) !important;
+}
+
+[data-theme="dark"] #appointmentModal .calendar-widget .calendar-day {
+    background: var(--dm-bg-secondary, #1e293b) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] #appointmentModal .calendar-widget .calendar-day:hover {
+    background: var(--dm-bg-tertiary, #334155) !important;
+    border-color: #00EAFF !important;
+}
+
+[data-theme="dark"] #appointmentModal .calendar-widget .calendar-day.selected {
+    background: #00EAFF !important;
+    border-color: #00EAFF !important;
+    color: #000 !important;
+    box-shadow: 0 0 12px rgba(0, 234, 255, 0.6) !important;
+}
+
+[data-theme="dark"] #appointmentModal .calendar-widget .calendar-day.today {
+    background: rgba(0, 234, 255, 0.1) !important;
+    border-color: #00EAFF !important;
+}
+
+[data-theme="dark"] #appointmentModal .calendar-widget .calendar-day.today.selected {
+    background: #00EAFF !important;
+    color: #000 !important;
+}
+
+[data-theme="dark"] #appointmentModal .calendar-widget .calendar-day.past-date {
+    background: var(--dm-bg-tertiary, #334155) !important;
+    color: #64748b !important;
+    opacity: 0.5 !important;
+}
+
+[data-theme="dark"] #appointmentModal .time-slots-container {
+    background: var(--dm-bg-secondary, #1e293b) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] #appointmentModal .time-slots-list .form-check {
+    background: var(--dm-bg-secondary, #1e293b) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] #appointmentModal .time-slots-list .form-check:hover {
+    background: var(--dm-bg-tertiary, #334155) !important;
+    border-color: #00EAFF !important;
+}
+
+[data-theme="dark"] #appointmentModal .time-slots-list .form-check-label {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] #appointmentModal .time-slots-list .form-check.selected {
+    background: #00EAFF !important;
+    border-color: #00EAFF !important;
+    box-shadow: 0 0 12px rgba(0, 234, 255, 0.5) !important;
+}
+
+[data-theme="dark"] #appointmentModal .time-slots-list .form-check.selected .form-check-label {
+    color: #000 !important;
+    font-weight: 700;
+}
+
+[data-theme="dark"] #appointmentModal .time-slots-list .form-check.disabled,
+[data-theme="dark"] #appointmentModal .time-slots-list .form-check.time-slot-blocked {
+    background: rgba(248, 215, 218, 0.2) !important;
+    border-color: #dc2626 !important;
+}
+
+[data-theme="dark"] #appointmentModal .form-text {
+    color: var(--dm-text-secondary, #94a3b8) !important;
+}
+
+[data-theme="dark"] #appointmentModal .text-muted {
+    color: var(--dm-text-secondary, #94a3b8) !important;
+}
+
+/* Patient Search Results Dropdown - Dark Mode */
+#appointmentModal #patient-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 1000;
+    margin-top: 0.25rem;
+}
+
+#appointmentModal .patient-result-item {
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background-color 0.2s;
+}
+
+#appointmentModal .patient-result-item:last-child {
+    border-bottom: none;
+}
+
+#appointmentModal .patient-result-item:hover {
+    background-color: #f8f9fa;
+}
+
+#appointmentModal .patient-result-item .patient-name {
+    font-weight: 600;
+    color: #212529;
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+}
+
+#appointmentModal .patient-result-item .patient-details {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+[data-theme="dark"] #appointmentModal #patient-results {
+    background: var(--dm-bg-secondary, #1e293b) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] #appointmentModal .patient-result-item {
+    border-bottom-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] #appointmentModal .patient-result-item:hover {
+    background-color: var(--dm-bg-tertiary, #334155) !important;
+}
+
+[data-theme="dark"] #appointmentModal .patient-result-item .patient-name {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] #appointmentModal .patient-result-item .patient-details {
+    color: var(--dm-text-secondary, #94a3b8) !important;
+}
+
+[data-theme="dark"] #appointmentModal .patient-result-item .patient-details .text-muted {
+    color: var(--dm-text-secondary, #94a3b8) !important;
+}
+
+/* Custom Scrollbar for Patient Results */
+#appointmentModal #patient-results::-webkit-scrollbar {
+    width: 8px;
+}
+
+#appointmentModal #patient-results::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+#appointmentModal #patient-results::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    border-radius: 4px;
+}
+
+#appointmentModal #patient-results::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #0a58ca 0%, #084298 100%);
+}
+
+[data-theme="dark"] #appointmentModal #patient-results::-webkit-scrollbar-track {
+    background: var(--dm-bg-tertiary, #334155) !important;
+}
+
+[data-theme="dark"] #appointmentModal #patient-results::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #00EAFF 0%, #0099CC 100%) !important;
+}
+
+[data-theme="dark"] #appointmentModal #patient-results::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #5CECFF 0%, #00EAFF 100%) !important;
+}
+
+/* Firefox Scrollbar */
+#appointmentModal #patient-results {
+    scrollbar-width: thin;
+    scrollbar-color: #0d6efd #f1f1f1;
+}
+
+[data-theme="dark"] #appointmentModal #patient-results {
+    scrollbar-color: #00EAFF var(--dm-bg-tertiary, #334155) !important;
+}
+
+[data-theme="dark"] #appointmentModal .modal-footer {
+    background: var(--dm-bg-secondary, #1e293b) !important;
+    border-top-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] #appointmentModal .btn-secondary {
+    background: var(--dm-bg-tertiary, #334155) !important;
+    border-color: var(--dm-border-color, #475569) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] #appointmentModal .btn-secondary:hover {
+    background: var(--dm-bg-quaternary, #475569) !important;
+}
+
+[data-theme="dark"] #appointmentModal .btn-primary {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%) !important;
+    border: none !important;
+}
+
+[data-theme="dark"] #appointmentModal .btn-primary:hover {
+    background: linear-gradient(135deg, #0a58ca 0%, #084298 100%) !important;
+    box-shadow: 0 0 12px rgba(13, 110, 253, 0.5) !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    #appointmentModal .time-slots-list {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    #appointmentModal .time-slots-list .form-check {
+        padding: 0.2rem 0.3rem;
+        min-height: 26px;
+    }
+
+    #appointmentModal .time-slots-list .form-check-label {
+        font-size: 0.7rem;
+    }
+
+    #appointmentModal .calendar-widget .calendar-grid {
+        grid-auto-rows: 18px !important;
+        max-height: none !important;
+        height: auto !important;
+    }
+
+    #appointmentModal .calendar-widget .calendar-day {
+        min-height: 18px !important;
+        max-height: 18px !important;
+        height: 18px !important;
+        font-size: 0.65rem !important;
+        padding: 0 !important;
+    }
+
+    #appointmentModal .calendar-widget .calendar-header {
+        min-height: 24px !important;
+        height: 24px !important;
+        padding: 0.2rem 0.4rem !important;
+    }
+}
+
+/* Calendar View - Fit Screen Without Scrolling */
+.calendar-container {
+    max-height: calc(100vh - 250px) !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.calendar-grid {
+    max-height: calc(100vh - 250px) !important;
+    overflow-y: auto !important;
+    flex: 1 !important;
+    min-height: 0 !important;
+}
+
+.calendar-grid.month-view {
+    grid-auto-rows: minmax(80px, auto) !important;
+    max-height: calc(100vh - 250px) !important;
+}
+
+.calendar-grid.week-view {
+    grid-auto-rows: minmax(120px, auto) !important;
+    max-height: calc(100vh - 250px) !important;
+}
+
+.calendar-grid.day-view {
+    max-height: calc(100vh - 250px) !important;
+    overflow-y: auto !important;
+}
+
+.calendar-day {
+    min-height: 80px !important;
+    padding: 4px 6px !important;
+}
+
+.day-number {
+    font-size: 0.85rem !important;
+    margin-bottom: 2px !important;
+}
+
+.appointment-item {
+    font-size: 0.7rem !important;
+    padding: 2px 4px !important;
+    margin-bottom: 1px !important;
+}
+
+.time-slot {
+    padding: 6px 10px !important;
+    min-height: 35px !important;
+}
+
+.day-header,
+.week-header {
+    padding: 8px 12px !important;
+    font-size: 0.9rem !important;
+    flex-shrink: 0 !important;
+}
+
+/* Dark Mode Calendar Container */
+[data-theme="dark"] .calendar-container {
+    background: var(--dm-card-bg, #1e293b) !important;
+}
+
+[data-theme="dark"] .calendar-grid {
+    background: var(--dm-card-bg, #1e293b) !important;
+}
+</style>
 @endsection
 

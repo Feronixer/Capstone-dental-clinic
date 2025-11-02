@@ -38,15 +38,66 @@ class ContentManagementController extends Controller
     }
 
     /**
+     * Delete an announcement archive
+     */
+    public function deleteArchive($id)
+    {
+        try {
+            $archive = AnnouncementArchive::findOrFail($id);
+
+            // Delete the image file if it exists
+            if ($archive->image_path && Storage::disk('public')->exists($archive->image_path)) {
+                Storage::disk('public')->delete($archive->image_path);
+            }
+
+            // Delete the archive
+            $archive->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Archive deleted successfully'
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error deleting archive: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error deleting archive: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Create a new announcement (archives the old one)
      */
     public function createNewAnnouncement(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $rules = [
             'title' => 'required|string|max:255',
+            'subheading' => 'nullable|string|max:255',
             'content' => 'required|string',
+            'date_start' => 'required|date',
+            'date_end' => 'nullable|date',
+            'time_start' => 'nullable|date_format:H:i',
+            'time_end' => 'nullable|date_format:H:i',
+            'is_whole_day' => 'nullable|boolean',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
-        ]);
+        ];
+
+        // Add conditional validation for date_end
+        if ($request->filled('date_end')) {
+            $rules['date_end'] .= '|after_or_equal:date_start';
+        }
+
+        // Add conditional validation for time_end (only if not whole day and both times are provided)
+        $isWholeDay = $request->has('is_whole_day') && $request->input('is_whole_day') == '1';
+        if (!$isWholeDay && $request->filled('time_start') && $request->filled('time_end')) {
+            $rules['time_end'] .= '|after:time_start';
+        }
+
+        $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
             return response()->json([
@@ -56,33 +107,57 @@ class ContentManagementController extends Controller
             ], 422);
         }
 
-        $existingAnnouncement = Announcement::first();
+        try {
+            $existingAnnouncement = Announcement::first();
 
-        // Archive the old announcement if it exists
-        if ($existingAnnouncement) {
-            AnnouncementArchive::createFromAnnouncement($existingAnnouncement, auth()->id());
-            // Delete the old announcement
-            $existingAnnouncement->delete();
+            // Archive the old announcement if it exists
+            if ($existingAnnouncement) {
+                AnnouncementArchive::createFromAnnouncement($existingAnnouncement, auth()->id());
+                // Delete the old announcement
+                $existingAnnouncement->delete();
+            }
+
+            // Create new announcement
+            $announcement = new Announcement();
+            $announcement->title = $request->input('title');
+            $announcement->subheading = $request->input('subheading') ?: null;
+            $announcement->content = $request->input('content');
+            $announcement->date_start = $request->input('date_start');
+            $announcement->date_end = $request->filled('date_end') ? $request->input('date_end') : null;
+            $announcement->is_whole_day = $request->has('is_whole_day') && $request->input('is_whole_day') == '1';
+            
+            // Handle time fields
+            if ($announcement->is_whole_day) {
+                $announcement->time_start = null;
+                $announcement->time_end = null;
+            } else {
+                $announcement->time_start = $request->filled('time_start') ? $request->input('time_start') : null;
+                $announcement->time_end = $request->filled('time_end') ? $request->input('time_end') : null;
+            }
+
+            // Handle image upload
+            if ($request->hasFile('image')) {
+                $path = $request->file('image')->store('announcements', 'public');
+                $announcement->image_path = $path;
+            }
+
+            $announcement->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'New announcement created successfully. Old announcement has been archived.',
+                'data' => $announcement
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error creating announcement: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error creating announcement: ' . $e->getMessage()
+            ], 500);
         }
-
-        // Create new announcement
-        $announcement = new Announcement();
-        $announcement->title = $request->input('title');
-        $announcement->content = $request->input('content');
-
-        // Handle image upload
-        if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('announcements', 'public');
-            $announcement->image_path = $path;
-        }
-
-        $announcement->save();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'New announcement created successfully. Old announcement has been archived.',
-            'data' => $announcement
-        ]);
     }
 
     /**
@@ -90,11 +165,30 @@ class ContentManagementController extends Controller
      */
     public function updateAnnouncement(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $rules = [
             'title' => 'required|string|max:255',
+            'subheading' => 'nullable|string|max:255',
             'content' => 'required|string',
+            'date_start' => 'required|date',
+            'date_end' => 'nullable|date',
+            'time_start' => 'nullable|date_format:H:i',
+            'time_end' => 'nullable|date_format:H:i',
+            'is_whole_day' => 'nullable|boolean',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
-        ]);
+        ];
+
+        // Add conditional validation for date_end
+        if ($request->filled('date_end')) {
+            $rules['date_end'] .= '|after_or_equal:date_start';
+        }
+
+        // Add conditional validation for time_end (only if not whole day and both times are provided)
+        $isWholeDay = $request->has('is_whole_day') && $request->input('is_whole_day') == '1';
+        if (!$isWholeDay && $request->filled('time_start') && $request->filled('time_end')) {
+            $rules['time_end'] .= '|after:time_start';
+        }
+
+        $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
             return response()->json([
@@ -104,34 +198,58 @@ class ContentManagementController extends Controller
             ], 422);
         }
 
-        $announcement = Announcement::first();
+        try {
+            $announcement = Announcement::first();
 
-        if (!$announcement) {
-            // If no announcement exists, create a new one
-            $announcement = new Announcement();
-        }
-
-        $announcement->title = $request->input('title');
-        $announcement->content = $request->input('content');
-
-        // Handle image upload
-        if ($request->hasFile('image')) {
-            // Delete old image
-            if ($announcement->image_path && Storage::disk('public')->exists($announcement->image_path)) {
-                Storage::disk('public')->delete($announcement->image_path);
+            if (!$announcement) {
+                // If no announcement exists, create a new one
+                $announcement = new Announcement();
             }
 
-            $path = $request->file('image')->store('announcements', 'public');
-            $announcement->image_path = $path;
+            $announcement->title = $request->input('title');
+            $announcement->subheading = $request->input('subheading') ?: null;
+            $announcement->content = $request->input('content');
+            $announcement->date_start = $request->input('date_start');
+            $announcement->date_end = $request->filled('date_end') ? $request->input('date_end') : null;
+            $announcement->is_whole_day = $request->has('is_whole_day') && $request->input('is_whole_day') == '1';
+            
+            // Handle time fields
+            if ($announcement->is_whole_day) {
+                $announcement->time_start = null;
+                $announcement->time_end = null;
+            } else {
+                $announcement->time_start = $request->filled('time_start') ? $request->input('time_start') : null;
+                $announcement->time_end = $request->filled('time_end') ? $request->input('time_end') : null;
+            }
+
+            // Handle image upload
+            if ($request->hasFile('image')) {
+                // Delete old image
+                if ($announcement->image_path && Storage::disk('public')->exists($announcement->image_path)) {
+                    Storage::disk('public')->delete($announcement->image_path);
+                }
+
+                $path = $request->file('image')->store('announcements', 'public');
+                $announcement->image_path = $path;
+            }
+
+            $announcement->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Announcement updated successfully',
+                'data' => $announcement
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error updating announcement: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating announcement: ' . $e->getMessage()
+            ], 500);
         }
-
-        $announcement->save();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Announcement updated successfully',
-            'data' => $announcement
-        ]);
     }
 
     /**

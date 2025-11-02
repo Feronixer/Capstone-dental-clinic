@@ -1,12 +1,12 @@
 <header class="patient-header">
     <div class="header-container">
         <!-- Logo Section -->
-        <div class="header-logo">
-            <img src="{{ asset('images/logo4.png') }}" alt="JValera Dental Clinic" class="logo-img">
+        <a href="{{ route('patient-dashboard') }}" class="header-logo" style="text-decoration: none;">
+            <img src="{{ asset('images/logo4.png') }}" alt="ToothTalk" class="logo-img">
             <div class="logo-text">
-                <span class="clinic-name">TOOTHTALK</span>
+                <span class="clinic-name">Tooth<span class="clinic-name-talk">Talk</span></span>
             </div>
-        </div>
+        </a>
 
         <!-- Navigation Menu -->
         <nav class="header-nav">
@@ -145,13 +145,12 @@
     <!-- Mobile Menu Overlay -->
     <div class="mobile-menu-overlay" id="mobileMenuOverlay">
         <div class="mobile-menu-header">
-            <div class="header-logo">
-                <img src="{{ asset('images/logo.png') }}" alt="JValera Dental Clinic" class="logo-img">
+            <a href="{{ route('patient-dashboard') }}" class="header-logo" style="text-decoration: none;">
+                <img src="{{ asset('images/logo4.png') }}" alt="ToothTalk" class="logo-img">
                 <div class="logo-text">
-                    <span class="clinic-name">JValera</span>
-                    <span class="clinic-subtitle">Dental Clinic</span>
+                    <span class="clinic-name">Tooth<span class="clinic-name-talk">Talk</span></span>
                 </div>
-            </div>
+            </a>
             <button class="mobile-menu-close" id="mobileMenuClose">
                 <i class="bi bi-x-lg"></i>
             </button>
@@ -253,11 +252,42 @@
     display: flex;
     align-items: center;
     gap: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 0.25rem;
+    border-radius: 8px;
+}
+
+.header-logo:hover {
+    transform: translateY(-2px);
+}
+
+/* Pulse animation for logo on page load */
+@keyframes logoPulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
 }
 
 .logo-img {
-    height: 45px;
-    width: auto;
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    transition: transform 0.3s ease, filter 0.3s ease;
+    cursor: pointer;
+    animation: logoPulse 2s ease-in-out;
+}
+
+.logo-img:hover {
+    transform: scale(1.1) rotate(5deg);
+    filter: drop-shadow(0 4px 12px rgba(255, 255, 255, 0.3));
+    animation: none;
 }
 
 .logo-text {
@@ -267,9 +297,49 @@
 }
 
 .clinic-name {
-    font-size: 1.15rem;
+    font-size: 1.75rem;
     font-weight: 700;
     line-height: 1.2;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.clinic-name-talk {
+    color: #00EAFF;
+    transition: all 0.3s ease;
+    font-weight: 700;
+}
+
+.header-logo:hover .clinic-name {
+    text-shadow: 0 2px 8px rgba(255, 255, 255, 0.3);
+}
+
+.header-logo:hover .clinic-name-talk {
+    color: #5CECFF;
+    text-shadow: 0 2px 8px rgba(0, 234, 255, 0.6);
+}
+
+/* Dark Mode Logo Styles */
+[data-theme="dark"] .clinic-name {
+    color: #00EAFF !important;
+    text-shadow: 0 2px 4px rgba(0, 234, 255, 0.3), 0 0 8px rgba(0, 234, 255, 0.2), 0 1px 2px rgba(255, 255, 255, 0.2) !important;
+    transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .clinic-name-talk {
+    color: #ffffff !important;
+    text-shadow: 0 2px 8px rgba(255, 255, 255, 0.3) !important;
+    transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .header-logo:hover .clinic-name {
+    color: #5CECFF !important;
+    text-shadow: 0 0 15px rgba(0, 234, 255, 0.7), 0 0 25px rgba(0, 234, 255, 0.4) !important;
+}
+
+[data-theme="dark"] .header-logo:hover .clinic-name-talk {
+    color: #ffffff !important;
+    text-shadow: 0 2px 12px rgba(255, 255, 255, 0.5) !important;
 }
 
 .clinic-subtitle {
@@ -288,32 +358,126 @@
     justify-content: center;
 }
 
+.nav-item {
+    position: relative;
+}
+
 .nav-item .nav-link {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
-    padding: 0.55rem 1rem;
-    color: rgba(255,255,255,0.9);
+    gap: 0.5rem;
+    padding: 0.65rem 1.25rem;
+    color: rgba(255,255,255,0.85);
     text-decoration: none;
-    border-radius: 8px;
-    transition: all 0.3s;
-    font-size: 0.9rem;
+    border-radius: 12px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 0.95rem;
     white-space: nowrap;
+    position: relative;
+    font-weight: 500;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    box-shadow: none;
+}
+
+.nav-item .nav-link::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%);
+    opacity: 0;
+    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 12px;
 }
 
 .nav-item .nav-link i {
-    font-size: 1.1rem;
+    font-size: 1.15rem;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    z-index: 1;
+}
+
+.nav-item .nav-link span {
+    position: relative;
+    z-index: 1;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .nav-item .nav-link:hover {
-    background: rgba(255,255,255,0.15);
     color: white;
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.25), 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.nav-item .nav-link:hover::before {
+    opacity: 1;
+}
+
+.nav-item .nav-link:hover i {
+    transform: scale(1.15) rotate(5deg);
+    color: #00EAFF;
+}
+
+.nav-item .nav-link:hover span {
+    font-weight: 600;
 }
 
 .nav-item .nav-link.active {
-    background: rgba(255,255,255,0.2);
+    background: linear-gradient(135deg, rgba(25, 118, 210, 0.8) 0%, rgba(21, 101, 192, 0.9) 100%);
     color: white;
     font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.nav-item .nav-link.active::before {
+    opacity: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+}
+
+.nav-item .nav-link.active i {
+    color: #00EAFF;
+    transform: scale(1.1);
+    animation: iconPulse 2s ease-in-out infinite;
+}
+
+.nav-item .nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #00EAFF, transparent);
+    border-radius: 3px 3px 0 0;
+    animation: slideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes iconPulse {
+    0%, 100% {
+        transform: scale(1.1);
+        filter: drop-shadow(0 0 0 rgba(0, 234, 255, 0));
+    }
+    50% {
+        transform: scale(1.15);
+        filter: drop-shadow(0 0 8px rgba(0, 234, 255, 0.6));
+    }
+}
+
+@keyframes slideIn {
+    from {
+        width: 0;
+        opacity: 0;
+    }
+    to {
+        width: 60%;
+        opacity: 1;
+    }
 }
 
 .header-actions {
@@ -361,38 +525,58 @@
 .user-profile-btn {
     display: flex;
     align-items: center;
-    gap: 0.65rem;
-    padding: 0.4rem 1.1rem;
+    gap: 0.75rem;
+    padding: 0.5rem 1rem;
     background: rgba(255,255,255,0.15);
     border: none;
     border-radius: 50px;
     color: white;
     cursor: pointer;
     transition: all 0.3s;
+    flex-shrink: 0;
 }
 
 .user-profile-btn:hover {
     background: rgba(255,255,255,0.25);
 }
 
+.user-profile-btn .bi-chevron-down {
+    font-size: 0.875rem;
+    opacity: 0.8;
+    transition: transform 0.3s;
+    flex-shrink: 0;
+}
+
+.user-profile-btn:hover .bi-chevron-down {
+    opacity: 1;
+    transform: translateY(1px);
+}
+
 .profile-avatar {
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    min-height: 38px;
     border-radius: 50%;
-    border: 2px solid rgba(255,255,255,0.5);
-    background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%);
+    border: 2px solid rgba(255,255,255,0.4);
+    background: linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.15) 100%);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.85rem;
+    font-size: 0.875rem;
     font-weight: 700;
     color: white;
     text-transform: uppercase;
+    flex-shrink: 0;
+    margin: 0;
+    padding: 0;
 }
 
 .profile-avatar-lg {
     width: 60px;
     height: 60px;
+    min-width: 60px;
+    min-height: 60px;
     border-radius: 50%;
     border: 3px solid #2196F3;
     background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
@@ -404,23 +588,32 @@
     color: white;
     text-transform: uppercase;
     margin: 0 auto;
+    flex-shrink: 0;
 }
 
 .user-info {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    line-height: 1.2;
+    justify-content: center;
+    line-height: 1.3;
+    min-width: 0;
+    flex: 1;
 }
 
 .user-name {
     font-size: 0.9rem;
     font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
 }
 
 .user-role {
-    font-size: 0.7rem;
-    opacity: 0.85;
+    font-size: 0.75rem;
+    opacity: 0.9;
+    white-space: nowrap;
 }
 
 .notification-dropdown,
@@ -476,6 +669,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    color: #1e293b;
 }
 
 .notification-content small {
@@ -483,12 +677,97 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    color: #64748b;
 }
 
 .notification-time {
     font-size: 0.75rem;
-    color: #999;
+    color: #64748b;
     white-space: nowrap;
+}
+
+/* Dark Mode Notification Dropdown Styles */
+[data-theme="dark"] .notification-dropdown {
+    background: #1e293b !important;
+    border: 1px solid #334155 !important;
+}
+
+[data-theme="dark"] .notification-dropdown .dropdown-header {
+    background: #1e293b !important;
+    border-bottom: 1px solid #334155 !important;
+}
+
+[data-theme="dark"] .notification-dropdown .dropdown-header h6 {
+    color: #f1f5f9 !important;
+}
+
+[data-theme="dark"] .notification-dropdown .dropdown-header small,
+[data-theme="dark"] .notification-dropdown .dropdown-header .text-muted {
+    color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .notification-dropdown .dropdown-divider {
+    border-top-color: #334155 !important;
+}
+
+[data-theme="dark"] .notification-item {
+    background: #1e293b !important;
+    border-bottom-color: #334155 !important;
+    color: #f1f5f9 !important;
+}
+
+[data-theme="dark"] .notification-item:hover {
+    background: #334155 !important;
+}
+
+[data-theme="dark"] .notification-item.unread {
+    background: linear-gradient(to right, #1e3a5f 0%, #1e293b 100%) !important;
+    border-left-color: #3b82f6 !important;
+}
+
+[data-theme="dark"] .notification-item.unread:hover {
+    background: linear-gradient(to right, #1e40af 0%, #334155 100%) !important;
+}
+
+[data-theme="dark"] .notification-title {
+    color: #f1f5f9 !important;
+    font-weight: 600 !important;
+}
+
+[data-theme="dark"] .notification-content small,
+[data-theme="dark"] .notification-content .text-muted {
+    color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .notification-time {
+    color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .notification-dropdown .dropdown-item.text-center {
+    background: #1e293b !important;
+    border-top: 1px solid #334155 !important;
+}
+
+[data-theme="dark"] .notification-dropdown .dropdown-item.text-center:hover {
+    background: #334155 !important;
+}
+
+[data-theme="dark"] .notification-dropdown .dropdown-item.text-center.text-primary,
+[data-theme="dark"] .notification-dropdown .dropdown-item.text-center small {
+    color: #60a5fa !important;
+}
+
+[data-theme="dark"] .notification-dropdown .dropdown-item.text-center.text-primary:hover {
+    color: #93c5fd !important;
+}
+
+[data-theme="dark"] .notification-dropdown .text-center .text-muted,
+[data-theme="dark"] .notification-dropdown .text-center i.text-muted {
+    color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .notification-dropdown .text-center p.text-muted {
+    color: #cbd5e1 !important;
 }
 
 .mobile-menu-toggle {
@@ -703,7 +982,19 @@
     }
 
     .user-profile-btn {
-        padding: 0.4rem 0.6rem;
+        padding: 0.5rem;
+        gap: 0;
+    }
+
+    .user-profile-btn .bi-chevron-down {
+        display: none;
+    }
+
+    .profile-avatar {
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        min-height: 36px;
     }
 
     .header-actions {
@@ -768,6 +1059,8 @@
     .profile-avatar {
         width: 32px;
         height: 32px;
+        min-width: 32px;
+        min-height: 32px;
         font-size: 0.75rem;
     }
 
@@ -829,6 +1122,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Notification system
+    let previousUnreadCount = 0;
     loadNotifications();
 
     // Refresh notifications every 30 seconds
@@ -838,10 +1132,65 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('notificationDropdownBtn')?.addEventListener('click', loadNotifications);
 });
 
+// Subtle notification sound function
+function playNotificationSound() {
+    try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        // Subtle, pleasant notification sound
+        oscillator.frequency.value = 800; // Starting frequency
+        oscillator.type = 'sine'; // Soft sine wave
+
+        // Fade in and out for subtlety
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.15, audioContext.currentTime + 0.01); // Volume at 15%
+        gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.2); // Fade out
+
+        // Play two soft beeps
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.2);
+
+        // Second beep after a short pause
+        setTimeout(() => {
+            const oscillator2 = audioContext.createOscillator();
+            const gainNode2 = audioContext.createGain();
+
+            oscillator2.connect(gainNode2);
+            gainNode2.connect(audioContext.destination);
+
+            oscillator2.frequency.value = 1000; // Slightly higher frequency
+            oscillator2.type = 'sine';
+
+            gainNode2.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode2.gain.linearRampToValueAtTime(0.15, audioContext.currentTime + 0.01);
+            gainNode2.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.15);
+
+            oscillator2.start(audioContext.currentTime);
+            oscillator2.stop(audioContext.currentTime + 0.15);
+        }, 150);
+    } catch (error) {
+        // Fallback: Silent if audio context is not supported or user interaction is required
+        console.log('Notification sound unavailable');
+    }
+}
+
 async function loadNotifications() {
     try {
         const response = await fetch('/patient/notifications/recent');
         const data = await response.json();
+
+        // Check if unread count increased (new notification)
+        const currentUnreadCount = data.unread_count || 0;
+        if (typeof previousUnreadCount !== 'undefined' && currentUnreadCount > previousUnreadCount) {
+            // New notification received - play sound
+            playNotificationSound();
+        }
+        previousUnreadCount = currentUnreadCount;
 
         updateNotificationBadge(data.unread_count);
         updateNotificationSubtitle(data.unread_count);

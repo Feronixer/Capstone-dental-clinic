@@ -2,7 +2,243 @@
 @section('content')
 <link rel="stylesheet" href="{{ asset('css/content-management.css') }}">
 <style>
-    /* FORCE FIXED LAYOUT - HIGHEST PRIORITY */
+/* Announcement Form - Compact Design */
+.announcement-image-container {
+    border: 1px solid #e0e0e0;
+    transition: all 0.3s ease;
+}
+
+.announcement-image-container:hover {
+    border-color: #667eea;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+}
+
+.date-time-section {
+    border: 1px solid #e0e0e0;
+    background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%);
+    transition: all 0.3s ease;
+}
+
+.date-time-section:hover {
+    border-color: #667eea;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+}
+
+.form-control-sm, .form-select-sm {
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    transition: all 0.2s ease;
+}
+
+.form-control-sm:focus, .form-select-sm:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+}
+
+.form-label.small {
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+}
+
+.date-time-section h6 {
+    font-size: 0.9rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #667eea;
+    margin-bottom: 0.75rem;
+}
+
+.form-check-switch .form-check-input {
+    cursor: pointer;
+    width: 2.5rem;
+    height: 1.25rem;
+}
+
+.form-check-switch .form-check-label {
+    cursor: pointer;
+    user-select: none;
+}
+
+/* Compact spacing */
+.row.g-2 > * {
+    padding-left: calc(var(--bs-gutter-x) * 0.25);
+    padding-right: calc(var(--bs-gutter-x) * 0.25);
+}
+
+.row.g-3 > * {
+    padding-left: calc(var(--bs-gutter-x) * 0.5);
+    padding-right: calc(var(--bs-gutter-x) * 0.5);
+}
+
+/* Dark mode support */
+[data-theme="dark"] .announcement-image-container {
+    background: var(--dm-bg-secondary, #1e293b) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] .announcement-image-container:hover {
+    border-color: #667eea !important;
+}
+
+[data-theme="dark"] .date-time-section {
+    background: linear-gradient(to bottom, #1e293b 0%, #0f172a 100%) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] .date-time-section:hover {
+    border-color: #667eea !important;
+}
+
+[data-theme="dark"] .date-time-section h6 {
+    color: #60a5fa !important;
+    border-bottom-color: #667eea !important;
+}
+
+[data-theme="dark"] .form-control-sm,
+[data-theme="dark"] .form-select-sm {
+    background-color: var(--dm-card-bg, #1e293b) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .form-control-sm:focus,
+[data-theme="dark"] .form-select-sm:focus {
+    background-color: var(--dm-card-bg, #1e293b) !important;
+    border-color: #667eea !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+/* New Announcement Modal - Blue Icon */
+.new-announcement-icon-wrapper {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4) !important;
+    animation: bluePulse 2s infinite;
+}
+
+@keyframes bluePulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 12px 30px rgba(59, 130, 246, 0.6);
+    }
+}
+
+.new-announcement-icon-wrapper i {
+    color: white !important;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .new-announcement-icon-wrapper {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.5) !important;
+}
+
+/* Ticker Section - Improved Layout */
+.ticker-controls-section {
+    border: 1px solid #e0e0e0;
+    transition: all 0.3s ease;
+}
+
+.ticker-controls-section:hover {
+    border-color: #667eea;
+    background: #f8f9fa !important;
+}
+
+.ticker-preview-section {
+    margin-top: 0.5rem;
+}
+
+.ticker-preview-box {
+    transition: all 0.3s ease;
+    min-height: 38px;
+    display: flex;
+    align-items: center;
+}
+
+.ticker-preview-box:hover {
+    background: rgba(255, 193, 7, 0.15) !important;
+    border-color: rgba(255, 193, 7, 0.4) !important;
+}
+
+.form-check-switch .form-check-input {
+    cursor: pointer;
+}
+
+.form-check-switch .form-check-label {
+    cursor: pointer;
+    user-select: none;
+}
+
+[data-theme="dark"] .ticker-controls-section {
+    background: var(--dm-bg-secondary, #1e293b) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] .ticker-controls-section:hover {
+    border-color: #667eea !important;
+    background: var(--dm-bg-tertiary, #334155) !important;
+}
+
+[data-theme="dark"] .ticker-preview-box {
+    background: rgba(255, 193, 7, 0.1) !important;
+    border-color: rgba(255, 193, 7, 0.2) !important;
+}
+
+[data-theme="dark"] .ticker-preview-box:hover {
+    background: rgba(255, 193, 7, 0.15) !important;
+    border-color: rgba(255, 193, 7, 0.3) !important;
+}
+
+[data-theme="dark"] .ticker-preview-box span {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+/* Dark mode for cards with bg-white headers */
+[data-theme="dark"] .card {
+    background: var(--dm-card-bg, #1e293b) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] .card-header.bg-white {
+    background: var(--dm-card-bg, #1e293b) !important;
+    border-bottom-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] .card-header.bg-white h5 {
+    color: #60a5fa !important;
+}
+
+[data-theme="dark"] .card-body {
+    background: var(--dm-card-bg, #1e293b) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+/* Dark mode for placeholder images */
+[data-theme="dark"] .placeholder-image.bg-white {
+    background: var(--dm-bg-secondary, #1e293b) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+}
+
+/* Dark mode for mail preview boxes */
+[data-theme="dark"] .mail-preview.bg-white {
+    background: var(--dm-bg-secondary, #1e293b) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+/* Dark mode for multiple patient items */
+[data-theme="dark"] .multiple-patient-item.bg-white {
+    background: var(--dm-bg-secondary, #1e293b) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] .multiple-patient-item.bg-white:hover {
+    background: var(--dm-bg-tertiary, #334155) !important;
+}
+
+/* FORCE FIXED LAYOUT - HIGHEST PRIORITY */
     html {
         overflow-y: scroll !important;
         width: 100vw !important;
@@ -65,6 +301,372 @@
         padding-left: 1rem !important;
         padding-right: 1rem !important;
     }
+
+    /* FIX NAVIGATION BUTTONS - NO SIZE CHANGES */
+    .navigation-bar-container .nav-item-link,
+    .navigation-bar-container .nav-logout-btn,
+    aside.navigation-bar-container .nav-item-link,
+    aside.navigation-bar-container .nav-logout-btn {
+        width: calc(100% - 1rem) !important;
+        min-width: calc(100% - 1rem) !important;
+        max-width: calc(100% - 1rem) !important;
+        height: auto !important;
+        min-height: 40px !important;
+        max-height: 40px !important;
+        padding: 0.5rem 0.875rem !important;
+        margin: 0 0.5rem !important;
+        box-sizing: border-box !important;
+        transform: none !important;
+        scale: 1 !important;
+        transition: background-color 0.3s ease, color 0.3s ease !important;
+    }
+
+    .navigation-bar-container .nav-item-link:hover,
+    .navigation-bar-container .nav-logout-btn:hover,
+    aside.navigation-bar-container .nav-item-link:hover,
+    aside.navigation-bar-container .nav-logout-btn:hover {
+        width: calc(100% - 1rem) !important;
+        min-width: calc(100% - 1rem) !important;
+        max-width: calc(100% - 1rem) !important;
+        height: auto !important;
+        min-height: 40px !important;
+        max-height: 40px !important;
+        padding: 0.5rem 0.875rem !important;
+        margin: 0 0.5rem !important;
+        transform: none !important;
+        scale: 1 !important;
+    }
+
+    .navigation-bar-container .nav-menu-list li.active .nav-item-link,
+    .navigation-bar-container .nav-menu-list li.active .nav-logout-btn,
+    aside.navigation-bar-container .nav-menu-list li.active .nav-item-link,
+    aside.navigation-bar-container .nav-menu-list li.active .nav-logout-btn {
+        width: calc(100% - 1rem) !important;
+        min-width: calc(100% - 1rem) !important;
+        max-width: calc(100% - 1rem) !important;
+        height: auto !important;
+        min-height: 40px !important;
+        max-height: 40px !important;
+        padding: 0.5rem 0.875rem !important;
+        margin: 0 0.5rem !important;
+        transform: none !important;
+        scale: 1 !important;
+        box-shadow: none !important;
+    }
+
+    .navigation-bar-container .nav-item-link:active,
+    .navigation-bar-container .nav-item-link:focus,
+    .navigation-bar-container .nav-item-link:focus-visible,
+    .navigation-bar-container .nav-logout-btn:active,
+    .navigation-bar-container .nav-logout-btn:focus,
+    .navigation-bar-container .nav-logout-btn:focus-visible,
+    aside.navigation-bar-container .nav-item-link:active,
+    aside.navigation-bar-container .nav-item-link:focus,
+    aside.navigation-bar-container .nav-item-link:focus-visible,
+    aside.navigation-bar-container .nav-logout-btn:active,
+    aside.navigation-bar-container .nav-logout-btn:focus,
+    aside.navigation-bar-container .nav-logout-btn:focus-visible {
+        width: calc(100% - 1rem) !important;
+        min-width: calc(100% - 1rem) !important;
+        max-width: calc(100% - 1rem) !important;
+        height: auto !important;
+        min-height: 40px !important;
+        max-height: 40px !important;
+        padding: 0.5rem 0.875rem !important;
+        margin: 0 0.5rem !important;
+        transform: none !important;
+        scale: 1 !important;
+        outline: none !important;
+        border: none !important;
+    }
+
+    .navigation-bar-container .nav-icon-wrapper,
+    aside.navigation-bar-container .nav-icon-wrapper {
+        width: 28px !important;
+        min-width: 28px !important;
+        max-width: 28px !important;
+        height: 28px !important;
+        min-height: 28px !important;
+        max-height: 28px !important;
+        transform: none !important;
+        scale: 1 !important;
+        box-sizing: border-box !important;
+    }
+
+    .navigation-bar-container .nav-item-link:hover .nav-icon-wrapper,
+    .navigation-bar-container .nav-logout-btn:hover .nav-icon-wrapper,
+    aside.navigation-bar-container .nav-item-link:hover .nav-icon-wrapper,
+    aside.navigation-bar-container .nav-logout-btn:hover .nav-icon-wrapper {
+        width: 28px !important;
+        min-width: 28px !important;
+        max-width: 28px !important;
+        height: 28px !important;
+        min-height: 28px !important;
+        max-height: 28px !important;
+        transform: none !important;
+        scale: 1 !important;
+    }
+
+    .navigation-bar-container .nav-menu-list li.active .nav-icon-wrapper,
+    aside.navigation-bar-container .nav-menu-list li.active .nav-icon-wrapper {
+        width: 28px !important;
+        min-width: 28px !important;
+        max-width: 28px !important;
+        height: 28px !important;
+        min-height: 28px !important;
+        max-height: 28px !important;
+        transform: none !important;
+        scale: 1 !important;
+    }
+
+    .navigation-bar-container .nav-icon-wrapper i,
+    aside.navigation-bar-container .nav-icon-wrapper i {
+        font-size: 0.9rem !important;
+        transform: none !important;
+        scale: 1 !important;
+        display: inline-block !important;
+        line-height: 1 !important;
+    }
+
+    .navigation-bar-container .nav-item-link:hover .nav-icon-wrapper i,
+    .navigation-bar-container .nav-logout-btn:hover .nav-icon-wrapper i,
+    aside.navigation-bar-container .nav-item-link:hover .nav-icon-wrapper i,
+    aside.navigation-bar-container .nav-logout-btn:hover .nav-icon-wrapper i {
+        font-size: 0.9rem !important;
+        transform: none !important;
+        scale: 1 !important;
+    }
+
+    .navigation-bar-container .nav-menu-list li.active .nav-icon-wrapper i,
+    aside.navigation-bar-container .nav-menu-list li.active .nav-icon-wrapper i {
+        font-size: 0.9rem !important;
+        transform: none !important;
+        scale: 1 !important;
+    }
+
+    .navigation-bar-container .nav-item-text,
+    aside.navigation-bar-container .nav-item-text {
+        font-size: 0.8rem !important;
+        font-weight: 500 !important;
+        flex: 1 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+
+    .navigation-bar-container .nav-menu-list li.active .nav-item-text,
+    aside.navigation-bar-container .nav-menu-list li.active .nav-item-text {
+        font-size: 0.8rem !important;
+        font-weight: 600 !important;
+    }
+
+    /* FIX SECTION LABELS - MAIN AND SETTINGS - NO SIZE CHANGES */
+    .navigation-bar-container .nav-section-label,
+    aside.navigation-bar-container .nav-section-label {
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.375rem !important;
+        padding: 0.375rem 1rem !important;
+        font-size: 0.65rem !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.05em !important;
+        margin-bottom: 0.125rem !important;
+        width: 100% !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        min-height: auto !important;
+        max-height: auto !important;
+        box-sizing: border-box !important;
+        transform: none !important;
+        scale: 1 !important;
+        transition: none !important;
+    }
+
+    .navigation-bar-container .nav-section-label:hover,
+    aside.navigation-bar-container .nav-section-label:hover {
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.375rem !important;
+        padding: 0.375rem 1rem !important;
+        font-size: 0.65rem !important;
+        font-weight: 600 !important;
+        width: 100% !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        transform: none !important;
+        scale: 1 !important;
+    }
+
+    .navigation-bar-container .nav-section-label:active,
+    .navigation-bar-container .nav-section-label:focus,
+    .navigation-bar-container .nav-section-label:focus-visible,
+    aside.navigation-bar-container .nav-section-label:active,
+    aside.navigation-bar-container .nav-section-label:focus,
+    aside.navigation-bar-container .nav-section-label:focus-visible {
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.375rem !important;
+        padding: 0.375rem 1rem !important;
+        font-size: 0.65rem !important;
+        font-weight: 600 !important;
+        width: 100% !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        transform: none !important;
+        scale: 1 !important;
+        outline: none !important;
+        border: none !important;
+    }
+
+    .navigation-bar-container .nav-section-label i,
+    aside.navigation-bar-container .nav-section-label i {
+        font-size: 0.7rem !important;
+        opacity: 0.8 !important;
+        width: auto !important;
+        min-width: auto !important;
+        max-width: auto !important;
+        height: auto !important;
+        transform: none !important;
+        scale: 1 !important;
+        display: inline-block !important;
+        line-height: 1 !important;
+        flex-shrink: 0 !important;
+    }
+
+    .navigation-bar-container .nav-section-label:hover i,
+    aside.navigation-bar-container .nav-section-label:hover i {
+        font-size: 0.7rem !important;
+        opacity: 0.8 !important;
+        transform: none !important;
+        scale: 1 !important;
+    }
+
+    .navigation-bar-container .nav-section-label span,
+    aside.navigation-bar-container .nav-section-label span {
+        font-size: 0.65rem !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.05em !important;
+        white-space: nowrap !important;
+        overflow: visible !important;
+        text-overflow: clip !important;
+        flex: 0 0 auto !important;
+        transform: none !important;
+        scale: 1 !important;
+    }
+
+    .navigation-bar-container .nav-section-label:hover span,
+    aside.navigation-bar-container .nav-section-label:hover span {
+        font-size: 0.65rem !important;
+        font-weight: 600 !important;
+        transform: none !important;
+        scale: 1 !important;
+    }
+
+    /* FIX USER PROFILE SECTION - FRED CALUAG - NO SIZE CHANGES */
+    .navigation-bar-container .user-profile-section,
+    aside.navigation-bar-container .user-profile-section {
+        padding: 0.75rem !important;
+        flex-shrink: 0 !important;
+        width: 100% !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        transform: none !important;
+        scale: 1 !important;
+    }
+
+    .navigation-bar-container .user-profile-link,
+    aside.navigation-bar-container .user-profile-link {
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.625rem !important;
+        padding: 0.5rem !important;
+        width: 100% !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        transform: none !important;
+        scale: 1 !important;
+        transition: background-color 0.3s ease !important;
+    }
+
+    .navigation-bar-container .user-profile-link:hover,
+    aside.navigation-bar-container .user-profile-link:hover {
+        width: 100% !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+        transform: none !important;
+        scale: 1 !important;
+    }
+
+    .navigation-bar-container .user-profile-avatar,
+    aside.navigation-bar-container .user-profile-avatar {
+        flex-shrink: 0 !important;
+        width: 40px !important;
+        min-width: 40px !important;
+        max-width: 40px !important;
+        height: 40px !important;
+        min-height: 40px !important;
+        max-height: 40px !important;
+        box-sizing: border-box !important;
+        transform: none !important;
+        scale: 1 !important;
+    }
+
+    .navigation-bar-container .user-initials-avatar,
+    aside.navigation-bar-container .user-initials-avatar {
+        width: 40px !important;
+        min-width: 40px !important;
+        max-width: 40px !important;
+        height: 40px !important;
+        min-height: 40px !important;
+        max-height: 40px !important;
+        font-size: 0.95rem !important;
+        box-sizing: border-box !important;
+        transform: none !important;
+        scale: 1 !important;
+    }
+
+    .navigation-bar-container .user-profile-info,
+    aside.navigation-bar-container .user-profile-info {
+        flex: 1 !important;
+        min-width: 0 !important;
+        width: auto !important;
+        max-width: calc(100% - 50px) !important;
+        box-sizing: border-box !important;
+        transform: none !important;
+        scale: 1 !important;
+    }
+
+    .navigation-bar-container .user-profile-name,
+    aside.navigation-bar-container .user-profile-name {
+        font-size: 0.875rem !important;
+        font-weight: 600 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        transform: none !important;
+        scale: 1 !important;
+        line-height: 1.2 !important;
+        margin-bottom: 0.1rem !important;
+    }
+
+    .navigation-bar-container .user-profile-role,
+    aside.navigation-bar-container .user-profile-role {
+        font-size: 0.7rem !important;
+        font-weight: 400 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        transform: none !important;
+        scale: 1 !important;
+        line-height: 1.2 !important;
+    }
 </style>
 
 <div class="container-fluid px-4 py-4">
@@ -76,56 +678,118 @@
     </div>
 
     <!-- Announcement Section -->
-    <div class="row mb-5">
+    <div class="row mb-3">
         <div class="col-12">
             <div class="card shadow-sm border-0">
-                <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 text-primary fw-bold">Update Announcement</h5>
+                <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-2">
+                    <h5 class="mb-0 text-primary fw-bold" style="font-size: 1.1rem;">Update Announcement</h5>
                     <a href="{{ route('staff-announcement-archives') }}" class="btn btn-outline-primary btn-sm">
                         <i class="bi bi-archive me-1"></i>View Archives
                     </a>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-3">
                     <form id="announcementForm" enctype="multipart/form-data">
                         @csrf
-                        <div class="row">
-                            <!-- Image Upload -->
-                            <div class="col-md-4 mb-3">
-                                <div class="announcement-image-container position-relative">
-                                    <div class="image-preview" id="imagePreview">
+                        <div class="row g-3">
+                            <!-- Image Upload - Compact Sidebar -->
+                            <div class="col-lg-3 col-md-4">
+                                <div class="announcement-image-container bg-light rounded p-2">
+                                    <div class="image-preview mb-2" id="imagePreview">
                                         @if($announcement && $announcement->image_path)
-                                            <img src="{{ asset('storage/' . $announcement->image_path) }}" alt="Announcement" class="img-fluid rounded">
+                                            <img src="{{ asset('storage/' . $announcement->image_path) }}" alt="Announcement" class="img-fluid rounded shadow-sm w-100" style="height: 180px; object-fit: cover;">
                                         @else
-                                            <div class="placeholder-image d-flex align-items-center justify-content-center bg-light rounded" style="height: 250px;">
-                                                <i class="bi bi-image" style="font-size: 4rem; color: #ddd;"></i>
+                                            <div class="placeholder-image d-flex align-items-center justify-content-center bg-white rounded shadow-sm border" style="height: 180px;">
+                                                <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
                                             </div>
                                         @endif
                                     </div>
                                     <input type="file" id="announcementImage" name="image" accept="image/*" class="d-none">
-                                    <button type="button" class="btn btn-sm btn-primary mt-2" onclick="document.getElementById('announcementImage').click()">
+                                    <button type="button" class="btn btn-sm btn-primary w-100 mb-1" onclick="document.getElementById('announcementImage').click()">
                                         <i class="bi bi-upload me-1"></i>Change Photo
                                     </button>
+                                    <small class="text-muted d-block text-center" style="font-size: 0.75rem;">
+                                        <i class="bi bi-info-circle me-1"></i>3840 x 2000 px
+                                    </small>
                                 </div>
                             </div>
 
-                            <!-- Announcement Details -->
-                            <div class="col-md-8">
-                                <div class="mb-3">
-                                    <label for="announcementTitle" class="form-label fw-bold">Title</label>
-                                    <input type="text" class="form-control" id="announcementTitle" name="title"
-                                           value="{{ $announcement->title ?? '' }}" required>
+                            <!-- Announcement Details - Main Content -->
+                            <div class="col-lg-9 col-md-8">
+                                <!-- Basic Information -->
+                                <div class="row g-2 mb-3">
+                                    <div class="col-12">
+                                        <label for="announcementTitle" class="form-label fw-bold small mb-1">Heading <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control form-control-sm" id="announcementTitle" name="title"
+                                               value="{{ $announcement->title ?? '' }}" required>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="announcementSubheading" class="form-label fw-bold small mb-1">Subheading <span class="text-muted" style="font-size: 0.75rem;">(Optional)</span></label>
+                                        <input type="text" class="form-control form-control-sm" id="announcementSubheading" name="subheading"
+                                               value="{{ $announcement->subheading ?? '' }}" placeholder="e.g., Our Clinic is closed for 3 days and will resume by November 6">
+                                    </div>
                                 </div>
-                                <div class="mb-3">
-                                    <label for="announcementContent" class="form-label fw-bold">Content</label>
-                                    <textarea class="form-control" id="announcementContent" name="content"
-                                              rows="6" required>{{ $announcement->content ?? '' }}</textarea>
+
+                                <!-- Date & Time Section - Grouped -->
+                                <div class="date-time-section bg-light rounded p-3 mb-3">
+                                    <h6 class="mb-2 fw-bold text-primary small d-flex align-items-center">
+                                        <i class="bi bi-calendar3 me-2"></i>Date & Time Schedule
+                                    </h6>
+                                    <div class="row g-2">
+                                        <!-- Date Range -->
+                                        <div class="col-md-6">
+                                            <label for="dateStart" class="form-label fw-semibold small mb-1">Start Date <span class="text-danger">*</span></label>
+                                            <input type="date" class="form-control form-control-sm" id="dateStart" name="date_start"
+                                                   value="{{ $announcement->date_start ? $announcement->date_start->format('Y-m-d') : '' }}" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="dateEnd" class="form-label fw-semibold small mb-1">End Date <span class="text-muted" style="font-size: 0.75rem;">(Optional)</span></label>
+                                            <input type="date" class="form-control form-control-sm" id="dateEnd" name="date_end"
+                                                   value="{{ $announcement->date_end ? $announcement->date_end->format('Y-m-d') : '' }}">
+                                        </div>
+
+                                        <!-- Time Duration Toggle -->
+                                        <div class="col-12">
+                                            <div class="form-check form-switch mb-2">
+                                                <input class="form-check-input" type="checkbox" id="isWholeDay" name="is_whole_day" value="1"
+                                                       {{ ($announcement->is_whole_day ?? false) ? 'checked' : '' }}>
+                                                <label class="form-check-label fw-semibold small" for="isWholeDay">
+                                                    <i class="bi bi-calendar-day me-1"></i>Whole Day Event
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <!-- Time Range -->
+                                        <div id="timeRangeContainer" style="{{ ($announcement->is_whole_day ?? false) ? 'display:none;' : '' }}" class="col-12">
+                                            <div class="row g-2">
+                                                <div class="col-md-6">
+                                                    <label for="timeStart" class="form-label fw-semibold small mb-1">Start Time</label>
+                                                    <input type="time" class="form-control form-control-sm" id="timeStart" name="time_start"
+                                                           value="{{ $announcement->time_start ? \Carbon\Carbon::parse($announcement->time_start)->format('H:i') : '' }}">
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="timeEnd" class="form-label fw-semibold small mb-1">End Time</label>
+                                                    <input type="time" class="form-control form-control-sm" id="timeEnd" name="time_end"
+                                                           value="{{ $announcement->time_end ? \Carbon\Carbon::parse($announcement->time_end)->format('H:i') : '' }}">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="text-end d-flex gap-2 justify-content-end">
-                                    <button type="button" id="btnNewAnnouncement" class="btn btn-success px-4">
-                                        <i class="bi bi-plus-circle me-1"></i>NEW ANNOUNCEMENT
+
+                                <!-- Description -->
+                                <div class="mb-3">
+                                    <label for="announcementContent" class="form-label fw-bold small mb-1">Description <span class="text-danger">*</span></label>
+                                    <textarea class="form-control form-control-sm" id="announcementContent" name="content"
+                                              rows="5" required>{{ $announcement->content ?? '' }}</textarea>
+                                </div>
+
+                                <!-- Action Buttons -->
+                                <div class="d-flex gap-2 justify-content-end">
+                                    <button type="submit" class="btn btn-primary btn-sm px-3">
+                                        <i class="bi bi-check-circle me-1"></i>Publish
                                     </button>
-                                    <button type="submit" class="btn btn-primary px-4">
-                                        <i class="bi bi-check-circle me-1"></i>EDIT
+                                    <button type="button" id="btnNewAnnouncement" class="btn btn-success btn-sm px-3">
+                                        <i class="bi bi-plus-circle me-1"></i>Add Another
                                     </button>
                                 </div>
                             </div>
@@ -133,11 +797,11 @@
                     </form>
                 </div>
             </div>
+        </div>
     </div>
-</div>
 
-<!-- Top Header Ticker Section -->
-<div class="row mb-5">
+    <!-- Top Header Ticker Section -->
+    <div class="row mb-3">
     <div class="col-12">
         <div class="card shadow-sm border-0">
             <div class="card-header bg-white border-bottom">
@@ -146,42 +810,49 @@
             <div class="card-body">
                 <form id="tickerForm">
                     @csrf
-                    <div class="row">
-                        <div class="col-md-10">
-                            <div class="mb-3">
-                                <label for="tickerText" class="form-label fw-bold">Ticker Message</label>
-                                <input type="text" class="form-control" id="tickerText" name="ticker_text"
-                                       value="{{ $announcement->ticker_text ?? 'The clinic will be closed on April 27, 2025 for regular maintenance. Emergency services will be available.' }}" required>
-                                <small class="text-muted">This message will scroll across the top of the patient portal</small>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="mb-3">
-                                <label for="showTicker" class="form-label fw-bold">Display</label>
+                    <!-- Ticker Message Input Section -->
+                    <div class="mb-3">
+                        <label for="tickerText" class="form-label fw-bold small mb-1 d-flex align-items-center">
+                            <i class="bi bi-megaphone-fill me-2 text-primary"></i>Ticker Message
+                        </label>
+                        <input type="text" class="form-control form-control-sm" id="tickerText" name="ticker_text"
+                               value="{{ $announcement->ticker_text ?? '🔰 Write a ticker for this new announcement! 🔰' }}" required>
+                        <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">
+                            <i class="bi bi-info-circle me-1"></i>This message will scroll across the top of the patient portal
+                        </small>
+                    </div>
+
+                    <!-- Controls Section -->
+                    <div class="ticker-controls-section bg-light rounded p-2 mb-3">
+                        <div class="row g-2 align-items-center">
+                            <div class="col-md-6 col-lg-7">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" id="showTicker" name="show_ticker"
                                            {{ ($announcement->show_ticker ?? true) ? 'checked' : '' }}>
-                                    <label class="form-check-label" for="showTicker">Show Ticker</label>
+                                    <label class="form-check-label fw-semibold small" for="showTicker">
+                                        Display Ticker on Portal
+                                    </label>
                                 </div>
+                            </div>
+                            <div class="col-md-6 col-lg-5 text-end">
+                                <button type="submit" class="btn btn-primary btn-sm px-3">
+                                    <i class="bi bi-check-circle me-1"></i>Update Ticker
+                                </button>
                             </div>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="alert alert-info mb-3">
-                                <i class="bi bi-info-circle me-2"></i>
-                                <strong>Preview:</strong>
-                                <div class="mt-2 p-2 bg-warning bg-opacity-10 rounded">
-                                    <i class="bi bi-megaphone-fill me-2"></i>
-                                    <strong>Announcement:</strong> <span id="tickerPreview">{{ $announcement->ticker_text ?? 'The clinic will be closed on April 27, 2025 for regular maintenance. Emergency services will be available.' }}</span>
-                                </div>
+
+                    <!-- Preview Section -->
+                    <div class="ticker-preview-section">
+                        <label class="form-label fw-bold small mb-2 d-flex align-items-center">
+                            <i class="bi bi-eye-fill me-2 text-info"></i>Live Preview
+                        </label>
+                        <div class="ticker-preview-box bg-warning bg-opacity-10 border border-warning border-opacity-25 rounded p-2">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-megaphone-fill text-warning me-2"></i>
+                                <span id="tickerPreview" class="small text-dark fw-medium">{{ $announcement->ticker_text ?? '🔰 Write a ticker for this new announcement! 🔰' }}</span>
                             </div>
                         </div>
-                    </div>
-                    <div class="text-end">
-                        <button type="submit" class="btn btn-primary px-4">
-                            <i class="bi bi-check-circle me-1"></i>UPDATE TICKER
-                        </button>
                     </div>
                 </form>
             </div>
@@ -190,11 +861,11 @@
 </div>
 
 <!-- Services Section (Compact Grid Table - st-*) -->
-<div class="row mb-5">
+<div class="row mb-3">
         <div class="col-12">
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 text-primary fw-bold">Service</h5>
+                    <h5 class="mb-0 text-primary fw-bold">Service Management</h5>
                     <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addServiceModal">
                         <i class="bi bi-plus-circle me-1"></i>Add Service
                     </button>
@@ -251,7 +922,7 @@
     </div>
 
     <!-- Patient Mail Settings Section -->
-    <div class="row mb-5">
+    <div class="row mb-3">
         <div class="col-12">
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-white border-bottom">
@@ -282,161 +953,186 @@
                             <div class="tab-content">
                                 <!-- Send Email Tab -->
                                 <div class="tab-pane fade show active" id="send-email" role="tabpanel">
-                                    <h6 class="fw-bold mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="fw-bold mb-0">
                                         <i class="bi bi-envelope-fill me-2 text-primary"></i>Send Email to Patient
                                     </h6>
 
-                                    <!-- Bulk Email Mode Toggle -->
-                                    <div class="alert alert-light border mb-4">
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" id="bulkEmailMode" style="cursor: pointer;">
-                                            <label class="form-check-label fw-semibold" for="bulkEmailMode" style="cursor: pointer;">
-                                                <i class="bi bi-people me-1"></i>Enable Bulk Email Mode
-                                            </label>
-                                        </div>
-                                        <small class="text-muted d-block mt-1">Toggle to send emails to multiple patients at once</small>
+                                        <!-- Receiver Type Tabs -->
+                                        <ul class="nav nav-pills" id="receiverTypeTabs" role="tablist">
+                                            <li class="nav-item" role="presentation">
+                                                <button class="nav-link active" id="single-tab" data-bs-toggle="pill" data-bs-target="#single-receiver" type="button" role="tab">
+                                                    <i class="bi bi-person me-1"></i>Single
+                                                </button>
+                                            </li>
+                                            <li class="nav-item" role="presentation">
+                                                <button class="nav-link" id="multiple-tab" data-bs-toggle="pill" data-bs-target="#multiple-receiver" type="button" role="tab">
+                                                    <i class="bi bi-people me-1"></i>Multiple
+                                                </button>
+                                            </li>
+                                        </ul>
                                     </div>
 
-                                    <p class="text-muted mb-4" id="modeDescription">Select a patient with an appointment and choose the type of email to send.</p>
-
-                                    <!-- Single Email Form -->
-                                    <div class="row" id="singleEmailForm">
+                                    <!-- Tab Content -->
+                                    <div class="tab-content" id="receiverTypeTabContent">
+                                        <!-- Single Receiver Tab -->
+                                        <div class="tab-pane fade show active" id="single-receiver" role="tabpanel">
+                                            <div class="row g-3">
+                                                <!-- Left Column: Selection & Template -->
+                                                <div class="col-xl-7 col-lg-8">
+                                                    <div class="card border-0 shadow-sm email-section-card">
+                                                        <div class="card-header bg-white border-bottom py-2">
+                                                            <h6 class="mb-0 fw-bold">
+                                                                <i class="bi bi-person-check me-2 text-primary"></i>Patient & Appointment
+                                                            </h6>
+                                                        </div>
+                                                        <div class="card-body p-3">
+                                                            <div class="row g-2">
                                         <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label for="selectPatient" class="form-label fw-semibold">Select Patient <span class="text-danger">*</span></label>
-                                                <select class="form-select" id="selectPatient" required>
+                                                                    <label for="singleSelectPatient" class="form-label fw-semibold small">Patient <span class="text-danger">*</span></label>
+                                                                    <select class="form-select form-select-sm" id="singleSelectPatient" required>
                                                     <option value="">-- Choose a patient --</option>
                                                 </select>
-                                                <small class="text-muted">Only patients with appointments are shown</small>
+                                                                    <small class="text-muted small">Only patients with appointments</small>
                                             </div>
-
-                                            <div class="mb-3">
-                                                <label for="selectAppointment" class="form-label fw-semibold">Select Appointment <span class="text-danger">*</span></label>
-                                                <select class="form-select" id="selectAppointment" required disabled>
+                                                                <div class="col-md-6">
+                                                                    <label for="singleSelectAppointment" class="form-label fw-semibold small">Appointment <span class="text-danger">*</span></label>
+                                                                    <select class="form-select form-select-sm" id="singleSelectAppointment" required disabled>
                                                     <option value="">-- Select patient first --</option>
                                                 </select>
                                             </div>
-
-                                            <div class="d-grid gap-2">
-                                                <button type="button" class="btn btn-primary btn-lg" id="btnSendEmail" disabled>
-                                                    <i class="bi bi-send-fill me-2"></i>Send Follow Up Email
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-6">
-                                            <div class="card bg-light border">
-                                                <div class="card-body">
-                                                    <h6 class="card-title fw-bold mb-3">
-                                                        <i class="bi bi-info-circle me-2"></i>Email Preview
-                                                    </h6>
-                                                    <div id="emailPreviewContent">
-                                                        <p class="text-muted text-center py-5">
-                                                            <i class="bi bi-envelope" style="font-size: 3rem; opacity: 0.3;"></i><br>
-                                                            Select a patient to preview
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="alert alert-info mt-3" role="alert">
-                                                <i class="bi bi-lightbulb-fill me-2"></i>
-                                                <strong>Tip:</strong> Sending a Follow Up email to patients.
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Follow Up Template Editor (Static, always visible) -->
-                                    <div class="row mt-4" id="followUpTemplateEditor">
-                                        <div class="col-12">
-                                            <div class="card border-0 shadow-sm">
-                                                <div class="card-header bg-white border-bottom">
-                                                    <h6 class="fw-bold mb-0">
-                                                        <i class="bi bi-envelope-check me-2 text-primary"></i>Follow Up Email Template
-                                                    </h6>
-                                                </div>
-                                                <div class="card-body">
-                                                    <div class="mb-3">
-                                                        <label class="form-label fw-semibold">Template Content</label>
-                                                        <textarea class="form-control" id="follow-ups-template" rows="4"
-                                                                  data-type="follow_up">{{ $mailTemplates['follow_up']->content ?? 'Hi %firstname%, we hope you are doing well. Please schedule your follow-up appointment.' }}</textarea>
-                                                        <small class="text-muted">Use %firstname%, %service% for placeholders</small>
-                                                    </div>
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <div class="card bg-light border-0">
-                                                            <div class="card-body p-3">
-                                                                <small class="text-muted fw-bold d-block mb-2">Preview:</small>
-                                                                <p class="mb-0 small" id="follow-ups-preview">
-                                                                    Hi <span class="text-primary fw-bold">Angel Cuadernal</span>, we hope you are doing well.
-                                                                    Please schedule your follow-up appointment.
-                                                                </p>
                                                             </div>
-                                                        </div>
-                                                        <button class="btn btn-primary" onclick="saveMailTemplate('follow_up')">
-                                                            <i class="bi bi-check-circle me-1"></i>Save Template
-                                                        </button>
+                                            </div>
+                                        </div>
+
+                                                    <div class="card border-0 shadow-sm email-section-card mt-3">
+                                                        <div class="card-header bg-white border-bottom py-2">
+                                                            <h6 class="mb-0 fw-bold">
+                                                                <i class="bi bi-envelope-check me-2 text-primary"></i>Email Template
+                                                    </h6>
+                                                    </div>
+                                                        <div class="card-body p-3">
+                                                            <div class="mb-3">
+                                                                <textarea class="form-control" id="singleMailTemplate" rows="5"
+                                                                          placeholder="Enter your email template...">{{ $mailTemplates['follow_up']->content ?? 'Hi %firstname%, we hope you are doing well. Please schedule your follow-up appointment for %service%.' }}</textarea>
+                                                                <small class="text-muted small">Placeholders: <code>%firstname%</code>, <code>%datetime%</code>, <code>%service%</code></small>
+                                                </div>
+                                                            <div class="d-grid">
+                                                                <button type="button" class="btn btn-primary" id="btnSendSingleEmail" disabled>
+                                                                    <i class="bi bi-send-fill me-2"></i>Send Email
+                                                                </button>
+                                            </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                                <!-- Right Column: Preview -->
+                                                <div class="col-xl-5 col-lg-4">
+                                                    <div class="card border-0 shadow-sm email-preview-card sticky-top">
+                                                        <div class="card-header email-preview-header border-0 py-2">
+                                                            <h6 class="mb-0 fw-bold">
+                                                                <i class="bi bi-eye me-2"></i>Preview
+                                                    </h6>
+                                                </div>
+                                                        <div class="card-body p-3" style="min-height: 400px;">
+                                                            <div id="singleEmailPreview">
+                                                                <div class="text-center py-4">
+                                                                    <i class="bi bi-envelope" style="font-size: 2.5rem; opacity: 0.3; color: #6c757d;"></i>
+                                                                    <p class="text-muted mt-3 mb-0 small">Select patient and appointment<br>to see preview</p>
+                                                    </div>
+                                                            </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <!-- Bulk Email Form -->
-                                    <div class="row" id="bulkEmailForm" style="display: none;">
-                                        <div class="col-md-5">
-                                            <div class="mb-3">
-                                                <label for="selectSituation" class="form-label fw-semibold">Filter Patients By <span class="text-danger">*</span></label>
-                                                <select class="form-select" id="selectSituation" required>
-                                                    <option value="">-- Choose a filter --</option>
+                                        <!-- Multiple Receiver Tab -->
+                                        <div class="tab-pane fade" id="multiple-receiver" role="tabpanel">
+                                            <div class="row g-3">
+                                                <!-- Left Column: Patient Selection & Template -->
+                                                <div class="col-xl-7 col-lg-8">
+                                                    <div class="card border-0 shadow-sm email-section-card">
+                                                        <div class="card-header bg-white border-bottom py-2 d-flex justify-content-between align-items-center">
+                                                            <h6 class="mb-0 fw-bold">
+                                                                <i class="bi bi-people me-2 text-primary"></i>Select Patients
+                                                            </h6>
+                                                            <span class="badge bg-primary" id="multiplePatientCount">0 selected</span>
+                                                        </div>
+                                                        <div class="card-body p-3">
+                                                            <div class="row g-2 mb-3">
+                                                                <div class="col-md-8">
+                                                                    <label for="multipleFilterPatients" class="form-label fw-semibold small">Filter</label>
+                                                                    <select class="form-select form-select-sm" id="multipleFilterPatients">
+                                                                        <option value="all">All Patients with Appointments</option>
                                                     <option value="today">Appointments Today</option>
                                                     <option value="tomorrow">Appointments Tomorrow</option>
                                                     <option value="this_week">Appointments This Week</option>
-                                                    <option value="rescheduled">Rescheduled Appointments</option>
-                                                    <option value="pending">Pending/Unconfirmed Appointments</option>
-                                                    <option value="completed">Recently Completed (Last 7 Days)</option>
-                                                    <option value="upcoming">All Upcoming Appointments</option>
+                                                                        <option value="rescheduled">Rescheduled</option>
+                                                                        <option value="pending">Pending/Unconfirmed</option>
+                                                                        <option value="completed">Completed (Last 7 Days)</option>
+                                                                        <option value="upcoming">All Upcoming</option>
                                                 </select>
                                             </div>
-
-                                            <div class="d-grid gap-2">
-                                                <button type="button" class="btn btn-primary btn-lg" id="btnLoadPatients" disabled>
-                                                    <i class="bi bi-search me-2"></i>Load Patients
-                                                </button>
+                                                                <div class="col-md-4 d-flex align-items-end">
+                                                                    <div class="form-check w-100">
+                                                                        <input class="form-check-input" type="checkbox" id="multipleSelectAll">
+                                                                        <label class="form-check-label small" for="multipleSelectAll">Select All</label>
+                                                                    </div>
+                                                                </div>
                                             </div>
 
-                                            <div class="alert alert-info mt-3" role="alert">
-                                                <i class="bi bi-info-circle me-2"></i>
-                                                <strong>Note:</strong> You can select/deselect individual patients from the list before sending.
+                                                            <div>
+                                                                <label class="form-label fw-semibold small mb-2">Patients List</label>
+                                                                <div class="border rounded patients-list-container">
+                                                                    <div id="multiplePatientsList" class="p-2">
+                                                                        <div class="text-center py-3">
+                                                                            <i class="bi bi-people" style="font-size: 1.5rem; opacity: 0.3;"></i>
+                                                                            <p class="text-muted mt-2 mb-0 small">Select a filter to load patients</p>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
                                             </div>
                                         </div>
 
-                                        <div class="col-md-7">
-                                            <div class="card border">
-                                                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                                    <div class="card border-0 shadow-sm email-section-card mt-3">
+                                                        <div class="card-header bg-white border-bottom py-2">
                                                     <h6 class="mb-0 fw-bold">
-                                                        <i class="bi bi-list-check me-2"></i>Patients List
+                                                                <i class="bi bi-envelope-check me-2 text-primary"></i>Email Template
                                                     </h6>
-                                                    <span class="badge bg-primary" id="patientCount">0 patients</span>
                                                 </div>
-                                                <div class="card-body" style="max-height: 400px; overflow-y: auto;">
-                                                    <div id="patientsList">
-                                                        <p class="text-muted text-center py-5">
-                                                            <i class="bi bi-people" style="font-size: 3rem; opacity: 0.3;"></i><br>
-                                                            Select a filter and click "Load Patients" to see the list
-                                                        </p>
+                                                        <div class="card-body p-3">
+                                                            <div class="mb-3">
+                                                                <textarea class="form-control" id="multipleMailTemplate" rows="5"
+                                                                          placeholder="Enter your email template...">{{ $mailTemplates['follow_up']->content ?? 'Hi %firstname%, we hope you are doing well. Please schedule your follow-up appointment for %service%.' }}</textarea>
+                                                                <small class="text-muted small">Placeholders: <code>%firstname%</code>, <code>%datetime%</code>, <code>%service%</code></small>
+                                                    </div>
+                                                            <div class="d-grid">
+                                                                <button type="button" class="btn btn-success" id="btnSendMultipleEmail" disabled>
+                                                                    <i class="bi bi-send-fill me-2"></i>Send Email
+                                                                </button>
+                                                </div>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                <div class="card-footer bg-white border-top">
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="checkbox" id="selectAllPatients">
-                                                            <label class="form-check-label" for="selectAllPatients">
-                                                                Select All
-                                                            </label>
+
+                                                <!-- Right Column: Preview -->
+                                                <div class="col-xl-5 col-lg-4">
+                                                    <div class="card border-0 shadow-sm email-preview-card sticky-top">
+                                                        <div class="card-header email-preview-header border-0 py-2">
+                                                            <h6 class="mb-0 fw-bold">
+                                                                <i class="bi bi-eye me-2"></i>Preview
+                                                            </h6>
                                                         </div>
-                                                        <button type="button" class="btn btn-success" id="btnSendBulkEmail" disabled>
-                                                            <i class="bi bi-send-fill me-2"></i>Send Follow Up to Selected
-                                                        </button>
+                                                        <div class="card-body p-3" style="min-height: 400px;">
+                                                            <div id="multipleEmailPreview">
+                                                                <div class="text-center py-4">
+                                                                    <i class="bi bi-envelope" style="font-size: 2.5rem; opacity: 0.3; color: #6c757d;"></i>
+                                                                    <p class="text-muted mt-3 mb-0 small">Select patients to see<br>email preview</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -576,13 +1272,18 @@
                             </label>
                             <div class="input-group input-group-lg">
                                 <span class="input-group-text bg-light">
+                                    <img id="selected_icon_img" class="d-none theme-adapt" style="width:24px;height:24px;object-fit:contain;" alt="icon">
                                     <i class="bi bi-gear fs-5" id="selected_icon_preview"></i>
                                 </span>
                                 <input type="text" class="form-control" id="icon_class" name="icon_class"
-                                       placeholder="Click 'Choose Icon' button to select" readonly>
+                                       placeholder="Click 'Choose Icon' or 'Upload Icon'" readonly>
                                 <button type="button" class="btn btn-outline-primary" onclick="openIconPicker('icon_class', 'selected_icon_preview')">
                                     <i class="bi bi-grid-3x3-gap me-1"></i>Choose Icon
                                 </button>
+                                <button type="button" class="btn btn-outline-secondary ms-2" id="btnUploadIconAdd">
+                                    <i class="bi bi-upload me-1"></i>Upload Icon
+                                </button>
+                                <input type="file" id="icon_upload" name="icon_upload" class="d-none" accept="image/*,.ico">
                             </div>
                             <small class="form-text text-muted">
                                 <i class="bi bi-info-circle me-1"></i>Select an icon that represents this service
@@ -769,8 +1470,8 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content delete-modal-content">
             <div class="modal-body text-center p-4">
-                <div class="delete-icon-wrapper mb-3">
-                    <i class="bi bi-exclamation-triangle text-warning"></i>
+                <div class="delete-icon-wrapper new-announcement-icon-wrapper mb-3">
+                    <i class="bi bi-exclamation-circle-fill" style="font-size: 4rem; color: white;"></i>
                 </div>
                 <h5 class="delete-modal-title mb-2">Create New Announcement</h5>
                 <p class="delete-modal-message mb-4">Are you sure you want to create a new announcement?<br>The current announcement will be archived.</p>
@@ -904,6 +1605,9 @@ document.getElementById('confirmNewAnnouncementBtn')?.addEventListener('click', 
     const confirmModal = bootstrap.Modal.getInstance(document.getElementById('newAnnouncementConfirmModal'));
     confirmModal.hide();
 
+    // Set default ticker message for new announcement
+    pendingNewAnnouncementData.set('ticker_text', '🔰 Write a ticker for this new announcement! 🔰');
+
     // Disable button and show loading
     const btn = pendingNewAnnouncementBtn;
     btn.disabled = true;
@@ -969,6 +1673,27 @@ document.getElementById('announcementForm').addEventListener('submit', function(
     });
 });
 
+// Whole Day Toggle
+document.getElementById('isWholeDay')?.addEventListener('change', function() {
+    const timeContainer = document.getElementById('timeRangeContainer');
+    if (this.checked) {
+        timeContainer.style.display = 'none';
+        document.getElementById('timeStart').value = '';
+        document.getElementById('timeEnd').value = '';
+    } else {
+        timeContainer.style.display = 'block';
+    }
+});
+
+// Date End validation - ensure it's not before date_start
+document.getElementById('dateEnd')?.addEventListener('change', function() {
+    const dateStart = document.getElementById('dateStart').value;
+    if (dateStart && this.value && this.value < dateStart) {
+        alert('End date cannot be before start date');
+        this.value = '';
+    }
+});
+
 // Image preview
 document.getElementById('announcementImage').addEventListener('change', function(e) {
     const file = e.target.files[0];
@@ -976,7 +1701,7 @@ document.getElementById('announcementImage').addEventListener('change', function
         const reader = new FileReader();
         reader.onload = function(e) {
             document.getElementById('imagePreview').innerHTML =
-                `<img src="${e.target.result}" alt="Preview" class="img-fluid rounded">`;
+                `<img src="${e.target.result}" alt="Preview" class="img-fluid rounded shadow-sm w-100" style="height: 180px; object-fit: cover;">`;
         };
         reader.readAsDataURL(file);
     }
@@ -1016,7 +1741,7 @@ document.getElementById('tickerForm').addEventListener('submit', function(e) {
 
 // Ticker preview update
 document.getElementById('tickerText').addEventListener('input', function(e) {
-    document.getElementById('tickerPreview').textContent = e.target.value;
+    document.getElementById('tickerPreview').textContent = e.target.value || '🔰 Write a ticker for this new announcement! 🔰';
 });
 
 // Add Service Form Handler
@@ -1024,15 +1749,13 @@ document.getElementById('addServiceForm').addEventListener('submit', function(e)
     e.preventDefault();
 
     const formData = new FormData(this);
-    const data = Object.fromEntries(formData.entries());
 
     fetch('/staff/content-management/service', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
         },
-        body: JSON.stringify(data)
+        body: formData
     })
     .then(response => response.json())
     .then(data => {
@@ -1240,20 +1963,42 @@ function updateTemplatePreview(textarea) {
 // Upload Icon handlers (delegated for staff modal)
 document.addEventListener('click', function(e) {
     const btn = e.target.closest('#btnUploadIcon');
-    if (!btn) return;
-    const modal = btn.closest('.modal');
-    const input = modal ? modal.querySelector('#edit_icon_upload') : document.getElementById('edit_icon_upload');
-    if (input) input.click();
+    const btnAdd = e.target.closest('#btnUploadIconAdd');
+
+    if (btn) {
+        // Edit Service Modal
+        const modal = btn.closest('.modal');
+        const input = modal ? modal.querySelector('#edit_icon_upload') : document.getElementById('edit_icon_upload');
+        if (input) input.click();
+    } else if (btnAdd) {
+        // Add Service Modal
+        const modal = btnAdd.closest('.modal');
+        const input = modal ? modal.querySelector('#icon_upload') : document.getElementById('icon_upload');
+        if (input) input.click();
+    }
 });
 
 document.addEventListener('change', function(e) {
     if (e.target && e.target.id === 'edit_icon_upload') {
+        // Edit Service Modal
         const file = e.target.files[0];
         if (!file) return;
         const modal = e.target.closest('.modal');
         const img = modal ? modal.querySelector('#edit_selected_icon_img') : document.getElementById('edit_selected_icon_img');
         const icon = modal ? modal.querySelector('#edit_selected_icon_preview') : document.getElementById('edit_selected_icon_preview');
         const cls = modal ? modal.querySelector('#edit_icon_class') : document.getElementById('edit_icon_class');
+        img.src = URL.createObjectURL(file);
+        img.classList.remove('d-none');
+        icon.classList.add('d-none');
+        if (cls) cls.value = 'uploaded:pending';
+    } else if (e.target && e.target.id === 'icon_upload') {
+        // Add Service Modal
+        const file = e.target.files[0];
+        if (!file) return;
+        const modal = e.target.closest('.modal');
+        const img = modal ? modal.querySelector('#selected_icon_img') : document.getElementById('selected_icon_img');
+        const icon = modal ? modal.querySelector('#selected_icon_preview') : document.getElementById('selected_icon_preview');
+        const cls = modal ? modal.querySelector('#icon_class') : document.getElementById('icon_class');
         img.src = URL.createObjectURL(file);
         img.classList.remove('d-none');
         icon.classList.add('d-none');
@@ -1278,103 +2023,65 @@ function changeIcon(id) {
 }
 
 // ============================================
-// SEND EMAIL TAB FUNCTIONALITY
+// SEND EMAIL TAB FUNCTIONALITY - REVISED
 // ============================================
 
-let patientsData = [];
-let selectedAppointmentData = null;
+// Global variables
+let allPatientsData = [];
+let singleSelectedAppointment = null;
+let multipleLoadedPatients = [];
 
-// Load patients with appointments on page load
+// Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
-    loadPatientsWithAppointments();
+    loadAllPatients();
 
-    // Handle bulk email mode toggle
-    document.getElementById('bulkEmailMode')?.addEventListener('change', function(e) {
-        const isBulkMode = e.target.checked;
-        const singleForm = document.getElementById('singleEmailForm');
-        const bulkForm = document.getElementById('bulkEmailForm');
-        const modeDescription = document.getElementById('modeDescription');
+    // Initialize Single Receiver tab
+    initializeSingleReceiverTab();
 
-        if (isBulkMode) {
-            singleForm.style.display = 'none';
-            bulkForm.style.display = 'flex';
-            modeDescription.textContent = 'Select a filter to find multiple patients with matching appointments and send Follow Up emails.';
-        } else {
-            singleForm.style.display = 'flex';
-            bulkForm.style.display = 'none';
-            modeDescription.textContent = 'Select a patient with an appointment to send a Follow Up email.';
-        }
-
-        // Clear form fields when switching modes
-        if (isBulkMode) {
-            document.getElementById('selectSituation').value = '';
-            document.getElementById('btnLoadPatients').disabled = true;
-            document.getElementById('patientsList').innerHTML = '<p class="text-muted text-center py-5"><i class="bi bi-people" style="font-size: 3rem; opacity: 0.3;"></i><br>Select a filter and click "Load Patients" to see the list</p>';
-            document.getElementById('patientCount').textContent = '0 patients';
-        } else {
-            document.getElementById('selectPatient').value = '';
-            document.getElementById('selectAppointment').value = '';
-            document.getElementById('selectAppointment').disabled = true;
-            document.getElementById('btnSendEmail').disabled = true;
-            document.getElementById('emailPreviewContent').innerHTML = '<p class="text-muted text-center py-5"><i class="bi bi-envelope" style="font-size: 3rem; opacity: 0.3;"></i><br>Select a patient to preview</p>';
-        }
-    });
-
-    // Live preview for mail template edits
-    document.querySelectorAll('[data-type]').forEach(textarea => {
-        textarea.addEventListener('input', function() {
-            updateTemplatePreview(this);
-        });
-    });
+    // Initialize Multiple Receiver tab
+    initializeMultipleReceiverTab();
 });
 
-// Load patients who have appointments
-function loadPatientsWithAppointments() {
+// Load all patients with appointments
+function loadAllPatients() {
     fetch('/staff/content-management/patients-with-appointments')
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                patientsData = data.patients;
-                populatePatientDropdown();
+                allPatientsData = data.patients;
+                populateSinglePatientDropdown();
             }
         })
         .catch(error => {
             console.error('Error loading patients:', error);
+            showToast('Error loading patients', 'error');
         });
 }
 
-// Populate patient dropdown
-function populatePatientDropdown() {
-    const select = document.getElementById('selectPatient');
-    select.innerHTML = '<option value="">-- Choose a patient --</option>';
+// ============================================
+// SINGLE RECEIVER TAB
+// ============================================
 
-    patientsData.forEach(patient => {
-        const option = document.createElement('option');
-        option.value = patient.id;
-        option.textContent = `${patient.name} (${patient.email}) - ${patient.appointments_count} appointment(s)`;
-        option.dataset.email = patient.email;
-        select.appendChild(option);
-    });
-}
-
-// Handle patient selection
-document.getElementById('selectPatient')?.addEventListener('change', function(e) {
-    const patientId = e.target.value;
-    const appointmentSelect = document.getElementById('selectAppointment');
+function initializeSingleReceiverTab() {
+    // Patient selection
+    document.getElementById('singleSelectPatient')?.addEventListener('change', function() {
+        const patientId = this.value;
+        const appointmentSelect = document.getElementById('singleSelectAppointment');
 
     if (!patientId) {
         appointmentSelect.innerHTML = '<option value="">-- Select patient first --</option>';
         appointmentSelect.disabled = true;
-        updateSendButtonState();
+            updateSinglePreview();
+            updateSingleSendButton();
         return;
     }
 
-    // Load appointments for selected patient
+        // Load appointments
     fetch(`/staff/content-management/patient-appointments/${patientId}`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                populateAppointmentDropdown(data.appointments);
+                    populateSingleAppointmentDropdown(data.appointments);
                 appointmentSelect.disabled = false;
             }
         })
@@ -1384,9 +2091,44 @@ document.getElementById('selectPatient')?.addEventListener('change', function(e)
         });
 });
 
-// Populate appointment dropdown
-function populateAppointmentDropdown(appointments) {
-    const select = document.getElementById('selectAppointment');
+    // Appointment selection
+    document.getElementById('singleSelectAppointment')?.addEventListener('change', function() {
+        if (this.value) {
+            const option = this.options[this.selectedIndex];
+            singleSelectedAppointment = JSON.parse(option.dataset.appointment);
+        } else {
+            singleSelectedAppointment = null;
+        }
+        updateSinglePreview();
+        updateSingleSendButton();
+    });
+
+    // Template editor - live preview
+    document.getElementById('singleMailTemplate')?.addEventListener('input', function() {
+        updateSinglePreview();
+    });
+
+    // Send button
+    document.getElementById('btnSendSingleEmail')?.addEventListener('click', function() {
+        sendSingleEmail();
+    });
+}
+
+function populateSinglePatientDropdown() {
+    const select = document.getElementById('singleSelectPatient');
+    if (!select) return;
+
+    select.innerHTML = '<option value="">-- Choose a patient --</option>';
+    allPatientsData.forEach(patient => {
+        const option = document.createElement('option');
+        option.value = patient.id;
+        option.textContent = `${patient.name} (${patient.email}) - ${patient.appointments_count} appointment(s)`;
+        select.appendChild(option);
+    });
+}
+
+function populateSingleAppointmentDropdown(appointments) {
+    const select = document.getElementById('singleSelectAppointment');
     select.innerHTML = '<option value="">-- Choose an appointment --</option>';
 
     appointments.forEach(apt => {
@@ -1395,8 +2137,6 @@ function populateAppointmentDropdown(appointments) {
         const date = new Date(apt.start_datetime.replace(' ', 'T'));
         const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         const timeStr = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-
-        // Add "(Rescheduled)" badge if appointment was rescheduled
         const rescheduledBadge = apt.rescheduled_at ? ' (Rescheduled)' : '';
         option.textContent = `${dateStr} ${timeStr} - ${apt.service?.service_name || 'No service'}${rescheduledBadge}`;
         option.dataset.appointment = JSON.stringify(apt);
@@ -1404,124 +2144,84 @@ function populateAppointmentDropdown(appointments) {
     });
 }
 
-// Handle appointment selection
-document.getElementById('selectAppointment')?.addEventListener('change', function(e) {
-    if (e.target.value) {
-        const option = e.target.options[e.target.selectedIndex];
-        selectedAppointmentData = JSON.parse(option.dataset.appointment);
-        updateEmailPreview();
-    } else {
-        selectedAppointmentData = null;
-        resetEmailPreview();
-    }
-    updateSendButtonState();
-});
+function updateSinglePreview() {
+    const previewDiv = document.getElementById('singleEmailPreview');
+    if (!previewDiv) return;
 
-// Update email preview
-function updateEmailPreview() {
-    const previewDiv = document.getElementById('emailPreviewContent');
-
-    if (!selectedAppointmentData) {
-        resetEmailPreview();
+    if (!singleSelectedAppointment) {
+        previewDiv.innerHTML = `
+            <div class="text-center py-4">
+                <i class="bi bi-envelope" style="font-size: 2.5rem; opacity: 0.3; color: #6c757d;"></i>
+                <p class="text-muted mt-3 mb-0 small">Select patient and appointment<br>to see preview</p>
+            </div>
+        `;
         return;
     }
 
-    // Always use follow_up template
-    const emailType = 'follow_up';
-    const textarea = document.querySelector(`[data-type="${emailType}"]`);
-    let template = textarea ? textarea.value : '';
+    const template = document.getElementById('singleMailTemplate').value ||
+                     'Hi %firstname%, we hope you are doing well. Please schedule your follow-up appointment for %service%.';
 
-    if (!template) {
-        template = getDefaultTemplate(emailType);
-    }
-
-    // Replace placeholders
-    const patient = selectedAppointmentData.patient;
+    const patient = singleSelectedAppointment.patient;
     const firstName = patient.info?.first_name || patient.name.split(' ')[0];
-    const date = new Date(selectedAppointmentData.start_datetime.replace(' ', 'T'));
+    const date = new Date(singleSelectedAppointment.start_datetime.replace(' ', 'T'));
     const dateStr = date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     const timeStr = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
     const datetime = `${dateStr} ${timeStr}`;
-    const service = selectedAppointmentData.service?.service_name || 'your appointment';
+    const service = singleSelectedAppointment.service?.service_name || 'your appointment';
 
-    let preview = template.replace(/%firstname%/g, firstName)
-                         .replace(/%datetime%/g, datetime)
-                         .replace(/%rescheduledtime%/g, datetime)
-                         .replace(/%service%/g, service);
+    let preview = template
+        .replace(/%firstname%/g, `<strong class="text-primary">${firstName}</strong>`)
+        .replace(/%datetime%/g, `<strong class="text-primary">${datetime}</strong>`)
+        .replace(/%service%/g, `<strong class="text-primary">${service}</strong>`);
 
     previewDiv.innerHTML = `
-        <div class="mb-3">
-            <strong>From:</strong> JValera Dental Clinic<br>
-            <strong>To:</strong> ${patient.email}<br>
-            <strong>Type:</strong> Follow Up
+        <div class="email-preview-content">
+            <div class="mb-2 pb-2 border-bottom small">
+                <div class="text-muted mb-1"><strong>From:</strong> JValera Dental Clinic</div>
+                <div class="text-muted mb-1"><strong>To:</strong> ${patient.email}</div>
+                <div class="text-muted"><strong>Subject:</strong> Follow Up Appointment</div>
         </div>
-        <hr>
-        <div style="padding: 15px; background: white; border-radius: 5px;">
-            <h6 class="text-primary fw-bold">JValera Dental Clinic</h6>
-            <p class="mb-0">${preview}</p>
+            <div class="email-body p-2 bg-light rounded mt-2">
+                <h6 class="text-primary fw-bold mb-2 small">JValera Dental Clinic</h6>
+                <div class="email-text small">${preview}</div>
+            </div>
         </div>
     `;
 }
 
-// Reset email preview
-function resetEmailPreview() {
-    document.getElementById('emailPreviewContent').innerHTML = `
-        <p class="text-muted text-center py-5">
-            <i class="bi bi-envelope" style="font-size: 3rem; opacity: 0.3;"></i><br>
-            Select a patient to preview
-        </p>
-    `;
-}
+function updateSingleSendButton() {
+    const btn = document.getElementById('btnSendSingleEmail');
+    if (!btn) return;
 
-// Get default template
-function getDefaultTemplate(type) {
-    const defaults = {
-        'initial_confirmation': 'Good Day! %firstname%, you have a schedule appointment on %datetime% with Dr. Justin Valera regarding on your %service% treatment.',
-        'reminder': 'Reminder: %firstname%, you have an appointment on %datetime% with Dr. Justin Valera for %service%.',
-        'cancellation': 'Dear %firstname%, your appointment on %datetime% has been cancelled.',
-        'rescheduling': 'Hello %firstname%, your appointment has been rescheduled to %datetime%.',
-        'follow_up': 'Hi %firstname%, we hope you are doing well. Please schedule your follow-up appointment for %service%.',
-    };
-    return defaults[type] || '';
-}
-
-// Get email type label
-function getEmailTypeLabel(type) {
-    const labels = {
-        'initial_confirmation': 'Initial Confirmation',
-        'reminder': 'Reminder',
-        'cancellation': 'Cancellation Notice',
-        'rescheduling': 'Rescheduling Notice',
-        'follow_up': 'Follow Up'
-    };
-    return labels[type] || type;
-}
-
-// Update send button state
-function updateSendButtonState() {
-    const patientId = document.getElementById('selectPatient').value;
-    const appointmentId = document.getElementById('selectAppointment').value;
-    const btn = document.getElementById('btnSendEmail');
-
+    const patientId = document.getElementById('singleSelectPatient')?.value;
+    const appointmentId = document.getElementById('singleSelectAppointment')?.value;
     btn.disabled = !(patientId && appointmentId);
 }
 
-// Send email button click handler
-document.getElementById('btnSendEmail')?.addEventListener('click', function() {
-    const appointmentId = document.getElementById('selectAppointment').value;
-    const btn = this;
+function sendSingleEmail() {
+    const appointmentId = document.getElementById('singleSelectAppointment')?.value;
+    const template = document.getElementById('singleMailTemplate')?.value;
 
-    if (!appointmentId) {
-        showToast('Please select all required fields', 'error');
+    if (!appointmentId || !singleSelectedAppointment) {
+        showToast('Please select patient and appointment', 'error');
         return;
     }
 
-    // Disable button and show loading
+    const btn = document.getElementById('btnSendSingleEmail');
     btn.disabled = true;
     const originalText = btn.innerHTML;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sending...';
 
-    // Send email (always follow_up)
+    // Save template before sending (always save to ensure latest version is used)
+    saveMailTemplate('follow_up', template).then(() => {
+        performSendSingleEmail(appointmentId, btn, originalText);
+    }).catch(() => {
+        // Continue even if save fails
+        performSendSingleEmail(appointmentId, btn, originalText);
+    });
+}
+
+function performSendSingleEmail(appointmentId, btn, originalText) {
     fetch('/staff/content-management/send-patient-email', {
         method: 'POST',
         headers: {
@@ -1536,11 +2236,10 @@ document.getElementById('btnSendEmail')?.addEventListener('click', function() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Show success details
-            const patient = selectedAppointmentData.patient;
-            showToast(`Follow Up email sent to ${patient.email}`, 'success');
+            const patient = singleSelectedAppointment.patient;
+            showToast(`Email sent successfully to ${patient.email}`, 'success');
         } else {
-            showToast('Error sending email: ' + (data.message || 'Unknown error'), 'error');
+            showToast('Error: ' + (data.message || 'Unknown error'), 'error');
         }
     })
     .catch(error => {
@@ -1550,130 +2249,134 @@ document.getElementById('btnSendEmail')?.addEventListener('click', function() {
     .finally(() => {
         btn.disabled = false;
         btn.innerHTML = originalText;
-        updateSendButtonState();
+        updateSingleSendButton();
     });
-});
-
-// ============================================
-// BULK EMAIL FUNCTIONALITY
-// ============================================
-
-// Variables for bulk email
-let loadedPatients = [];
-
-// Handle situation select change
-document.getElementById('selectSituation')?.addEventListener('change', function() {
-    updateLoadPatientsButtonState();
-    // Clear patients list when filter changes
-    document.getElementById('patientsList').innerHTML = `
-        <p class="text-muted text-center py-5">
-            <i class="bi bi-people" style="font-size: 3rem; opacity: 0.3;"></i><br>
-            Click "Load Patients" to see patients matching this filter
-        </p>
-    `;
-    document.getElementById('patientCount').textContent = '0 patients';
-    document.getElementById('btnSendBulkEmail').disabled = true;
-});
-
-function updateLoadPatientsButtonState() {
-    const situation = document.getElementById('selectSituation').value;
-    const btn = document.getElementById('btnLoadPatients');
-    btn.disabled = !situation;
 }
 
-// Load patients by situation
-document.getElementById('btnLoadPatients')?.addEventListener('click', function() {
-    const situation = document.getElementById('selectSituation').value;
-    const btn = this;
+// ============================================
+// MULTIPLE RECEIVER TAB
+// ============================================
 
-    if (!situation) {
-        showToast('Please select a filter', 'error');
-        return;
-    }
+function initializeMultipleReceiverTab() {
+    // Filter change
+    document.getElementById('multipleFilterPatients')?.addEventListener('change', function() {
+        loadMultiplePatients(this.value);
+    });
 
-    // Show loading state
-    btn.disabled = true;
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Loading...';
+    // Select all checkbox
+    document.getElementById('multipleSelectAll')?.addEventListener('change', function(e) {
+        document.querySelectorAll('.multiple-patient-checkbox').forEach(cb => {
+            cb.checked = e.target.checked;
+        });
+        updateMultiplePreview();
+        updateMultipleSendButton();
+        updateMultiplePatientCount();
+    });
 
-    // Fetch patients by situation
-    fetch('/staff/content-management/patients-by-situation?situation=' + situation)
+    // Template editor - live preview
+    document.getElementById('multipleMailTemplate')?.addEventListener('input', function() {
+        updateMultiplePreview();
+    });
+
+    // Send button
+    document.getElementById('btnSendMultipleEmail')?.addEventListener('click', function() {
+        sendMultipleEmails();
+    });
+
+    // Load all patients by default
+    loadMultiplePatients('all');
+}
+
+function loadMultiplePatients(filter) {
+    const container = document.getElementById('multiplePatientsList');
+
+    if (filter === 'all') {
+        // Load all patients
+        if (allPatientsData.length === 0) {
+            container.innerHTML = '<div class="text-center py-3"><span class="spinner-border spinner-border-sm"></span></div>';
+            fetch('/staff/content-management/patients-with-appointments')
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                loadedPatients = data.patients;
-                displayPatientsList(data.patients);
-                showToast(`Found ${data.count} patient(s) with matching appointments`, 'success');
-            } else {
-                showToast('Error loading patients: ' + (data.message || 'Unknown error'), 'error');
+                        allPatientsData = data.patients;
+                        displayMultiplePatientsList(data.patients);
             }
         })
         .catch(error => {
             console.error('Error:', error);
+                    container.innerHTML = '<div class="alert alert-danger">Error loading patients</div>';
+                });
+        } else {
+            displayMultiplePatientsList(allPatientsData);
+        }
+    } else {
+        // Load filtered patients
+        container.innerHTML = '<div class="text-center py-3"><span class="spinner-border spinner-border-sm"></span></div>';
+
+        fetch(`/staff/content-management/patients-by-situation?situation=${filter}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    multipleLoadedPatients = data.patients;
+                    displayMultiplePatientsList(data.patients);
+                } else {
             showToast('Error loading patients', 'error');
-        })
-        .finally(() => {
-            btn.disabled = false;
-            btn.innerHTML = originalText;
-        });
-});
+                    container.innerHTML = '<div class="alert alert-info">No patients found</div>';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Error loading patients', 'error');
+                container.innerHTML = '<div class="alert alert-danger">Error loading patients</div>';
+            });
+    }
+}
 
-// Display patients list with checkboxes
-function displayPatientsList(patients) {
-    const container = document.getElementById('patientsList');
-    const countBadge = document.getElementById('patientCount');
+function displayMultiplePatientsList(patients) {
+    const container = document.getElementById('multiplePatientsList');
 
-    if (patients.length === 0) {
+    if (!patients || patients.length === 0) {
         container.innerHTML = `
-            <div class="alert alert-info mb-0">
-                <i class="bi bi-info-circle me-2"></i>
-                No patients found matching this filter.
+            <div class="text-center py-3">
+                <i class="bi bi-people" style="font-size: 1.5rem; opacity: 0.3;"></i>
+                <p class="text-muted mt-2 mb-0 small">No patients found</p>
             </div>
         `;
-        countBadge.textContent = '0 patients';
-        document.getElementById('btnSendBulkEmail').disabled = true;
+        updateMultiplePatientCount();
         return;
     }
 
-    countBadge.textContent = `${patients.length} patient${patients.length !== 1 ? 's' : ''}`;
+    // Convert to format we need
+    let patientList = [];
+    if (patients[0] && patients[0].patient_id) {
+        // Already in the right format from API
+        patientList = patients;
+    } else {
+        // Convert from allPatientsData format
+        patientList = patients.map(p => ({
+            patient_id: p.id,
+            patient_name: p.name,
+            patient_email: p.email,
+            appointments: []
+        }));
+    }
+
+    multipleLoadedPatients = patientList;
 
     let html = '';
-    patients.forEach((patient, index) => {
+    patientList.forEach(patient => {
         html += `
-            <div class="card mb-2 patient-item">
-                <div class="card-body p-3">
-                    <div class="d-flex align-items-start">
-                        <div class="form-check">
-                            <input class="form-check-input patient-checkbox" type="checkbox"
-                                   id="patient-${patient.patient_id}"
+            <div class="multiple-patient-item mb-1 p-2 border rounded bg-white hover-shadow">
+                <div class="form-check mb-0">
+                    <input class="form-check-input multiple-patient-checkbox" type="checkbox"
+                           id="mult-patient-${patient.patient_id}"
                                    value="${patient.patient_id}"
-                                   checked>
-                        </div>
-                        <div class="flex-grow-1 ms-2">
-                            <h6 class="mb-1 fw-bold">${patient.patient_name}</h6>
-                            <small class="text-muted d-block mb-2">
-                                <i class="bi bi-envelope me-1"></i>${patient.patient_email}
-                            </small>
-                            <div class="appointments-list">
-                                ${patient.appointments.map(apt => {
-                                    const date = new Date(apt.start_datetime.replace(' ', 'T'));
-                                    const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                                    const timeStr = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-                                    const badge = apt.rescheduled ? '<span class="badge bg-warning text-dark ms-2">Rescheduled</span>' : '';
-
-                                    return `
-                                        <div class="d-flex align-items-center mb-1" data-appointment-id="${apt.id}">
-                                            <small class="text-muted">
-                                                <i class="bi bi-calendar-event me-1"></i>${dateStr} ${timeStr}
-                                                <span class="ms-2">${apt.service}</span>
-                                                ${badge}
-                                            </small>
-                                        </div>
-                                    `;
-                                }).join('')}
-                            </div>
-                        </div>
-                    </div>
+                           data-patient-name="${patient.patient_name}"
+                           data-patient-email="${patient.patient_email}">
+                    <label class="form-check-label w-100 mb-0 cursor-pointer" for="mult-patient-${patient.patient_id}">
+                        <div class="fw-semibold small mb-1">${patient.patient_name}</div>
+                        <small class="text-muted small">${patient.patient_email}</small>
+                    </label>
                 </div>
             </div>
         `;
@@ -1681,79 +2384,121 @@ function displayPatientsList(patients) {
 
     container.innerHTML = html;
 
-    // Add change listeners to checkboxes
-    document.querySelectorAll('.patient-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', updateSendBulkEmailButtonState);
+    // Add event listeners
+    document.querySelectorAll('.multiple-patient-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            updateMultiplePreview();
+            updateMultipleSendButton();
+            updateMultiplePatientCount();
+        });
     });
 
-    updateSendBulkEmailButtonState();
+    updateMultiplePatientCount();
 }
 
-// Handle select all checkbox
-document.getElementById('selectAllPatients')?.addEventListener('change', function(e) {
-    const checkboxes = document.querySelectorAll('.patient-checkbox');
-    checkboxes.forEach(checkbox => {
-        checkbox.checked = e.target.checked;
-    });
-    updateSendBulkEmailButtonState();
-});
+function updateMultiplePatientCount() {
+    const selected = document.querySelectorAll('.multiple-patient-checkbox:checked').length;
+    const badge = document.getElementById('multiplePatientCount');
+    if (badge) {
+        badge.textContent = `${selected} selected`;
+    }
+}
 
-// Update send bulk email button state
-function updateSendBulkEmailButtonState() {
-    const selectedCheckboxes = document.querySelectorAll('.patient-checkbox:checked');
-    const btn = document.getElementById('btnSendBulkEmail');
-    const selectAllCheckbox = document.getElementById('selectAllPatients');
+function updateMultiplePreview() {
+    const previewDiv = document.getElementById('multipleEmailPreview');
+    if (!previewDiv) return;
 
-    // Update select all checkbox state
-    const allCheckboxes = document.querySelectorAll('.patient-checkbox');
-    if (allCheckboxes.length > 0) {
-        selectAllCheckbox.checked = selectedCheckboxes.length === allCheckboxes.length;
-        selectAllCheckbox.indeterminate = selectedCheckboxes.length > 0 && selectedCheckboxes.length < allCheckboxes.length;
+    const selectedCheckboxes = document.querySelectorAll('.multiple-patient-checkbox:checked');
+
+    if (selectedCheckboxes.length === 0) {
+        previewDiv.innerHTML = `
+            <div class="text-center py-4">
+                <i class="bi bi-envelope" style="font-size: 2.5rem; opacity: 0.3; color: #6c757d;"></i>
+                <p class="text-muted mt-3 mb-0 small">Select patients to see<br>email preview</p>
+            </div>
+        `;
+        return;
     }
 
-    btn.disabled = selectedCheckboxes.length === 0;
+    const template = document.getElementById('multipleMailTemplate')?.value ||
+                     'Hi %firstname%, we hope you are doing well. Please schedule your follow-up appointment for %service%.';
+
+    // Use first selected patient for preview
+    const firstPatient = selectedCheckboxes[0];
+    const firstName = firstPatient.dataset.patientName.split(' ')[0];
+    const preview = template
+        .replace(/%firstname%/g, `<strong class="text-primary">${firstName}</strong>`)
+        .replace(/%datetime%/g, `<strong class="text-primary">Sample Date & Time</strong>`)
+        .replace(/%service%/g, `<strong class="text-primary">Sample Service</strong>`);
+
+    previewDiv.innerHTML = `
+        <div class="email-preview-content">
+            <div class="alert alert-info small mb-2 py-2">
+                <i class="bi bi-info-circle me-1"></i>
+                Format preview for <strong>${selectedCheckboxes.length}</strong> patient(s)
+            </div>
+            <div class="mb-2 pb-2 border-bottom small">
+                <div class="text-muted mb-1"><strong>From:</strong> JValera Dental Clinic</div>
+                <div class="text-muted mb-1"><strong>To:</strong> ${firstPatient.dataset.patientEmail}${selectedCheckboxes.length > 1 ? ` (+${selectedCheckboxes.length - 1})` : ''}</div>
+                <div class="text-muted"><strong>Subject:</strong> Follow Up Appointment</div>
+            </div>
+            <div class="email-body p-2 bg-light rounded mt-2">
+                <h6 class="text-primary fw-bold mb-2 small">JValera Dental Clinic</h6>
+                <div class="email-text small">${preview}</div>
+            </div>
+        </div>
+    `;
 }
 
-// Send bulk email button click handler
-document.getElementById('btnSendBulkEmail')?.addEventListener('click', function() {
-    const emailType = 'follow_up'; // Always follow_up
-    const selectedCheckboxes = document.querySelectorAll('.patient-checkbox:checked');
-    const btn = this;
+function updateMultipleSendButton() {
+    const btn = document.getElementById('btnSendMultipleEmail');
+    if (!btn) return;
+
+    const selected = document.querySelectorAll('.multiple-patient-checkbox:checked').length;
+    btn.disabled = selected === 0;
+}
+
+function sendMultipleEmails() {
+    const selectedCheckboxes = document.querySelectorAll('.multiple-patient-checkbox:checked');
+    const template = document.getElementById('multipleMailTemplate')?.value;
 
     if (selectedCheckboxes.length === 0) {
         showToast('Please select at least one patient', 'error');
         return;
     }
 
-    // Collect all appointment IDs for selected patients
+    // Get appointments for selected patients
+    const patientIds = Array.from(selectedCheckboxes).map(cb => parseInt(cb.value));
     const appointmentIds = [];
-    selectedCheckboxes.forEach(checkbox => {
-        const patientId = parseInt(checkbox.value);
-        const patient = loadedPatients.find(p => p.patient_id === patientId);
-        if (patient) {
-            patient.appointments.forEach(apt => {
-                appointmentIds.push(apt.id);
-            });
-        }
-    });
 
+    // For each selected patient, we need to get their appointments
+    Promise.all(patientIds.map(patientId =>
+        fetch(`/staff/content-management/patient-appointments/${patientId}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.success && data.appointments.length > 0) {
+                    // Use the most recent appointment for each patient
+                    const latestAppt = data.appointments[0];
+                    appointmentIds.push(latestAppt.id);
+                }
+            })
+            .catch(err => console.error('Error fetching appointments for patient', patientId, err))
+    )).then(() => {
     if (appointmentIds.length === 0) {
         showToast('No appointments found for selected patients', 'error');
         return;
     }
 
-    // Confirm action
-    const confirmMessage = `Are you sure you want to send Follow Up email to ${selectedCheckboxes.length} patient(s)?\n\nTotal appointments: ${appointmentIds.length}`;
-    if (!confirm(confirmMessage)) {
-        return;
-    }
-
-    // Disable button and show loading
+        const btn = document.getElementById('btnSendMultipleEmail');
     btn.disabled = true;
     const originalText = btn.innerHTML;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sending...';
 
-    // Send bulk email (always follow_up)
+        // Save template before sending (always save to ensure latest version is used)
+        const savePromise = saveMailTemplate('follow_up', template);
+
+        savePromise.then(() => {
+            // Send bulk email
     fetch('/staff/content-management/send-bulk-email', {
         method: 'POST',
         headers: {
@@ -1769,39 +2514,53 @@ document.getElementById('btnSendBulkEmail')?.addEventListener('click', function(
     .then(data => {
         if (data.success) {
             const successMsg = `Successfully sent ${data.data.success_count} email(s)`;
-            let fullMsg = successMsg;
-
-            if (data.data.failed_count > 0) {
-                fullMsg += `\n${data.data.failed_count} failed`;
-                if (data.data.errors && data.data.errors.length > 0) {
-                    fullMsg += ':\n' + data.data.errors.join('\n');
-                }
-            }
-
             showToast(successMsg, 'success');
 
             if (data.data.failed_count > 0) {
-                console.error('Failed emails:', data.data.errors);
-                showToast(`${data.data.failed_count} email(s) failed to send. Check console for details.`, 'warning');
+                        showToast(`${data.data.failed_count} email(s) failed to send`, 'warning');
             }
-
-            // Optionally clear the list or reload
-            // document.getElementById('selectSituation').value = '';
-            // displayPatientsList([]);
         } else {
-            showToast('Error sending bulk emails: ' + (data.message || 'Unknown error'), 'error');
+                    showToast('Error: ' + (data.message || 'Unknown error'), 'error');
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        showToast('Error sending bulk emails', 'error');
+                showToast('Error sending emails', 'error');
     })
     .finally(() => {
         btn.disabled = false;
         btn.innerHTML = originalText;
-        updateSendBulkEmailButtonState();
+                updateMultipleSendButton();
     });
 });
+    });
+}
+
+// Helper function to save mail template
+function saveMailTemplate(type, content) {
+    return fetch(`/staff/content-management/mail-template/${type}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({
+            subject: `Appointment ${type.replace('_', ' ')}`,
+            content: content
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (!data.success) {
+            console.warn('Template save warning:', data.message);
+        }
+        return data;
+    })
+    .catch(error => {
+        console.error('Error saving template:', error);
+        return { success: false };
+    });
+}
 
 // ============================================
 // ICON PICKER FUNCTIONALITY
@@ -1999,5 +2758,196 @@ editService = function(id) {
     }
 };
 </script>
+
+<style>
+/* Send Email Section - Improved Layout Styles */
+.email-section-card {
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.email-section-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+.email-preview-card {
+    border-radius: 8px;
+    position: sticky;
+    top: 20px;
+    max-height: calc(100vh - 120px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.email-preview-card .card-body {
+    overflow-y: auto;
+    flex: 1;
+}
+
+.patients-list-container {
+    max-height: 280px;
+    overflow-y: auto;
+    background: #f8f9fa;
+}
+
+.patients-list-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.patients-list-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.patients-list-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.patients-list-container::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+.multiple-patient-item {
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.multiple-patient-item:hover {
+    background-color: #f0f0f0 !important;
+    border-color: #667eea !important;
+}
+
+.multiple-patient-item.hover-shadow:hover {
+    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.15);
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.email-preview-card .card-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.email-preview-card .card-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.email-preview-card .card-body::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.email-preview-card .card-body::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+    .email-preview-card {
+        position: relative;
+        top: 0;
+        margin-top: 1rem;
+        max-height: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .email-section-card,
+    .email-preview-card {
+        margin-bottom: 1rem;
+    }
+
+    .email-preview-card {
+        position: relative;
+        top: 0;
+    }
+
+    .patients-list-container {
+        max-height: 200px;
+    }
+}
+
+/* Dark mode support */
+[data-theme="dark"] .patients-list-container {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+[data-theme="dark"] .multiple-patient-item {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+}
+
+[data-theme="dark"] .multiple-patient-item:hover {
+    background-color: #334155 !important;
+    border-color: #667eea !important;
+}
+
+[data-theme="dark"] .email-preview-card .card-body {
+    background-color: #1e293b;
+}
+
+[data-theme="dark"] .email-section-card .card-body {
+    background-color: #1e293b;
+}
+
+/* Form controls in dark mode */
+[data-theme="dark"] .form-select,
+[data-theme="dark"] .form-control {
+    background-color: #1e293b;
+    border-color: #334155;
+    color: var(--dm-text-primary, #f1f5f9);
+}
+
+[data-theme="dark"] .form-select:focus,
+[data-theme="dark"] .form-control:focus {
+    background-color: #1e293b;
+    border-color: #667eea;
+    color: var(--dm-text-primary, #f1f5f9);
+}
+
+[data-theme="dark"] .form-label {
+    color: var(--dm-text-primary, #f1f5f9);
+}
+
+[data-theme="dark"] code {
+    background-color: #334155;
+    color: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+/* Preview Card Header - Ensure visibility in light mode */
+.email-preview-header {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    color: white !important;
+}
+
+.email-preview-header h6 {
+    color: white !important;
+}
+
+.email-preview-header i {
+    color: white !important;
+}
+
+[data-theme="dark"] .email-preview-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .email-preview-header h6 {
+    color: white !important;
+}
+
+[data-theme="dark"] .email-preview-header i {
+    color: white !important;
+}
+</style>
+
 @endsection
 

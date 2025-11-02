@@ -4,39 +4,50 @@
 .notifications-container {
     max-width: 1000px;
     margin: 0 auto;
-    padding: 2rem;
+    padding: 1.5rem;
+    height: calc(100vh - 120px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .notifications-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 2rem;
+    margin-bottom: 1.25rem;
+    flex-shrink: 0;
 }
 
 .notifications-title {
-    font-size: 2rem;
+    font-size: 1.75rem;
     font-weight: 700;
     color: #1e293b;
     margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .header-actions-group {
     display: flex;
-    gap: 1rem;
+    gap: 0.75rem;
+    flex-wrap: wrap;
 }
 
 .btn-mark-all-read,
 .btn-clear-read {
-    padding: 0.75rem 1.5rem;
+    padding: 0.6rem 1.25rem;
     border-radius: 8px;
     border: none;
     font-weight: 600;
+    font-size: 0.9rem;
     cursor: pointer;
     transition: all 0.3s;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.4rem;
+    white-space: nowrap;
 }
 
 .btn-mark-all-read {
@@ -62,7 +73,8 @@
 .notifications-filters {
     display: flex;
     gap: 0.5rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
+    flex-shrink: 0;
 }
 
 .filter-btn {
@@ -98,19 +110,56 @@
 .notifications-list {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 0.875rem;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 0;
+    padding-right: 0.5rem;
+}
+
+/* Custom Scrollbar for Notifications List */
+.notifications-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.notifications-list::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+}
+
+.notifications-list::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+.notifications-list::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+[data-theme="dark"] .notifications-list::-webkit-scrollbar-track {
+    background: var(--dm-bg-secondary, #1e293b);
+}
+
+[data-theme="dark"] .notifications-list::-webkit-scrollbar-thumb {
+    background: #475569;
+}
+
+[data-theme="dark"] .notifications-list::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
 }
 
 .notification-card {
     background: white;
-    border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border-radius: 10px;
+    padding: 1.125rem 1.25rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
     transition: all 0.3s;
     display: flex;
-    gap: 1rem;
+    gap: 0.875rem;
     position: relative;
-    border-left: 4px solid transparent;
+    border-left: 3px solid transparent;
+    flex-shrink: 0;
 }
 
 .notification-card:hover {
@@ -124,9 +173,9 @@
 }
 
 .notification-icon-wrapper {
-    width: 50px;
-    height: 50px;
-    border-radius: 12px;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -134,7 +183,7 @@
 }
 
 .notification-icon-wrapper i {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     color: white;
 }
 
@@ -151,39 +200,49 @@
 
 .notification-title {
     font-weight: 700;
-    font-size: 1.1rem;
+    font-size: 1rem;
     color: #1e293b;
     margin: 0;
+    line-height: 1.3;
 }
 
 .notification-time {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: #94a3b8;
     white-space: nowrap;
+    font-weight: 500;
 }
 
 .notification-message {
     color: #64748b;
-    line-height: 1.6;
-    margin-bottom: 0.75rem;
+    line-height: 1.5;
+    margin-bottom: 0.625rem;
+    font-size: 0.9rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .notification-actions {
     display: flex;
     gap: 0.5rem;
+    flex-wrap: wrap;
 }
 
 .btn-action {
-    padding: 0.4rem 0.75rem;
+    padding: 0.375rem 0.625rem;
     border-radius: 6px;
     border: none;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
     display: flex;
     align-items: center;
     gap: 0.25rem;
+    white-space: nowrap;
 }
 
 .btn-mark-read {
@@ -215,7 +274,13 @@
 
 .empty-state {
     text-align: center;
-    padding: 4rem 2rem;
+    padding: 3rem 2rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
 }
 
 .empty-icon {
@@ -246,11 +311,12 @@
 }
 
 .pagination-wrapper {
-    margin-top: 2rem;
-    padding: 1.5rem;
+    margin-top: 1rem;
+    padding: 1rem 1.25rem;
     background: white;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    flex-shrink: 0;
 }
 
 .pagination-info {
@@ -309,41 +375,87 @@
     font-size: 0.9rem;
 }
 
+@media (max-width: 992px) {
+    .notifications-container {
+        height: calc(100vh - 100px);
+        padding: 1.25rem;
+    }
+}
+
 @media (max-width: 768px) {
     .notifications-container {
         padding: 1rem;
+        height: calc(100vh - 80px);
     }
 
     .notifications-header {
         flex-direction: column;
         align-items: stretch;
-        gap: 1rem;
+        gap: 0.875rem;
+        margin-bottom: 1rem;
     }
 
     .header-actions-group {
-        flex-direction: column;
+        flex-direction: row;
+        justify-content: flex-start;
+    }
+
+    .btn-mark-all-read,
+    .btn-clear-read {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+    }
+
+    .notifications-title {
+        font-size: 1.5rem;
     }
 
     .notification-card {
         padding: 1rem;
+        gap: 0.75rem;
+    }
+
+    .notification-icon-wrapper {
+        width: 40px;
+        height: 40px;
+    }
+
+    .notification-icon-wrapper i {
+        font-size: 1.1rem;
+    }
+
+    .notification-title {
+        font-size: 0.95rem;
+    }
+
+    .notification-message {
+        font-size: 0.85rem;
+        -webkit-line-clamp: 3;
     }
 
     .notification-header-row {
         flex-direction: column;
-        gap: 0.5rem;
+        gap: 0.375rem;
+        align-items: flex-start;
+    }
+
+    .notification-time {
+        font-size: 0.75rem;
     }
 
     .pagination-wrapper {
-        padding: 1rem;
+        padding: 0.875rem 1rem;
+        margin-top: 0.875rem;
     }
 
     .pagination-wrapper > div {
         flex-direction: column;
-        gap: 1rem !important;
+        gap: 0.875rem !important;
     }
 
     .pagination-info {
         text-align: center;
+        font-size: 0.85rem;
     }
 
     .pagination {
@@ -352,9 +464,49 @@
     }
 
     .pagination .page-link {
-        padding: 0.4rem 0.6rem;
-        min-width: 35px;
-        font-size: 0.9rem;
+        padding: 0.35rem 0.5rem;
+        min-width: 32px;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .notifications-container {
+        padding: 0.875rem;
+        height: calc(100vh - 70px);
+    }
+
+    .notifications-title {
+        font-size: 1.25rem;
+    }
+
+    .btn-mark-all-read,
+    .btn-clear-read {
+        padding: 0.45rem 0.875rem;
+        font-size: 0.8rem;
+    }
+
+    .filter-btn {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.85rem;
+    }
+
+    .notification-card {
+        padding: 0.875rem;
+    }
+
+    .notification-icon-wrapper {
+        width: 36px;
+        height: 36px;
+    }
+
+    .notification-icon-wrapper i {
+        font-size: 1rem;
+    }
+
+    .btn-action {
+        padding: 0.3rem 0.5rem;
+        font-size: 0.75rem;
     }
 }
 
@@ -661,7 +813,7 @@
         </a>
     </div>
 
-    <!-- Notifications List -->
+    <!-- Notifications List (Scrollable Container) -->
     <div class="notifications-list" id="notificationsList">
         @forelse($notifications as $notification)
             <div class="notification-card {{ !$notification->is_read ? 'unread' : '' }}"

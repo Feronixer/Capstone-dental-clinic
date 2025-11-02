@@ -25,44 +25,44 @@
     .announcement-page {
         background: linear-gradient(135deg, #f8fafc 0%, #e3f2fd 100%);
         min-height: calc(100vh - 70px);
-        padding: 3rem 0;
+        padding: 1rem 0;
     }
 
     .announcement-content-wrapper {
-        max-width: 1200px;
+        max-width: 1600px;
         margin: 0 auto;
-        padding: 0 2rem;
+        padding: 0 1.5rem;
     }
 
     /* Page Header */
     .page-header {
         text-align: center;
-        margin-bottom: 3rem;
+        margin-bottom: 1rem;
         animation: fadeInDown 0.6s ease-out;
     }
 
     .page-header h1 {
-        font-size: 2.75rem;
+        font-size: clamp(1.5rem, 3vw, 1.875rem);
         font-weight: 800;
         background: linear-gradient(135deg, var(--primary-blue), var(--accent-teal));
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.25rem;
     }
 
     .page-header p {
         color: var(--text-medium);
-        font-size: 1.1rem;
+        font-size: clamp(0.8rem, 1.5vw, 0.9rem);
     }
 
     /* Main Announcement Card */
     .announcement-card {
         background: var(--bg-white);
-        border-radius: 24px;
+        border-radius: 12px;
         overflow: hidden;
         box-shadow: var(--shadow-lg);
-        margin-bottom: 3rem;
+        margin-bottom: 1.25rem;
         border: 1px solid rgba(33, 150, 243, 0.1);
         transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         animation: fadeInUp 0.6s ease-out;
@@ -70,15 +70,17 @@
 
     .announcement-card:hover {
         box-shadow: var(--shadow-xl);
-        transform: translateY(-4px);
+        transform: translateY(-2px);
     }
 
     .announcement-banner {
         background: linear-gradient(135deg, #2196F3 0%, #1976D2 50%, #0d47a1 100%);
-        padding: 3rem 3rem;
+        padding: 1rem 1.5rem;
         text-align: center;
         position: relative;
         overflow: hidden;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .announcement-banner::before {
@@ -109,7 +111,7 @@
 
     .banner-title {
         color: white;
-        font-size: 2rem;
+        font-size: clamp(1.25rem, 2.5vw, 1.5rem);
         font-weight: 800;
         margin: 0;
         position: relative;
@@ -118,70 +120,96 @@
     }
 
     .announcement-content-section {
-        padding: 3rem;
+        padding: 1rem 1.5rem;
     }
 
     .announcement-image-wrapper {
-        margin-bottom: 2.5rem;
+        margin-bottom: 0.875rem;
         text-align: center;
-        border-radius: 16px;
+        border-radius: 10px;
         overflow: hidden;
         box-shadow: var(--shadow-md);
-        max-width: 600px;
+        max-width: 100%;
         margin-left: auto;
         margin-right: auto;
+        position: relative;
+        cursor: pointer;
+        background: #f8f9fa;
+        aspect-ratio: 16 / 9;
+        max-height: 300px;
     }
 
-    .announcement-image-wrapper img {
-        max-width: 100%;
-        max-height: 400px;
-        width: auto;
-        height: auto;
-        object-fit: contain;
+    .announcement-image-wrapper::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0);
+        transition: background 0.3s ease;
+        z-index: 1;
         border-radius: 16px;
-        transition: transform 0.4s ease;
+    }
+
+    .announcement-image-wrapper:hover::before {
+        background: rgba(0, 0, 0, 0.2);
+    }
+
+
+    .announcement-image-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 10px;
+        transition: transform 0.4s ease, filter 0.3s ease;
         display: block;
-        margin: 0 auto;
     }
 
     .announcement-image-wrapper:hover img {
-        transform: scale(1.05);
+        transform: scale(1.03);
+        filter: brightness(0.95);
+    }
+
+    .announcement-subheading {
+        margin-bottom: 0.75rem !important;
+    }
+
+    .announcement-subheading p {
+        font-size: clamp(0.95rem, 1.5vw, 1rem) !important;
+        line-height: 1.3 !important;
     }
 
     .announcement-message {
         background: linear-gradient(135deg, #f8fafc 0%, #e3f2fd 100%);
-        border-left: 5px solid var(--primary-blue);
-        padding: 2rem 2.5rem;
-        border-radius: 12px;
+        border-left: 4px solid var(--primary-blue);
+        padding: 0.875rem 1rem;
+        border-radius: 8px;
         color: var(--text-dark);
-        line-height: 1.8;
-        font-size: 1.05rem;
+        line-height: 1.5;
+        font-size: clamp(0.85rem, 1.5vw, 0.9rem);
         box-shadow: var(--shadow-sm);
         position: relative;
+        margin-top: 0;
     }
 
-    .announcement-message::before {
-        content: '📋';
-        position: absolute;
-        top: 1rem;
-        right: 1.5rem;
-        font-size: 1.5rem;
-        opacity: 0.3;
-    }
 
     .new-badge {
         display: inline-flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.25rem;
         background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
         color: white;
-        padding: 0.5rem 1.25rem;
+        padding: 0.3rem 0.75rem;
         border-radius: 50px;
         font-weight: 700;
-        font-size: 0.85rem;
+        font-size: 0.7rem;
         letter-spacing: 0.5px;
         box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-        margin-bottom: 1rem;
+        position: absolute;
+        top: 0.75rem;
+        left: 1.25rem;
+        z-index: 10;
         animation: pulse-badge 2s ease-in-out infinite;
     }
 
@@ -192,10 +220,10 @@
 
     .announcement-details {
         display: flex;
-        gap: 2.5rem;
+        gap: 0.75rem;
         flex-wrap: wrap;
-        margin-top: 2.5rem;
-        padding-top: 2rem;
+        margin-top: 0.875rem;
+        padding-top: 0.875rem;
         border-top: 2px solid #f0f0f0;
     }
 
@@ -206,11 +234,11 @@
     .detail-item {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
+        gap: 0.4rem;
         color: var(--text-medium);
         font-weight: 600;
-        font-size: 0.95rem;
-        padding: 0.75rem 1.5rem;
+        font-size: clamp(0.75rem, 1.25vw, 0.8rem);
+        padding: 0.4rem 0.75rem;
         background: var(--bg-light);
         border-radius: 50px;
         transition: all 0.3s ease;
@@ -224,20 +252,20 @@
 
     .detail-item i {
         color: var(--primary-blue);
-        font-size: 1.3rem;
+        font-size: 1.1rem;
     }
 
     /* Event Badge */
     .event-badge {
         background: linear-gradient(135deg, var(--accent-teal) 0%, var(--accent-teal-dark) 100%);
         color: white;
-        padding: 0.75rem 2rem;
+        padding: 0.4rem 1.25rem;
         border-radius: 50px;
         font-weight: 700;
-        font-size: 0.9rem;
+        font-size: clamp(0.75rem, 1.25vw, 0.8rem);
         display: inline-flex;
         align-items: center;
-        gap: 0.75rem;
+        gap: 0.4rem;
         box-shadow: 0 4px 12px rgba(38, 166, 154, 0.3);
         letter-spacing: 0.5px;
     }
@@ -245,15 +273,15 @@
     /* Archive Section */
     .archive-section-header {
         text-align: center;
-        margin: 4rem 0 3rem 0;
+        margin: 1.5rem 0 1rem 0;
         animation: fadeInUp 0.6s ease-out 0.3s both;
     }
 
     .archive-section-header h2 {
-        font-size: 2.25rem;
+        font-size: clamp(1.25rem, 2.5vw, 1.5rem);
         font-weight: 800;
         color: var(--text-dark);
-        margin-bottom: 0.75rem;
+        margin-bottom: 0.375rem;
         position: relative;
         display: inline-block;
     }
@@ -272,27 +300,31 @@
 
     .archive-section-header p {
         color: var(--text-medium);
-        font-size: 1.05rem;
-        margin-top: 1.5rem;
+        font-size: clamp(0.8rem, 1.5vw, 0.9rem);
+        margin-top: 0.5rem;
     }
 
     .archive-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-        gap: 2rem;
-        margin-bottom: 3rem;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 0.5rem;
+        margin-bottom: 1.25rem;
     }
 
     /* Archive Cards */
     .archive-card {
         background: var(--bg-white);
-        border-radius: 20px;
+        border-radius: 10px;
         overflow: hidden;
         box-shadow: var(--shadow-md);
         transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        border-top: 5px solid;
+        border-top: 4px solid;
         animation: fadeInUp 0.6s ease-out;
         position: relative;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-height: 400px;
     }
 
     .archive-card::before {
@@ -308,7 +340,7 @@
     }
 
     .archive-card:hover {
-        transform: translateY(-8px) scale(1.02);
+        transform: translateY(-6px) scale(1.01);
         box-shadow: var(--shadow-xl);
     }
 
@@ -316,73 +348,142 @@
         opacity: 1;
     }
 
+    .archive-image {
+        width: 100%;
+        height: 110px;
+        object-fit: cover;
+        border-radius: 0;
+        margin-bottom: 0;
+        flex-shrink: 0;
+        cursor: pointer;
+        transition: transform 0.3s ease;
+        display: block;
+    }
+
+    .archive-card:hover .archive-image {
+        transform: scale(1.03);
+    }
+
+
     .archive-card-content {
-        padding: 2rem;
+        padding: 0.625rem 0.75rem;
         position: relative;
         z-index: 1;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+    }
+
+    .archive-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.5rem;
     }
 
     .archive-date {
         color: var(--text-light);
-        font-size: 0.85rem;
+        font-size: 0.7rem;
         font-weight: 700;
-        margin-bottom: 1rem;
-        text-transform: uppercase;
-        letter-spacing: 1px;
+        margin-bottom: 0;
+        text-transform: none;
+        letter-spacing: 0.5px;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.375rem;
     }
 
     .archive-date i {
-        font-size: 1rem;
+        font-size: 0.75rem;
     }
 
     .archive-title {
-        font-size: 1.35rem;
+        font-size: clamp(0.85rem, 1.5vw, 0.9rem);
         font-weight: 800;
         color: var(--text-dark);
-        margin-bottom: 1rem;
-        line-height: 1.4;
+        margin-bottom: 0.375rem;
+        line-height: 1.2;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
     }
 
+    .archive-subheading {
+        font-size: clamp(0.75rem, 1.25vw, 0.8rem);
+        font-weight: 600;
+        color: var(--accent-teal);
+        margin-bottom: 0.375rem;
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
     .archive-content {
         color: var(--text-medium);
-        font-size: 0.95rem;
-        line-height: 1.7;
-        margin: 0;
+        font-size: clamp(0.7rem, 1.25vw, 0.75rem);
+        line-height: 1.4;
+        margin-bottom: 0.5rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        flex: 1;
+        min-height: 0;
+    }
+
+    .archive-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        font-size: clamp(0.65rem, 1.25vw, 0.7rem);
+        margin-top: auto;
+        padding-top: 0.5rem;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .archive-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        color: var(--text-medium);
+    }
+
+    .archive-meta-item i {
+        font-size: 0.75rem;
+        color: var(--primary-blue);
+        flex-shrink: 0;
     }
 
     /* Empty State */
     .empty-state {
         text-align: center;
-        padding: 5rem 2rem;
+        padding: 2rem 1.5rem;
         background: var(--bg-white);
-        border-radius: 24px;
+        border-radius: 12px;
         box-shadow: var(--shadow-md);
     }
 
     .empty-state i {
-        font-size: 5rem;
+        font-size: clamp(3rem, 6vw, 3.5rem);
         color: var(--primary-light);
-        margin-bottom: 1.5rem;
+        margin-bottom: 0.75rem;
         opacity: 0.8;
     }
 
     .empty-state h3 {
         color: var(--text-dark);
-        font-size: 1.5rem;
+        font-size: clamp(1rem, 2vw, 1.15rem);
         font-weight: 700;
-        margin-bottom: 0.75rem;
+        margin-bottom: 0.375rem;
     }
 
     .empty-state p {
         color: var(--text-medium);
-        font-size: 1rem;
+        font-size: clamp(0.85rem, 1.5vw, 0.9rem);
     }
 
     /* Animations */
@@ -514,6 +615,43 @@
         color: var(--dm-text-muted, #94a3b8) !important;
     }
 
+    [data-theme="dark"] .archive-subheading {
+        color: #14b8a6 !important;
+    }
+
+    [data-theme="dark"] .archive-meta {
+        border-top-color: var(--dm-border-color, #334155) !important;
+    }
+
+    [data-theme="dark"] .archive-meta-item {
+        color: var(--dm-text-muted, #94a3b8) !important;
+    }
+
+    [data-theme="dark"] .archive-meta-item i {
+        color: #60a5fa !important;
+    }
+
+    @media (max-width: 1400px) {
+        .archive-grid {
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+        }
+    }
+
+    @media (max-width: 1200px) {
+        .archive-grid {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.625rem;
+        }
+    }
+
+    @media (max-width: 992px) {
+        .archive-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+    }
+
     /* Empty State Dark Mode */
     [data-theme="dark"] .empty-state {
         background: var(--dm-card-bg, #1e293b) !important;
@@ -540,6 +678,10 @@
         border: 1px solid var(--dm-border-color, #334155) !important;
     }
 
+    [data-theme="dark"] .announcement-image-wrapper:hover::before {
+        background: rgba(255, 255, 255, 0.1) !important;
+    }
+
     /* Event Message with Teal Border Dark Mode */
     [data-theme="dark"] .announcement-message[style*="border-left-color: var(--accent-teal)"] {
         border-left-color: #14b8a6 !important;
@@ -557,23 +699,28 @@
     /* Responsive */
     @media (max-width: 768px) {
         .announcement-page {
-            padding: 2rem 0;
+            padding: 1.5rem 0;
         }
 
         .announcement-content-wrapper {
-            padding: 0 1rem;
+            padding: 0 1.25rem;
+            max-width: 100%;
+        }
+
+        .page-header {
+            margin-bottom: 1.25rem;
         }
 
         .page-header h1 {
-            font-size: 2rem;
+            font-size: 1.75rem;
         }
 
         .banner-title {
-            font-size: 1.5rem;
+            font-size: 1.35rem;
         }
 
         .announcement-banner {
-            padding: 2rem 1.5rem;
+            padding: 1.25rem 1.25rem;
         }
 
         .announcement-banner::after {
@@ -582,49 +729,72 @@
         }
 
         .announcement-content-section {
-            padding: 2rem 1.5rem;
+            padding: 1.25rem 1.25rem;
         }
 
         .announcement-image-wrapper {
-            max-width: 100%;
-            margin-bottom: 2rem;
+            margin-bottom: 1rem;
         }
 
         .announcement-image-wrapper img {
-            max-height: 300px;
+            height: auto;
+        }
+
+        .announcement-subheading {
+            margin-bottom: 0.75rem !important;
+        }
+
+        .announcement-subheading p {
+            font-size: 1rem !important;
         }
 
         .announcement-message {
-            padding: 1.5rem;
-            font-size: 0.95rem;
+            padding: 1rem 1.25rem;
+            font-size: 0.875rem;
         }
 
-        .announcement-message::before {
-            font-size: 1.2rem;
-            top: 0.75rem;
-            right: 1rem;
+
+        .new-badge {
+            padding: 0.35rem 0.875rem;
+            font-size: 0.75rem;
+            top: 1rem;
+            left: 1rem;
         }
 
         .announcement-details {
-            gap: 1rem;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
         }
 
         .detail-item {
-            font-size: 0.85rem;
-            padding: 0.6rem 1rem;
+            font-size: 0.8rem;
+            padding: 0.45rem 0.875rem;
         }
 
         .detail-item i {
-            font-size: 1.1rem;
+            font-size: 1rem;
         }
 
         .archive-grid {
-            grid-template-columns: 1fr;
-            gap: 1.5rem;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+
+        .archive-card {
+            min-height: 480px;
+        }
+
+        .archive-image {
+            height: 120px;
+        }
+
+        .archive-section-header {
+            margin: 2rem 0 1.5rem 0;
         }
 
         .archive-section-header h2 {
-            font-size: 1.75rem;
+            font-size: 1.5rem;
         }
 
         .new-badge {
@@ -634,7 +804,7 @@
 
         .event-badge {
             font-size: 0.8rem;
-            padding: 0.6rem 1.5rem;
+            padding: 0.5rem 1.25rem;
         }
     }
 </style>
@@ -651,20 +821,28 @@
         @if($announcement)
             <div class="announcement-card">
                 <div class="announcement-banner">
-                    <h2 class="banner-title">{{ $announcement->title }}</h2>
-                </div>
-
-                <div class="announcement-content-section">
                     @if($announcement->created_at->diffInDays(now()) < 7)
                         <span class="new-badge">
                             <i class="bi bi-star-fill"></i>
                             NEW
                         </span>
                     @endif
+                    <h2 class="banner-title">{{ $announcement->title }}</h2>
+                </div>
+
+                <div class="announcement-content-section">
 
                     @if($announcement->image_path)
-                        <div class="announcement-image-wrapper">
+                        <div class="announcement-image-wrapper" onclick="openImageModal('{{ asset('storage/' . $announcement->image_path) }}', '{{ $announcement->title }}')">
                             <img src="{{ asset('storage/' . $announcement->image_path) }}" alt="{{ $announcement->title }}">
+                        </div>
+                    @endif
+
+                    @if($announcement->subheading)
+                        <div class="announcement-subheading">
+                            <p class="mb-0" style="font-weight: 600; color: var(--accent-teal);">
+                                {{ $announcement->subheading }}
+                            </p>
                         </div>
                     @endif
 
@@ -673,8 +851,22 @@
                     </div>
 
                     <div class="announcement-details">
+                        @if($announcement->date_start)
+                            <div class="detail-item">
+                                <i class="bi bi-calendar-event"></i>
+                                <span>{{ $announcement->formatted_date_range }}</span>
+                            </div>
+                        @endif
+
+                        @if($announcement->time_start || $announcement->is_whole_day)
+                            <div class="detail-item">
+                                <i class="bi bi-clock-fill"></i>
+                                <span>{{ $announcement->formatted_time_range }}</span>
+                            </div>
+                        @endif
+
                         <div class="detail-item">
-                            <i class="bi bi-calendar-event"></i>
+                            <i class="bi bi-calendar-check"></i>
                             <span>Posted {{ $announcement->created_at->format('F d, Y') }}</span>
                         </div>
                         @if($announcement->updated_at != $announcement->created_at)
@@ -697,7 +889,7 @@
         <!-- Upcoming Events -->
         @forelse($upcomingEvents as $event)
             <div class="announcement-card">
-                <div class="announcement-content-section" style="padding-top: 2rem; padding-bottom: 0;">
+                <div class="announcement-content-section" style="padding-top: 0.875rem; padding-bottom: 0;">
                     <span class="event-badge">
                         <i class="bi bi-calendar-check"></i>
                         UPCOMING EVENT
@@ -705,13 +897,13 @@
                 </div>
 
                 @if($event->image_path)
-                    <div class="announcement-image-wrapper" style="margin: 1.5rem auto 0 auto;">
+                    <div class="announcement-image-wrapper" style="margin: 0.75rem auto 0 auto;" onclick="openImageModal('{{ asset('storage/' . $event->image_path) }}', '{{ $event->title }}')">
                         <img src="{{ asset('storage/' . $event->image_path) }}?v={{ time() }}"
                              alt="{{ $event->title }}">
                     </div>
                 @endif
 
-                <div class="announcement-banner" style="background: linear-gradient(135deg, #26a69a 0%, #00897b 50%, #00695c 100%); margin-top: 1.5rem;">
+                <div class="announcement-banner" style="background: linear-gradient(135deg, #26a69a 0%, #00897b 50%, #00695c 100%); margin-top: 0.75rem;">
                     <h2 class="banner-title">{{ $event->title }}</h2>
                 </div>
 
@@ -755,22 +947,59 @@
 
             <div class="archive-grid">
                 @php
-                    $colors = ['#26a69a', '#2196F3', '#f59e0b'];
+                    $colors = ['#26a69a', '#2196F3', '#f59e0b', '#8b5cf6', '#ec4899'];
                     $colorIndex = 0;
                 @endphp
-                @foreach($archivedAnnouncements as $archive)
-                    <div class="archive-card" style="border-top-color: {{ $colors[$colorIndex % 3] }};">
+                @foreach($archivedAnnouncements->take(5) as $archive)
+                    <div class="archive-card" style="border-top-color: {{ $colors[$colorIndex % 5] }};">
+                        @if($archive->image_path)
+                            <img src="{{ asset('storage/' . $archive->image_path) }}" 
+                                 alt="{{ $archive->title }}" 
+                                 class="archive-image"
+                                 onclick="openImageModal('{{ asset('storage/' . $archive->image_path) }}', '{{ $archive->title }}')">
+                        @else
+                            <div class="archive-image" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); display: flex; align-items: center; justify-content: center;">
+                                <i class="bi bi-image" style="font-size: 2rem; color: #90caf9; opacity: 0.5;"></i>
+                            </div>
+                        @endif
                         <div class="archive-card-content">
-                            <div class="archive-date">
-                                <i class="bi bi-calendar3"></i>
-                                {{ $archive->archived_at->format('F j, Y') }}
+                            <div class="archive-card-header">
+                                <div class="archive-date">
+                                    <i class="bi bi-calendar3"></i>
+                                    @if($archive->date_start && $archive->formatted_date_range)
+                                        {{ strtoupper($archive->formatted_date_range) }}
+                                    @else
+                                        {{ strtoupper($archive->archived_at->format('F j, Y')) }}
+                                    @endif
+                                </div>
                             </div>
                             <h3 class="archive-title">
                                 {{ $archive->title }}
                             </h3>
+                            @if($archive->subheading)
+                                <p class="archive-subheading">
+                                    {{ Str::limit($archive->subheading, 60) }}
+                                </p>
+                            @endif
                             <p class="archive-content">
-                                {{ Str::limit($archive->content, 150) }}
+                                {{ Str::limit(strip_tags($archive->content), 120) }}
                             </p>
+                            <div class="archive-meta">
+                                <div class="archive-meta-item">
+                                    <i class="bi bi-clock-fill"></i>
+                                    <span>
+                                        @if($archive->time_start && !$archive->is_whole_day)
+                                            {{ $archive->formatted_time_range ?? '' }}
+                                        @else
+                                            Whole Day
+                                        @endif
+                                    </span>
+                                </div>
+                                <div class="archive-meta-item">
+                                    <i class="bi bi-calendar-check"></i>
+                                    <span>{{ $archive->archived_at->format('F j, Y') }}</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     @php $colorIndex++; @endphp
@@ -783,6 +1012,7 @@
 <script>
 function closeNotification() {
     const notificationBar = document.getElementById('notificationBar');
+    if (notificationBar) {
     notificationBar.style.transition = 'all 0.3s ease';
     notificationBar.style.opacity = '0';
     notificationBar.style.transform = 'translateY(-100%)';
@@ -790,6 +1020,146 @@ function closeNotification() {
         notificationBar.style.display = 'none';
     }, 300);
 }
+}
+
+// Image Modal for full-size viewing
+function openImageModal(imageSrc, imageTitle) {
+    const modal = document.createElement('div');
+    modal.className = 'image-modal';
+    modal.innerHTML = `
+        <div class="image-modal-overlay" onclick="closeImageModal()">
+            <div class="image-modal-content" onclick="event.stopPropagation()">
+                <button class="image-modal-close" onclick="closeImageModal()">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+                <img src="${imageSrc}" alt="${imageTitle}" class="image-modal-img">
+                <div class="image-modal-title">${imageTitle}</div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => modal.classList.add('show'), 10);
+}
+
+function closeImageModal() {
+    const modal = document.querySelector('.image-modal');
+    if (modal) {
+        modal.classList.remove('show');
+        setTimeout(() => {
+            document.body.removeChild(modal);
+            document.body.style.overflow = '';
+        }, 300);
+    }
+}
+
+// Close modal on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeImageModal();
+    }
+});
 </script>
+
+<style>
+.image-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.image-modal.show {
+    opacity: 1;
+}
+
+.image-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.image-modal-content {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.image-modal-close {
+    position: absolute;
+    top: -50px;
+    right: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.image-modal-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+.image-modal-img {
+    max-width: 100%;
+    max-height: 80vh;
+    object-fit: contain;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.image-modal-title {
+    color: white;
+    margin-top: 1rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .image-modal-content {
+        max-width: 95vw;
+        max-height: 95vh;
+    }
+
+    .image-modal-close {
+        top: -40px;
+        width: 35px;
+        height: 35px;
+        font-size: 1.25rem;
+    }
+
+    .image-modal-img {
+        max-height: 75vh;
+    }
+
+    .image-modal-title {
+        font-size: 1rem;
+    }
+}
+</style>
 
 @endsection

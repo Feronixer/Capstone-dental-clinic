@@ -1,6 +1,6 @@
 @forelse ($users as $user)
     <tr>
-        <td class="align-middle text-center">{{ $user->id }}</td>
+        <td class="align-middle text-center">{{ ($users->currentPage() - 1) * $users->perPage() + $loop->iteration }}</td>
         <td class="align-middle text-center">{{ $user->username }}</td>
         <td class="align-middle text-center">{{ $user->name }}</td>
         <td class="align-middle text-center">{{ $user->email }}</td>

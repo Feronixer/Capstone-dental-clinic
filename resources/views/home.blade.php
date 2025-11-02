@@ -60,17 +60,15 @@
             color: #2196F3;
         }
 
-        .logo-icon {
-            width: 45px;
-            height: 45px;
-            background: #2196F3;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.3rem;
-            font-weight: 800;
+        .logo span {
+            font-weight: 700;
+        }
+
+        .logo-img {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            display: inline-block;
         }
 
         .nav-links {
@@ -253,39 +251,100 @@
             flex: 1;
             max-width: 550px;
             position: relative;
+            padding: 1rem;
         }
 
         .main-card {
-            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            background: linear-gradient(135deg, rgba(33, 150, 243, 0.95) 0%, rgba(25, 118, 210, 0.98) 50%, rgba(21, 101, 192, 1) 100%);
             border-radius: 30px;
             padding: 3rem;
             min-height: 450px;
-            box-shadow: 0 20px 60px rgba(33, 150, 243, 0.3);
+            box-shadow: 0 15px 45px rgba(0, 0, 128, 0.15), 0 8px 20px rgba(0, 0, 128, 0.12), 0 4px 10px rgba(0, 0, 128, 0.08);
             position: relative;
-            overflow: hidden;
+            overflow: visible;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            z-index: 1;
+        }
+
+        .main-card-image {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 135%;
+            max-width: none;
+            height: auto;
+            min-height: 100%;
+            object-fit: cover;
+            opacity: 1;
+            z-index: 1;
+            filter: brightness(1) contrast(1) drop-shadow(0 8px 24px rgba(128, 128, 128, 0.25));
+            pointer-events: none;
+            mix-blend-mode: normal;
         }
 
         .main-card::before {
             content: '';
             position: absolute;
-            top: -50%;
-            right: -20%;
+            top: -40%;
+            right: -15%;
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
+            border-radius: 50%;
+            z-index: 2;
+            filter: blur(20px);
+        }
+
+        .main-card::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -10%;
             width: 300px;
             height: 300px;
-            background: rgba(255, 255, 255, 0.1);
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
             border-radius: 50%;
+            z-index: 2;
+            filter: blur(25px);
         }
 
         .card-title {
-            color: white;
+            color: rgba(255, 255, 255, 0.95);
             font-size: 1.4rem;
             font-weight: 700;
-            text-align: center;
+            text-align: left;
             position: absolute;
             bottom: 2rem;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100%;
+            left: 2rem;
+            width: calc(100% - 4rem);
+            z-index: 15;
+            text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35), 0 1px 4px rgba(0, 0, 0, 0.25), 0 0 10px rgba(0, 234, 255, 0.6), 0 0 20px rgba(0, 234, 255, 0.4), 0 0 30px rgba(0, 234, 255, 0.3);
+            opacity: 1;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .card-title i {
+            color: #00EAFF;
+            font-size: 1.6rem;
+            filter: drop-shadow(0 0 8px rgba(0, 234, 255, 0.8)) drop-shadow(0 0 16px rgba(0, 234, 255, 0.6));
+            animation: arrow-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes arrow-pulse {
+            0%, 100% {
+                transform: translateX(0);
+                filter: drop-shadow(0 0 8px rgba(0, 234, 255, 0.8)) drop-shadow(0 0 16px rgba(0, 234, 255, 0.6));
+            }
+            50% {
+                transform: translateX(5px);
+                filter: drop-shadow(0 0 12px rgba(0, 234, 255, 1)) drop-shadow(0 0 24px rgba(0, 234, 255, 0.8));
+            }
         }
 
         .feature-card {
@@ -293,12 +352,20 @@
             background: white;
             border-radius: 20px;
             padding: 1.3rem 1.5rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 8px 25px rgba(0, 0, 128, 0.12), 0 4px 12px rgba(0, 0, 128, 0.08), 0 2px 6px rgba(0, 0, 128, 0.06);
             display: flex;
             align-items: flex-start;
             gap: 1rem;
             max-width: 250px;
-            z-index: 10;
+            z-index: 15;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(0, 0, 128, 0.15), 0 6px 18px rgba(0, 0, 128, 0.12), 0 3px 9px rgba(0, 0, 128, 0.08);
         }
 
         .feature-card.top {
@@ -312,16 +379,17 @@
         }
 
         .feature-icon {
-            width: 45px;
-            height: 45px;
+            width: 50px;
+            height: 50px;
             background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: #2196F3;
-            font-size: 1.3rem;
+            font-size: 1.4rem;
             flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 128, 0.08), 0 1px 4px rgba(0, 0, 128, 0.06);
         }
 
         .feature-text h4 {
@@ -347,6 +415,16 @@
                 font-size: 2.5rem;
             }
 
+            .main-card {
+                min-height: 350px;
+                padding: 2rem;
+            }
+
+            .main-card-image {
+                width: 130%;
+                max-width: none;
+            }
+
             .feature-card {
                 position: relative;
                 right: auto;
@@ -370,6 +448,17 @@
 
             .hero-title {
                 font-size: 2rem;
+            }
+
+            .main-card {
+                min-height: 300px;
+                padding: 1.5rem;
+            }
+
+            .main-card-image {
+                width: 120%;
+                max-width: none;
+                opacity: 0.3;
             }
 
             .login-buttons {
@@ -676,16 +765,10 @@
         }
 
         .footer-about .footer-logo {
-            width: 35px;
-            height: 35px;
-            background: white;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            color: #2196F3;
-            font-size: 1rem;
-            font-weight: 800;
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+            display: inline-block;
         }
 
         .footer-about p {
@@ -1034,14 +1117,66 @@
             .chatbot-widget { right: 16px; left: 16px; width: auto; }
             .chatbot-messages { height: 240px; }
         }
+
+        /* Global Scrollbar Styles - White & Blue Theme */
+        ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #ffffff;
+            border-radius: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            border-radius: 6px;
+            border: 2px solid #ffffff;
+            transition: background 0.3s ease;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+        }
+
+        ::-webkit-scrollbar-corner {
+            background: #ffffff;
+        }
+
+        [data-theme="dark"] ::-webkit-scrollbar-track {
+            background: var(--dm-bg-secondary, #1e293b);
+        }
+
+        [data-theme="dark"] ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            border-color: var(--dm-bg-secondary, #1e293b);
+        }
+
+        [data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+        }
+
+        [data-theme="dark"] ::-webkit-scrollbar-corner {
+            background: var(--dm-bg-secondary, #1e293b);
+        }
+
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: #2196F3 #ffffff;
+        }
+
+        [data-theme="dark"] * {
+            scrollbar-color: #2196F3 var(--dm-bg-secondary, #1e293b);
+        }
     </style>
 </head>
 <body>
     <!-- Navigation Bar -->
     <nav class="navbar">
         <div class="logo">
-            <div class="logo-icon">TT</div>
-            <span>ToothTalk</span>
+            <img src="{{ asset('images/logo4.png') }}" alt="ToothTalk" class="logo-img">
+            <span>Tooth<span style="color: #26a69a;">Talk</span></span>
         </div>
         <div class="nav-links">
             <a href="{{ url('/') }}" class="nav-btn primary">
@@ -1135,6 +1270,8 @@
         <!-- Right Card -->
         <div class="hero-card">
             <div class="main-card">
+                <img src="{{ asset('images/clinic.png') }}" alt="Dental Clinic" class="main-card-image">
+
                 <div class="feature-card top">
                     <div class="feature-icon">
                         <i class="bi bi-heart-pulse-fill"></i>
@@ -1142,8 +1279,8 @@
                     <div class="feature-text">
                         <h4>Pain-Free</h4>
                         <p>Advanced anesthesia</p>
-    </div>
-    </div>
+                    </div>
+                </div>
 
                 <div class="feature-card bottom">
                     <div class="feature-icon">
@@ -1155,9 +1292,9 @@
                     </div>
                 </div>
 
-                <h2 class="card-title">Advanced Dental Clinic Environment</h2>
+                <h2 class="card-title">JValera Dental Clinic <i class="bi bi-arrow-right"></i></h2>
             </div>
-    </div>
+        </div>
 </section>
 
     <!-- Services Section -->
@@ -1173,11 +1310,12 @@
 
                 <div class="services-carousel" id="servicesCarousel">
                     @forelse($services as $service)
-                    <div class="service-card" onclick="openServiceModal({{ $service->id }}, '{{ $service->service_name }}', '{{ addslashes($service->description) }}', {{ $service->default_duration_minutes }}, '{{ $service->icon_class ?? 'bi-gear' }}')">
+                    <div class="service-card" onclick="openServiceModal({{ $service->id }}, {{ json_encode($service->service_name) }}, {{ json_encode($service->description) }}, {{ $service->default_duration_minutes }}, {{ json_encode($service->icon_class ?? 'bi-gear') }})">
                         <div class="service-icon-box">
                             @php $ic = $service->icon_class; @endphp
                             @if($ic && \Illuminate\Support\Str::startsWith($ic,'uploaded:'))
-                                <img src="{{ asset('storage/' . \Illuminate\Support\Str::after($ic,'uploaded:')) }}" alt="icon" style="width:80px;height:80px;object-fit:contain;" class="theme-adapt">
+                                <img src="{{ asset('storage/' . \Illuminate\Support\Str::after($ic,'uploaded:')) }}" alt="icon" style="width:80px;height:80px;object-fit:contain;" class="theme-adapt" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" onload="this.style.display='block'; this.nextElementSibling.style.display='none';">
+                                <i class="bi bi-gear" style="display:none;"></i>
                             @else
                                 <i class="bi {{ $ic ?? 'bi-gear' }}"></i>
                             @endif
@@ -1206,8 +1344,8 @@
                 <i class="bi bi-x-lg"></i>
             </button>
             <div class="service-modal-icon">
-                <img id="modalServiceImg" class="d-none" style="width:80px;height:80px;object-fit:contain;" alt="icon">
-                <i class="bi" id="modalServiceIcon"></i>
+                <img id="modalServiceImg" class="d-none" style="width:80px;height:80px;object-fit:contain;display:none;" alt="icon" onerror="this.style.display='none'; document.getElementById('modalServiceIcon').style.display='flex'; document.getElementById('modalServiceIcon').className='bi bi-gear';">
+                <i class="bi bi-gear" id="modalServiceIcon"></i>
             </div>
             <h2 class="service-modal-title" id="modalServiceName"></h2>
             <p class="service-modal-description" id="modalServiceDescription"></p>
@@ -1252,17 +1390,69 @@
             document.getElementById('modalServiceName').textContent = name;
             document.getElementById('modalServiceDescription').textContent = description;
             document.getElementById('modalServiceDuration').textContent = duration + ' minutes';
+            
             const iconEl = document.getElementById('modalServiceIcon');
             const imgEl = document.getElementById('modalServiceImg');
+            
+            // Completely reset both elements first - remove all event handlers
+            imgEl.onerror = null;
+            imgEl.onload = null;
+            imgEl.src = ''; // Clear previous image source
+            
+            // Reset visibility - hide image by default, show icon
             imgEl.classList.add('d-none');
+            imgEl.style.display = 'none';
             iconEl.classList.remove('d-none');
-            if (iconClass && iconClass.startsWith('uploaded:')) {
-                imgEl.src = '/storage/' + iconClass.replace('uploaded:','');
-                imgEl.classList.remove('d-none');
-                iconEl.classList.add('d-none');
-            } else {
-                iconEl.className = 'bi ' + (iconClass || 'bi-gear');
+            iconEl.style.display = 'flex';
+            
+            // Validate and clean iconClass
+            if (!iconClass || typeof iconClass !== 'string') {
+                iconClass = 'bi-gear';
             }
+            iconClass = iconClass.trim();
+            
+            // Check if it's an uploaded image
+            if (iconClass.startsWith('uploaded:')) {
+                const imagePath = '/storage/' + iconClass.replace('uploaded:', '');
+                
+                // Set up fresh error handler for failed image loads
+                imgEl.onerror = function() {
+                    // Image failed to load - hide image and show default icon
+                    this.onerror = null; // Remove handler to prevent loops
+                    this.onload = null;
+                    imgEl.classList.add('d-none');
+                    imgEl.style.display = 'none';
+                    imgEl.src = '';
+                    iconEl.classList.remove('d-none');
+                    iconEl.style.display = 'flex';
+                    iconEl.className = 'bi bi-gear';
+                };
+                
+                // Set up fresh success handler
+                imgEl.onload = function() {
+                    // Image loaded successfully - show image and hide icon
+                    this.onload = null; // Remove handler
+                    imgEl.classList.remove('d-none');
+                    imgEl.style.display = 'block';
+                    iconEl.classList.add('d-none');
+                    iconEl.style.display = 'none';
+                };
+                
+                // Set the image source with cache busting to ensure fresh load
+                imgEl.src = imagePath + '?v=' + Date.now();
+            } else {
+                // It's a Bootstrap icon - set icon class and ensure it's visible
+                const iconClassClean = iconClass || 'bi-gear';
+                // Ensure it starts with 'bi-'
+                const finalIconClass = iconClassClean.startsWith('bi-') ? iconClassClean : ('bi-' + iconClassClean);
+                iconEl.className = 'bi ' + finalIconClass;
+                iconEl.classList.remove('d-none');
+                iconEl.style.display = 'flex';
+                imgEl.classList.add('d-none');
+                imgEl.style.display = 'none';
+                imgEl.src = ''; // Clear any previous image
+            }
+            
             document.getElementById('serviceModal').classList.add('active');
             document.body.style.overflow = 'hidden';
         }
@@ -1293,7 +1483,7 @@
                 <!-- About Section -->
                 <div class="footer-about">
                     <h3>
-                        <span class="footer-logo">TT</span>
+                        <img src="{{ asset('images/logo7.png') }}" alt="ToothTalk" class="footer-logo">
                         ToothTalk
                     </h3>
                     <p>

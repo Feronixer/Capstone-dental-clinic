@@ -4,14 +4,13 @@
             <!-- About Section -->
             <div class="footer-section">
                 <div class="footer-logo">
-                    <img src="{{ asset('images/logo5.png') }}" alt="JValera Dental Clinic" class="footer-logo-img">
-                    <div>
-                        <h3 class="footer-brand">JValera Dental Clinic</h3>
-                        <p class="footer-tagline">Your smile is our priority</p>
-                    </div>
+                    <h3 class="footer-brand">
+                        <img src="{{ asset('images/logo7.png') }}" alt="ToothTalk" class="footer-logo-img">
+                        ToothTalk
+                    </h3>
                 </div>
                 <p class="footer-description">
-                    Providing exceptional dental care with state-of-the-art technology and compassionate service since 2024.
+                    We offer premium dental care services since 2024. We're committed to providing utmost care and attention to your dental needs.
                 </p>
                 <div class="footer-social">
                     <a href="https://www.facebook.com/profile.php?id=61555389276989" class="social-link" title="Facebook">
@@ -74,7 +73,7 @@
         <!-- Bottom Bar -->
         <div class="footer-bottom">
             <p class="copyright">
-                &copy; {{ date('Y') }} JValera Dental Clinic. All Rights Reserved.
+                &copy; {{ date('Y') }} Dental Clinic. All Rights Reserved.
             </p>
             <div class="footer-bottom-links">
                 <a href="#">Privacy Policy</a>
@@ -120,16 +119,22 @@
     margin-bottom: 1rem;
 }
 
-.footer-logo-img {
-    height: 50px;
-    width: auto;
-}
-
-.footer-brand {
-    font-size: 1.25rem;
+.footer-logo h3 {
+    font-size: 1.5rem;
     font-weight: 700;
     margin: 0;
     line-height: 1.2;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: white;
+}
+
+.footer-logo-img {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    display: inline-block;
 }
 
 .footer-tagline {

@@ -2,181 +2,422 @@
 @section('content')
 
 <style>
+/* ============================================
+   ENHANCED PATIENT RECORDS STYLES
+   Blue Accent Theme: #0d6efd
+   ============================================ */
+
 .records-container {
-    max-width: 1400px;
+    max-width: 1600px;
     margin: 0 auto;
-    padding: 2rem;
+    padding: 1rem 1.5rem;
 }
 
+/* Enhanced Page Header */
 .page-header-box {
-    background: white;
-    border: 3px solid #2196F3;
-    border-radius: 8px;
-    padding: 1rem 2rem;
-    display: inline-block;
-    margin-bottom: 2rem;
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    border: none;
+    border-radius: 10px;
+    padding: 0.875rem 1.5rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 2px 12px rgba(13, 110, 253, 0.2);
 }
 
 .page-header-box h1 {
-    font-size: 2rem;
-    font-weight: 800;
-    color: #2C3E50;
+    font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+    font-weight: 700;
+    color: #ffffff;
     margin: 0;
-    letter-spacing: 1px;
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.page-header-box h1::before {
+    content: '';
+    width: 3px;
+    height: 1.5rem;
+    background: #ffffff;
+    border-radius: 2px;
+}
+
+.page-header-box h1 i {
+    font-size: 1.25rem;
 }
 
 .records-layout {
     display: grid;
     grid-template-columns: 1fr 1.5fr;
-    gap: 2rem;
+    gap: 1.25rem;
+    align-items: start;
 }
 
-/* Records Table */
+/* Enhanced Records Table Section */
 .records-table-section {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     overflow: hidden;
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
 }
 
+.records-table-section:hover {
+    box-shadow: 0 6px 24px rgba(13, 110, 253, 0.12);
+}
+
+/* Enhanced Sort Control */
+.sort-control-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.sort-control-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+}
+
+.sort-control-wrapper label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #495057;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    white-space: nowrap;
+}
+
+.sort-control-wrapper label i {
+    color: #0d6efd;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.sort-control-wrapper .form-select {
+    border: 1.5px solid #0d6efd;
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #495057;
+    background: #ffffff;
+    transition: all 0.2s ease;
+    min-width: 180px;
+}
+
+.sort-control-wrapper .form-select:focus {
+    border-color: #0a58ca;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+    outline: none;
+}
+
+/* Enhanced Records Table */
 .records-table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
 }
 
 .records-table thead {
-    background: #26a69a;
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
 }
 
 .records-table thead th {
-    color: white;
-    font-weight: 700;
-    font-size: 1rem;
-    padding: 1.25rem 1.5rem;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.8rem;
+    padding: 0.75rem 1rem;
     text-align: left;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.records-table thead th:first-child {
+    border-top-left-radius: 0;
 }
 
 .records-table tbody tr {
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid #f1f3f5;
+    transition: all 0.2s ease;
+}
+
+.records-table tbody tr:hover {
+    background-color: #f8f9fa;
+    box-shadow: 0 1px 3px rgba(13, 110, 253, 0.1);
 }
 
 .records-table tbody tr:nth-child(even) {
+    background: #ffffff;
+}
+
+.records-table tbody tr:nth-child(odd) {
     background: #f8f9fa;
 }
 
 .records-table tbody td {
-    padding: 1.25rem 1.5rem;
-    color: #2C3E50;
-    font-size: 0.95rem;
+    padding: 0.75rem 1rem;
+    color: #495057;
+    font-size: 0.85rem;
+    vertical-align: middle;
 }
 
 .form-name {
     font-weight: 600;
+    color: #212529;
+    font-size: 0.875rem;
 }
 
 .form-date {
     color: #64748b;
+    font-size: 0.8rem;
 }
 
 .action-buttons {
     display: flex;
-    gap: 0.75rem;
+    gap: 0.375rem;
+    flex-wrap: nowrap;
 }
 
 .btn-view, .btn-download {
-    padding: 0.5rem 1.25rem;
+    padding: 0.5rem;
     border: none;
     border-radius: 6px;
     font-weight: 600;
-    font-size: 0.85rem;
     cursor: pointer;
     text-decoration: none;
-    display: inline-block;
-    transition: all 0.3s;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    position: relative;
 }
 
 .btn-view {
-    background: #26a69a;
-    color: white;
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(13, 110, 253, 0.2);
 }
 
 .btn-view:hover {
-    background: #1e8e82;
+    background: linear-gradient(135deg, #0a58ca 0%, #084298 100%);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(38, 166, 154, 0.3);
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+}
+
+.btn-view:active {
+    transform: translateY(0);
 }
 
 .btn-download {
-    background: #2C3E50;
-    color: white;
+    background: linear-gradient(135deg, #495057 0%, #343a40 100%);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(73, 80, 87, 0.2);
 }
 
 .btn-download:hover {
-    background: #1e2938;
+    background: linear-gradient(135deg, #343a40 0%, #212529 100%);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(44, 62, 80, 0.3);
+    box-shadow: 0 4px 12px rgba(73, 80, 87, 0.3);
 }
 
-/* Form Preview */
+.btn-download:active {
+    transform: translateY(0);
+}
+
+.btn-view i, .btn-download i {
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.btn-view:hover::after, .btn-download:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: -2.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #212529;
+    color: #ffffff;
+    padding: 0.375rem 0.625rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    z-index: 1000;
+    pointer-events: none;
+    font-weight: 500;
+}
+
+.btn-view:hover::before, .btn-download:hover::before {
+    content: '';
+    position: absolute;
+    bottom: -0.375rem;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 4px solid transparent;
+    border-bottom-color: #212529;
+    z-index: 1001;
+    pointer-events: none;
+}
+
+/* Enhanced Form Preview Section */
 .form-preview-section {
-    background: white;
+    background: #ffffff;
     border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    padding: 2rem;
-    max-height: 800px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    padding: 1.25rem;
+    max-height: calc(100vh - 200px);
     overflow-y: auto;
+    border: 1px solid #e9ecef;
+    position: sticky;
+    top: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-preview-section:hover {
+    box-shadow: 0 6px 24px rgba(13, 110, 253, 0.12);
+}
+
+/* Enhanced Empty State */
+.empty-preview-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    text-align: center;
+    padding: 2rem 1.5rem;
+}
+
+.empty-preview-state i {
+    font-size: 3rem;
+    color: #adb5bd;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.empty-preview-state p {
+    font-size: 0.95rem;
+    color: #64748b;
+    margin: 0.375rem 0;
+    font-weight: 500;
+}
+
+.empty-preview-state .small {
+    font-size: 0.85rem;
+    color: #adb5bd;
 }
 
 .form-preview-title {
-    font-size: 1.5rem;
+    font-size: clamp(1.1rem, 2vw, 1.25rem);
     font-weight: 700;
-    color: #2C3E50;
-    margin: 0 0 1.5rem 0;
-    padding-bottom: 1rem;
-    border-bottom: 2px solid #2196F3;
+    color: #212529;
+    margin: 0 0 1rem 0;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #0d6efd;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-preview-title::before {
+    content: '';
+    width: 3px;
+    height: 1.25rem;
+    background: #0d6efd;
+    border-radius: 2px;
 }
 
 .form-section {
-    margin-bottom: 2rem;
+    margin-bottom: 1.25rem;
+    padding: 0.75rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.form-section:hover {
+    box-shadow: 0 2px 6px rgba(13, 110, 253, 0.1);
+    border-color: #dee2e6;
 }
 
 .section-title {
-    background: #eceff1;
-    padding: 0.75rem 1rem;
-    font-weight: 700;
-    color: #2C3E50;
-    font-size: 1rem;
-    margin: 0 0 1rem 0;
-    border-left: 4px solid #2196F3;
+    background: linear-gradient(135deg, #e9ecef 0%, #f8f9fa 100%);
+    padding: 0.625rem 1rem;
+    font-weight: 600;
+    color: #212529;
+    font-size: 0.9rem;
+    margin: 0 0 0.875rem 0;
+    border-left: 3px solid #0d6efd;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
 }
 
 .form-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    margin-bottom: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
 }
 
 .form-field {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.375rem;
+    padding: 0.5rem;
+    background: #ffffff;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+    transition: all 0.2s ease;
+}
+
+.form-field:hover {
+    border-color: #0d6efd;
+    box-shadow: 0 1px 3px rgba(13, 110, 253, 0.1);
 }
 
 .field-label {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     font-weight: 600;
     color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin-bottom: 0.125rem;
+}
+
+.field-label::before {
+    content: '';
+    width: 2px;
+    height: 0.75rem;
+    background: #0d6efd;
+    border-radius: 1px;
 }
 
 .field-value {
-    font-size: 0.95rem;
-    color: #2C3E50;
-    padding: 0.5rem 0;
+    font-size: 0.85rem;
+    color: #212529;
+    padding: 0.25rem 0;
+    font-weight: 500;
+    line-height: 1.5;
 }
 
 .field-full-width {
@@ -209,9 +450,37 @@
     opacity: 0.6;
 }
 
+/* Enhanced Empty State for Records Table */
+.empty-records-state {
+    padding: 2rem 1.5rem;
+    text-align: center;
+}
+
+.empty-records-state i {
+    font-size: 2.5rem;
+    color: #adb5bd;
+    margin-bottom: 0.75rem;
+    opacity: 0.5;
+    display: block;
+}
+
+.empty-records-state p {
+    color: #64748b;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+/* Responsive Design */
 @media (max-width: 1024px) {
     .records-layout {
         grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .form-preview-section {
+        position: relative;
+        top: 0;
+        max-height: none;
     }
 
     .form-grid {
@@ -221,27 +490,59 @@
     .checkbox-grid {
         grid-template-columns: 1fr;
     }
+
+    .sort-control-section {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1rem;
+    }
+    
+    .sort-control-wrapper {
+        width: 100%;
+        gap: 0.75rem;
+    }
 }
 
 @media (max-width: 768px) {
     .records-container {
-        padding: 1rem;
+        padding: 0.75rem 1rem;
+    }
+
+    .page-header-box {
+        padding: 0.75rem 1.25rem;
+        width: 100%;
+        justify-content: center;
     }
 
     .records-table thead th,
     .records-table tbody td {
-        padding: 0.75rem;
-        font-size: 0.85rem;
+        padding: 0.625rem 0.75rem;
+        font-size: 0.8rem;
     }
 
     .action-buttons {
-        flex-direction: column;
-        gap: 0.5rem;
+        flex-direction: row;
+        width: 100%;
     }
 
     .btn-view, .btn-download {
-        padding: 0.5rem 1rem;
-        font-size: 0.8rem;
+        width: 36px;
+        height: 36px;
+        padding: 0.5rem;
+        justify-content: center;
+    }
+
+    .form-preview-section {
+        padding: 1rem;
+    }
+
+    .form-section {
+        padding: 0.625rem;
+    }
+
+    .form-field {
+        padding: 0.5rem;
     }
 }
 
@@ -251,50 +552,64 @@
 
 /* Page Header Box Dark Mode */
 [data-theme="dark"] .page-header-box {
-    background: var(--dm-card-bg, #1e293b) !important;
-    border-color: #3b82f6 !important;
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+    border: none !important;
 }
 
 [data-theme="dark"] .page-header-box h1 {
-    color: var(--dm-text-primary, #f1f5f9) !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .page-header-box h1::before {
+    background: #ffffff !important;
 }
 
 /* Records Table Section Dark Mode */
 [data-theme="dark"] .records-table-section {
     background: var(--dm-card-bg, #1e293b) !important;
     border: 1px solid var(--dm-border-color, #334155) !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme="dark"] .records-table-section:hover {
+    box-shadow: 0 6px 24px rgba(37, 99, 235, 0.2) !important;
 }
 
 /* Sort Control Dark Mode */
-[data-theme="dark"] div[style*="background: #f8fafc"] {
-    background: var(--dm-bg-secondary, #1e293b) !important;
+[data-theme="dark"] .sort-control-section {
+    background: linear-gradient(135deg, var(--dm-bg-secondary, #1e293b) 0%, var(--dm-card-bg, #1e293b) 100%) !important;
     border-bottom-color: var(--dm-border-color, #334155) !important;
 }
 
-[data-theme="dark"] label[style*="color: #475569"] {
+[data-theme="dark"] .sort-control-wrapper label {
     color: var(--dm-text-primary, #f1f5f9) !important;
 }
 
-[data-theme="dark"] .form-select {
+[data-theme="dark"] .sort-control-wrapper label i {
+    color: #60a5fa !important;
+}
+
+[data-theme="dark"] .sort-control-wrapper .form-select {
     background: var(--dm-input-bg, #0f172a) !important;
-    border-color: #14b8a6 !important;
+    border-color: #60a5fa !important;
     color: var(--dm-text-primary, #f1f5f9) !important;
 }
 
-[data-theme="dark"] .form-select:focus {
+[data-theme="dark"] .sort-control-wrapper .form-select:focus {
     background: var(--dm-input-bg, #0f172a) !important;
-    border-color: #14b8a6 !important;
+    border-color: #60a5fa !important;
     color: var(--dm-text-primary, #f1f5f9) !important;
+    box-shadow: 0 0 0 0.2rem rgba(96, 165, 250, 0.25) !important;
 }
 
 /* Table Header Dark Mode */
 [data-theme="dark"] .records-table thead {
-    background: #14b8a6 !important;
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
 }
 
 [data-theme="dark"] .records-table thead th {
-    color: white !important;
+    color: #ffffff !important;
+    border-bottom-color: rgba(255, 255, 255, 0.2) !important;
 }
 
 /* Table Body Dark Mode */
@@ -303,11 +618,16 @@
 }
 
 [data-theme="dark"] .records-table tbody tr:nth-child(even) {
-    background: var(--dm-bg-primary, #0f172a) !important;
+    background: var(--dm-card-bg, #1e293b) !important;
+}
+
+[data-theme="dark"] .records-table tbody tr:nth-child(odd) {
+    background: var(--dm-bg-secondary, #1e293b) !important;
 }
 
 [data-theme="dark"] .records-table tbody tr:hover {
     background: var(--dm-bg-tertiary, #334155) !important;
+    box-shadow: 0 2px 4px rgba(96, 165, 250, 0.15) !important;
 }
 
 [data-theme="dark"] .records-table tbody td {
@@ -322,43 +642,112 @@
     color: var(--dm-text-muted, #94a3b8) !important;
 }
 
+/* Button Dark Mode */
+[data-theme="dark"] .btn-view {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3) !important;
+}
+
+[data-theme="dark"] .btn-view:hover {
+    background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%) !important;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4) !important;
+}
+
+[data-theme="dark"] .btn-download {
+    background: linear-gradient(135deg, #495057 0%, #343a40 100%) !important;
+}
+
+[data-theme="dark"] .btn-download:hover {
+    background: linear-gradient(135deg, #343a40 0%, #212529 100%) !important;
+}
+
 /* Empty State Dark Mode */
-[data-theme="dark"] .text-center[style*="color: #64748b"] {
+[data-theme="dark"] .empty-records-state {
+    background: var(--dm-bg-secondary, #1e293b) !important;
+}
+
+[data-theme="dark"] .empty-records-state i {
+    color: var(--dm-text-muted, #94a3b8) !important;
+    opacity: 0.5 !important;
+}
+
+[data-theme="dark"] .empty-records-state p {
     color: var(--dm-text-muted, #94a3b8) !important;
 }
 
-[data-theme="dark"] .text-center i[style*="font-size: 3rem"] {
-    opacity: 0.5 !important;
-    color: var(--dm-text-muted, #64748b) !important;
+[data-theme="dark"] .empty-preview-state i {
+    color: var(--dm-text-muted, #94a3b8) !important;
+    opacity: 0.4 !important;
+}
+
+[data-theme="dark"] .empty-preview-state p {
+    color: var(--dm-text-muted, #94a3b8) !important;
+}
+
+[data-theme="dark"] .empty-preview-state .small {
+    color: var(--dm-text-muted, #94a3b8) !important;
 }
 
 /* Form Preview Section Dark Mode */
 [data-theme="dark"] .form-preview-section {
     background: var(--dm-card-bg, #1e293b) !important;
     border: 1px solid var(--dm-border-color, #334155) !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme="dark"] .form-preview-section:hover {
+    box-shadow: 0 6px 24px rgba(37, 99, 235, 0.2) !important;
 }
 
 [data-theme="dark"] .form-preview-title {
     color: var(--dm-text-primary, #f1f5f9) !important;
-    border-bottom-color: #3b82f6 !important;
+    border-bottom-color: #60a5fa !important;
+}
+
+[data-theme="dark"] .form-preview-title::before {
+    background: #60a5fa !important;
 }
 
 /* Preview Header Dark Mode */
 [data-theme="dark"] .preview-header {
-    border-bottom-color: #3b82f6 !important;
+    border-bottom-color: #60a5fa !important;
 }
 
 /* Section Title Dark Mode */
 [data-theme="dark"] .section-title {
-    background: var(--dm-bg-secondary, #1e293b) !important;
+    background: linear-gradient(135deg, var(--dm-bg-secondary, #1e293b) 0%, var(--dm-card-bg, #1e293b) 100%) !important;
     color: var(--dm-text-primary, #f1f5f9) !important;
-    border-left-color: #3b82f6 !important;
+    border-left-color: #60a5fa !important;
+}
+
+/* Form Section Dark Mode */
+[data-theme="dark"] .form-section {
+    background: linear-gradient(135deg, var(--dm-bg-secondary, #1e293b) 0%, var(--dm-card-bg, #1e293b) 100%) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] .form-section:hover {
+    border-color: #60a5fa !important;
+    box-shadow: 0 2px 8px rgba(96, 165, 250, 0.15) !important;
 }
 
 /* Form Fields Dark Mode */
+[data-theme="dark"] .form-field {
+    background: var(--dm-card-bg, #1e293b) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] .form-field:hover {
+    border-color: #60a5fa !important;
+    box-shadow: 0 2px 4px rgba(96, 165, 250, 0.1) !important;
+}
+
 [data-theme="dark"] .field-label {
     color: var(--dm-text-muted, #94a3b8) !important;
+}
+
+[data-theme="dark"] .field-label::before {
+    background: #60a5fa !important;
 }
 
 [data-theme="dark"] .field-value {
@@ -370,16 +759,6 @@
     color: var(--dm-text-primary, #f1f5f9) !important;
 }
 
-/* Empty Preview Panel Dark Mode */
-[data-theme="dark"] .form-preview-section .text-center.text-muted {
-    color: var(--dm-text-muted, #94a3b8) !important;
-}
-
-[data-theme="dark"] .form-preview-section .text-center i {
-    opacity: 0.3 !important;
-    color: var(--dm-text-muted, #64748b) !important;
-}
-
 /* Alert Dark Mode */
 [data-theme="dark"] .alert {
     background: var(--dm-card-bg, #1e293b) !important;
@@ -388,8 +767,8 @@
 }
 
 [data-theme="dark"] .alert-info {
-    background: rgba(59, 130, 246, 0.15) !important;
-    border-color: #3b82f6 !important;
+    background: rgba(37, 99, 235, 0.15) !important;
+    border-color: #60a5fa !important;
     color: #93c5fd !important;
 }
 
@@ -399,16 +778,28 @@
     color: #fca5a5 !important;
 }
 
-/* Inline Styles Dark Mode Overrides */
-[data-theme="dark"] div[style*="border-bottom: 2px solid #2196F3"] {
-    border-bottom-color: #3b82f6 !important;
-}
-
-[data-theme="dark"] h2[style*="color: #2196F3"] {
+/* Loading Spinner Dark Mode */
+[data-theme="dark"] .spinner-border.text-primary {
     color: #60a5fa !important;
 }
 
-[data-theme="dark"] span[style*="color: #2196F3"] {
+[data-theme="dark"] .text-muted {
+    color: var(--dm-text-muted, #94a3b8) !important;
+}
+
+/* Inline Styles Dark Mode Overrides */
+[data-theme="dark"] div[style*="border-bottom: 2px solid #2196F3"],
+[data-theme="dark"] div[style*="border-bottom: 2px solid #0d6efd"] {
+    border-bottom-color: #60a5fa !important;
+}
+
+[data-theme="dark"] h2[style*="color: #2196F3"],
+[data-theme="dark"] h2[style*="color: #0d6efd"] {
+    color: #60a5fa !important;
+}
+
+[data-theme="dark"] span[style*="color: #2196F3"],
+[data-theme="dark"] span[style*="color: #0d6efd"] {
     color: #60a5fa !important;
 }
 
@@ -427,19 +818,22 @@
 
 <div class="records-container">
     <div class="page-header-box">
-        <h1>PATIENT RECORDS</h1>
+        <h1>
+            <i class="bi bi-file-earmark-medical"></i>
+            PATIENT RECORDS
+        </h1>
     </div>
 
     <div class="records-layout">
         <!-- Records Table -->
         <div class="records-table-section">
-            <!-- Sort Control -->
-            <div style="padding: 1rem 1.5rem; border-bottom: 2px solid #e2e8f0; background: #f8fafc;">
-                <div class="d-flex align-items-center gap-2">
-                    <label for="recordSortBy" class="mb-0 fw-semibold" style="color: #475569; font-size: 0.9rem;">
-                        <i class="bi bi-sort-down me-1"></i>Sort by:
+            <!-- Enhanced Sort Control -->
+            <div class="sort-control-section">
+                <div class="sort-control-wrapper">
+                    <label for="recordSortBy">
+                        <i class="bi bi-funnel"></i>Sort by:
                     </label>
-                    <select class="form-select form-select-sm" id="recordSortBy" style="width: auto; border: 2px solid #26a69a;">
+                    <select class="form-select form-select-sm" id="recordSortBy">
                         <option value="date_desc" selected>Newest First</option>
                         <option value="date_asc">Oldest First</option>
                         <option value="form_asc">Form Type (A-Z)</option>
@@ -474,8 +868,12 @@
                         <td class="form-date">{{ \Carbon\Carbon::parse($record->created_at)->format('m/d/Y') }}</td>
                         <td>
                             <div class="action-buttons">
-                                <button class="btn-view" onclick="viewRecord({{ $record->id }})">VIEW</button>
-                                <button class="btn-download" onclick="downloadRecord({{ $record->id }})">DOWNLOAD</button>
+                                <button class="btn-view" onclick="viewRecord({{ $record->id }})" title="View Record">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn-download" onclick="downloadRecord({{ $record->id }})" title="Download Record">
+                                    <i class="bi bi-download"></i>
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -490,8 +888,12 @@
                             <td class="form-date">{{ \Carbon\Carbon::parse($history->visit_date ?? $history->created_at)->format('m/d/Y') }}</td>
                             <td>
                                 <div class="action-buttons">
-                                    <button class="btn-view" onclick="viewHistory({{ $history->id }})">VIEW</button>
-                                    <button class="btn-download" onclick="downloadHistory({{ $history->id }})">DOWNLOAD</button>
+                                    <button class="btn-view" onclick="viewHistory({{ $history->id }})" title="View History">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <button class="btn-download" onclick="downloadHistory({{ $history->id }})" title="Download History">
+                                        <i class="bi bi-download"></i>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -508,8 +910,12 @@
                             <td class="form-date">{{ \Carbon\Carbon::parse($note->created_at)->format('m/d/Y') }}</td>
                             <td>
                                 <div class="action-buttons">
-                                    <button class="btn-view" onclick="viewProgressNote({{ $note->id }})">VIEW</button>
-                                    <button class="btn-download" onclick="downloadProgressNote({{ $note->id }})">DOWNLOAD</button>
+                                    <button class="btn-view" onclick="viewProgressNote({{ $note->id }})" title="View Progress Note">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <button class="btn-download" onclick="downloadProgressNote({{ $note->id }})" title="Download Progress Note">
+                                        <i class="bi bi-download"></i>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -517,9 +923,9 @@
                     @endif
                     @empty
                     <tr>
-                        <td colspan="3" class="text-center" style="padding: 2rem; color: #64748b;">
-                            <i class="bi bi-inbox" style="font-size: 3rem; display: block; margin-bottom: 1rem;"></i>
-                            No medical records found
+                        <td colspan="3" class="empty-records-state">
+                            <i class="bi bi-inbox"></i>
+                            <p>No medical records found</p>
                         </td>
                     </tr>
                     @endforelse
@@ -527,13 +933,13 @@
                 </table>
                         </div>
 
-        <!-- Form Preview -->
+        <!-- Enhanced Form Preview -->
         <div class="form-preview-section" id="recordPreviewPanel">
-            <div class="text-center py-5 text-muted">
-                <i class="bi bi-file-earmark-medical" style="font-size: 4rem; opacity: 0.3;"></i>
-                <p class="mt-3" style="font-size: 1.1rem;">Select a record to view details</p>
+            <div class="empty-preview-state">
+                <i class="bi bi-file-earmark-medical"></i>
+                <p>Select a record to view details</p>
                 <p class="small">Click on any VIEW button to preview the record here</p>
-                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -590,12 +996,12 @@ async function viewRecord(recordId) {
 // Display record details in preview panel
 function displayRecordInPreview(record) {
     const content = `
-        <div class="preview-header mb-3" style="border-bottom: 2px solid #2196F3; padding-bottom: 1rem;">
+        <div class="preview-header mb-2" style="border-bottom: 2px solid #0d6efd; padding-bottom: 0.75rem;">
             <h2 class="form-preview-title mb-0">Patient Medical Record</h2>
         </div>
         <div class="record-detail-view">
             <h3 class="section-title">Patient Information</h3>
-            <div class="form-grid mb-4">
+            <div class="form-grid mb-3">
                 <div class="form-field">
                     <span class="field-label">Patient Name:</span>
                     <span class="field-value">${record.user?.info ? (record.user.info.first_name + ' ' + record.user.info.last_name) : 'N/A'}</span>
@@ -636,7 +1042,7 @@ function displayRecordInPreview(record) {
 
             ${record.guardian_name ? `
             <h3 class="section-title">Guardian Information</h3>
-            <div class="form-grid mb-4">
+            <div class="form-grid mb-3">
                 <div class="form-field">
                     <span class="field-label">Guardian Name:</span>
                     <span class="field-value">${record.guardian_name}</span>
@@ -654,7 +1060,7 @@ function displayRecordInPreview(record) {
 
             ${record.physician_name ? `
             <h3 class="section-title">Physician Information</h3>
-            <div class="form-grid mb-4">
+            <div class="form-grid mb-3">
                 <div class="form-field">
                     <span class="field-label">Physician Name:</span>
                     <span class="field-value">${record.physician_name}</span>
@@ -676,7 +1082,7 @@ function displayRecordInPreview(record) {
 
             ${record.medical_history || record.allergies || record.current_medications ? `
             <h3 class="section-title">Medical Information</h3>
-            <div class="form-grid mb-4">
+            <div class="form-grid mb-3">
                 ${record.medical_history ? `
                 <div class="form-field field-full-width">
                     <span class="field-label">Medical History:</span>
@@ -700,7 +1106,7 @@ function displayRecordInPreview(record) {
 
             ${record.chief_complaint || record.diagnosis || record.treatment_plan ? `
             <h3 class="section-title">Treatment Information</h3>
-            <div class="form-grid mb-4">
+            <div class="form-grid mb-3">
                 ${record.chief_complaint ? `
                 <div class="form-field field-full-width">
                     <span class="field-label">Chief Complaint:</span>
@@ -776,11 +1182,11 @@ async function viewHistory(historyId) {
 
     // Show loading state
     previewPanel.innerHTML = `
-        <div class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status" style="width: 2rem; height: 2rem;">
                 <span class="visually-hidden">Loading...</span>
             </div>
-            <p class="mt-3 text-muted">Loading patient history...</p>
+            <p class="mt-2 text-muted" style="font-size: 0.875rem;">Loading patient history...</p>
         </div>
     `;
 
@@ -814,18 +1220,18 @@ async function viewHistory(historyId) {
 // Render patient history in preview panel
 function renderPatientHistory(history) {
     const content = `
-        <div class="preview-header mb-3" style="border-bottom: 2px solid #2196F3; padding-bottom: 1rem;">
-            <h2 class="form-preview-title mb-0" style="color: #2196F3; font-weight: 700;">Medical History</h2>
+        <div class="preview-header mb-2" style="border-bottom: 2px solid #0d6efd; padding-bottom: 0.75rem;">
+            <h2 class="form-preview-title mb-0" style="color: #0d6efd; font-weight: 700;">Medical History</h2>
         </div>
         <div>
-            <div class="mb-4">
+            <div class="mb-3">
                 <span class="field-label">Visit Date:</span>
-                <span class="field-value" style="font-size: 1.1rem; font-weight: 600; color: #2196F3;">${history.visit_date ? new Date(history.visit_date).toLocaleDateString() : 'N/A'}</span>
+                <span class="field-value" style="font-size: 1rem; font-weight: 600; color: #0d6efd;">${history.visit_date ? new Date(history.visit_date).toLocaleDateString() : 'N/A'}</span>
             </div>
 
             ${history.previous_dentist || history.last_dental_visit || history.treatment_done ? `
             <h3 class="section-title">Dental History</h3>
-            <div class="form-grid mb-4">
+            <div class="form-grid mb-3">
                 ${history.previous_dentist ? `<div class="form-field"><span class="field-label">Previous Dentist:</span><span class="field-value">${history.previous_dentist}</span></div>` : ''}
                 ${history.last_dental_visit ? `<div class="form-field"><span class="field-label">Last Visit:</span><span class="field-value">${new Date(history.last_dental_visit).toLocaleDateString()}</span></div>` : ''}
                 ${history.treatment_done ? `<div class="form-field field-full-width"><span class="field-label">Treatment Done:</span><span class="field-value">${history.treatment_done}</span></div>` : ''}
@@ -834,7 +1240,7 @@ function renderPatientHistory(history) {
 
             ${history.physician_name || history.physician_specialty || history.physician_office_address || history.physician_contact ? `
             <h3 class="section-title">Physician Information</h3>
-            <div class="form-grid mb-4">
+            <div class="form-grid mb-3">
                 ${history.physician_name ? `<div class="form-field"><span class="field-label">Physician:</span><span class="field-value">${history.physician_name}</span></div>` : ''}
                 ${history.physician_specialty ? `<div class="form-field"><span class="field-label">Specialty:</span><span class="field-value">${history.physician_specialty}</span></div>` : ''}
                 ${history.physician_office_address ? `<div class="form-field field-full-width"><span class="field-label">Office Address:</span><span class="field-value">${history.physician_office_address}</span></div>` : ''}
@@ -844,7 +1250,7 @@ function renderPatientHistory(history) {
 
             ${history.good_health || history.under_treatment || history.serious_illness || history.been_hospitalized || history.taking_drugs || history.tobacco_use || history.alcohol_use || history.recreational_drugs ? `
             <h3 class="section-title">Health Questions</h3>
-            <div class="form-grid mb-4">
+            <div class="form-grid mb-3">
                 ${history.good_health ? `<div class="form-field"><span class="field-label">Good Health:</span><span class="field-value">${history.good_health}</span></div>` : ''}
                 ${history.under_treatment ? `<div class="form-field"><span class="field-label">Under Treatment:</span><span class="field-value">${history.under_treatment}</span></div>` : ''}
                 ${history.treatment_condition ? `<div class="form-field field-full-width"><span class="field-label">Condition:</span><span class="field-value">${history.treatment_condition}</span></div>` : ''}
@@ -862,7 +1268,7 @@ function renderPatientHistory(history) {
 
             ${history.allergy_anesthesia || history.allergy_sulfa || history.allergy_antibiotics || history.allergy_aspirin || history.allergy_analgesics || history.allergy_latex || history.food_allergy_details || history.other_allergy_details ? `
             <h3 class="section-title">Allergies</h3>
-            <div class="form-grid mb-4">
+            <div class="form-grid mb-3">
                 ${history.allergy_anesthesia ? `<div class="form-field"><span class="field-label">Local Anesthesia:</span><span class="field-value">Yes</span></div>` : ''}
                 ${history.allergy_sulfa ? `<div class="form-field"><span class="field-label">Sulfa Drugs:</span><span class="field-value">Yes</span></div>` : ''}
                 ${history.allergy_antibiotics ? `<div class="form-field"><span class="field-label">Antibiotics:</span><span class="field-value">Yes</span></div>` : ''}
@@ -876,7 +1282,7 @@ function renderPatientHistory(history) {
 
             ${history.is_pregnant || history.is_nursing || history.birth_control ? `
             <h3 class="section-title">For Women</h3>
-            <div class="form-grid mb-4">
+            <div class="form-grid mb-3">
                 ${history.is_pregnant ? `<div class="form-field"><span class="field-label">Pregnant:</span><span class="field-value">${history.is_pregnant}</span></div>` : ''}
                 ${history.is_nursing ? `<div class="form-field"><span class="field-label">Nursing:</span><span class="field-value">${history.is_nursing}</span></div>` : ''}
                 ${history.birth_control ? `<div class="form-field"><span class="field-label">Taking Birth Control:</span><span class="field-value">${history.birth_control}</span></div>` : ''}
@@ -885,7 +1291,7 @@ function renderPatientHistory(history) {
 
             ${history.procedure_performed || history.anesthesia_used || history.materials_used || history.complications || history.post_operative_instructions || history.follow_up_notes ? `
             <h3 class="section-title">Procedure Details</h3>
-            <div class="form-grid mb-4">
+            <div class="form-grid mb-3">
                 ${history.anesthesia_used ? `<div class="form-field"><span class="field-label">Anesthesia:</span><span class="field-value">${history.anesthesia_used}</span></div>` : ''}
                 ${history.procedure_performed ? `<div class="form-field field-full-width"><span class="field-label">Procedure:</span><span class="field-value">${history.procedure_performed}</span></div>` : ''}
                 ${history.materials_used ? `<div class="form-field field-full-width"><span class="field-label">Materials Used:</span><span class="field-value">${history.materials_used}</span></div>` : ''}
@@ -931,11 +1337,11 @@ async function viewProgressNote(noteId) {
 
     // Show loading state
     previewPanel.innerHTML = `
-        <div class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status" style="width: 2rem; height: 2rem;">
                 <span class="visually-hidden">Loading...</span>
             </div>
-            <p class="mt-3 text-muted">Loading progress note...</p>
+            <p class="mt-2 text-muted" style="font-size: 0.875rem;">Loading progress note...</p>
         </div>
     `;
 
@@ -969,30 +1375,30 @@ async function viewProgressNote(noteId) {
 // Render progress note in preview panel
 function renderProgressNote(note) {
     const content = `
-        <div class="preview-header mb-3 d-flex justify-content-between align-items-center" style="border-bottom: 2px solid #10b981; padding-bottom: 1rem;">
+        <div class="preview-header mb-2 d-flex justify-content-between align-items-center" style="border-bottom: 2px solid #10b981; padding-bottom: 0.75rem;">
             <h2 class="form-preview-title mb-0" style="color: #10b981; font-weight: 700;">Progress Note</h2>
         </div>
         <div>
-            <div class="form-grid mb-4">
+            <div class="form-grid mb-3">
                 <div class="form-field">
                     <span class="field-label">Date:</span>
-                    <span class="field-value" style="font-size: 1.1rem; font-weight: 600; color: #10b981;">${new Date(note.note_date).toLocaleDateString()}</span>
+                    <span class="field-value" style="font-size: 1rem; font-weight: 600; color: #10b981;">${new Date(note.note_date).toLocaleDateString()}</span>
                 </div>
             </div>
 
             ${note.progress_description ? `
             <h3 class="section-title">Progress Description</h3>
-            <div class="alert alert-info mb-4">${note.progress_description}</div>
+            <div class="alert alert-info mb-3" style="padding: 0.75rem; font-size: 0.875rem;">${note.progress_description}</div>
             ` : ''}
 
             ${note.treatment_response ? `
             <h3 class="section-title">Treatment Response</h3>
-            <div class="alert alert-info mb-4">${note.treatment_response}</div>
+            <div class="alert alert-info mb-3" style="padding: 0.75rem; font-size: 0.875rem;">${note.treatment_response}</div>
             ` : ''}
 
             ${note.next_steps ? `
             <h3 class="section-title">Next Steps</h3>
-            <div class="alert alert-info mb-4">${note.next_steps}</div>
+            <div class="alert alert-info mb-3" style="padding: 0.75rem; font-size: 0.875rem;">${note.next_steps}</div>
             ` : ''}
         </div>
     `;
@@ -1016,34 +1422,52 @@ if (!document.querySelector('meta[name="csrf-token"]')) {
 document.getElementById('recordSortBy')?.addEventListener('change', function() {
     const sortBy = this.value;
     const tbody = document.getElementById('recordsTableBody');
+    if (!tbody) return;
+    
     const rows = Array.from(tbody.querySelectorAll('tr'));
+    if (rows.length === 0) return;
+
+    // Helper function to parse date in MM/DD/YYYY format
+    function parseDate(dateStr) {
+        if (!dateStr) return new Date(0);
+        const parts = dateStr.trim().split('/');
+        if (parts.length !== 3) return new Date(0);
+        // Format: MM/DD/YYYY
+        const month = parseInt(parts[0], 10) - 1; // Month is 0-indexed
+        const day = parseInt(parts[1], 10);
+        const year = parseInt(parts[2], 10);
+        return new Date(year, month, day);
+    }
 
     rows.sort((a, b) => {
-        let aValue, bValue;
+        let comparison = 0;
 
         switch(sortBy) {
             case 'date_desc':
             case 'date_asc':
-                // Get date from the 2nd column (DATE)
-                const aDate = a.cells[1]?.textContent.trim() || '';
-                const bDate = b.cells[1]?.textContent.trim() || '';
-                const comparison = new Date(aDate) - new Date(bDate);
+                // Get date from the 2nd column (DATE) - index 1
+                const aDateStr = a.cells[1]?.textContent.trim() || '';
+                const bDateStr = b.cells[1]?.textContent.trim() || '';
+                const aDate = parseDate(aDateStr);
+                const bDate = parseDate(bDateStr);
+                comparison = aDate.getTime() - bDate.getTime();
                 return sortBy === 'date_desc' ? -comparison : comparison;
 
             case 'form_asc':
             case 'form_desc':
-                // Get form type from the 1st column (FORM)
-                aValue = a.cells[0]?.textContent.trim() || '';
-                bValue = b.cells[0]?.textContent.trim() || '';
-                const formComp = aValue.localeCompare(bValue);
-                return sortBy === 'form_asc' ? formComp : -formComp;
+                // Get form type from the 1st column (FORM) - index 0
+                const aForm = a.cells[0]?.textContent.trim() || '';
+                const bForm = b.cells[0]?.textContent.trim() || '';
+                comparison = aForm.localeCompare(bForm, undefined, { sensitivity: 'base' });
+                return sortBy === 'form_asc' ? comparison : -comparison;
 
             default:
                 return 0;
         }
     });
 
-    // Re-append sorted rows
+    // Clear tbody and re-append sorted rows
+    tbody.innerHTML = '';
     rows.forEach(row => tbody.appendChild(row));
 });
 </script>

@@ -218,51 +218,121 @@ class BlockedTimeController extends Controller
     }
 
     /**
-     * Get count of future blocked times.
+     * Get count of future full-day closures (Clinic Closed).
      */
-    public function getFutureCount()
+    public function getFutureClinicClosedCount()
     {
         try {
             $now = Carbon::now('Asia/Manila');
-            $count = BlockedTime::where('start_datetime', '>', $now)->count();
+            
+            // Count only full-day closures (00:00 to 23:59)
+            $count = BlockedTime::where('start_datetime', '>', $now)
+                ->whereRaw('TIME(start_datetime) = ?', ['00:00:00'])
+                ->whereRaw('TIME(end_datetime) = ?', ['23:59:00'])
+                ->count();
 
             return response()->json([
                 'success' => true,
                 'count' => $count
             ]);
         } catch (\Exception $e) {
-            \Log::error('Error getting future blocked times count:', ['error' => $e->getMessage()]);
+            \Log::error('Error getting future clinic closed count:', ['error' => $e->getMessage()]);
             return response()->json([
                 'success' => false,
-                'message' => 'Error getting future blocked times count: ' . $e->getMessage(),
+                'message' => 'Error getting future clinic closed count: ' . $e->getMessage(),
                 'count' => 0
             ], 500);
         }
     }
 
     /**
-     * Clear all future blocked times (excluding past dates).
+     * Get count of future partial blocks (Block Off Time).
      */
-    public function clearFuture()
+    public function getFutureBlockOffTimeCount()
     {
         try {
             $now = Carbon::now('Asia/Manila');
             
-            // Delete all blocked times where start_datetime is in the future
-            $deletedCount = BlockedTime::where('start_datetime', '>', $now)->delete();
-
-            \Log::info("Cleared {$deletedCount} future blocked time(s)");
+            // Count partial blocks (NOT full-day closures)
+            $count = BlockedTime::where('start_datetime', '>', $now)
+                ->where(function($query) {
+                    $query->whereRaw('TIME(start_datetime) != ?', ['00:00:00'])
+                          ->orWhereRaw('TIME(end_datetime) != ?', ['23:59:00']);
+                })
+                ->count();
 
             return response()->json([
                 'success' => true,
-                'message' => "Successfully cleared {$deletedCount} future closed time slot(s)",
+                'count' => $count
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error getting future block off time count:', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Error getting future block off time count: ' . $e->getMessage(),
+                'count' => 0
+            ], 500);
+        }
+    }
+
+    /**
+     * Clear all future full-day closures (Clinic Closed) only.
+     */
+    public function clearFutureClinicClosed()
+    {
+        try {
+            $now = Carbon::now('Asia/Manila');
+            
+            // Delete only full-day closures (00:00 to 23:59) where start_datetime is in the future
+            $deletedCount = BlockedTime::where('start_datetime', '>', $now)
+                ->whereRaw('TIME(start_datetime) = ?', ['00:00:00'])
+                ->whereRaw('TIME(end_datetime) = ?', ['23:59:00'])
+                ->delete();
+
+            \Log::info("Cleared {$deletedCount} future clinic closed day(s)");
+
+            return response()->json([
+                'success' => true,
+                'message' => "Successfully cleared {$deletedCount} future clinic closed day(s)",
                 'deleted_count' => $deletedCount
             ]);
         } catch (\Exception $e) {
-            \Log::error('Error clearing future blocked times:', ['error' => $e->getMessage()]);
+            \Log::error('Error clearing future clinic closed days:', ['error' => $e->getMessage()]);
             return response()->json([
                 'success' => false,
-                'message' => 'Error clearing future closed times: ' . $e->getMessage()
+                'message' => 'Error clearing future clinic closed days: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Clear all future partial blocks (Block Off Time) only.
+     */
+    public function clearFutureBlockOffTime()
+    {
+        try {
+            $now = Carbon::now('Asia/Manila');
+            
+            // Delete partial blocks (NOT full-day closures) where start_datetime is in the future
+            $deletedCount = BlockedTime::where('start_datetime', '>', $now)
+                ->where(function($query) {
+                    $query->whereRaw('TIME(start_datetime) != ?', ['00:00:00'])
+                          ->orWhereRaw('TIME(end_datetime) != ?', ['23:59:00']);
+                })
+                ->delete();
+
+            \Log::info("Cleared {$deletedCount} future block off time(s)");
+
+            return response()->json([
+                'success' => true,
+                'message' => "Successfully cleared {$deletedCount} future block off time(s)",
+                'deleted_count' => $deletedCount
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error clearing future block off times:', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Error clearing future block off times: ' . $e->getMessage()
             ], 500);
         }
     }

@@ -4,28 +4,409 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
 <style>
-    .hover-shadow {
+    /* Enhanced Dashboard Styles */
+    .dashboard-container {
+        padding: 1.5rem;
+        max-width: 100%;
+    }
+
+    /* Welcome Section Enhancements */
+    .welcome-card {
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(13, 110, 253, 0.25);
+        overflow: hidden;
+        position: relative;
+    }
+
+    .welcome-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 300px;
+        height: 300px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    /* Statistics Cards Enhancements */
+    .stat-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 12px;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, transparent, currentColor, transparent);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    .stat-card:hover::before {
+        opacity: 0.6;
+    }
+
+    .stat-icon-wrapper {
+        position: relative;
         transition: all 0.3s ease;
     }
-    .hover-shadow:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 16px rgba(0,0,0,0.15) !important;
+
+    .stat-card:hover .stat-icon-wrapper {
+        transform: scale(1.1) rotate(5deg);
     }
-    .transition {
-        transition: all 0.3s ease;
+
+    /* List Item Enhancements */
+    .appointment-item {
+        transition: all 0.2s ease;
+        border-radius: 8px;
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+        border-left: 3px solid transparent;
+        background-color: white !important;
     }
+
+    .appointment-item:hover {
+        background-color: #f8f9fa !important;
+        border-left-color: #0d6efd;
+        transform: translateX(4px);
+    }
+
+    /* Patient List Item Styles */
+    .patient-list-item {
+        background-color: white !important;
+        color: #212529 !important;
+    }
+
+    .patient-avatar-circle {
+        background-color: #f8f9fa !important;
+        border-color: #dee2e6 !important;
+    }
+
+    .patient-avatar-icon {
+        color: #212529 !important;
+    }
+
+    .patient-name {
+        color: #212529 !important;
+    }
+
+    /* Card Header Improvements */
+    .enhanced-card-header {
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        border-bottom: 2px solid #e9ecef;
+        padding: 1.25rem 1.5rem;
+    }
+
+    /* Empty State Enhancements */
+    .empty-state {
+        padding: 3rem 1.5rem;
+        text-align: center;
+    }
+
+    .empty-state-icon {
+        font-size: 4rem;
+        opacity: 0.2;
+        margin-bottom: 1rem;
+    }
+
+    /* Responsive Improvements */
+    @media (max-width: 768px) {
+        .dashboard-container {
+            padding: 1rem;
+        }
+
+        .stat-card {
+            margin-bottom: 1rem;
+        }
+
+        .welcome-card .card-body {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .welcome-card .text-white[style*="font-size: 4rem"] {
+            font-size: 3rem !important;
+            margin-top: 1rem;
+        }
+
+        .calendar-nav {
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .calendar-nav .btn {
+            flex: 1;
+            min-width: auto;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .stat-card .card-body {
+            padding: 0.75rem !important;
+        }
+
+        .stat-icon-wrapper {
+            width: 45px !important;
+            height: 45px !important;
+        }
+
+        .stat-icon-wrapper i {
+            font-size: 1.25rem !important;
+        }
+    }
+
+    /* Smooth Transitions */
     .card {
-        transition: all 0.3s ease;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
+
     .btn {
         transition: all 0.2s ease;
+        border-radius: 8px;
     }
+
     .btn:hover {
         transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Scrollbar Styling */
+    .card-body::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .card-body::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+
+    .card-body::-webkit-scrollbar-thumb {
+        background: #0d6efd;
+        border-radius: 4px;
+    }
+
+    .card-body::-webkit-scrollbar-thumb:hover {
+        background: #0a58ca;
+    }
+
+    /* Feedback Icon Centering */
+    .feedback-icon-wrapper {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    .feedback-icon {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        line-height: 1 !important;
+        margin: 0 auto !important;
+        padding: 0 !important;
+        vertical-align: middle !important;
+        text-align: center !important;
+        width: auto !important;
+        height: auto !important;
+    }
+
+    .feedback-icon::before {
+        display: inline-block;
+        vertical-align: middle;
+        line-height: 1;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Feedback Section Spacing */
+    .feedback-icon-wrapper {
+        flex-shrink: 0;
+        margin-right: 1rem !important;
+    }
+
+    .feedback-text-container {
+        flex: 1;
+        min-width: 0;
+    }
+
+    @media (max-width: 576px) {
+        .feedback-icon-wrapper {
+            margin-right: 0.75rem !important;
+        }
+    }
+
+    /* Dark Mode Styles for Recent Patients and White Elements */
+    [data-theme="dark"] .appointment-item {
+        background-color: var(--dm-card-bg, #1e293b) !important;
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    [data-theme="dark"] .appointment-item:hover {
+        background-color: var(--dm-bg-tertiary, #334155) !important;
+        border-left-color: #3b82f6 !important;
+    }
+
+    [data-theme="dark"] .card.bg-white {
+        background-color: var(--dm-card-bg, #1e293b) !important;
+        border-color: var(--dm-border-color, #334155) !important;
+    }
+
+    [data-theme="dark"] .card-header.bg-white,
+    [data-theme="dark"] .enhanced-card-header.bg-white {
+        background: var(--dm-card-bg, #1e293b) !important;
+        border-bottom-color: var(--dm-border-color, #334155) !important;
+    }
+
+    [data-theme="dark"] .card-body.bg-white {
+        background-color: var(--dm-card-bg, #1e293b) !important;
+    }
+
+    [data-theme="dark"] .card-body.bg-white .appointment-item {
+        background-color: var(--dm-card-bg, #1e293b) !important;
+    }
+
+    [data-theme="dark"] .list-group-item.bg-white,
+    [data-theme="dark"] .appointment-item.bg-white {
+        background-color: var(--dm-card-bg, #1e293b) !important;
+    }
+
+    [data-theme="dark"] .text-dark {
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    [data-theme="dark"] .text-dark i {
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    [data-theme="dark"] h5.text-dark,
+    [data-theme="dark"] h6.text-dark {
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    [data-theme="dark"] .rounded-circle.bg-light,
+    [data-theme="dark"] .rounded-circle[style*="background-color: #f8f9fa"] {
+        background-color: var(--dm-bg-tertiary, #334155) !important;
+        border-color: var(--dm-border-color, #475569) !important;
+    }
+
+    [data-theme="dark"] .rounded-circle .text-dark {
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    [data-theme="dark"] .empty-state-icon.text-dark {
+        color: var(--dm-text-muted, #94a3b8) !important;
+        opacity: 0.5 !important;
+    }
+
+    [data-theme="dark"] .empty-state-icon.text-primary {
+        color: var(--dm-text-muted, #94a3b8) !important;
+        opacity: 0.5 !important;
+    }
+
+    /* Dark Mode for Enhanced Card Header */
+    [data-theme="dark"] .enhanced-card-header {
+        background: var(--dm-card-bg, #1e293b) !important;
+        border-bottom-color: var(--dm-border-color, #334155) !important;
+    }
+
+    [data-theme="dark"] .enhanced-card-header h5,
+    [data-theme="dark"] .enhanced-card-header .fw-bold {
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    [data-theme="dark"] .enhanced-card-header .text-dark {
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    /* Dark Mode for List Group Items */
+    [data-theme="dark"] .list-group-item {
+        background-color: var(--dm-card-bg, #1e293b) !important;
+        border-color: var(--dm-border-color, #334155) !important;
+    }
+
+    [data-theme="dark"] .list-group-item .text-muted {
+        color: var(--dm-text-muted, #94a3b8) !important;
+    }
+
+    /* Dark Mode - Patient List Item Styles */
+    [data-theme="dark"] .patient-list-item {
+        background-color: var(--dm-card-bg, #1e293b) !important;
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    [data-theme="dark"] .patient-list-item:hover {
+        background-color: var(--dm-bg-tertiary, #334155) !important;
+    }
+
+    [data-theme="dark"] .patient-avatar-circle {
+        background-color: var(--dm-bg-tertiary, #334155) !important;
+        border-color: var(--dm-border-color, #475569) !important;
+    }
+
+    [data-theme="dark"] .patient-avatar-icon {
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    [data-theme="dark"] .patient-name {
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    /* Dark Mode - Override inline styles for Recent Patients */
+    [data-theme="dark"] .list-group-item.appointment-item.bg-white[style*="background-color: white"],
+    [data-theme="dark"] .appointment-item.bg-white[style*="background-color: white"] {
+        background-color: var(--dm-card-bg, #1e293b) !important;
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    [data-theme="dark"] .rounded-circle[style*="background-color: #f8f9fa"],
+    [data-theme="dark"] .rounded-circle.bg-light[style*="background-color: #f8f9fa"] {
+        background-color: var(--dm-bg-tertiary, #334155) !important;
+        border-color: var(--dm-border-color, #475569) !important;
+    }
+
+    [data-theme="dark"] .rounded-circle .text-dark,
+    [data-theme="dark"] .rounded-circle .bi-person-fill.text-dark {
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    /* Dark Mode - Ensure all white backgrounds are overridden */
+    [data-theme="dark"] [style*="background-color: white"],
+    [data-theme="dark"] [style*="background-color: white !important"] {
+        background-color: var(--dm-card-bg, #1e293b) !important;
+    }
+
+    /* Dark Mode - Override light backgrounds */
+    [data-theme="dark"] [style*="background-color: #f8f9fa"],
+    [data-theme="dark"] [style*="background-color: #f8f9fa !important"] {
+        background-color: var(--dm-bg-tertiary, #334155) !important;
+    }
+
+    /* Dark Mode - Card container backgrounds */
+    [data-theme="dark"] .card.bg-white[style*="background"],
+    [data-theme="dark"] .card-header.bg-white[style*="background"],
+    [data-theme="dark"] .card-body.bg-white[style*="background"] {
+        background-color: var(--dm-card-bg, #1e293b) !important;
     }
 </style>
 
-<div class="container-fluid px-4 py-4">
+<div class="container-fluid dashboard-container">
     <!-- Success Message -->
     @if(session('success'))
         <x-toast-message type="success" :message="session('success')" />
@@ -34,13 +415,13 @@
     <!-- Welcome Section -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
-                <div class="card-body p-4 d-flex justify-content-between align-items-center">
-                    <div class="text-white">
-                        <h2 class="fw-bold mb-2">Good {{ now()->format('A') === 'AM' ? 'morning' : (now()->format('A') === 'PM' && now()->hour < 18 ? 'afternoon' : 'evening') }}, {{ Auth::user()->name }}!</h2>
-                        <p class="mb-0">You have {{ $todayAppointments }} appointments to manage today from {{ $totalPatients }} active patients.</p>
+            <div class="card border-0 shadow-sm welcome-card">
+                <div class="card-body p-4 p-md-5 d-flex justify-content-between align-items-center flex-wrap">
+                    <div class="text-white mb-3 mb-md-0">
+                        <h2 class="fw-bold mb-2 mb-md-3" style="font-size: clamp(1.5rem, 4vw, 2rem);">Good {{ now()->format('A') === 'AM' ? 'morning' : (now()->format('A') === 'PM' && now()->hour < 18 ? 'afternoon' : 'evening') }}, {{ Auth::user()->name }}!</h2>
+                        <p class="mb-0 fs-5" style="opacity: 0.95;">You have <strong>{{ $todayAppointments }}</strong> appointment{{ $todayAppointments !== 1 ? 's' : '' }} to manage today from <strong>{{ $totalPatients }}</strong> active patient{{ $totalPatients !== 1 ? 's' : '' }}.</p>
                     </div>
-                    <div class="text-white" style="font-size: 4rem; opacity: 0.3;">
+                    <div class="text-white" style="font-size: clamp(3rem, 8vw, 4rem); opacity: 0.3; flex-shrink: 0;">
                         <i class="bi bi-clipboard2-check"></i>
                     </div>
                 </div>
@@ -49,22 +430,22 @@
     </div>
 
     <!-- Statistics Cards -->
-    <div class="row mb-4 g-4">
+    <div class="row mb-4 g-3">
         <!-- Total Patient Load -->
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body p-4">
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="card border-0 shadow-sm h-100 stat-card" style="border-top: 3px solid #0d6efd;">
+                <div class="card-body p-3">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
-                            <div class="rounded-circle d-flex align-items-center justify-content-center"
-                                 style="width: 65px; height: 65px; background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
-                                <i class="bi bi-people-fill text-white" style="font-size: 2rem;"></i>
+                            <div class="rounded-circle d-flex align-items-center justify-content-center stat-icon-wrapper"
+                                 style="width: 50px; height: 50px; background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); box-shadow: 0 3px 10px rgba(13, 110, 253, 0.25);">
+                                <i class="bi bi-people-fill text-white" style="font-size: 1.5rem;"></i>
                             </div>
                         </div>
-                        <div class="ms-4 flex-grow-1">
-                            <p class="text-muted mb-1 small text-uppercase fw-semibold">Patient Load</p>
-                            <h2 class="fw-bold mb-0" style="font-size: 2.5rem; color: #0d6efd;">{{ $totalPatients }}</h2>
-                            <small class="text-muted">Active patients</small>
+                        <div class="ms-3 flex-grow-1">
+                            <p class="text-muted mb-1 small text-uppercase fw-semibold" style="letter-spacing: 0.5px; font-size: 0.7rem;">Patient Load</p>
+                            <h3 class="fw-bold mb-0" style="font-size: clamp(1.25rem, 2.5vw, 1.75rem); color: #0d6efd; line-height: 1.2;">{{ $totalPatients }}</h3>
+                            <small class="text-muted" style="font-size: 0.75rem;">Active patients</small>
                         </div>
                     </div>
                 </div>
@@ -72,20 +453,20 @@
         </div>
 
         <!-- Today's Appointments -->
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body p-4">
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="card border-0 shadow-sm h-100 stat-card" style="border-top: 3px solid #0dcaf0;">
+                <div class="card-body p-3">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
-                            <div class="rounded-circle d-flex align-items-center justify-content-center"
-                                 style="width: 65px; height: 65px; background: linear-gradient(135deg, #0dcaf0 0%, #0aa2c0 100%);">
-                                <i class="bi bi-calendar-check-fill text-white" style="font-size: 2rem;"></i>
+                            <div class="rounded-circle d-flex align-items-center justify-content-center stat-icon-wrapper"
+                                 style="width: 50px; height: 50px; background: linear-gradient(135deg, #0dcaf0 0%, #0aa2c0 100%); box-shadow: 0 3px 10px rgba(13, 202, 240, 0.25);">
+                                <i class="bi bi-calendar-check-fill text-white" style="font-size: 1.5rem;"></i>
                             </div>
                         </div>
-                        <div class="ms-4 flex-grow-1">
-                            <p class="text-muted mb-1 small text-uppercase fw-semibold">Today's Schedule</p>
-                            <h2 class="fw-bold mb-0" style="font-size: 2.5rem; color: #0dcaf0;">{{ $todayAppointments }}</h2>
-                            <small class="text-muted">Appointments to manage</small>
+                        <div class="ms-3 flex-grow-1">
+                            <p class="text-muted mb-1 small text-uppercase fw-semibold" style="letter-spacing: 0.5px; font-size: 0.7rem;">Today's Schedule</p>
+                            <h3 class="fw-bold mb-0" style="font-size: clamp(1.25rem, 2.5vw, 1.75rem); color: #0dcaf0; line-height: 1.2;">{{ $todayAppointments }}</h3>
+                            <small class="text-muted" style="font-size: 0.75rem;">Appointments to manage</small>
                         </div>
                     </div>
                 </div>
@@ -93,20 +474,20 @@
         </div>
 
         <!-- Total Appointments -->
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body p-4">
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="card border-0 shadow-sm h-100 stat-card" style="border-top: 3px solid #198754;">
+                <div class="card-body p-3">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
-                            <div class="rounded-circle d-flex align-items-center justify-content-center"
-                                 style="width: 65px; height: 65px; background: linear-gradient(135deg, #198754 0%, #146c43 100%);">
-                                <i class="bi bi-calendar3 text-white" style="font-size: 2rem;"></i>
+                            <div class="rounded-circle d-flex align-items-center justify-content-center stat-icon-wrapper"
+                                 style="width: 50px; height: 50px; background: linear-gradient(135deg, #198754 0%, #146c43 100%); box-shadow: 0 3px 10px rgba(25, 135, 84, 0.25);">
+                                <i class="bi bi-calendar3 text-white" style="font-size: 1.5rem;"></i>
                             </div>
                         </div>
-                        <div class="ms-4 flex-grow-1">
-                            <p class="text-muted mb-1 small text-uppercase fw-semibold">Total Appointments</p>
-                            <h2 class="fw-bold mb-0" style="font-size: 2.5rem; color: #198754;">{{ $totalAppointments }}</h2>
-                            <small class="text-muted">All time</small>
+                        <div class="ms-3 flex-grow-1">
+                            <p class="text-muted mb-1 small text-uppercase fw-semibold" style="letter-spacing: 0.5px; font-size: 0.7rem;">Total Appointments</p>
+                            <h3 class="fw-bold mb-0" style="font-size: clamp(1.25rem, 2.5vw, 1.75rem); color: #198754; line-height: 1.2;">{{ $totalAppointments }}</h3>
+                            <small class="text-muted" style="font-size: 0.75rem;">All time</small>
                         </div>
                     </div>
                 </div>
@@ -114,20 +495,20 @@
         </div>
 
         <!-- Pending Actions -->
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body p-4">
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="card border-0 shadow-sm h-100 stat-card" style="border-top: 3px solid #6c757d;">
+                <div class="card-body p-3">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
-                            <div class="rounded-circle d-flex align-items-center justify-content-center"
-                                 style="width: 65px; height: 65px; background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);">
-                                <i class="bi bi-clock-history text-white" style="font-size: 2rem;"></i>
+                            <div class="rounded-circle d-flex align-items-center justify-content-center stat-icon-wrapper"
+                                 style="width: 50px; height: 50px; background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%); box-shadow: 0 3px 10px rgba(108, 117, 125, 0.25);">
+                                <i class="bi bi-clock-history text-white" style="font-size: 1.5rem;"></i>
                             </div>
                         </div>
-                        <div class="ms-4 flex-grow-1">
-                            <p class="text-muted mb-1 small text-uppercase fw-semibold">Pending</p>
-                            <h2 class="fw-bold mb-0" style="font-size: 2.5rem; color: #6c757d;">{{ $pendingAppointments }}</h2>
-                            <small class="text-muted">Need confirmation</small>
+                        <div class="ms-3 flex-grow-1">
+                            <p class="text-muted mb-1 small text-uppercase fw-semibold" style="letter-spacing: 0.5px; font-size: 0.7rem;">Pending</p>
+                            <h3 class="fw-bold mb-0" style="font-size: clamp(1.25rem, 2.5vw, 1.75rem); color: #6c757d; line-height: 1.2;">{{ $pendingAppointments }}</h3>
+                            <small class="text-muted" style="font-size: 0.75rem;">Need confirmation</small>
                         </div>
                     </div>
                 </div>
@@ -141,8 +522,8 @@
         <div class="col-lg-6">
             <!-- Today's Appointments -->
             <div class="card border-0 shadow-sm mb-3">
-                <div class="card-header bg-white border-0 pt-4 pb-3">
-                    <div class="d-flex justify-content-between align-items-center">
+                <div class="card-header enhanced-card-header border-0">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                         <h5 class="mb-0 fw-bold">
                             <i class="bi bi-calendar3 me-2 text-primary"></i>Today's Appointments
                         </h5>
@@ -153,30 +534,30 @@
                 </div>
                 <div class="card-body" style="max-height: 400px; overflow-y: auto;">
                     @if($todayAppointmentsList->isEmpty())
-                        <div class="text-center text-muted py-5">
-                            <i class="bi bi-calendar-x" style="font-size: 3rem; opacity: 0.3;"></i>
-                            <p class="mt-3 mb-0">No appointments scheduled for today</p>
+                        <div class="empty-state">
+                            <i class="bi bi-calendar-x empty-state-icon text-primary"></i>
+                            <p class="mt-3 mb-0 text-muted">No appointments scheduled for today</p>
                         </div>
                     @else
                         <div class="list-group list-group-flush">
                             @foreach($todayAppointmentsList as $appointment)
-                                <div class="list-group-item border-0 px-0">
+                                <div class="list-group-item border-0 px-0 appointment-item">
                                     <div class="d-flex align-items-start">
                                         <div class="flex-shrink-0">
                                             <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center"
-                                                 style="width: 45px; height: 45px;">
+                                                 style="width: 45px; height: 45px; transition: all 0.2s ease;">
                                                 <i class="bi bi-person-fill text-primary"></i>
                                             </div>
                                         </div>
                                         <div class="ms-3 flex-grow-1">
-                                            <h6 class="mb-1">
+                                            <h6 class="mb-1 fw-semibold">
                                                 @if($appointment->patient && $appointment->patient->info)
                                                     {{ $appointment->patient->info->first_name }} {{ $appointment->patient->info->last_name }}
                                                 @else
                                                     Unknown Patient
                                                 @endif
                                             </h6>
-                                            <div class="text-muted small">
+                                            <div class="text-muted small mb-1">
                                                 <i class="bi bi-clock me-1"></i>
                                                 {{ \Carbon\Carbon::parse($appointment->start_datetime)->format('g:i A') }}
                                                 @if($appointment->service)
@@ -184,7 +565,7 @@
                                                 @endif
                                             </div>
                                             @if($appointment->patient && $appointment->patient->info && $appointment->patient->info->phone)
-                                                <div class="text-muted small mt-1">
+                                                <div class="text-muted small">
                                                     <i class="bi bi-telephone me-1"></i>{{ $appointment->patient->info->phone }}
                                                 </div>
                                             @endif
@@ -195,7 +576,7 @@
                                                 @elseif($appointment->status === 'Confirmed') bg-primary
                                                 @elseif($appointment->status === 'Completed') bg-success
                                                 @else bg-secondary
-                                                @endif">
+                                                @endif" style="font-size: 0.75rem; padding: 0.4rem 0.75rem;">
                                                 {{ $appointment->status }}
                                             </span>
                                         </div>
@@ -209,8 +590,8 @@
 
             <!-- Upcoming Appointments -->
             <div class="card border-0 shadow-sm mb-3">
-                <div class="card-header bg-white border-0 pt-4 pb-3">
-                    <div class="d-flex justify-content-between align-items-center">
+                <div class="card-header enhanced-card-header border-0">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                         <h5 class="mb-0 fw-bold">
                             <i class="bi bi-calendar-event me-2 text-success"></i>Upcoming Appointments
                         </h5>
@@ -221,30 +602,30 @@
                 </div>
                 <div class="card-body" style="max-height: 400px; overflow-y: auto;">
                     @if($upcomingAppointments->isEmpty())
-                        <div class="text-center text-muted py-5">
-                            <i class="bi bi-calendar-x" style="font-size: 3rem; opacity: 0.3;"></i>
-                            <p class="mt-3 mb-0">No upcoming appointments</p>
+                        <div class="empty-state">
+                            <i class="bi bi-calendar-x empty-state-icon text-success"></i>
+                            <p class="mt-3 mb-0 text-muted">No upcoming appointments</p>
                         </div>
                     @else
                         <div class="list-group list-group-flush">
                             @foreach($upcomingAppointments as $appointment)
-                                <div class="list-group-item border-0 px-0">
+                                <div class="list-group-item border-0 px-0 appointment-item" style="border-left-color: #198754;">
                                     <div class="d-flex align-items-start">
                                         <div class="flex-shrink-0">
                                             <div class="rounded-circle bg-success bg-opacity-10 d-flex align-items-center justify-content-center"
-                                                 style="width: 45px; height: 45px;">
+                                                 style="width: 45px; height: 45px; transition: all 0.2s ease;">
                                                 <i class="bi bi-person-fill text-success"></i>
                                             </div>
                                         </div>
                                         <div class="ms-3 flex-grow-1">
-                                            <h6 class="mb-1">
+                                            <h6 class="mb-1 fw-semibold">
                                                 @if($appointment->patient && $appointment->patient->info)
                                                     {{ $appointment->patient->info->first_name }} {{ $appointment->patient->info->last_name }}
                                                 @else
                                                     Unknown Patient
                                                 @endif
                                             </h6>
-                                            <div class="text-muted small">
+                                            <div class="text-muted small mb-1">
                                                 <i class="bi bi-calendar-event me-1"></i>
                                                 {{ $appointment->start_datetime->format('M j, Y') }} -
                                                 <i class="bi bi-clock ms-1 me-1"></i>
@@ -254,7 +635,7 @@
                                                 @endif
                                             </div>
                                             @if($appointment->patient && $appointment->patient->info && $appointment->patient->info->phone)
-                                                <div class="text-muted small mt-1">
+                                                <div class="text-muted small">
                                                     <i class="bi bi-telephone me-1"></i>{{ $appointment->patient->info->phone }}
                                                 </div>
                                             @endif
@@ -265,7 +646,7 @@
                                                 @elseif($appointment->status === 'Confirmed') bg-success
                                                 @elseif($appointment->status === 'Completed') bg-success
                                                 @else bg-secondary
-                                                @endif">
+                                                @endif" style="font-size: 0.75rem; padding: 0.4rem 0.75rem;">
                                                 {{ $appointment->status }}
                                             </span>
                                         </div>
@@ -278,36 +659,36 @@
             </div>
 
             <!-- Recent Patients Section -->
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-0 pt-3 pb-2">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0 fw-bold">
-                            <i class="bi bi-people me-2 text-primary"></i>Recent Patients
+            <div class="card border-0 shadow-sm bg-white">
+                <div class="card-header enhanced-card-header border-0 bg-white">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <h5 class="mb-0 fw-bold text-dark">
+                            <i class="bi bi-people me-2 text-dark"></i>Recent Patients
                         </h5>
                         <a href="{{ route('staff-patient-records') }}" class="btn btn-sm btn-outline-primary">
                             View All <i class="bi bi-arrow-right ms-1"></i>
                         </a>
                     </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body bg-white">
                     @if($recentPatients->isEmpty())
-                        <div class="text-center text-muted py-5">
-                            <i class="bi bi-person-x" style="font-size: 3rem; opacity: 0.3;"></i>
-                            <p class="mt-3 mb-0">No patients registered yet</p>
+                        <div class="empty-state">
+                            <i class="bi bi-person-x empty-state-icon text-dark"></i>
+                            <p class="mt-3 mb-0 text-muted">No patients registered yet</p>
                         </div>
                     @else
                         <div class="list-group list-group-flush">
                             @foreach($recentPatients as $patient)
-                                <div class="list-group-item border-0 px-0">
+                                <div class="list-group-item border-0 px-0 appointment-item patient-list-item">
                                     <div class="d-flex align-items-center">
                                         <div class="flex-shrink-0">
-                                            <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center"
-                                                 style="width: 40px; height: 40px;">
-                                                <i class="bi bi-person-fill text-primary"></i>
+                                            <div class="rounded-circle patient-avatar-circle d-flex align-items-center justify-content-center border"
+                                                 style="width: 40px; height: 40px; transition: all 0.2s ease;">
+                                                <i class="bi bi-person-fill patient-avatar-icon"></i>
                                             </div>
                                         </div>
                                         <div class="ms-3 flex-grow-1">
-                                            <h6 class="mb-1">
+                                            <h6 class="mb-1 fw-semibold patient-name">
                                                 @if($patient->info)
                                                     {{ $patient->info->first_name }} {{ $patient->info->last_name }}
                                                 @else
@@ -336,20 +717,20 @@
         <!-- Right Column - Calendar -->
         <div class="col-lg-6">
             <!-- Mini Calendar -->
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-0 pt-4 pb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header enhanced-card-header border-0">
+                    <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
                         <h5 class="mb-0 fw-bold">
                             <i class="bi bi-calendar3 me-2 text-primary"></i>Appointment Calendar
                         </h5>
-                        <div class="calendar-nav d-flex align-items-center gap-2">
+                        <div class="calendar-nav d-flex align-items-center gap-2 flex-wrap">
                             <button id="prevMonth" class="btn btn-sm btn-outline-secondary">
                                 <i class="bi bi-chevron-left"></i>
                             </button>
                             <button id="todayBtn" class="btn btn-sm btn-outline-primary" title="Go to current month">
                                 <i class="bi bi-calendar-day me-1"></i>Today
                             </button>
-                            <span id="currentMonthYear" class="fw-bold px-3" style="min-width: 150px; text-align: center;">
+                            <span id="currentMonthYear" class="fw-bold px-3" style="min-width: 120px; text-align: center; font-size: 0.9rem;">
                                 {{ \Carbon\Carbon::create($currentYear, $currentMonth, 1)->format('F Y') }}
                             </span>
                             <button id="nextMonth" class="btn btn-sm btn-outline-secondary">
@@ -358,7 +739,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="card-body p-4">
+                <div class="card-body p-3 p-md-4">
                     <div class="mini-calendar" id="dashboard-calendar">
                         <!-- Calendar will be generated by JavaScript -->
                     </div>
@@ -371,11 +752,11 @@
     <div class="card border-0 shadow-sm mb-4 feedback-section-card" style="background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);">
         <div class="card-header border-0 pt-4 pb-2" style="background: transparent;">
             <div class="d-flex align-items-center mb-2">
-                <div class="rounded-circle d-flex align-items-center justify-center me-3"
-                     style="width: 50px; height: 50px; background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%); box-shadow: 0 4px 12px rgba(0, 188, 212, 0.3);">
-                    <i class="bi bi-chat-dots-fill text-white" style="font-size: 1.5rem;"></i>
+                <div class="rounded-circle d-flex align-items-center justify-content-center feedback-icon-wrapper"
+                     style="width: 50px; height: 50px; background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%); box-shadow: 0 4px 12px rgba(0, 188, 212, 0.3); margin-right: 1rem;">
+                    <i class="bi bi-chat-dots-fill text-white feedback-icon" style="font-size: 1.5rem;"></i>
                 </div>
-                <div>
+                <div class="feedback-text-container">
                     <h5 class="mb-0 fw-bold feedback-section-title" style="color: #00695c; font-size: 1.5rem;">Recent Patient Feedback</h5>
                     <small class="text-muted">Latest Review from patients</small>
                 </div>

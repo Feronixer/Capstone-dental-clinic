@@ -1058,6 +1058,53 @@ document.getElementById('confirmDenyBtn').addEventListener('click', function() {
     });
 });
 
+// Subtle notification sound function
+function playNotificationSound() {
+    try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        // Subtle, pleasant notification sound
+        oscillator.frequency.value = 800; // Starting frequency
+        oscillator.type = 'sine'; // Soft sine wave
+
+        // Fade in and out for subtlety
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.15, audioContext.currentTime + 0.01); // Volume at 15%
+        gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.2); // Fade out
+
+        // Play two soft beeps
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.2);
+
+        // Second beep after a short pause
+        setTimeout(() => {
+            const oscillator2 = audioContext.createOscillator();
+            const gainNode2 = audioContext.createGain();
+
+            oscillator2.connect(gainNode2);
+            gainNode2.connect(audioContext.destination);
+
+            oscillator2.frequency.value = 1000; // Slightly higher frequency
+            oscillator2.type = 'sine';
+
+            gainNode2.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode2.gain.linearRampToValueAtTime(0.15, audioContext.currentTime + 0.01);
+            gainNode2.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.15);
+
+            oscillator2.start(audioContext.currentTime);
+            oscillator2.stop(audioContext.currentTime + 0.15);
+        }, 150);
+    } catch (error) {
+        // Fallback: Silent if audio context is not supported or user interaction is required
+        console.log('Notification sound unavailable');
+    }
+}
+
 function showToast(title, message, type) {
     const alertClass = `alert-${type}`;
     const iconMap = {
@@ -1077,6 +1124,9 @@ function showToast(title, message, type) {
     `;
 
     document.body.appendChild(alert);
+
+    // Play notification sound when showing toast
+    playNotificationSound();
 
     setTimeout(() => {
         alert.remove();

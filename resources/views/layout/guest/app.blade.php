@@ -42,17 +42,15 @@
             text-decoration: none;
         }
 
-        .logo-icon {
-            width: 45px;
-            height: 45px;
-            background: #2196F3;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.3rem;
-            font-weight: 800;
+        .logo span {
+            font-weight: 700;
+        }
+
+        .logo-img {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            display: inline-block;
         }
 
         .nav-links {
@@ -125,16 +123,10 @@
         }
 
         .footer-about .footer-logo {
-            width: 35px;
-            height: 35px;
-            background: white;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            color: #2196F3;
-            font-size: 1rem;
-            font-weight: 800;
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+            display: inline-block;
         }
 
         .footer-about p {
@@ -216,7 +208,7 @@
             flex-shrink: 0;
             width: 24px;
             text-align: center;
-            color: #FFA726;
+            color: #93c5fd;
         }
 
         .footer-contact p span {
@@ -262,14 +254,45 @@
                 gap: 2rem;
             }
         }
+
+        /* Global Scrollbar Styles - White & Blue Theme */
+        ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #ffffff;
+            border-radius: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            border-radius: 6px;
+            border: 2px solid #ffffff;
+            transition: background 0.3s ease;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+        }
+
+        ::-webkit-scrollbar-corner {
+            background: #ffffff;
+        }
+
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: #2196F3 #ffffff;
+        }
     </style>
 </head>
 <body>
     <!-- Navigation Bar -->
     <nav class="navbar">
         <a href="{{ url('/') }}" class="logo">
-            <div class="logo-icon">TT</div>
-            <span>ToothTalk</span>
+            <img src="{{ asset('images/logo4.png') }}" alt="ToothTalk" class="logo-img">
+            <span>Tooth<span style="color: #26a69a;">Talk</span></span>
         </a>
         <div class="nav-links">
             <a href="{{ url('/') }}" class="nav-btn {{ request()->is('/') ? 'primary' : 'secondary' }}">
@@ -297,24 +320,18 @@
                 <!-- About Section -->
                 <div class="footer-about">
                     <h3>
-                        <span class="footer-logo">TT</span>
+                        <img src="{{ asset('images/logo7.png') }}" alt="ToothTalk" class="footer-logo">
                         ToothTalk
                     </h3>
                     <p>
-                        Premium dental care services since 2005. We're committed to providing world-class dental treatments with cutting-edge technology and compassionate care.
+                        We offer premium dental care services since 2024. We're committed to providing utmost care and attention to your dental needs.
                     </p>
                     <div class="footer-social">
-                        <a href="#" aria-label="Facebook">
+                        <a href="https://www.facebook.com/profile.php?id=61555389276989" aria-label="Facebook">
                             <i class="bi bi-facebook"></i>
                         </a>
-                        <a href="#" aria-label="Twitter">
-                            <i class="bi bi-twitter"></i>
-                        </a>
-                        <a href="#" aria-label="Instagram">
+                        <a href="https://www.instagram.com/JValeradentalclinic" aria-label="Instagram">
                             <i class="bi bi-instagram"></i>
-                        </a>
-                        <a href="#" aria-label="LinkedIn">
-                            <i class="bi bi-linkedin"></i>
                         </a>
                     </div>
                 </div>
@@ -333,12 +350,12 @@
                 <!-- Services -->
                 <div class="footer-section">
                     <h4>Our Services</h4>
-                    <ul>
-                        <li><a href="#"><i class="bi bi-chevron-right"></i> Cosmetic Dentistry</a></li>
-                        <li><a href="#"><i class="bi bi-chevron-right"></i> Laser Dentistry</a></li>
-                        <li><a href="#"><i class="bi bi-chevron-right"></i> Oral Surgery</a></li>
-                        <li><a href="#"><i class="bi bi-chevron-right"></i> Periodontics</a></li>
-                        <li><a href="#"><i class="bi bi-chevron-right"></i> Dental Crowns</a></li>
+                    <ul style="list-style-type:disc;">
+                        <li>General Dentistry</li>
+                        <li>Cosmetic Dentistry</li>
+                        <li>Orthodontics</li>
+                        <li>Teeth Whitening</li>
+                        <li>Emergency Care</li>
                     </ul>
                 </div>
 

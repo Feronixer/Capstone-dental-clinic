@@ -24,9 +24,8 @@ class AnnouncementController extends Controller
         // Fetch past events (archive)
         $pastEvents = Event::active()->past()->take(3)->get();
 
-        // Fetch archived announcements (most recent 3)
+        // Fetch archived announcements (most recent 5 for display)
         $archivedAnnouncements = AnnouncementArchive::orderBy('archived_at', 'desc')
-            ->take(3)
             ->get();
 
         return view("patient.announcement", compact('announcement', 'upcomingEvents', 'pastEvents', 'archivedAnnouncements'));

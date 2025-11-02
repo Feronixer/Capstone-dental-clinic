@@ -23,12 +23,16 @@
     <!-- Filters Section (Activity Logs style) -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="filters-section">
-                <h5 class="mb-3 fw-semibold"><i class="bi bi-funnel me-2"></i>Filter Options</h5>
+            <div class="card shadow-sm border-0 filters-section">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0 text-primary fw-bold"><i class="bi bi-funnel me-2"></i>Filter Options</h5>
+                </div>
+                <div class="card-body">
                 <form method="GET" action="{{ route('admin-appointment.table') }}" id="filterForm">
                     <div class="row g-3">
                         <div class="col-lg-3 col-md-6">
                             <label for="status" class="form-label fw-medium"><i class="bi bi-flag me-1"></i>Status</label>
+                            <div class="select-wrapper">
                             <select class="form-select modern-select" id="status" name="status">
                                 <option value="all" {{ request('status') == 'all' || !request('status') ? 'selected' : '' }}>All ({{ $statusCounts['all'] ?? 0 }})</option>
                                 <option value="Pending" {{ request('status') == 'Pending' ? 'selected' : '' }}>Pending ({{ $statusCounts['Pending'] ?? 0 }})</option>
@@ -37,34 +41,41 @@
                                 <option value="Cancelled" {{ request('status') == 'Cancelled' ? 'selected' : '' }}>Cancelled ({{ $statusCounts['Cancelled'] ?? 0 }})</option>
                                 <option value="Missed" {{ request('status') == 'Missed' ? 'selected' : '' }}>Missed ({{ $statusCounts['Missed'] ?? 0 }})</option>
                             </select>
+                            </div>
                         </div>
 
                         <div class="col-lg-3 col-md-6">
                             <label for="rescheduled" class="form-label fw-medium"><i class="bi bi-arrow-repeat me-1"></i>Rescheduled</label>
+                            <div class="select-wrapper">
                             <select class="form-select modern-select" id="rescheduled" name="rescheduled">
                                 <option value="all" {{ request('rescheduled') == 'all' || !request('rescheduled') ? 'selected' : '' }}>All</option>
                                 <option value="yes" {{ request('rescheduled') == 'yes' ? 'selected' : '' }}>Yes ({{ $rescheduledCount ?? 0 }})</option>
                                 <option value="no" {{ request('rescheduled') == 'no' ? 'selected' : '' }}>No</option>
                             </select>
+                            </div>
                         </div>
 
                         <div class="col-lg-3 col-md-6">
                             <label for="emergency" class="form-label fw-medium"><i class="bi bi-exclamation-triangle me-1"></i>Emergency</label>
+                            <div class="select-wrapper">
                             <select class="form-select modern-select" id="emergency" name="emergency">
                                 <option value="all" {{ request('emergency') == 'all' || !request('emergency') ? 'selected' : '' }}>All</option>
                                 <option value="yes" {{ request('emergency') == 'yes' ? 'selected' : '' }}>Yes ({{ $emergencyCount ?? 0 }})</option>
                                 <option value="no" {{ request('emergency') == 'no' ? 'selected' : '' }}>No</option>
                             </select>
+                            </div>
                         </div>
 
                         <div class="col-lg-3 col-md-6">
                             <label for="month" class="form-label fw-medium"><i class="bi bi-calendar-month me-1"></i>Month</label>
+                            <div class="select-wrapper">
                             <select class="form-select modern-select" id="month" name="month">
                                 <option value="all" {{ request('month') == 'all' || !request('month') ? 'selected' : '' }}>All</option>
                                 @foreach($availableMonths ?? [] as $monthOption)
                                     <option value="{{ $monthOption['value'] }}" {{ request('month') == $monthOption['value'] ? 'selected' : '' }}>{{ $monthOption['label'] }}</option>
                                 @endforeach
                             </select>
+                            </div>
                         </div>
                     </div>
 
@@ -82,6 +93,7 @@
                         </div>
                     </div>
                 </form>
+                </div>
             </div>
         </div>
     </div>
@@ -127,7 +139,7 @@
                             <thead>
                                 <tr>
                                     <th class="sortable-header" data-sort="id">
-                                        ID
+                                        No.
                                         <i class="bi bi-arrow-down-up sort-icon"></i>
                                     </th>
                                     <th>Patient</th>
@@ -181,7 +193,7 @@
                                         $endDate = \Carbon\Carbon::parse($appointment->end_datetime);
                                     @endphp
                                     <tr data-appointment-id="{{ $appointment->id }}">
-                                        <td>{{ $loop->iteration }}</td>
+                                        <td>{{ ($appointments->currentPage() - 1) * $appointments->perPage() + $loop->iteration }}</td>
                                         <td>
                                             <div class="patient-cell">
                                                 <strong>{{ $patientName }}</strong>
@@ -229,9 +241,14 @@
                                             @endif
                                         </td>
                                         <td>
+                                            <div class="d-flex gap-2">
                                             <button class="btn btn-sm btn-primary view-appointment" data-appointment-id="{{ $appointment->id }}" title="View Details">
                                                 <i class="bi bi-eye"></i>
                                             </button>
+                                                <button class="btn btn-sm btn-danger delete-appointment" data-appointment-id="{{ $appointment->id }}" title="Delete">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 @empty
@@ -289,6 +306,44 @@
     </div>
 </div>
 
+<!-- Delete Appointment Confirmation Modal -->
+<div class="modal fade" id="deleteAppointmentModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0" style="background: linear-gradient(135deg, #dc2626, #b91c1c);">
+                <h5 class="modal-title text-white">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Delete
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-4">
+                    <div class="mx-auto mb-3" style="width: 80px; height: 80px; background: linear-gradient(135deg, #fee2e2, #fecaca); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-trash text-danger" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-2">Are you sure you want to delete this?</h4>
+                    <p class="text-muted mb-0">This action cannot be undone. The patient will be notified of the cancellation.</p>
+                </div>
+                <div class="bg-light rounded p-3 mb-3">
+                    <div class="d-flex flex-column align-items-center gap-2">
+                        <div id="deleteAppointmentPatient" class="fw-bold">-</div>
+                        <div id="deleteAppointmentDateTime" class="text-muted small">-</div>
+                        <div id="deleteAppointmentService" class="text-muted small">-</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0 bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-danger" id="confirm-delete-appointment-btn">
+                    <i class="bi bi-trash me-1"></i>Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     renderActiveFilters();
@@ -299,6 +354,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const appointmentId = this.getAttribute('data-appointment-id');
             fetchAppointmentDetails(appointmentId);
         });
+    });
+
+    // Delete appointment handlers
+    document.querySelectorAll('.delete-appointment').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const appointmentId = this.getAttribute('data-appointment-id');
+            showDeleteConfirmation(appointmentId);
+        });
+    });
+
+    // Confirm delete appointment
+    document.getElementById('confirm-delete-appointment-btn').addEventListener('click', function() {
+        const appointmentId = this.getAttribute('data-appointment-id');
+        deleteAppointment(appointmentId);
     });
 
     function fetchAppointmentDetails(appointmentId) {
@@ -524,100 +593,262 @@ function initializeSorting() {
         });
     });
 }
+
+function showDeleteConfirmation(appointmentId) {
+    // Fetch appointment details to show in confirmation modal
+    fetch(`/admin/appointment/${appointmentId}`, {
+        method: 'GET',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(appointment => {
+        // Populate confirmation modal with appointment details
+        let patientName = 'Unknown Patient';
+        if (appointment.patient && appointment.patient.info) {
+            const info = appointment.patient.info;
+            patientName = `${info.first_name} ${info.last_name}`.trim();
+        } else if (appointment.patient && appointment.patient.name) {
+            patientName = appointment.patient.name;
+        }
+
+        let serviceName = 'No Service';
+        if (appointment.service && appointment.service.service_name) {
+            serviceName = appointment.service.service_name;
+        } else if (appointment.reason_for_visit) {
+            serviceName = appointment.reason_for_visit;
+        }
+
+        const startDateTime = new Date(appointment.start_datetime);
+        const formattedDate = startDateTime.toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        const formattedTime = startDateTime.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        });
+
+        document.getElementById('deleteAppointmentPatient').textContent = patientName;
+        document.getElementById('deleteAppointmentDateTime').textContent = `${formattedDate} at ${formattedTime}`;
+        document.getElementById('deleteAppointmentService').textContent = serviceName;
+
+        // Store appointment ID for deletion
+        document.getElementById('confirm-delete-appointment-btn').setAttribute('data-appointment-id', appointmentId);
+
+        // Show modal
+        new bootstrap.Modal(document.getElementById('deleteAppointmentModal')).show();
+    })
+    .catch(error => {
+        console.error('Error fetching appointment:', error);
+        alert('Error loading appointment details');
+    });
+}
+
+function deleteAppointment(appointmentId) {
+    const confirmBtn = document.getElementById('confirm-delete-appointment-btn');
+    const originalText = confirmBtn.innerHTML;
+
+    // Disable button and show loading
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Deleting...';
+
+    fetch(`/admin/appointment/${appointmentId}/delete`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('deleteAppointmentModal'));
+            modal.hide();
+
+            // Show success message
+            alert('Appointment deleted successfully. The page will refresh.');
+
+            // Reload the page to reflect changes
+            window.location.reload();
+        } else {
+            alert(data.message || 'Error deleting appointment');
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = originalText;
+        }
+    })
+    .catch(error => {
+        console.error('Error deleting appointment:', error);
+        alert('Network error. Please try again.');
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = originalText;
+    });
+}
 </script>
 <style>
-/* Filter section with navy blue background */
+/* Filter section - Clean white card style */
 .filters-section {
-    background: linear-gradient(135deg, #001f3f 0%, #003366 100%);
-    padding: 1.5rem;
-    border-radius: 15px;
+    background: white;
+    border-radius: 12px;
     margin-bottom: 2rem;
-    color: white;
+    overflow: hidden;
+}
+
+.filters-section .card-header {
+    background: white;
+    border-bottom: 1px solid #e0e0e0;
+    padding: 1rem 1.5rem;
+}
+
+.filters-section .card-body {
+    padding: 1.5rem;
 }
 
 .filters-section h5 {
-    color: white;
+    color: #3b82f6;
+    font-size: 1.1rem;
+    margin: 0;
 }
 
 .form-label.fw-medium {
-    color: rgba(255, 255, 255, 0.9);
+    color: #1e293b;
     font-size: 0.875rem;
     margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.form-label.fw-medium i {
+    color: #64748b;
+}
+
+/* Select Wrapper - Complete arrow removal */
+.select-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.select-wrapper::after {
+    content: '';
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    pointer-events: none;
+    z-index: 2;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23334155' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: contain;
 }
 
 .modern-select {
-    border-radius: 10px;
-    border: 1.5px solid rgba(255, 255, 255, 0.25);
+    border-radius: 8px;
+    border: 1.5px solid #e0e0e0;
     padding: 0.625rem 1rem;
-    padding-right: 2.5rem;
+    padding-right: 2.75rem;
     transition: all 0.3s ease;
-    background: rgba(255, 255, 255, 0.1);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='white' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+    background: white;
+    background-image: none !important;
     background-repeat: no-repeat;
     background-position: right 0.75rem center;
     background-size: 16px;
-    color: white;
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
+    color: #1e293b;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    -ms-appearance: none !important;
+    font-size: 0.9rem;
+    cursor: pointer;
+    width: 100%;
+    position: relative;
+    z-index: 1;
+}
+
+.modern-select::-ms-expand {
+    display: none !important;
+}
+
+.modern-select::-webkit-select {
+    appearance: none !important;
+}
+
+.modern-select::-moz-select {
+    appearance: none !important;
+}
+
+.modern-select:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .modern-select option {
-    color: #001f3f;
+    color: #1e293b;
     background: white;
+    padding: 0.5rem;
 }
 
 .modern-select:focus {
-    border-color: rgba(255, 255, 255, 0.5);
-    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.15);
-    background: rgba(255, 255, 255, 0.15);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='white' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 0.75rem center;
-    background-size: 16px;
-    color: white;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    outline: none;
+    background-image: none !important;
+}
+
+.select-wrapper:has(.modern-select:focus)::after {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%233b82f6' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
 }
 
 .btn-modern {
-    border-radius: 10px;
+    border-radius: 8px;
     padding: 0.625rem 1.5rem;
     font-weight: 600;
     transition: all .3s ease;
-    border: none;
+    font-size: 0.9rem;
 }
 
 .btn-primary.btn-modern {
-    background: rgba(255, 255, 255, 0.2);
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
     color: white;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    border: none;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
 }
 
 .btn-primary.btn-modern:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.35);
     color: white;
 }
 
 .btn-outline-secondary.btn-modern {
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    color: white;
-    background: transparent;
+    border: 1.5px solid #e0e0e0;
+    color: #475569;
+    background: white;
 }
 
 .btn-outline-secondary.btn-modern:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.5);
+    background: #f8f9fa;
+    border-color: #cbd5e1;
     transform: translateY(-2px);
-    color: white;
+    color: #1e293b;
 }
 
 .active-filters .filter-pill {
-    background: rgba(255, 255, 255, 0.9);
-    color: #001f3f;
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
     border-radius: 999px;
-    padding: .25rem .6rem;
+    padding: .375rem .75rem;
     font-weight: 600;
     font-size: .8rem;
     margin-right: 0.5rem;
@@ -630,6 +861,7 @@ function initializeSorting() {
     flex-wrap: wrap;
     gap: 0.5rem;
     align-items: center;
+    min-height: 2rem;
 }
 
 /* Table background matching filter section */
@@ -695,55 +927,124 @@ function initializeSorting() {
     color: #001f3f;
 }
 
-/* Dark Mode Support */
+/* Dark Mode Support - Dark Blue Navy Theme */
 [data-theme="dark"] .filters-section {
-    background: linear-gradient(135deg, #001f3f 0%, #003366 100%);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: linear-gradient(135deg, #001f3f 0%, #003366 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
-[data-theme="dark"] .filters-section h5,
+[data-theme="dark"] .filters-section .card-header {
+    background: linear-gradient(135deg, #001f3f 0%, #003366 100%) !important;
+    border-bottom-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+[data-theme="dark"] .filters-section .card-body {
+    background: linear-gradient(135deg, #001f3f 0%, #003366 100%) !important;
+}
+
+[data-theme="dark"] .filters-section h5 {
+    color: white !important;
+}
+
 [data-theme="dark"] .form-label.fw-medium {
-    color: rgba(255, 255, 255, 0.9);
+    color: white !important;
+}
+
+[data-theme="dark"] .form-label.fw-medium i {
+    color: white !important;
+}
+
+[data-theme="dark"] .select-wrapper::after {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='white' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E") !important;
+}
+
+[data-theme="dark"] .select-wrapper:has(.modern-select:focus)::after {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='white' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E") !important;
 }
 
 [data-theme="dark"] .modern-select {
     background: rgba(255, 255, 255, 0.1) !important;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='white' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E") !important;
+    background-image: none !important;
     background-repeat: no-repeat !important;
     background-position: right 0.75rem center !important;
     background-size: 16px !important;
-    border-color: rgba(255, 255, 255, 0.25);
-    color: white;
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
+    border: 1.5px solid rgba(255, 255, 255, 0.25) !important;
+    color: white !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    -ms-appearance: none !important;
+    cursor: pointer !important;
+}
+
+[data-theme="dark"] .modern-select::-ms-expand {
+    display: none !important;
+}
+
+[data-theme="dark"] .modern-select::-webkit-select {
+    appearance: none !important;
+}
+
+[data-theme="dark"] .modern-select::-moz-select {
+    appearance: none !important;
+}
+
+[data-theme="dark"] .modern-select:hover {
+    border-color: rgba(255, 255, 255, 0.4) !important;
+    background: rgba(255, 255, 255, 0.15) !important;
 }
 
 [data-theme="dark"] .modern-select option {
-    background: var(--dm-input-bg, #0f172a) !important;
-    color: var(--dm-text-primary, #e5e7eb) !important;
+    background: #0f172a !important;
+    color: white !important;
 }
 
-[data-theme="dark"] .modern-select option:hover,
-[data-theme="dark"] .modern-select option:checked {
-    background: var(--dm-bg-tertiary, #334155) !important;
-    color: var(--dm-text-primary, #e5e7eb) !important;
+[data-theme="dark"] .modern-select option:checked,
+[data-theme="dark"] .modern-select option:hover {
+    background: #3b82f6 !important;
+    color: white !important;
 }
 
 [data-theme="dark"] .modern-select:focus {
     background: rgba(255, 255, 255, 0.15) !important;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='white' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E") !important;
-    background-repeat: no-repeat !important;
-    background-position: right 0.75rem center !important;
-    background-size: 16px !important;
-    border-color: rgba(255, 255, 255, 0.5);
-    color: white;
+    background-image: none !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.15) !important;
+    color: white !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    -ms-appearance: none !important;
+}
+
+[data-theme="dark"] .btn-outline-secondary.btn-modern {
+    border: 1.5px solid rgba(255, 255, 255, 0.3) !important;
+    color: white !important;
+    background: transparent !important;
+}
+
+[data-theme="dark"] .btn-outline-secondary.btn-modern:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    color: white !important;
+    transform: translateY(-2px) !important;
+}
+
+[data-theme="dark"] .btn-primary.btn-modern {
+    background: #3b82f6 !important;
+    color: white !important;
+    border: none !important;
+}
+
+[data-theme="dark"] .btn-primary.btn-modern:hover {
+    background: #2563eb !important;
+    color: white !important;
 }
 
 [data-theme="dark"] .active-filters .filter-pill {
     background: rgba(255, 255, 255, 0.15) !important;
-    color: rgba(255, 255, 255, 0.95) !important;
-    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: white !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
 }
 
 /* Card styling to allow table background to show */

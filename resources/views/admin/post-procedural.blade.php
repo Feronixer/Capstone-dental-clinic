@@ -6,7 +6,7 @@
     <div class="layout-wrapper">
         <!-- Sidebar -->
         <div class="sidebar-nav">
-            <h6 class="sidebar-title">Form List</h6>
+            <h6 class="sidebar-title">Medical Documents</h6>
             <ul class="nav-list">
                 <li class="nav-item active" data-section="form-list">
                     <span>Form List</span>
@@ -27,10 +27,10 @@
         <div class="main-content">
             <!-- Header -->
             <div class="content-header">
-                <h4 class="page-title">Post-Procedure Form</h4>
+                <h4 class="page-title" style="font-size: 28px; font-weight: bold; color: #3498db;">Post-Procedure Form</h4>
             </div>
 
-            <!-- Form List Section (Table) -->
+            <!-- Medical Documents Section (Table) -->
             <div class="content-section" id="form-list-section">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <div class="d-flex align-items-center gap-2">
@@ -54,16 +54,16 @@
                 </div>
 
                 <div class="table-responsive">
-                    <table class="table table-bordered table-hover align-middle">
-                        <thead class="table-light">
+                    <table class="table table-hover align-middle post-procedural-table">
+                        <thead>
                             <tr>
-                                <th style="width: 5%;" class="text-center">ID</th>
-                                <th style="width: 20%;">Patient Name</th>
-                                <th style="width: 15%;" class="text-center">Treatment</th>
-                                <th style="width: 15%;" class="text-center">Patient Information Record</th>
-                                <th style="width: 15%;" class="text-center">Patient History</th>
-                                <th style="width: 15%;" class="text-center">Progress Notes</th>
-                                <th style="width: 15%;" class="text-center">Action</th>
+                                <th class="text-center" style="width: 4%; min-width: 45px;">No.</th>
+                                <th style="width: 20%; min-width: 180px;">Patient Name</th>
+                                <th class="text-center" style="width: 12%; min-width: 100px;">Treatment</th>
+                                <th class="text-center" style="width: 16%; min-width: 110px; font-size: 0.8rem;">Patient Info</th>
+                                <th class="text-center" style="width: 15%; min-width: 100px; font-size: 0.8rem;">History</th>
+                                <th class="text-center" style="width: 15%; min-width: 100px; font-size: 0.8rem;">Notes</th>
+                                <th class="text-center" style="width: 18%; min-width: 90px;">Action</th>
                             </tr>
                         </thead>
                         <tbody id="recordsTableBody">
@@ -654,8 +654,8 @@ function renderPatientRecords(records) {
                 serviceName = record.data.appointment.service.service_name;
             } else if (record.data?.service?.service_name) {
                 serviceName = record.data.service.service_name;
-            } else if (record.related_info && record.related_info !== 'No address') {
-                serviceName = record.related_info;
+            } else if (record.data?.treatment_done) {
+                serviceName = record.data.treatment_done;
             }
             groupedRecords[key].treatment = serviceName;
             groupedRecords[key].patient_record = record;
@@ -665,6 +665,8 @@ function renderPatientRecords(records) {
             // Get treatment from patient history procedure_performed if available
             if (record.data?.procedure_performed) {
                 groupedRecords[key].treatment = record.data.procedure_performed;
+            } else if (record.data?.treatment_done) {
+                groupedRecords[key].treatment = record.data.treatment_done;
             }
         } else if (record.type === 'progress_note') {
             groupedRecords[key].progress_notes = record;
@@ -696,50 +698,50 @@ function renderPatientRecords(records) {
         return `
             <tr>
                 <td class="text-center">${index + 1}</td>
-                <td>
-                    <div class="d-flex align-items-center">
-                        <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px; font-size: 14px;">
+                <td style="padding: 0.65rem 0.5rem;">
+                    <div class="d-flex align-items-center" style="gap: 0.6rem;">
+                        <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; font-size: 14px; font-weight: 600;">
                             ${patientName.charAt(0).toUpperCase()}
                         </div>
-                        <div>
-                            <div class="fw-semibold">${patientName}</div>
-                            <small class="text-muted">@${username}</small>
+                        <div style="flex: 1; min-width: 0;">
+                            <div class="fw-semibold mb-1" style="font-size: 0.875rem; line-height: 1.3; word-wrap: break-word; overflow-wrap: break-word;">${patientName}</div>
+                            <small class="text-muted" style="font-size: 0.8rem; line-height: 1.2; display: block;">@${username}</small>
                         </div>
                     </div>
                 </td>
                 <td class="text-center">
-                    <span class="badge bg-info">${treatment}</span>
+                    <span class="badge bg-info text-wrap" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; max-width: 100%; word-break: break-word;">${treatment}</span>
                 </td>
                 <td class="text-center">
                     ${group.patient_record ? `
-                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="openEditRecordModal(${recordId})">
-                            <i class="bi bi-pencil-square me-1"></i>Edit
+                        <button type="button" class="btn btn-sm btn-outline-primary edit-action-btn" onclick="openEditRecordModal(${recordId})" title="Edit Patient Info">
+                            <i class="bi bi-pencil-square"></i>
                         </button>
                     ` : `
-                        <span class="badge bg-light text-muted" style="border:1px solid #ced4da;">No data created</span>
+                        <span class="badge bg-light text-muted no-data-badge">No data</span>
                     `}
                 </td>
                 <td class="text-center">
                     ${group.patient_history ? `
-                        <button type="button" class="btn btn-sm btn-outline-info" onclick="openEditHistoryModal(${historyId})">
-                            <i class="bi bi-pencil-square me-1"></i>Edit
+                        <button type="button" class="btn btn-sm btn-outline-info edit-action-btn" onclick="openEditHistoryModal(${historyId})" title="Edit History">
+                            <i class="bi bi-pencil-square"></i>
                         </button>
                     ` : `
-                        <span class="badge bg-light text-muted" style="border:1px solid #ced4da;">No data created</span>
+                        <span class="badge bg-light text-muted no-data-badge">No data</span>
                     `}
                 </td>
                 <td class="text-center">
                     ${group.progress_notes ? `
-                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="openEditNotesModal(${notesId})">
-                            <i class="bi bi-pencil-square me-1"></i>Edit
+                        <button type="button" class="btn btn-sm btn-outline-secondary edit-action-btn" onclick="openEditNotesModal(${notesId})" title="Edit Notes">
+                            <i class="bi bi-pencil-square"></i>
                         </button>
                     ` : `
-                        <span class="badge bg-light text-muted" style="border:1px solid #ced4da;">No data created</span>
+                        <span class="badge bg-light text-muted no-data-badge">No data</span>
                     `}
                 </td>
                 <td class="text-center">
-                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeRecord(${recordId})" ${recordId === 'N/A' ? 'disabled' : ''}>
-                        <i class="bi bi-trash me-1"></i>Delete
+                    <button type="button" class="btn btn-sm btn-outline-danger edit-action-btn" onclick="removeRecord(${recordId})" ${recordId === 'N/A' ? 'disabled' : ''} title="Delete">
+                        <i class="bi bi-trash"></i>
                     </button>
                 </td>
             </tr>
@@ -996,7 +998,7 @@ document.querySelectorAll('.nav-item').forEach(item => {
     });
 });
 
-// Reset to Form List when modal closes
+// Reset to Medical Documents when modal closes
 const detailsModal = document.getElementById('detailsModal');
 if (detailsModal) {
     detailsModal.addEventListener('hidden.bs.modal', function() {
@@ -1022,11 +1024,11 @@ if (detailsModal) {
         window.currentPatientRecord = null;
         selectedPatientForHistory = null;
 
-        // Reset to Form List view
+        // Reset to Medical Documents view
         document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
         document.querySelector('.nav-item[data-section="form-list"]').classList.add('active');
 
-        // Show Form List section, hide others
+        // Show Medical Documents section, hide others
         document.querySelectorAll('.content-section').forEach(sec => sec.classList.add('d-none'));
         document.getElementById('form-list-section').classList.remove('d-none');
 
@@ -6614,4 +6616,290 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 </script>
+
+<style>
+/* Post-Procedural Table Styles */
+.post-procedural-table {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: none !important;
+}
+
+.post-procedural-table thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.post-procedural-table thead th {
+    color: #ffffff !important;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 0.65rem 0.5rem;
+    border: none !important;
+    white-space: nowrap;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+.post-procedural-table tbody {
+    background: white;
+}
+
+.post-procedural-table tbody tr {
+    border-bottom: 1px solid #f0f0f0;
+    transition: all 0.2s ease;
+}
+
+.post-procedural-table tbody tr:hover {
+    background: #f8f9ff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.post-procedural-table tbody td {
+    padding: 0.65rem 0.5rem;
+    vertical-align: middle;
+    border: none !important;
+    color: #495057;
+    font-size: 0.875rem;
+}
+
+.post-procedural-table .avatar-sm {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Patient Name Column - Better Spacing and Organization */
+.post-procedural-table tbody td:nth-child(2) {
+    padding: 0.65rem 0.5rem !important;
+    vertical-align: middle;
+}
+
+.post-procedural-table tbody td:nth-child(2) > div {
+    gap: 0.6rem !important;
+}
+
+.post-procedural-table tbody td:nth-child(2) .fw-semibold {
+    font-size: 0.875rem !important;
+    line-height: 1.3 !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    margin-bottom: 0.2rem !important;
+}
+
+.post-procedural-table tbody td:nth-child(2) small {
+    font-size: 0.8rem !important;
+    line-height: 1.2 !important;
+    display: block !important;
+}
+
+/* Table Container - Fit Screen */
+.post-procedural-table {
+    width: 100% !important;
+    table-layout: fixed !important;
+    max-width: 100% !important;
+}
+
+.table-responsive {
+    overflow-x: visible !important;
+    max-width: 100% !important;
+}
+
+/* Ensure columns don't overflow (except Patient Name and Treatment) */
+.post-procedural-table th {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.post-procedural-table td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.post-procedural-table tbody td:nth-child(2),
+.post-procedural-table tbody td:nth-child(3) {
+    white-space: normal !important;
+}
+
+.post-procedural-table .badge {
+    padding: 0.25rem 0.5rem;
+    font-weight: 500;
+    border-radius: 4px;
+    display: inline-block;
+    max-width: 100%;
+    font-size: 0.75rem;
+    line-height: 1.2;
+}
+
+.post-procedural-table .badge.bg-info {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
+    color: white;
+}
+
+.post-procedural-table .no-data-badge {
+    background: #f8f9fa !important;
+    color: #6c757d !important;
+    border: 1px solid #dee2e6 !important;
+    padding: 0.3rem 0.5rem;
+    font-size: 0.7rem;
+}
+
+.post-procedural-table .edit-action-btn {
+    border-radius: 4px;
+    font-weight: 500;
+    padding: 0.35rem 0.5rem;
+    transition: all 0.2s ease;
+    border-width: 1.5px;
+    font-size: 0.8rem;
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.post-procedural-table .edit-action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.post-procedural-table .edit-action-btn.btn-outline-primary:hover {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    border-color: #0d6efd;
+    color: white;
+}
+
+.post-procedural-table .edit-action-btn.btn-outline-info:hover {
+    background: linear-gradient(135deg, #0dcaf0 0%, #0aa2c0 100%);
+    border-color: #0dcaf0;
+    color: white;
+}
+
+.post-procedural-table .edit-action-btn.btn-outline-secondary:hover {
+    background: linear-gradient(135deg, #6c757d 0%, #5c636a 100%);
+    border-color: #6c757d;
+    color: white;
+}
+
+.post-procedural-table .edit-action-btn.btn-outline-danger:hover {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    border-color: #dc3545;
+    color: white;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .post-procedural-table thead th,
+    .post-procedural-table tbody td {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    .post-procedural-table .edit-action-btn {
+        padding: 0.35rem 0.65rem;
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .post-procedural-table {
+        font-size: 0.8rem;
+    }
+
+    .post-procedural-table thead th {
+        font-size: 0.75rem;
+        padding: 0.65rem 0.4rem;
+    }
+
+    .post-procedural-table tbody td {
+        padding: 0.65rem 0.4rem;
+    }
+
+    .post-procedural-table .avatar-sm {
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 12px !important;
+    }
+
+    .post-procedural-table .badge {
+        padding: 0.35rem 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    .post-procedural-table .edit-action-btn {
+        padding: 0.3rem 0.5rem;
+        font-size: 0.75rem;
+    }
+
+.post-procedural-table .edit-action-btn i {
+    margin: 0 !important;
+    font-size: 0.9rem;
+}
+
+/* Remove table-responsive overflow */
+.table-responsive {
+    overflow-x: visible !important;
+    max-width: 100%;
+}
+
+/* Compact avatar size */
+.post-procedural-table .avatar-sm {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 14px !important;
+}
+
+/* Dark Mode Support */
+[data-theme="dark"] .post-procedural-table {
+    background: var(--dm-card-bg, #1e293b);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .post-procedural-table thead {
+    background: linear-gradient(135deg, #4c63d2 0%, #5a3a8a 100%) !important;
+}
+
+[data-theme="dark"] .post-procedural-table thead th {
+    color: #ffffff !important;
+    background: linear-gradient(135deg, #4c63d2 0%, #5a3a8a 100%) !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .post-procedural-table tbody {
+    background: var(--dm-card-bg, #1e293b);
+}
+
+[data-theme="dark"] .post-procedural-table tbody tr {
+    border-bottom-color: var(--dm-border-color, #334155);
+}
+
+[data-theme="dark"] .post-procedural-table tbody tr:hover {
+    background: var(--dm-bg-secondary, #334155) !important;
+}
+
+[data-theme="dark"] .post-procedural-table tbody td {
+    color: var(--dm-text-primary, #e5e7eb);
+}
+
+[data-theme="dark"] .post-procedural-table .badge.bg-info {
+    background: linear-gradient(135deg, #0dcaf0 0%, #0aa2c0 100%) !important;
+}
+
+[data-theme="dark"] .post-procedural-table .no-data-badge {
+    background: var(--dm-input-bg, #0f172a) !important;
+    color: var(--dm-text-muted, #94a3b8) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] .post-procedural-table .fw-semibold {
+    color: var(--dm-text-primary, #e5e7eb);
+}
+
+[data-theme="dark"] .post-procedural-table .text-muted {
+    color: var(--dm-text-muted, #94a3b8) !important;
+}
+</style>
 @endsection

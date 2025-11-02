@@ -5,60 +5,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentView = 'month';
 
     // Initialize
-    initMiniCalendar();
     renderCalendar();
     initEventListeners();
-
-    // Mini Calendar
-    function initMiniCalendar() {
-        const grid = document.getElementById('miniCalendarGrid');
-        const monthYear = document.getElementById('miniCalMonthYear');
-
-        const month = currentDate.getMonth();
-        const year = currentDate.getFullYear();
-
-        monthYear.textContent = new Date(year, month).toLocaleDateString('en-US', {
-            month: 'long',
-            year: 'numeric'
-        });
-
-        // Create mini calendar grid
-        const weekDays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-        let html = '';
-
-        // Add day headers
-        weekDays.forEach(day => {
-            html += `<div class="mini-cal-day header">${day}</div>`;
-        });
-
-        // Get first day of month and total days
-        const firstDay = new Date(year, month, 1).getDay();
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-        const today = new Date();
-
-        // Add empty cells for days before month starts
-        for (let i = 0; i < firstDay; i++) {
-            html += `<div class="mini-cal-day"></div>`;
-        }
-
-        // Add days of month
-        for (let day = 1; day <= daysInMonth; day++) {
-            const isToday = day === today.getDate() &&
-                           month === today.getMonth() &&
-                           year === today.getFullYear();
-
-            // Check if this day has appointments
-            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            const hasAppts = getAppointmentsForDate(dateStr).length > 0;
-
-            let classes = isToday ? 'mini-cal-day current' : 'mini-cal-day';
-            if (hasAppts) classes += ' has-events';
-
-            html += `<div class="${classes}">${day}</div>`;
-        }
-
-        grid.innerHTML = html;
-    }
 
     // Main Calendar Rendering
     function renderCalendar() {
@@ -427,11 +375,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
             .calendar-header-cell {
                 background: #f8fafc;
-                padding: 1rem;
+                padding: 0.625rem 0.5rem;
                 text-align: center;
                 font-weight: 600;
                 color: #64748b;
-                font-size: 0.9rem;
+                font-size: 0.8rem;
             }
 
             .calendar-body {
@@ -449,10 +397,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
             .calendar-day {
                 background: white;
-                min-height: 120px;
-                padding: 0.75rem;
+                min-height: 80px;
+                padding: 0.5rem;
                 cursor: pointer;
                 transition: all 0.2s;
+                display: flex;
+                flex-direction: column;
             }
 
             .calendar-day:hover {
@@ -469,36 +419,43 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             .calendar-day.today .day-number {
-                background: #667eea;
+                background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
                 color: white;
-                width: 32px;
-                height: 32px;
+                width: 28px;
+                height: 28px;
                 border-radius: 50%;
-                display: flex;
+                display: inline-flex;
                 align-items: center;
                 justify-content: center;
+                font-weight: 700;
             }
 
             .day-number {
                 font-weight: 600;
                 color: #1e293b;
-                margin-bottom: 0.5rem;
+                margin-bottom: 0.375rem;
+                font-size: 0.875rem;
             }
 
             .day-events {
                 display: flex;
                 flex-direction: column;
-                gap: 0.25rem;
+                gap: 0.2rem;
+                flex: 1;
+                overflow: hidden;
             }
 
             .event-item {
                 background: #e3f2fd;
-                border-left: 3px solid #2196F3;
-                padding: 0.4rem;
+                border-left: 2px solid #2196F3;
+                padding: 0.25rem 0.375rem;
                 border-radius: 4px;
-                font-size: 0.75rem;
+                font-size: 0.7rem;
                 cursor: pointer;
                 transition: all 0.2s;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
             }
 
             .event-item:hover {
@@ -541,11 +498,13 @@ document.addEventListener('DOMContentLoaded', function() {
             .event-time {
                 font-weight: 600;
                 color: #1e293b;
+                font-size: 0.65rem;
                 margin-bottom: 0.1rem;
             }
 
             .event-title {
                 color: #64748b;
+                font-size: 0.65rem;
                 line-height: 1.2;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -560,7 +519,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const startOfWeek = new Date(currentDate);
         startOfWeek.setDate(currentDate.getDate() - currentDate.getDay()); // Start on Sunday
 
-        const hours = Array.from({length: 13}, (_, i) => i + 8); // 8 AM to 8 PM
+        const hours = Array.from({length: 10}, (_, i) => i + 8); // 8 AM to 5 PM (reduced from 8 PM)
         const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
         let html = '<div class="week-view">';
@@ -845,8 +804,17 @@ document.addEventListener('DOMContentLoaded', function() {
     function initEventListeners() {
         // View toggles
         document.querySelectorAll('.view-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+            btn.addEventListener('click', function(e) {
+                // Only process buttons that have a data-view attribute (not appointment action buttons)
+                if (!this.dataset.view) {
+                    return; // Skip buttons without data-view (like Emergency/Reschedule buttons)
+                }
+                document.querySelectorAll('.view-btn').forEach(b => {
+                    // Only toggle active class for actual view buttons
+                    if (b.dataset.view) {
+                        b.classList.remove('active');
+                    }
+                });
                 this.classList.add('active');
                 currentView = this.dataset.view;
                 renderCalendar();
@@ -863,7 +831,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentDate.setDate(currentDate.getDate() - 1);
             }
             renderCalendar();
-            initMiniCalendar();
         });
 
         document.getElementById('nextPeriod').addEventListener('click', () => {
@@ -875,27 +842,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentDate.setDate(currentDate.getDate() + 1);
             }
             renderCalendar();
-            initMiniCalendar();
         });
 
         document.getElementById('todayBtn').addEventListener('click', () => {
             currentDate = new Date();
             renderCalendar();
-            initMiniCalendar();
         });
 
-        // Mini calendar navigation
-        document.getElementById('miniCalPrev').addEventListener('click', () => {
-            currentDate.setMonth(currentDate.getMonth() - 1);
-            initMiniCalendar();
-            renderCalendar();
-        });
-
-        document.getElementById('miniCalNext').addEventListener('click', () => {
-            currentDate.setMonth(currentDate.getMonth() + 1);
-            initMiniCalendar();
-            renderCalendar();
-        });
 
         // Star rating
         const stars = document.querySelectorAll('.star');
