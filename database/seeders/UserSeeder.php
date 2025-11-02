@@ -24,12 +24,18 @@ class UserSeeder extends Seeder
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
         ]);
+        // Calculate birthday from age (30 years ago)
+        $birthday = Carbon::now()->subYears(30)->subDays(100)->format('Y-m-d');
+        $age = Carbon::parse($birthday)->age;
+
         $user->info()->create([
             'first_name'  => 'Admin',
             'last_name'   => 'User',
             'phone'       => '09171234567',
             'address'     => '123 Admin St, Admin City',
-            'age'         => 30,
+            'gender'      => 'Male',
+            'birthday'    => $birthday,
+            'age'         => $age,
             'created_at'  => Carbon::now(),
             'updated_at'  => Carbon::now(),
         ]);

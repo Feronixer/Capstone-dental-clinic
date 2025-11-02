@@ -74,6 +74,13 @@ class ContentManagementController extends Controller
      */
     public function createNewAnnouncement(Request $request)
     {
+        // Normalize empty strings to null for time fields
+        $request->merge([
+            'time_start' => $request->input('time_start') ?: null,
+            'time_end' => $request->input('time_end') ?: null,
+            'date_end' => $request->input('date_end') ?: null,
+        ]);
+
         $rules = [
             'title' => 'required|string|max:255',
             'subheading' => 'nullable|string|max:255',
@@ -125,7 +132,7 @@ class ContentManagementController extends Controller
             $announcement->date_start = $request->input('date_start');
             $announcement->date_end = $request->filled('date_end') ? $request->input('date_end') : null;
             $announcement->is_whole_day = $request->has('is_whole_day') && $request->input('is_whole_day') == '1';
-            
+
             // Handle time fields
             if ($announcement->is_whole_day) {
                 $announcement->time_start = null;
@@ -165,6 +172,13 @@ class ContentManagementController extends Controller
      */
     public function updateAnnouncement(Request $request)
     {
+        // Normalize empty strings to null for time fields
+        $request->merge([
+            'time_start' => $request->input('time_start') ?: null,
+            'time_end' => $request->input('time_end') ?: null,
+            'date_end' => $request->input('date_end') ?: null,
+        ]);
+
         $rules = [
             'title' => 'required|string|max:255',
             'subheading' => 'nullable|string|max:255',
@@ -212,7 +226,7 @@ class ContentManagementController extends Controller
             $announcement->date_start = $request->input('date_start');
             $announcement->date_end = $request->filled('date_end') ? $request->input('date_end') : null;
             $announcement->is_whole_day = $request->has('is_whole_day') && $request->input('is_whole_day') == '1';
-            
+
             // Handle time fields
             if ($announcement->is_whole_day) {
                 $announcement->time_start = null;

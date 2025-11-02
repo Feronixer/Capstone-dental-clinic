@@ -19,72 +19,63 @@ class CalendarController extends Controller
      */
     public function index()
     {
-        // Get the currently authenticated patient's appointments (include cancelled)
-        // Explicitly handle NULL statuses - include all statuses including Cancelled
         $patientId = auth()->id();
+        $appointments = $this->getPatientAppointments($patientId);
+        $upcomingAppointments = $this->getUpcomingAppointments();
+        $pendingRequests = $this->getPendingRequests();
+        $appointmentHistory = $this->getAppointmentHistory();
+        $allAppointments = $this->getAllAppointmentsForConflicts();
+        $blockedTimes = $this->getBlockedTimes();
+        $services = $this->getServices();
 
-        // Debug: Log patient ID
-        \Log::info('Patient Calendar: Fetching appointments', [
-            'patient_id' => $patientId,
-            'user_id' => auth()->id()
-        ]);
+        return view("patient.calendar", compact(
+            'appointments', 'upcomingAppointments', 'pendingRequests',
+            'appointmentHistory', 'services', 'allAppointments', 'blockedTimes'
+        ));
+    }
 
+    private function getPatientAppointments(int $patientId): array
+    {
         $appointments = Appointment::where('patient_id', $patientId)
             ->with(['service'])
             ->orderBy('start_datetime', 'asc')
             ->get();
 
-        // Debug: Log raw appointment count
-        \Log::info('Patient Calendar: Raw appointments fetched', [
-            'patient_id' => $patientId,
-            'count' => $appointments->count()
-        ]);
+        return $appointments->map(function($appointment) {
+            $data = [
+                'id' => $appointment->id,
+                'patient_id' => $appointment->patient_id,
+                'service_id' => $appointment->service_id,
+                'duration_minutes' => $appointment->duration_minutes,
+                'status' => $appointment->status ?? 'Pending',
+                'notes' => $appointment->notes,
+                'reason_for_visit' => $appointment->reason_for_visit,
+                'is_new_patient' => $appointment->is_new_patient,
+                'rescheduled_at' => $appointment->rescheduled_at?->format('Y-m-d H:i:s'),
+                'original_datetime' => $appointment->original_datetime?->format('Y-m-d H:i:s'),
+                'start_datetime' => $appointment->start_datetime->format('Y-m-d H:i:s'),
+                'end_datetime' => $appointment->end_datetime->format('Y-m-d H:i:s'),
+                'created_at' => $appointment->created_at->format('Y-m-d H:i:s'),
+                'updated_at' => $appointment->updated_at->format('Y-m-d H:i:s'),
+            ];
 
-        $appointments = $appointments->map(function($appointment) {
-                // Build data array manually to ensure proper formatting
-                $data = [
-                    'id' => $appointment->id,
-                    'patient_id' => $appointment->patient_id,
-                    'service_id' => $appointment->service_id,
-                    'duration_minutes' => $appointment->duration_minutes,
-                    'status' => $appointment->status ?? 'Pending',
-                    'notes' => $appointment->notes,
-                    'reason_for_visit' => $appointment->reason_for_visit,
-                    'is_new_patient' => $appointment->is_new_patient,
-                    'rescheduled_at' => $appointment->rescheduled_at ? $appointment->rescheduled_at->format('Y-m-d H:i:s') : null,
-                    'original_datetime' => $appointment->original_datetime ? $appointment->original_datetime->format('Y-m-d H:i:s') : null,
-                    'start_datetime' => $appointment->start_datetime->format('Y-m-d H:i:s'),
-                    'end_datetime' => $appointment->end_datetime->format('Y-m-d H:i:s'),
-                    'created_at' => $appointment->created_at->format('Y-m-d H:i:s'),
-                    'updated_at' => $appointment->updated_at->format('Y-m-d H:i:s'),
+            if ($appointment->relationLoaded('service') && $appointment->service) {
+                $data['service'] = [
+                    'id' => $appointment->service->id,
+                    'service_name' => $appointment->service->service_name,
+                    'default_duration_minutes' => $appointment->service->default_duration_minutes,
                 ];
+            } else {
+                $data['service'] = null;
+            }
 
-                // Include service relationship if it exists
-                if ($appointment->relationLoaded('service') && $appointment->service) {
-                    $data['service'] = [
-                        'id' => $appointment->service->id,
-                        'service_name' => $appointment->service->service_name,
-                        'default_duration_minutes' => $appointment->service->default_duration_minutes,
-                    ];
-                } else {
-                    $data['service'] = null;
-                }
+            return $data;
+        })->values()->toArray();
+    }
 
-                return $data;
-            })
-            ->values() // Reset keys to ensure numeric indexing
-            ->toArray(); // Convert collection to array for proper JSON encoding
-
-        // Debug: Log final appointment count and sample dates
-        \Log::info('Patient Calendar: Mapped appointments', [
-            'patient_id' => $patientId,
-            'count' => count($appointments),
-            'sample_dates' => array_slice(array_column($appointments, 'start_datetime'), 0, 3),
-            'is_array' => is_array($appointments)
-        ]);
-
-        // Get upcoming appointments (future appointments only)
-        $upcomingAppointments = Appointment::where('patient_id', auth()->id())
+    private function getUpcomingAppointments()
+    {
+        return Appointment::where('patient_id', auth()->id())
             ->where('start_datetime', '>=', Carbon::now())
             ->where(function($query) {
                 $query->whereNull('status')
@@ -94,56 +85,71 @@ class CalendarController extends Controller
             ->orderBy('start_datetime', 'asc')
             ->limit(5)
             ->get();
+    }
 
-        // Get pending appointment requests
-        $pendingRequests = AppointmentRequest::where('patient_id', auth()->id())
+    private function getPendingRequests()
+    {
+        return AppointmentRequest::where('patient_id', auth()->id())
             ->where('status', 'Pending')
             ->with(['service', 'existingAppointment'])
             ->orderBy('created_at', 'desc')
             ->limit(5)
             ->get();
+    }
 
-        // Get appointment history (past appointments, including cancelled)
-        $appointmentHistory = Appointment::where('patient_id', auth()->id())
-            ->where('start_datetime', '<', Carbon::now())
+    private function getAppointmentHistory()
+    {
+        return Appointment::where('patient_id', auth()->id())
+            ->where(function($query) {
+                $query->where(function($q) {
+                    $q->where('start_datetime', '<', Carbon::now())
+                      ->whereIn('status', ['Completed', 'Cancelled', 'Missed']);
+                })->orWhere('status', 'Cancelled');
+            })
             ->with(['service'])
             ->orderBy('start_datetime', 'desc')
             ->limit(10)
             ->get();
+    }
 
-        // Get ALL appointments (from all patients) for conflict checking - exclude cancelled
-        $allAppointments = Appointment::where('start_datetime', '>=', Carbon::now()->startOfDay())
+    private function getAllAppointmentsForConflicts(): array
+    {
+        return Appointment::where('start_datetime', '>=', Carbon::now()->startOfDay())
             ->where('status', '!=', 'Cancelled')
             ->get()
-            ->map(function($appointment) {
-                return [
-                    'start_datetime' => $appointment->start_datetime->format('Y-m-d H:i:s'),
-                    'end_datetime' => $appointment->end_datetime->format('Y-m-d H:i:s'),
-                ];
-            })
+            ->map(fn($apt) => [
+                'start_datetime' => $apt->start_datetime->format('Y-m-d H:i:s'),
+                'end_datetime' => $apt->end_datetime->format('Y-m-d H:i:s'),
+            ])
             ->values()
             ->toArray();
+    }
 
-        // Get blocked times for conflict checking and display
-        $blockedTimes = \App\Models\BlockedTime::where('start_datetime', '>=', Carbon::now()->startOfDay())
+    private function getBlockedTimes(): array
+    {
+        return \App\Models\BlockedTime::where('start_datetime', '>=', Carbon::now()->startOfDay())
             ->get()
-            ->map(function($blockedTime) {
-                return [
-                    'id' => $blockedTime->id,
-                    'title' => $blockedTime->title,
-                    'start_datetime' => $blockedTime->start_datetime->format('Y-m-d H:i:s'),
-                    'end_datetime' => $blockedTime->end_datetime->format('Y-m-d H:i:s'),
-                    'duration_minutes' => $blockedTime->duration_minutes,
-                    'notes' => $blockedTime->notes,
-                ];
-            })
+            ->map(fn($bt) => [
+                'id' => $bt->id,
+                'title' => $bt->title,
+                'start_datetime' => $bt->start_datetime->format('Y-m-d H:i:s'),
+                'end_datetime' => $bt->end_datetime->format('Y-m-d H:i:s'),
+                'duration_minutes' => $bt->duration_minutes,
+                'notes' => $bt->notes,
+            ])
             ->values()
             ->toArray();
+    }
 
-        // Get services for the form
-        $services = Service::active()->orderBy('service_name')->get();
-
-        return view("patient.calendar", compact('appointments', 'upcomingAppointments', 'pendingRequests', 'appointmentHistory', 'services', 'allAppointments', 'blockedTimes'));
+    private function getServices()
+    {
+        return Service::active()
+            ->orderBy('id', 'desc')
+            ->get()
+            ->unique('service_name')
+            ->values()
+            ->sortBy('service_name')
+            ->values();
     }
 
     /**
@@ -247,24 +253,24 @@ class CalendarController extends Controller
 
     private function validateRequestDateTime(Carbon $requestedDateTime)
     {
-        $serverNow = Carbon::now('Asia/Manila');
-        if ($requestedDateTime->lt($serverNow)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Cannot request appointments in the past. Please select a future date and time.',
-                'errors' => ['time' => ['Cannot request appointments in the past']]
-            ], 422);
+            $serverNow = Carbon::now('Asia/Manila');
+            if ($requestedDateTime->lt($serverNow)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot request appointments in the past. Please select a future date and time.',
+                    'errors' => ['time' => ['Cannot request appointments in the past']]
+                ], 422);
         }
         return null;
-    }
+            }
 
     private function determineServiceAndDuration(Request $request): array
     {
-        $serviceId = $request->service_id;
-        $otherConcern = $request->other_concern;
+            $serviceId = $request->service_id;
+            $otherConcern = $request->other_concern;
         $durationMinutes = null;
 
-        if ($request->type === 'reschedule' && $request->existing_appointment_id) {
+            if ($request->type === 'reschedule' && $request->existing_appointment_id) {
             [$serviceId, $otherConcern, $durationMinutes] = $this->getRescheduleDetails($request->existing_appointment_id);
         } else {
             [$serviceId, $otherConcern, $durationMinutes] = $this->getEmergencyDetails($serviceId, $otherConcern);
@@ -282,20 +288,20 @@ class CalendarController extends Controller
             return [null, null, null];
         }
 
-            if ($existingAppointment->status === 'Missed') {
+                    if ($existingAppointment->status === 'Missed') {
                 throw new \Exception('Cannot reschedule missed appointments. Please book a new appointment instead.');
             }
             if ($existingAppointment->status === 'Cancelled') {
                 throw new \Exception('Cannot reschedule cancelled appointments. Please book a new appointment instead.');
             }
 
-        $serviceId = $existingAppointment->service_id;
+                    $serviceId = $existingAppointment->service_id;
         $otherConcern = $serviceId ? null : $existingAppointment->reason_for_visit;
 
-        if ($serviceId && $existingAppointment->service) {
-            $durationMinutes = $existingAppointment->service->default_duration_minutes;
-        } else {
-            $durationMinutes = $existingAppointment->duration_minutes;
+                    if ($serviceId && $existingAppointment->service) {
+                        $durationMinutes = $existingAppointment->service->default_duration_minutes;
+                    } else {
+                        $durationMinutes = $existingAppointment->duration_minutes;
         }
 
         return [$serviceId, $otherConcern, $durationMinutes];
@@ -305,129 +311,129 @@ class CalendarController extends Controller
     {
         $durationMinutes = null;
 
-        if ($serviceId) {
-            $service = Service::find($serviceId);
+                if ($serviceId) {
+                    $service = Service::find($serviceId);
             $durationMinutes = $service ? $service->default_duration_minutes : 30;
-        } elseif ($otherConcern) {
-            $serviceId = null;
-            $durationMinutes = 30;
-        }
+                } elseif ($otherConcern) {
+                    $serviceId = null;
+                    $durationMinutes = 30;
+            }
 
         return [$serviceId, $otherConcern, $durationMinutes];
-    }
+            }
 
     private function checkTimeConflicts(Carbon $requestedDateTime, int $durationMinutes)
     {
-        $requestedEndDateTime = $requestedDateTime->copy()->addMinutes($durationMinutes);
+            $requestedEndDateTime = $requestedDateTime->copy()->addMinutes($durationMinutes);
 
         // Check blocked times
-        $blockedTime = \App\Models\BlockedTime::where(function($query) use ($requestedDateTime, $requestedEndDateTime) {
-            $query->where('start_datetime', '<', $requestedEndDateTime)
-                  ->where('end_datetime', '>', $requestedDateTime);
-        })->first();
+            $blockedTime = \App\Models\BlockedTime::where(function($query) use ($requestedDateTime, $requestedEndDateTime) {
+                $query->where('start_datetime', '<', $requestedEndDateTime)
+                      ->where('end_datetime', '>', $requestedDateTime);
+            })->first();
 
-        if ($blockedTime) {
-            $isFullDayClosure = $blockedTime->start_datetime->format('H:i') === '00:00' &&
-                                $blockedTime->end_datetime->format('H:i') === '23:59';
+            if ($blockedTime) {
+                $isFullDayClosure = $blockedTime->start_datetime->format('H:i') === '00:00' &&
+                                    $blockedTime->end_datetime->format('H:i') === '23:59';
 
-            $message = $isFullDayClosure
-                ? 'The clinic is closed on this date. Please select a different date for your appointment request.'
-                : 'This time slot is blocked. Please select a different time slot for your appointment request.';
+                $message = $isFullDayClosure
+                    ? 'The clinic is closed on this date. Please select a different date for your appointment request.'
+                    : 'This time slot is blocked. Please select a different time slot for your appointment request.';
 
-            return response()->json([
-                'success' => false,
-                'message' => $message,
-                'errors' => ['time' => [$message]]
-            ], 422);
-        }
+                return response()->json([
+                    'success' => false,
+                    'message' => $message,
+                    'errors' => ['time' => [$message]]
+                ], 422);
+            }
 
         // Check existing appointments
-        $conflictingAppointment = Appointment::where(function($query) use ($requestedDateTime, $requestedEndDateTime) {
-            $query->where('start_datetime', '<', $requestedEndDateTime)
-                  ->where('end_datetime', '>', $requestedDateTime)
-                  ->where('status', '!=', 'Cancelled');
-        })->first();
+            $conflictingAppointment = Appointment::where(function($query) use ($requestedDateTime, $requestedEndDateTime) {
+                $query->where('start_datetime', '<', $requestedEndDateTime)
+                      ->where('end_datetime', '>', $requestedDateTime)
+                      ->where('status', '!=', 'Cancelled');
+            })->first();
 
-        if ($conflictingAppointment) {
-            return response()->json([
-                'success' => false,
-                'message' => 'This time slot is already booked. Please select a different time slot.',
-                'errors' => ['time' => ['This time slot is already booked. Please select a different time slot.']]
-            ], 422);
-        }
+            if ($conflictingAppointment) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This time slot is already booked. Please select a different time slot.',
+                    'errors' => ['time' => ['This time slot is already booked. Please select a different time slot.']]
+                ], 422);
+            }
 
         return null;
     }
 
     private function createAppointmentRequest(Request $request, $serviceId, $otherConcern, $durationMinutes, Carbon $requestedDateTime, Carbon $requestedEndDateTime)
     {
-        \Log::info('Creating AppointmentRequest with:', [
-            'patient_id' => auth()->id(),
-            'service_id' => $serviceId,
-            'other_concern' => $otherConcern,
-            'existing_appointment_id' => $request->existing_appointment_id,
-            'request_type' => $request->type === 'emergency' ? 'walk-in' : 'reschedule',
-            'duration_minutes' => $durationMinutes,
-            'reason' => $request->reason
-        ]);
+            \Log::info('Creating AppointmentRequest with:', [
+                'patient_id' => auth()->id(),
+                'service_id' => $serviceId,
+                'other_concern' => $otherConcern,
+                'existing_appointment_id' => $request->existing_appointment_id,
+                'request_type' => $request->type === 'emergency' ? 'walk-in' : 'reschedule',
+                'duration_minutes' => $durationMinutes,
+                'reason' => $request->reason
+            ]);
 
-        $appointmentRequest = AppointmentRequest::create([
-            'patient_id' => auth()->id(),
-            'service_id' => $serviceId,
-            'other_concern' => $otherConcern,
-            'existing_appointment_id' => $request->existing_appointment_id,
-            'request_type' => $request->type === 'emergency' ? 'walk-in' : 'reschedule',
-            'requested_datetime' => $requestedDateTime,
-            'requested_end_datetime' => $requestedEndDateTime,
-            'duration_minutes' => $durationMinutes,
-            'reason' => $request->reason,
-            'status' => 'Pending'
-        ]);
+            $appointmentRequest = AppointmentRequest::create([
+                'patient_id' => auth()->id(),
+                'service_id' => $serviceId,
+                'other_concern' => $otherConcern,
+                'existing_appointment_id' => $request->existing_appointment_id,
+                'request_type' => $request->type === 'emergency' ? 'walk-in' : 'reschedule',
+                'requested_datetime' => $requestedDateTime,
+                'requested_end_datetime' => $requestedEndDateTime,
+                'duration_minutes' => $durationMinutes,
+                'reason' => $request->reason,
+                'status' => 'Pending'
+            ]);
 
-        \Log::info('AppointmentRequest created:', [
-            'id' => $appointmentRequest->id,
-            'service_id' => $appointmentRequest->service_id,
-            'duration_minutes' => $appointmentRequest->duration_minutes,
-            'request_type' => $appointmentRequest->request_type
-        ]);
+            \Log::info('AppointmentRequest created:', [
+                'id' => $appointmentRequest->id,
+                'service_id' => $appointmentRequest->service_id,
+                'duration_minutes' => $appointmentRequest->duration_minutes,
+                'request_type' => $appointmentRequest->request_type
+            ]);
 
         return $appointmentRequest;
     }
 
     private function sendNotificationToStaff($appointmentRequest, Request $request, Carbon $requestedDateTime)
     {
-        $patient = User::with('info')->find(auth()->id());
-        $patientName = $patient->info ? trim($patient->info->first_name . ' ' . $patient->info->last_name) : $patient->name;
+            $patient = User::with('info')->find(auth()->id());
+            $patientName = $patient->info ? trim($patient->info->first_name . ' ' . $patient->info->last_name) : $patient->name;
 
-        $formattedDate = $requestedDateTime->format('F j, Y');
-        $formattedTime = $requestedDateTime->format('g:i A');
+            $formattedDate = $requestedDateTime->format('F j, Y');
+            $formattedTime = $requestedDateTime->format('g:i A');
 
         $serviceName = $this->getServiceName($appointmentRequest->service_id, $appointmentRequest->other_concern);
 
-        $adminStaff = User::whereHas('info', function($query) {
+            $adminStaff = User::whereHas('info', function($query) {
             $query->whereIn('role_id', [1, 2]);
-        })->get();
+            })->get();
 
-        foreach ($adminStaff as $staff) {
-            Notification::create([
-                'user_id' => $staff->id,
-                'type' => 'appointment_request',
-                'title' => $request->type === 'emergency' ? 'New Walk-in Request' : 'New Reschedule Request',
-                'message' => "{$patientName} has requested a " .
-                            ($request->type === 'emergency' ? 'walk-in appointment' : 'reschedule') .
-                            " for {$serviceName} on {$formattedDate} at {$formattedTime}.",
-                'icon' => 'bi-calendar-plus',
-                'data' => json_encode([
-                    'request_id' => $appointmentRequest->id,
-                    'patient_id' => auth()->id(),
-                    'patient_name' => $patientName,
-                    'service_name' => $serviceName,
-                    'request_type' => $request->type,
-                    'requested_date' => $formattedDate,
-                    'requested_time' => $formattedTime,
-                    'reason' => $request->reason
-                ])
-            ]);
+            foreach ($adminStaff as $staff) {
+                Notification::create([
+                    'user_id' => $staff->id,
+                    'type' => 'appointment_request',
+                    'title' => $request->type === 'emergency' ? 'New Walk-in Request' : 'New Reschedule Request',
+                    'message' => "{$patientName} has requested a " .
+                                ($request->type === 'emergency' ? 'walk-in appointment' : 'reschedule') .
+                                " for {$serviceName} on {$formattedDate} at {$formattedTime}.",
+                    'icon' => 'bi-calendar-plus',
+                    'data' => json_encode([
+                        'request_id' => $appointmentRequest->id,
+                        'patient_id' => auth()->id(),
+                        'patient_name' => $patientName,
+                        'service_name' => $serviceName,
+                        'request_type' => $request->type,
+                        'requested_date' => $formattedDate,
+                        'requested_time' => $formattedTime,
+                        'reason' => $request->reason
+                    ])
+                ]);
         }
     }
 

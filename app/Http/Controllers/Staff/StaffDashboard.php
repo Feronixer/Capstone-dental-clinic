@@ -119,36 +119,39 @@ class StaffDashboard extends Controller
             $query->where('role_id', 3)->where('gender', 'Female');
         })->count();
 
-        // User Demographics - Age distribution
-        $pediatricCount = User::whereHas('info', function($query) {
-            $query->where('role_id', 3)
-                  ->where('age', '<', 18)
-                  ->whereNotNull('age');
-        })->count();
+        // User Demographics - Age distribution (calculated from birthday)
+        // Get all patients with birthday and calculate age dynamically
+        $patients = User::whereHas('info', function($query) {
+            $query->where('role_id', 3)->whereNotNull('birthday');
+        })->with('info')->get();
 
-        $adultCount = User::whereHas('info', function($query) {
-            $query->where('role_id', 3)
-                  ->where('age', '>=', 18)
-                  ->whereNotNull('age');
-        })->count();
+        $pediatricCount = 0;
+        $adultCount = 0;
 
-        // Service Feedback - Get appointment counts by rating (1-5 stars)
-        $feedbackData = [];
-        try {
-            for ($i = 5; $i >= 1; $i--) {
-                $feedbackData[$i] = Appointment::where('rating', $i)
-                    ->where('status', 'Completed')
-                    ->count();
-            }
-        } catch (\Exception $e) {
-            // Rating column doesn't exist yet, provide zero data
-            for ($i = 5; $i >= 1; $i--) {
-                $feedbackData[$i] = 0;
+        foreach ($patients as $patient) {
+            if ($patient->info && $patient->info->birthday) {
+                $age = Carbon::parse($patient->info->birthday)->age;
+                if ($age < 18) {
+                    $pediatricCount++;
+                } else {
+                    $adultCount++;
+                }
             }
         }
 
+        // Service Feedback - Get appointment counts by rating (1-5 stars)
+        // Only count completed appointments with actual ratings (not null)
+        $feedbackData = [];
+        for ($i = 5; $i >= 1; $i--) {
+            $feedbackData[$i] = Appointment::where('status', 'Completed')
+                ->where('rating', $i)
+                ->whereNotNull('rating')
+                ->count();
+        }
+
         // Most Performed Services - Get all services by appointment count
-        $topServices = Appointment::where('status', '!=', 'blocked')
+        // Exclude blocked and cancelled appointments, only count active appointments
+        $topServices = Appointment::whereNotIn('status', ['blocked', 'Cancelled'])
             ->whereNotNull('service_id')
             ->select('service_id', \DB::raw('count(*) as total'))
             ->groupBy('service_id')
@@ -158,12 +161,15 @@ class StaffDashboard extends Controller
             ->map(function($item) {
                 return [
                     'name' => $item->service ? $item->service->service_name : 'Unknown Service',
-                    'count' => $item->total
+                    'count' => (int)$item->total
                 ];
+            })
+            ->filter(function($item) {
+                return $item['name'] !== 'Unknown Service'; // Filter out invalid services
             });
 
         // Count appointments with "Other" service (where service_id is null but has reason_for_visit)
-        $otherServiceCount = Appointment::where('status', '!=', 'blocked')
+        $otherServiceCount = Appointment::whereNotIn('status', ['blocked', 'Cancelled'])
             ->whereNull('service_id')
             ->whereNotNull('reason_for_visit')
             ->count();
@@ -172,12 +178,18 @@ class StaffDashboard extends Controller
         if ($otherServiceCount > 0) {
             $topServices->push([
                 'name' => 'Other',
-                'count' => $otherServiceCount
+                'count' => (int)$otherServiceCount
             ]);
         }
 
-        // Sort by count descending and take top 5
-        $topServices = $topServices->sortByDesc('count')->take(5)->values();
+        // Sort by count descending and take top 5, ensure count is integer
+        $topServices = $topServices->sortByDesc('count')
+            ->map(function($item) {
+                $item['count'] = (int)$item['count'];
+                return $item;
+            })
+            ->take(5)
+            ->values();
 
         // Get total appointments count (all time)
         $totalAppointments = Appointment::where('status', '!=', 'blocked')->count();

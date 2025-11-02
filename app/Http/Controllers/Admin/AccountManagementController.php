@@ -18,7 +18,12 @@ class AccountManagementController extends Controller
     public function index(Request $request)
     {
         $users = $this->getFilteredUsers($request);
-        $roles = Role::all();
+        // Get only the 3 valid roles: Admin, Staff, Patient
+        $roles = Role::whereIn('role', ['Admin', 'Staff', 'Patient'])
+            ->orderBy('id', 'asc')
+            ->get()
+            ->unique('role')
+            ->values();
 
         if ($request->ajax()) {
             return response()->json([
@@ -52,6 +57,9 @@ class AccountManagementController extends Controller
             'last_name' => 'required|max:255',
             'email' => 'required|email|unique:users,email|max:255',
             'phone' => ['required','regex:/^(09)\d{9}$/'],
+            'gender' => 'required|in:Male,Female',
+            'birthday' => 'required|date',
+            'address' => 'nullable|string|max:255',
             'password' => 'required|string|min:8',
             'confirm_password' => 'required|string|same:password',
         ], [
@@ -62,28 +70,46 @@ class AccountManagementController extends Controller
 
         $roleId = (int) $request->role_id;
 
-        User::create([
+        // Calculate age from birthday
+        $birthday = Carbon::parse($request->birthday);
+        $age = $birthday->age;
+
+        $user = User::create([
             'role_id' => $roleId,
             'username' => $request->username,
             'name' => trim($request->first_name . ' ' . $request->middle_name . ' ' . $request->last_name),
             'email' => $request->email,
-            'phone' => $request->phone,
             'password' => bcrypt($request->password),
             'created_at'=> Carbon::now(),
             'updated_at'=> Carbon::now(),
         ]);
 
-        UserInfo::create([
-            'user_id' => User::latest()->first()->id,
+        $userInfoData = [
+            'user_id' => $user->id,
             'first_name' => $request->first_name,
             'middle_name' => $request->middle_name,
             'last_name' => $request->last_name,
-            'email' => $request->email,
             'phone' => $request->phone,
             'gender' => $request->gender,
-            'created_at'=> Carbon::now(),
-            'updated_at'=> Carbon::now(),
-        ]);
+            'birthday' => $request->birthday,
+            'age' => $age,
+            'created_at' => Carbon::now(),
+            'updated_at' => Carbon::now(),
+        ];
+
+        if ($request->filled('address')) {
+            $userInfoData['address'] = $request->address;
+        }
+
+        UserInfo::create($userInfoData);
+
+        if ($request->ajax()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'User added successfully.'
+            ]);
+        }
+
         return redirect()->route('admin-account-management')->with('success', 'User added successfully.');
     }
 
@@ -118,10 +144,17 @@ class AccountManagementController extends Controller
             'last_name' => 'required|max:255',
             'email' => 'required|email|max:255|unique:users,email,' . $user->id,
             'phone' => ['required','regex:/^(09)\d{9}$/'],
+            'gender' => 'required|in:Male,Female',
+            'birthday' => 'required|date',
+            'address' => 'nullable|string|max:255',
         ], [
             'phone.regex' => 'The phone number must start with 09 and should be 11 digits long.',
             'username.regex' => 'The username may only contain letters, numbers, underscores (_), and hyphens (-), and no spaces.',
         ]);
+
+        // Calculate age from birthday
+        $birthday = Carbon::parse($request->birthday);
+        $age = $birthday->age;
 
         $user->update([
             'role_id' => $request->role_id,
@@ -138,29 +171,26 @@ class AccountManagementController extends Controller
             ]);
         }
 
-        if ($user->info) {
-            $user->info->update([
-                'first_name' => $request->first_name,
-                'middle_name' => $request->middle_name,
-                'last_name' => $request->last_name,
-                'email' => $request->email,
-                'phone' => $request->phone,
-                'gender' => $request->gender,
-                'updated_at' => now(),
-            ]);
-        } else {
-            UserInfo::create([
-                'user_id' => $user->id,
-                'first_name' => $request->first_name,
-                'middle_name' => $request->middle_name,
-                'last_name' => $request->last_name,
-                'email' => $request->email,
-                'phone' => $request->phone,
-                'gender' => $request->gender,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+        $userInfoData = [
+            'first_name' => $request->first_name,
+            'middle_name' => $request->middle_name,
+            'last_name' => $request->last_name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'gender' => $request->gender,
+            'birthday' => $request->birthday,
+            'age' => $age,
+        ];
+
+        // Add address if provided
+        if ($request->filled('address')) {
+            $userInfoData['address'] = $request->address;
         }
+
+        UserInfo::updateOrCreate(
+            ['user_id' => $user->id],
+            $userInfoData
+        );
         return response()->json([
             'success' => true,
             'message' => 'User updated successfully.',

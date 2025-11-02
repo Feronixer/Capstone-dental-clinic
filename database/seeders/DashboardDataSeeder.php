@@ -39,6 +39,10 @@ class DashboardDataSeeder extends Seeder
                 continue;
             }
 
+            // Calculate birthday from age
+            $birthday = Carbon::now()->subYears($patient['age'])->subDays(rand(0, 365))->format('Y-m-d');
+            $calculatedAge = Carbon::parse($birthday)->age;
+
             // Create user account (role_id = 3 for patients)
             $user = User::create([
                 'username' => $username,
@@ -54,7 +58,8 @@ class DashboardDataSeeder extends Seeder
                 'first_name' => $patient['first_name'],
                 'last_name' => $patient['last_name'],
                 'gender' => $patient['gender'],
-                'age' => $patient['age'],
+                'birthday' => $birthday,
+                'age' => $calculatedAge,
                 'phone' => $patient['phone'],
             ]);
         }

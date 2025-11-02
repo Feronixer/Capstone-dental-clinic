@@ -52,6 +52,9 @@ class NotificationController extends Controller
             // Start a database transaction to ensure data consistency
             \DB::beginTransaction();
 
+            // Store old appointment reference for reschedule requests (needed for both cancellation and tracking)
+            $oldAppointment = null;
+
             try {
                 // If this is a reschedule request, cancel the old appointment
                 if ($appointmentRequest->request_type === 'reschedule' && $appointmentRequest->existing_appointment_id) {
@@ -120,16 +123,25 @@ class NotificationController extends Controller
                 }
 
                 // Create the new appointment
-                $appointment = Appointment::create([
+                $appointmentData = [
                     'patient_id' => $appointmentRequest->patient_id,
                     'service_id' => $serviceId,
                     'start_datetime' => $appointmentRequest->requested_datetime,
                     'end_datetime' => $endDateTime,
                     'duration_minutes' => $durationMinutes,
-                    'status' => 'Confirmed',
+                    'status' => 'Confirmed', // Rescheduled appointments are confirmed, NOT cancelled
                     'notes' => $notes,
                     'reason_for_visit' => $reasonForVisit
-                ]);
+                ];
+
+                // If this is a reschedule request, track the rescheduling information
+                // Use the already-loaded $oldAppointment variable to avoid duplicate query
+                if ($oldAppointment && $oldAppointment->exists) {
+                    $appointmentData['original_datetime'] = $oldAppointment->start_datetime;
+                    $appointmentData['rescheduled_at'] = now();
+                }
+
+                $appointment = Appointment::create($appointmentData);
 
                 // Load the service relationship to ensure it's available
                 $appointment->load(['service', 'patient.info']);

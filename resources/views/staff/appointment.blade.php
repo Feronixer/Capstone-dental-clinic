@@ -1589,21 +1589,79 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Patient search functionality
-    document.getElementById('patient_search').addEventListener('input', function() {
+    let selectedPatientIndex = -1;
+    const patientSearch = document.getElementById('patient_search');
+
+    patientSearch.addEventListener('input', function() {
         const query = this.value;
+        selectedPatientIndex = -1; // Reset selection
         if (query.length >= 0) {
             searchPatients(query);
         }
     });
 
+    // Keyboard navigation for patient search dropdown
+    patientSearch.addEventListener('keydown', function(e) {
+        const resultsContainer = document.getElementById('patient-results');
+        const resultItems = resultsContainer?.querySelectorAll('.patient-result-item');
+
+        if (!resultItems || resultItems.length === 0) {
+            // If no results, allow Enter to submit form
+            if (e.key === 'Enter' || e.keyCode === 13) {
+                const form = document.getElementById('appointmentForm');
+                if (form) {
+                    e.preventDefault();
+                    form.dispatchEvent(new Event('submit'));
+                }
+            }
+            return;
+        }
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            selectedPatientIndex = Math.min(selectedPatientIndex + 1, resultItems.length - 1);
+            updatePatientSearchSelection(resultItems, selectedPatientIndex);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            selectedPatientIndex = Math.max(selectedPatientIndex - 1, -1);
+            updatePatientSearchSelection(resultItems, selectedPatientIndex);
+        } else if (e.key === 'Enter' && selectedPatientIndex >= 0) {
+            e.preventDefault();
+            resultItems[selectedPatientIndex].click();
+        } else if (e.key === 'Enter' && this.value.trim().length >= 2) {
+            // If Enter pressed with search term but no selection, trigger search
+            e.preventDefault();
+            const query = this.value.trim();
+            searchPatients(query);
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            resultsContainer.style.display = 'none';
+            selectedPatientIndex = -1;
+        }
+    });
+
+    // Helper function to update patient search selection highlighting
+    function updatePatientSearchSelection(items, index) {
+        items.forEach((item, i) => {
+            if (i === index) {
+                item.style.backgroundColor = '#e7f1ff';
+                item.style.cursor = 'pointer';
+                item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            } else {
+                item.style.backgroundColor = '';
+                item.style.cursor = 'default';
+            }
+        });
+    }
+
     // Show all patients when input is focused or clicked
-    document.getElementById('patient_search').addEventListener('focus', function() {
+    patientSearch.addEventListener('focus', function() {
         if (this.value.length === 0) {
             searchPatients('');
         }
     });
 
-    document.getElementById('patient_search').addEventListener('click', function() {
+    patientSearch.addEventListener('click', function() {
         if (this.value.length === 0) {
             searchPatients('');
         }
@@ -1616,6 +1674,66 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!patientSearch.contains(e.target) && !patientResults.contains(e.target)) {
             patientResults.style.display = 'none';
+            selectedPatientIndex = -1;
+        }
+    });
+
+    // Handle Enter key in appointment form inputs
+    $(document).on('keydown', '#appointmentForm input, #appointmentForm select, #appointmentForm textarea', function(e) {
+        // Ctrl+Enter or Cmd+Enter in textarea submits form
+        if (e.target.tagName === 'TEXTAREA' && (e.ctrlKey || e.metaKey) && (e.key === 'Enter' || e.keyCode === 13)) {
+            e.preventDefault();
+            const form = document.getElementById('appointmentForm');
+            if (form) {
+                form.dispatchEvent(new Event('submit'));
+            }
+            return;
+        }
+
+        // Allow normal Enter in textareas (adds new line)
+        if (e.target.tagName === 'TEXTAREA') {
+            return;
+        }
+
+        // If Enter is pressed in patient search with results, let that handler take precedence
+        if (e.target.id === 'patient_search') {
+            const resultsContainer = document.getElementById('patient-results');
+            const resultItems = resultsContainer?.querySelectorAll('.patient-result-item');
+            if (resultItems && resultItems.length > 0) {
+                return; // Let patient search keyboard navigation handle it
+            }
+        }
+
+        // For service dropdown - allow Enter to submit if value is selected
+        if (e.target.id === 'service_name' && (e.key === 'Enter' || e.keyCode === 13)) {
+            const serviceSelect = e.target;
+            if (serviceSelect.value) {
+                e.preventDefault();
+                const form = document.getElementById('appointmentForm');
+                if (form) {
+                    form.dispatchEvent(new Event('submit'));
+                }
+                return;
+            }
+        }
+
+        // For custom time input - allow Enter to submit
+        if (e.target.id === 'custom_start_time' && (e.key === 'Enter' || e.keyCode === 13)) {
+            e.preventDefault();
+            const form = document.getElementById('appointmentForm');
+            if (form) {
+                form.dispatchEvent(new Event('submit'));
+            }
+            return;
+        }
+
+        // For other inputs and selects, submit form on Enter
+        if (e.key === 'Enter' || e.keyCode === 13) {
+            e.preventDefault();
+            const form = document.getElementById('appointmentForm');
+            if (form) {
+                form.dispatchEvent(new Event('submit'));
+            }
         }
     });
 

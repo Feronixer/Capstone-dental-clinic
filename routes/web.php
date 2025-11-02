@@ -94,6 +94,7 @@ Route::middleware(['auth:admin'])->group(function(): void{
     Route::post('/admin/appointment/{id}/delete', [AppointmentController::class,'destroy'])->name('admin-appointment.destroy');
     Route::post('/admin/appointment/{id}/status', [AppointmentController::class,'updateStatus'])->name('admin-appointment.status');
     Route::get('/admin/appointment/search/patients', [AppointmentController::class,'searchPatients'])->name('admin-appointment.search-patients');
+    Route::get('/admin/appointment/export/excel', [AppointmentController::class,'exportExcel'])->name('admin-appointment.export-excel');
 
     // Blocked Time Routes
     Route::post('/admin/blocked-time', [App\Http\Controllers\Admin\BlockedTimeController::class, 'store'])->name('admin-blocked-time.store');
@@ -257,6 +258,7 @@ Route::middleware(['auth:staff'])->group(function(): void{
     Route::put('/staff/appointment/{id}', [App\Http\Controllers\Staff\AppointmentController::class,'update'])->name('staff-appointment.update');
     Route::post('/staff/appointment/{id}/status', [App\Http\Controllers\Staff\AppointmentController::class,'updateStatus'])->name('staff-appointment.status');
     Route::get('/staff/appointment/search/patients', [App\Http\Controllers\Staff\AppointmentController::class,'searchPatients'])->name('staff-appointment.search-patients');
+    Route::get('/staff/appointment/export/excel', [App\Http\Controllers\Staff\AppointmentController::class,'exportExcel'])->name('staff-appointment.export-excel');
 
     // Staff Blocked Time Routes
     Route::post('/staff/blocked-time', [App\Http\Controllers\Staff\BlockedTimeController::class, 'store'])->name('staff-blocked-time.store');

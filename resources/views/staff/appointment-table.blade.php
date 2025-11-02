@@ -13,9 +13,14 @@
                         {{ $appointments->count() }} appointment(s) found
                     </p>
                 </div>
-                <a href="{{ route('staff-appointment') }}" class="btn btn-outline-secondary">
-                    <i class="bi bi-calendar3 me-1"></i>Calendar View
-                </a>
+                <div class="d-flex gap-2">
+                    <a href="{{ route('staff-appointment') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-calendar3 me-1"></i>Calendar View
+                    </a>
+                    <a href="{{ route('staff-appointment.export-excel', request()->all()) }}" class="btn btn-success">
+                        <i class="bi bi-file-earmark-excel me-1"></i>Export to Excel
+                    </a>
+                </div>
             </div>
         </div>
     </div>

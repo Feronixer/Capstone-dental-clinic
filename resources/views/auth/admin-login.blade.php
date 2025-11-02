@@ -56,7 +56,7 @@
                             <i class="bi bi-lock-fill"></i>
                         </span>
                         <input type="password" class="form-control @error('password') is-invalid @enderror"
-                               name="password" id="password" placeholder="Enter your password" required>
+                               name="password" id="password" placeholder="Enter your password" autocomplete="current-password" required>
                         <button class="btn btn-outline-secondary" type="button" id="togglePassword">
                             <i class="bi bi-eye" id="toggleIcon"></i>
                         </button>

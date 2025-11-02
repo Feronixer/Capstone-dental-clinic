@@ -23,7 +23,7 @@
                     <label for="password" class="form-label">New Password</label>
                     <div class="input-group">
                         <input type="password" class="form-control @error('password') is-invalid @enderror"
-                               name="password" id="password" placeholder="Enter new password" required>
+                               name="password" id="password" placeholder="Enter new password" autocomplete="new-password" required>
                         <button class="btn btn-outline-secondary" type="button" id="togglePassword">
                             <i class="bi bi-eye" id="toggleIcon"></i>
                         </button>
@@ -41,7 +41,7 @@
                     <label for="password_confirmation" class="form-label">Confirm New Password</label>
                     <div class="input-group">
                         <input type="password" class="form-control @error('password_confirmation') is-invalid @enderror"
-                               name="password_confirmation" id="password_confirmation" placeholder="Confirm new password" required>
+                               name="password_confirmation" id="password_confirmation" placeholder="Confirm new password" autocomplete="new-password" required>
                         <button class="btn btn-outline-secondary" type="button" id="togglePasswordConfirmation">
                             <i class="bi bi-eye" id="toggleIconConfirmation"></i>
                         </button>

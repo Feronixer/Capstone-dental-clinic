@@ -31,6 +31,10 @@ class NotificationTestSeeder extends Seeder
                 'role_id' => 3, // Patient role
             ]);
 
+            // Calculate birthday from age (25 years ago)
+            $birthday = Carbon::now()->subYears(25)->subDays(rand(0, 365))->format('Y-m-d');
+            $age = Carbon::parse($birthday)->age;
+
             $patient->info()->create([
                 'first_name' => 'Test',
                 'last_name' => 'Patient',
@@ -38,6 +42,8 @@ class NotificationTestSeeder extends Seeder
                 'phone' => '09123456789',
                 'address' => '123 Test Street, Test City',
                 'gender' => 'Male',
+                'birthday' => $birthday,
+                'age' => $age,
             ]);
         }
 

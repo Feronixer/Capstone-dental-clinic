@@ -497,7 +497,7 @@
         gap: 1rem;
         padding: 1rem;
     }
-    
+
     .sort-control-wrapper {
         width: 100%;
         gap: 0.75rem;
@@ -1253,13 +1253,13 @@ function renderPatientHistory(history) {
             <div class="form-grid mb-3">
                 ${history.good_health ? `<div class="form-field"><span class="field-label">Good Health:</span><span class="field-value">${history.good_health}</span></div>` : ''}
                 ${history.under_treatment ? `<div class="form-field"><span class="field-label">Under Treatment:</span><span class="field-value">${history.under_treatment}</span></div>` : ''}
-                ${history.treatment_condition ? `<div class="form-field field-full-width"><span class="field-label">Condition:</span><span class="field-value">${history.treatment_condition}</span></div>` : ''}
+                ${history.treatment_condition && history.under_treatment?.toLowerCase() === 'yes' ? `<div class="form-field field-full-width" style="padding-left: 1.5rem; border-left: 3px solid #0d6efd; margin-top: 0.5rem; margin-bottom: 0.5rem;"><span class="field-label" style="font-style: italic; color: #6c757d;">If Under Treatment (Yes), Condition:</span><span class="field-value">${history.treatment_condition}</span></div>` : ''}
                 ${history.serious_illness ? `<div class="form-field"><span class="field-label">Serious Illness:</span><span class="field-value">${history.serious_illness}</span></div>` : ''}
-                ${history.illness_details ? `<div class="form-field field-full-width"><span class="field-label">Illness Details:</span><span class="field-value">${history.illness_details}</span></div>` : ''}
+                ${history.illness_details && history.serious_illness?.toLowerCase() === 'yes' ? `<div class="form-field field-full-width" style="padding-left: 1.5rem; border-left: 3px solid #0d6efd; margin-top: 0.5rem; margin-bottom: 0.5rem;"><span class="field-label" style="font-style: italic; color: #6c757d;">If Serious Illness (Yes), Illness Details:</span><span class="field-value">${history.illness_details}</span></div>` : ''}
                 ${history.been_hospitalized ? `<div class="form-field"><span class="field-label">Been Hospitalized:</span><span class="field-value">${history.been_hospitalized}</span></div>` : ''}
-                ${history.hospitalization_reason ? `<div class="form-field field-full-width"><span class="field-label">Reason:</span><span class="field-value">${history.hospitalization_reason}</span></div>` : ''}
+                ${history.hospitalization_reason && history.been_hospitalized?.toLowerCase() === 'yes' ? `<div class="form-field field-full-width" style="padding-left: 1.5rem; border-left: 3px solid #0d6efd; margin-top: 0.5rem; margin-bottom: 0.5rem;"><span class="field-label" style="font-style: italic; color: #6c757d;">If Been Hospitalized (Yes), Reason:</span><span class="field-value">${history.hospitalization_reason}</span></div>` : ''}
                 ${history.taking_drugs ? `<div class="form-field"><span class="field-label">Taking Medications:</span><span class="field-value">${history.taking_drugs}</span></div>` : ''}
-                ${history.medications ? `<div class="form-field field-full-width"><span class="field-label">Medications:</span><span class="field-value">${history.medications}</span></div>` : ''}
+                ${history.medications && history.taking_drugs?.toLowerCase() === 'yes' ? `<div class="form-field field-full-width" style="padding-left: 1.5rem; border-left: 3px solid #0d6efd; margin-top: 0.5rem; margin-bottom: 0.5rem;"><span class="field-label" style="font-style: italic; color: #6c757d;">If Taking Medications (Yes), Medications:</span><span class="field-value">${history.medications}</span></div>` : ''}
                 ${history.tobacco_use ? `<div class="form-field"><span class="field-label">Tobacco Use:</span><span class="field-value">${history.tobacco_use}</span></div>` : ''}
                 ${history.alcohol_use ? `<div class="form-field"><span class="field-label">Alcohol Use:</span><span class="field-value">${history.alcohol_use}</span></div>` : ''}
                 ${history.recreational_drugs ? `<div class="form-field"><span class="field-label">Recreational Drugs:</span><span class="field-value">${history.recreational_drugs}</span></div>` : ''}
@@ -1423,7 +1423,7 @@ document.getElementById('recordSortBy')?.addEventListener('change', function() {
     const sortBy = this.value;
     const tbody = document.getElementById('recordsTableBody');
     if (!tbody) return;
-    
+
     const rows = Array.from(tbody.querySelectorAll('tr'));
     if (rows.length === 0) return;
 

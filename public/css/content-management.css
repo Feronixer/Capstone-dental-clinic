@@ -562,6 +562,28 @@ h6 {
     transform: translateX(5px);
 }
 
+/* Dark mode for mail tabs nav-link */
+[data-theme="dark"] #mail-tabs .nav-link {
+    background: var(--dm-card-bg, #1e293b) !important;
+    color: var(--dm-text-muted, #94a3b8) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] #mail-tabs .nav-link:hover {
+    background: var(--dm-bg-tertiary, #334155) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+    border-color: var(--primary-blue, #2563eb) !important;
+    transform: translateX(5px);
+}
+
+[data-theme="dark"] #mail-tabs .nav-link.active {
+    background: linear-gradient(135deg, var(--primary-blue, #2563eb) 0%, var(--primary-blue-light, #3b82f6) 100%) !important;
+    color: white !important;
+    border-color: var(--primary-blue, #2563eb) !important;
+    box-shadow: var(--shadow-md);
+    transform: translateX(5px);
+}
+
 .mail-template-editor {
     background: var(--lighter-blue);
     border-radius: 10px;

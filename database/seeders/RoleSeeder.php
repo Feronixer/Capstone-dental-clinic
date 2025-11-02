@@ -14,28 +14,23 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
-        DB::table("roles")->insert([
-            [
-                'role' => 'Admin',
-                'created_by' => null,
-                'updated_by' => null,
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now(),
-            ],
-            [
-                'role' => 'Staff',
-                'created_by' => null,
-                'updated_by' => null,
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now(),
-            ],
-            [
-                'role' => 'Patient',
-                'created_by' => null,
-                'updated_by' => null,
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now(),
-            ],
-        ]);
+        // Use updateOrCreate to prevent duplicates
+        $roles = [
+            ['role' => 'Admin'],
+            ['role' => 'Staff'],
+            ['role' => 'Patient'],
+        ];
+
+        foreach ($roles as $role) {
+            DB::table('roles')->updateOrInsert(
+                ['role' => $role['role']],
+                [
+                    'created_by' => null,
+                    'updated_by' => null,
+                    'created_at' => Carbon::now(),
+                    'updated_at' => Carbon::now(),
+                ]
+            );
+        }
     }
 }

@@ -94,17 +94,22 @@
                     <div id="tab-history" class="tab-content">
                 <div id="appointmentHistory" class="history-list">
                     @forelse($appointmentHistory as $appointment)
-                        <div class="history-item">
+                        <div class="history-item {{ strtolower($appointment->status) === 'cancelled' ? 'cancelled' : '' }}">
                             <div class="history-date">
                                 <span class="history-day">{{ $appointment->start_datetime->format('d') }}</span>
                                 <span class="history-month">{{ $appointment->start_datetime->format('M') }}</span>
                                 <span class="history-year">{{ $appointment->start_datetime->format('Y') }}</span>
                             </div>
                             <div class="history-info">
-                                <div class="history-title">{{ $appointment->service ? $appointment->service->service_name : $appointment->reason_for_visit }}</div>
+                                <div class="history-title {{ strtolower($appointment->status) === 'cancelled' ? 'text-decoration-line-through' : '' }}">{{ $appointment->service ? $appointment->service->service_name : $appointment->reason_for_visit }}</div>
                                 <div class="history-time">
                                     <i class="bi bi-clock me-1"></i>{{ $appointment->start_datetime->format('g:i A') }}
                                 </div>
+                                @if(strtolower($appointment->status) === 'cancelled' && $appointment->notes)
+                                    <div class="history-notes text-muted small mt-1">
+                                        <i class="bi bi-info-circle me-1"></i>{{ $appointment->notes }}
+                                    </div>
+                                @endif
                             </div>
                             <span class="status-badge history {{ strtolower($appointment->status) }}">{{ $appointment->status }}</span>
                         </div>
@@ -670,6 +675,25 @@
 .history-item:hover {
     transform: translateX(3px);
     box-shadow: 0 3px 10px rgba(33, 150, 243, 0.2);
+}
+
+.history-item.cancelled {
+    background: #fff5f5;
+    opacity: 0.8;
+    border-left: 3px solid #ef4444;
+}
+
+.history-item.cancelled:hover {
+    transform: translateX(3px);
+    box-shadow: 0 3px 10px rgba(239, 68, 68, 0.2);
+}
+
+.history-notes {
+    font-size: 0.75rem;
+    color: #6b7280;
+    line-height: 1.4;
+    margin-top: 0.25rem;
+    padding-left: 1.25rem;
 }
 
 .upcoming-date {
@@ -4075,6 +4099,18 @@ document.getElementById('rescheduleForm').addEventListener('submit', function(e)
 </div>
 
 <script>
+// Function to parse datetime string as LOCAL time (must be defined before use)
+function parseLocalDateTime(datetimeStr) {
+    if (!datetimeStr || typeof datetimeStr !== 'string') return null;
+    const parts = datetimeStr.split(' ');
+    if (parts.length !== 2) return null;
+    const [datePart, timePart] = parts;
+    const [year, month, day] = datePart.split('-').map(Number);
+    const [hours, minutes, seconds] = timePart.split(':').map(Number);
+    if (isNaN(year) || isNaN(month) || isNaN(day) || isNaN(hours) || isNaN(minutes)) return null;
+    return new Date(year, month - 1, day, hours, minutes, seconds || 0);
+}
+
 // Pass appointments data to JavaScript
 var appointmentsData = @json($appointments ?? []);
 var allAppointmentsData = @json($allAppointments ?? []);
@@ -4280,19 +4316,8 @@ document.addEventListener('DOMContentLoaded', function() {
         return { dateInput, timeInput };
     }
 
-        // Function to parse datetime string as LOCAL time
-        function parseLocalDateTime(datetimeStr) {
-            if (!datetimeStr || typeof datetimeStr !== 'string') return null;
-            const parts = datetimeStr.split(' ');
-            if (parts.length !== 2) return null;
-            const [datePart, timePart] = parts;
-            const [year, month, day] = datePart.split('-').map(Number);
-            const [hours, minutes, seconds] = timePart.split(':').map(Number);
-            if (isNaN(year) || isNaN(month) || isNaN(day) || isNaN(hours) || isNaN(minutes)) return null;
-            return new Date(year, month - 1, day, hours, minutes, seconds || 0);
-        }
-
         // getRequestDuration is now defined globally above
+        // parseLocalDateTime is now defined globally above
 
         // Function to check if a time conflicts with existing appointments or blocked times
         function isTimeSlotAvailable(selectedDate, selectedTime) {

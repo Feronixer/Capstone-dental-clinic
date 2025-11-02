@@ -32,7 +32,7 @@
                             <i class="bi bi-lock-fill"></i>
                         </span>
                         <input type="password" class="form-control @error('current_password') is-invalid @enderror"
-                               name="current_password" id="current_password" placeholder="Enter current password" required>
+                               name="current_password" id="current_password" placeholder="Enter current password" autocomplete="current-password" required>
                     </div>
                     @error('current_password')
                         <p class="text-danger mt-1">* {{ $message }}</p>
@@ -46,7 +46,7 @@
                             <i class="bi bi-key-fill"></i>
                         </span>
                         <input type="password" class="form-control @error('new_password') is-invalid @enderror"
-                               name="new_password" id="new_password" placeholder="Enter new password (min. 8 characters)" required>
+                               name="new_password" id="new_password" placeholder="Enter new password (min. 8 characters)" autocomplete="new-password" required>
                     </div>
                     @error('new_password')
                         <p class="text-danger mt-1">* {{ $message }}</p>
@@ -61,7 +61,7 @@
                             <i class="bi bi-check2-circle"></i>
                         </span>
                         <input type="password" class="form-control @error('new_password_confirmation') is-invalid @enderror"
-                               name="new_password_confirmation" id="new_password_confirmation" placeholder="Confirm new password" required>
+                               name="new_password_confirmation" id="new_password_confirmation" placeholder="Confirm new password" autocomplete="new-password" required>
                     </div>
                     @error('new_password_confirmation')
                         <p class="text-danger mt-1">* {{ $message }}</p>

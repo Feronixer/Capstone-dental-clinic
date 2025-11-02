@@ -35,33 +35,48 @@ class ProfileController extends Controller
                 'first_name' => 'required|string|max:255',
                 'middle_name' => 'nullable|string|max:255',
                 'last_name' => 'required|string|max:255',
-                'birthday' => 'required|date',
-                'gender' => 'required|in:Male,Female,Other',
                 'phone' => 'required|string|max:20',
                 'email' => 'required|email|max:255|unique:users,email,' . $user->id,
+                // Birthday and gender are read-only and come from user management
             ]);
 
-            // Calculate age from birthday
-            $birthday = Carbon::parse($validated['birthday']);
-            $age = $birthday->age;
+            // Get existing user info to preserve birthday and gender from user management
+            $existingUserInfo = $user->info;
+
+            // Recalculate age from existing birthday if it exists
+            $age = null;
+            if ($existingUserInfo && $existingUserInfo->birthday) {
+                $birthday = Carbon::parse($existingUserInfo->birthday);
+                $age = $birthday->age;
+            }
 
             // Update the user's email in users table
             $user->update([
                 'email' => $validated['email']
             ]);
 
-            // Update or create the user's info
+            // Update or create the user's info - preserve birthday and gender from user management
+            $userInfoData = [
+                'first_name' => $validated['first_name'],
+                'middle_name' => $validated['middle_name'],
+                'last_name' => $validated['last_name'],
+                'phone' => $validated['phone'],
+            ];
+
+            // Preserve birthday and gender from user management (only update age if birthday exists)
+            if ($existingUserInfo) {
+                if ($existingUserInfo->birthday) {
+                    $userInfoData['birthday'] = $existingUserInfo->birthday;
+                    $userInfoData['age'] = $age;
+                }
+                if ($existingUserInfo->gender) {
+                    $userInfoData['gender'] = $existingUserInfo->gender;
+                }
+            }
+
             UserInfo::updateOrCreate(
                 ['user_id' => $user->id],
-                [
-                    'first_name' => $validated['first_name'],
-                    'middle_name' => $validated['middle_name'],
-                    'last_name' => $validated['last_name'],
-                    'birthday' => $validated['birthday'],
-                    'age' => $age,
-                    'gender' => $validated['gender'],
-                    'phone' => $validated['phone'],
-                ]
+                $userInfoData
             );
 
             return response()->json([

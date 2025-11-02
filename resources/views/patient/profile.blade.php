@@ -107,7 +107,7 @@
 
 .details-row {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1.5rem;
     margin-bottom: 1.75rem;
 }
@@ -563,33 +563,34 @@
                     </div>
                     <div class="details-row">
                         <div class="detail-block">
+                            <span class="detail-block-label">Phone Number *</span>
+                            <input type="text" name="phone" id="phone" value="{{ $userInfo->phone ?? '' }}" required>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="detail-block">
                             <span class="detail-block-label">Birthday *</span>
-                            <input type="date" name="birthday" id="birthday" value="{{ $userInfo->birthday ?? '' }}" required>
+                            <input type="date" name="birthday" id="birthday" value="{{ $userInfo->birthday ?? '' }}" readonly style="background: #e3f2fd; border-color: #1976D2; color: #000000; cursor: not-allowed;">
                             <div class="invalid-feedback"></div>
                         </div>
                         <div class="detail-block">
                             <span class="detail-block-label">Age</span>
-                            <input type="number" id="age" value="{{ $userInfo->age ?? '' }}" readonly style="background: #e3f2fd; border-color: #1976D2; color: #000000;">
+                            <input type="number" id="age" value="{{ $userInfo->age ?? '' }}" readonly style="background: #e3f2fd; border-color: #1976D2; color: #000000; cursor: not-allowed;">
                         </div>
                         <div class="detail-block">
                             <span class="detail-block-label">Sex *</span>
-                            <select name="gender" id="gender" required>
+                            <select name="gender" id="gender" disabled style="background: #e3f2fd; border-color: #1976D2; color: #000000; cursor: not-allowed;">
                                 <option value="">Select...</option>
                                 <option value="Male" {{ ($userInfo->gender ?? '') === 'Male' ? 'selected' : '' }}>Male</option>
                                 <option value="Female" {{ ($userInfo->gender ?? '') === 'Female' ? 'selected' : '' }}>Female</option>
-                                <option value="Other" {{ ($userInfo->gender ?? '') === 'Other' ? 'selected' : '' }}>Other</option>
                             </select>
+                            <!-- Hidden input to preserve value when disabled -->
+                            <input type="hidden" name="gender" value="{{ $userInfo->gender ?? '' }}">
                             <div class="invalid-feedback"></div>
                         </div>
                     </div>
                     <div class="detail-block">
                         <span class="detail-block-label">Email *</span>
                         <input type="email" name="email" id="email" value="{{ $user->email }}" required>
-                        <div class="invalid-feedback"></div>
-                    </div>
-                    <div class="detail-block">
-                        <span class="detail-block-label">Contact Number *</span>
-                        <input type="text" name="phone" id="phone" value="{{ $userInfo->phone ?? '' }}" required>
                         <div class="invalid-feedback"></div>
                     </div>
                     <div class="edit-button-container">
@@ -634,10 +635,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const birthdayInput = document.getElementById('birthday');
     const ageInput = document.getElementById('age');
 
-    // Calculate age when birthday changes
-    birthdayInput.addEventListener('change', function() {
-        if (this.value) {
-            const birthday = new Date(this.value);
+    // Calculate age from birthday (read-only, but calculate on load)
+    function calculateAgeFromBirthday() {
+        if (birthdayInput && ageInput && birthdayInput.value) {
+            const birthday = new Date(birthdayInput.value);
             const today = new Date();
             let age = today.getFullYear() - birthday.getFullYear();
             const monthDiff = today.getMonth() - birthday.getMonth();
@@ -648,11 +649,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
             ageInput.value = age;
         }
-    });
+    }
 
-    // Calculate initial age if birthday exists
-    if (birthdayInput.value) {
-        birthdayInput.dispatchEvent(new Event('change'));
+    // Calculate initial age if birthday exists (birthday is read-only, so no change listener needed)
+    if (birthdayInput && birthdayInput.value) {
+        calculateAgeFromBirthday();
     }
 
     // Handle form submission
@@ -750,7 +751,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Apply dark mode styles to date picker calendar widget
     function applyDatePickerDarkMode() {
         const theme = document.documentElement.getAttribute('data-theme');
-        
+
         if (theme === 'dark') {
             // Create and inject dark mode styles for date picker
             const styleId = 'date-picker-dark-mode';
@@ -764,12 +765,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         opacity: 0.9;
                         cursor: pointer;
                     }
-                    
+
                     input[type="date"]::-webkit-calendar-picker-indicator:hover {
                         opacity: 1;
                         filter: invert(1) brightness(1.5);
                     }
-                    
+
                     /* Style the date input text fields in dark mode */
                     input[type="date"]::-webkit-datetime-edit-text,
                     input[type="date"]::-webkit-datetime-edit-month-field,
@@ -778,7 +779,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         color: #f1f5f9 !important;
                         background: transparent !important;
                     }
-                    
+
                     input[type="date"]::-webkit-datetime-edit-text:hover,
                     input[type="date"]::-webkit-datetime-edit-month-field:hover,
                     input[type="date"]::-webkit-datetime-edit-day-field:hover,
@@ -808,7 +809,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-    
+
     datePickerObserver.observe(document.documentElement, {
         attributes: true,
         attributeFilter: ['data-theme']

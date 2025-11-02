@@ -13,6 +13,7 @@ use Illuminate\Http\JsonResponse;
 use Carbon\Carbon;
 use App\Services\MailService;
 use App\Services\NotificationService;
+// use Maatwebsite\Excel\Facades\Excel; // Removed - using CSV export instead
 
 class AppointmentController extends Controller
 {
@@ -21,108 +22,110 @@ class AppointmentController extends Controller
      */
     public function index()
     {
-        // Auto-mark Confirmed appointments as Missed if they weren't completed on the appointment date
         $this->autoMarkMissedAppointments();
+        $this->cleanupExpiredBlockedTimes();
 
-        // Clean up expired blocked times
-        $now = Carbon::now('Asia/Manila');
-        \App\Models\BlockedTime::where('end_datetime', '<', $now)->delete();
+        $dateValidation = $this->validateAndGetRequestedDate();
+        if ($dateValidation instanceof \Illuminate\Http\RedirectResponse) {
+            return $dateValidation;
+        }
 
-        // CRITICAL: Get server's actual current date/time (fault tolerant - cannot be manipulated)
+        [$currentMonth, $currentYear, $startDate, $endDate] = $dateValidation;
+        $appointments = $this->getAppointmentsForView($startDate, $endDate);
+        $blockedTimes = $this->getBlockedTimesForView($startDate, $endDate);
+        $patients = $this->getPatientsForView();
+        $staff = $this->getStaffForView();
+        $services = $this->getServicesForView();
+
+        return view("staff.appointment", compact('appointments', 'blockedTimes', 'patients', 'staff', 'services', 'currentMonth', 'currentYear'));
+    }
+
+    private function cleanupExpiredBlockedTimes(): void
+    {
+        \App\Models\BlockedTime::where('end_datetime', '<', Carbon::now('Asia/Manila'))->delete();
+    }
+
+    /**
+     * @return array{0: int, 1: int, 2: Carbon, 3: Carbon}|\Illuminate\Http\RedirectResponse
+     */
+    private function validateAndGetRequestedDate()
+    {
         $serverNow = Carbon::now('Asia/Manila');
-        $serverMonth = $serverNow->month;
-        $serverYear = $serverNow->year;
-        $serverDay = $serverNow->day;
-
-        // Get requested month/year from URL (may be manipulated by client)
-        $requestedMonth = (int) request('month', $serverMonth);
-        $requestedYear = (int) request('year', $serverYear);
-
-        // CRITICAL: Validate that requested date is not too far in the future (detect time manipulation)
-        // Allow viewing up to 2 years in the future (for legitimate future planning)
-        // But if requested date is more than 7 days ahead of server date, likely manipulation
-        $maxFutureDate = $serverNow->copy()->addYears(2);
-        $suspiciousFutureDate = $serverNow->copy()->addDays(7);
-
-        // Create a date from requested month/year (first day of that month)
+        $requestedMonth = (int) request('month', $serverNow->month);
+        $requestedYear = (int) request('year', $serverNow->year);
         $requestedDate = Carbon::create($requestedYear, $requestedMonth, 1, 0, 0, 0, 'Asia/Manila');
 
-        // If requested date is more than 7 days ahead, likely time manipulation (redirect to server date)
-        if ($requestedDate->gt($suspiciousFutureDate) && $requestedDate->month != $serverMonth) {
-            \Log::warning('Time manipulation detected - requested date suspiciously ahead', [
-                'requested_month' => $requestedMonth,
-                'requested_year' => $requestedYear,
-                'server_month' => $serverMonth,
-                'server_year' => $serverYear,
-                'server_date' => $serverNow->format('Y-m-d H:i:s'),
-                'days_ahead' => $serverNow->diffInDays($requestedDate)
-            ]);
-
-            // Redirect to server's current date (remove month/year from URL to use defaults)
+        if ($this->isInvalidDate($requestedDate, $serverNow, $requestedMonth, $requestedYear)) {
             return redirect()->route('staff-appointment', ['view' => request('view', 'month')])
                 ->with('error', 'Invalid date detected. Showing current month.');
         }
 
-        // If requested date is too far in the future (more than 2 years), also redirect
-        if ($requestedDate->gt($maxFutureDate)) {
-            \Log::warning('Time manipulation detected - requested date too far in future', [
-                'requested_month' => $requestedMonth,
-                'requested_year' => $requestedYear,
-                'server_month' => $serverMonth,
-                'server_year' => $serverYear,
-                'server_date' => $serverNow->format('Y-m-d H:i:s')
-            ]);
+        $startDate = Carbon::create($requestedYear, $requestedMonth, 1)->startOfMonth()->subMonth();
+        $endDate = Carbon::create($requestedYear, $requestedMonth, 1)->endOfMonth()->addMonth();
 
-            // Redirect to server's current date (remove month/year from URL to use defaults)
-            return redirect()->route('staff-appointment', ['view' => request('view', 'month')])
-                ->with('error', 'Invalid date requested. Showing current month.');
-        }
+        return [$requestedMonth, $requestedYear, $startDate, $endDate];
+    }
 
-        // Also check if requested date is too far in the past (more than 1 year)
+    private function isInvalidDate(Carbon $requestedDate, Carbon $serverNow, int $requestedMonth, int $requestedYear): bool
+    {
+        $maxFutureDate = $serverNow->copy()->addYears(2);
+        $suspiciousFutureDate = $serverNow->copy()->addDays(7);
         $minPastDate = $serverNow->copy()->subYear();
-        if ($requestedDate->lt($minPastDate)) {
-            \Log::warning('Invalid past date requested', [
+
+        if (($requestedDate->gt($suspiciousFutureDate) && $requestedDate->month != $serverNow->month) ||
+            $requestedDate->gt($maxFutureDate) ||
+            $requestedDate->lt($minPastDate)) {
+            \Log::warning('Invalid date requested', [
                 'requested_month' => $requestedMonth,
                 'requested_year' => $requestedYear,
                 'server_date' => $serverNow->format('Y-m-d H:i:s')
             ]);
-
-            // Redirect to server's current date
-            return redirect()->route('staff-appointment', ['view' => request('view', 'month')])
-                ->with('error', 'Invalid date requested. Showing current month.');
+            return true;
         }
+        return false;
+    }
 
-        $currentMonth = $requestedMonth;
-        $currentYear = $requestedYear;
-
-        // Create date range to cover the current month and adjacent months (for week/day views that span months)
-        $startDate = Carbon::create($currentYear, $currentMonth, 1)->startOfMonth()->subMonth();
-        $endDate = Carbon::create($currentYear, $currentMonth, 1)->endOfMonth()->addMonth();
-
-        // Get appointments (exclude blocked status only, include cancelled)
-        // Fetch appointments for current month + previous and next months to cover week/day views
-        $appointments = Appointment::whereBetween('start_datetime', [$startDate, $endDate])
+    /**
+     * @return \Illuminate\Support\Collection
+     */
+    private function getAppointmentsForView(Carbon $startDate, Carbon $endDate)
+    {
+        return Appointment::whereBetween('start_datetime', [$startDate, $endDate])
             ->whereNotIn('status', ['blocked'])
             ->with(['patient.info', 'service'])
             ->get()
             ->map(function($appointment) {
-                // Format dates as 'Y-m-d H:i:s' string without timezone to avoid JS conversion
                 $data = $appointment->toArray();
                 $data['start_datetime'] = $appointment->start_datetime->format('Y-m-d H:i:s');
                 $data['end_datetime'] = $appointment->end_datetime->format('Y-m-d H:i:s');
-                // Ensure status is explicitly set (default to 'Pending' if null)
                 $data['status'] = $appointment->status ?? 'Pending';
+
+                if (!$appointment->service && $appointment->service_id) {
+                    $service = Service::find($appointment->service_id);
+                    if ($service) {
+                        $data['service'] = [
+                            'id' => $service->id,
+                            'service_name' => $service->service_name,
+                            'default_duration_minutes' => $service->default_duration_minutes,
+                            'description' => $service->description,
+                            'price' => $service->price,
+                        ];
+                    }
+                }
+
                 return $data;
             });
+    }
 
-        // Get blocked times separately and format dates for local timezone display
-        // Only get blocked times that haven't expired yet (end_datetime is in the future or ongoing)
-        $now = Carbon::now('Asia/Manila');
-        $blockedTimes = \App\Models\BlockedTime::whereBetween('start_datetime', [$startDate, $endDate])
-            ->where('end_datetime', '>=', $now) // Only get blocked times that haven't ended yet
+    /**
+     * @return \Illuminate\Support\Collection
+     */
+    private function getBlockedTimesForView(Carbon $startDate, Carbon $endDate)
+    {
+        return \App\Models\BlockedTime::whereBetween('start_datetime', [$startDate, $endDate])
+            ->where('end_datetime', '>=', Carbon::now('Asia/Manila'))
             ->get()
             ->map(function($blockedTime) {
-                // Format dates as 'Y-m-d H:i:s' string without timezone to avoid JS conversion
                 return [
                     'id' => $blockedTime->id,
                     'title' => $blockedTime->title,
@@ -134,9 +137,15 @@ class AppointmentController extends Controller
                     'updated_at' => $blockedTime->updated_at,
                 ];
             });
+    }
 
-        $patients = User::whereHas('info', function($query) {
-            $query->where('role_id', 3); // Assuming role_id 3 is for patients
+    /**
+     * @return \Illuminate\Support\Collection
+     */
+    private function getPatientsForView()
+    {
+        return User::whereHas('info', function($query) {
+            $query->where('role_id', 3);
         })->with('info')->get()->map(function($patient) {
             $info = $patient->info;
             return [
@@ -148,14 +157,30 @@ class AppointmentController extends Controller
                 'email' => $patient->email
             ];
         });
+    }
 
-        $staff = User::whereHas('info', function($query) {
-            $query->whereIn('role_id', [1, 2]); // Assuming role_id 1,2 are for admin/staff
+    /**
+     * @return \Illuminate\Support\Collection
+     */
+    private function getStaffForView()
+    {
+        return User::whereHas('info', function($query) {
+            $query->whereIn('role_id', [1, 2]);
         })->get();
+    }
 
-        $services = Service::active()->orderBy('service_name')->get();
-
-        return view("staff.appointment", compact('appointments', 'blockedTimes', 'patients', 'staff', 'services', 'currentMonth', 'currentYear'));
+    /**
+     * @return \Illuminate\Support\Collection
+     */
+    private function getServicesForView()
+    {
+        return Service::active()
+            ->orderBy('id', 'desc')
+            ->get()
+            ->unique('service_name')
+            ->values()
+            ->sortBy('service_name')
+            ->values();
     }
 
     /**
@@ -592,7 +617,15 @@ class AppointmentController extends Controller
                 if (request()->ajax() || request()->wantsJson()) {
                     return response()->json(['success' => false, 'message' => 'Appointment is already cancelled.']);
                 }
-                return redirect()->route('admin-appointment')->with('error', 'Appointment is already cancelled.');
+                return redirect()->route('staff-appointment')->with('error', 'Appointment is already cancelled.');
+            }
+
+            // Prevent cancelling rescheduled appointments
+            if (!is_null($appointment->rescheduled_at)) {
+                if (request()->ajax() || request()->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => 'Cannot cancel rescheduled appointments. The original appointment was already cancelled when it was rescheduled.']);
+                }
+                return redirect()->route('staff-appointment')->with('error', 'Cannot cancel rescheduled appointments. The original appointment was already cancelled when it was rescheduled.');
             }
 
             // Prevent cancelling confirmed appointments
@@ -600,7 +633,7 @@ class AppointmentController extends Controller
                 if (request()->ajax() || request()->wantsJson()) {
                     return response()->json(['success' => false, 'message' => 'Cannot cancel confirmed appointments.']);
                 }
-                return redirect()->route('admin-appointment')->with('error', 'Cannot cancel confirmed appointments.');
+                return redirect()->route('staff-appointment')->with('error', 'Cannot cancel confirmed appointments.');
             }
 
             $oldStatus = $appointment->status;
@@ -662,6 +695,14 @@ class AppointmentController extends Controller
                 'notes' => 'nullable|string|max:500'
             ]);
 
+            // Prevent cancelling rescheduled appointments
+            if ($validated['status'] === 'Cancelled' && !is_null($appointment->rescheduled_at)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot cancel rescheduled appointments. The original appointment was already cancelled when it was rescheduled.'
+                ], 422);
+            }
+
             // Validate status transitions
             $validTransitions = [
                 'Pending' => ['Confirmed', 'Cancelled'],
@@ -708,8 +749,14 @@ class AppointmentController extends Controller
             // Add status change note if provided
             if (!empty($validated['notes'])) {
                 $currentNotes = $appointment->notes ?? '';
-                $statusChangeNote = "\n\n[" . now()->format('Y-m-d H:i') . "] Status changed to {$validated['status']}: {$validated['notes']}";
-                $appointment->update(['notes' => $currentNotes . $statusChangeNote]);
+                // For cancelled appointments, just append the notes without timestamp prefix
+                if ($validated['status'] === 'Cancelled') {
+                    $appointment->update(['notes' => $currentNotes . ($currentNotes ? "\n\n" : '') . $validated['notes']]);
+                } else {
+                    // For other statuses, keep the timestamp format
+                    $statusChangeNote = "\n\n[" . now()->format('Y-m-d H:i') . "] Status changed to {$validated['status']}: {$validated['notes']}";
+                    $appointment->update(['notes' => $currentNotes . $statusChangeNote]);
+                }
             }
 
             // Send notification to patient
@@ -799,27 +846,42 @@ class AppointmentController extends Controller
 
     public function searchPatients(Request $request)
     {
-        $query = $request->input('query');
+        $query = $request->input('query', '');
 
-        $patients = User::whereHas('info', function($q) use ($query) {
-            $q->where('role_id', 3); // Only search for patients (role_id = 3)
+        // Get all patients (role_id = 3) - both with and without UserInfo
+        $patientsQuery = User::where('role_id', 3)->with('info');
 
-            // If query is not empty, add search conditions
-            if (!empty($query)) {
-                $q->where(function($subQuery) use ($query) {
+        // If query is not empty, add search conditions
+        if (!empty($query)) {
+            $patientsQuery->where(function($q) use ($query) {
+                // Search by user ID if query is numeric
+                if (is_numeric($query)) {
+                    $q->where('id', $query);
+                }
+
+                // Search by username
+                $q->orWhere('username', 'like', "%{$query}%")
+                  ->orWhere('email', 'like', "%{$query}%")
+                  ->orWhere('name', 'like', "%{$query}%");
+
+                // Search in UserInfo (first_name, last_name, phone)
+                $q->orWhereHas('info', function($subQuery) use ($query) {
                     $subQuery->where('first_name', 'like', "%{$query}%")
-                        ->orWhere('last_name', 'like', "%{$query}%")
-                        ->orWhere('phone', 'like', "%{$query}%");
+                             ->orWhere('last_name', 'like', "%{$query}%")
+                             ->orWhere('phone', 'like', "%{$query}%")
+                             ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$query}%"]);
                 });
-            }
-        })->with('info')->orderBy('name')->get();
+            });
+        }
+
+        $patients = $patientsQuery->orderBy('name')->get();
 
         // Format the response to include full name
         $formattedPatients = $patients->map(function($patient) {
             $info = $patient->info;
             return [
                 'id' => $patient->id,
-                'name' => $info ? trim($info->first_name . ' ' . $info->last_name) : $patient->name,
+                'name' => $info ? trim($info->first_name . ' ' . $info->last_name) : ($patient->name ?: $patient->username),
                 'first_name' => $info ? $info->first_name : '',
                 'last_name' => $info ? $info->last_name : '',
                 'phone' => $info ? $info->phone : '',
@@ -936,7 +998,18 @@ class AppointmentController extends Controller
         }
 
         // Get paginated appointments
-        $appointments = $query->paginate($perPage)->withQueryString();
+        $appointments = $query->paginate($perPage)
+            ->withQueryString()
+            ->through(function($appointment) {
+                // If service relationship is null but service_id exists, try to load it
+                if (!$appointment->service && $appointment->service_id) {
+                    $service = Service::find($appointment->service_id);
+                    if ($service) {
+                        $appointment->setRelation('service', $service);
+                    }
+                }
+                return $appointment;
+            });
 
         // Get filter counts for UI
         $totalCount = Appointment::whereNotIn('status', ['blocked'])->count();
@@ -979,6 +1052,184 @@ class AppointmentController extends Controller
             'totalCount',
             'availableMonths'
         ))->with('perPage', $perPage)->with('search', $request->get('search', ''));
+    }
+
+    /**
+     * Export appointments to Excel
+     */
+    public function exportExcel(Request $request)
+    {
+        // Build query with same filters as table method
+        $query = Appointment::with(['patient.info', 'service'])
+            ->whereNotIn('status', ['blocked']);
+
+        // Filter by status
+        if ($request->has('status') && $request->status !== 'all') {
+            $query->where('status', $request->status);
+        }
+
+        // Filter by rescheduled
+        if ($request->has('rescheduled') && $request->rescheduled !== 'all') {
+            if ($request->rescheduled === 'yes') {
+                $query->whereNotNull('rescheduled_at');
+            } else {
+                $query->whereNull('rescheduled_at');
+            }
+        }
+
+        // Filter by emergency
+        if ($request->has('emergency') && $request->emergency !== 'all') {
+            if ($request->emergency === 'yes') {
+                $query->where(function($q) {
+                    $q->where('notes', 'like', '%emergency%')
+                      ->orWhere('notes', 'like', '%Emergency%')
+                      ->orWhere('reason_for_visit', 'like', '%emergency%')
+                      ->orWhere('reason_for_visit', 'like', '%Emergency%');
+                });
+            } else {
+                $query->where(function($q) {
+                    $q->where(function($subQ) {
+                        $subQ->whereNull('notes')
+                             ->orWhere(function($nQ) {
+                                 $nQ->where('notes', 'not like', '%emergency%')
+                                    ->where('notes', 'not like', '%Emergency%');
+                             });
+                    })
+                    ->where(function($subQ) {
+                        $subQ->whereNull('reason_for_visit')
+                             ->orWhere(function($rQ) {
+                                 $rQ->where('reason_for_visit', 'not like', '%emergency%')
+                                    ->where('reason_for_visit', 'not like', '%Emergency%');
+                             });
+                    });
+                });
+            }
+        }
+
+        // Filter by month
+        if ($request->has('month') && $request->month !== 'all') {
+            $monthYear = explode('-', $request->month);
+            if (count($monthYear) === 2) {
+                $month = $monthYear[0];
+                $year = $monthYear[1];
+                $query->whereYear('start_datetime', $year)
+                      ->whereMonth('start_datetime', $month);
+            }
+        }
+
+        // Apply sorting
+        $sortBy = $request->get('sort_by', 'start_datetime');
+        $sortOrder = $request->get('sort_order', 'desc');
+        $validSortFields = ['id', 'start_datetime', 'status', 'duration_minutes', 'rescheduled_at', 'patient_id', 'service_id', 'created_at'];
+        if (in_array($sortBy, $validSortFields)) {
+            $query->orderBy($sortBy, $sortOrder);
+        } else {
+            $query->orderBy('start_datetime', 'desc');
+        }
+
+        // Search by patient name or service
+        if ($request->has('search') && !empty($request->search)) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->whereHas('patient.info', function($subQ) use ($search) {
+                    $subQ->where('first_name', 'like', "%{$search}%")
+                         ->orWhere('last_name', 'like', "%{$search}%")
+                         ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$search}%"]);
+                })
+                ->orWhereHas('service', function($subQ) use ($search) {
+                    $subQ->where('service_name', 'like', "%{$search}%");
+                })
+                ->orWhere('reason_for_visit', 'like', "%{$search}%");
+            });
+        }
+
+        // Get all appointments (no pagination for export)
+        $appointments = $query->get()->map(function($appointment) {
+            // If service relationship is null but service_id exists, try to load it
+            if (!$appointment->service && $appointment->service_id) {
+                $service = Service::find($appointment->service_id);
+                if ($service) {
+                    $appointment->setRelation('service', $service);
+                }
+            }
+            return $appointment;
+        });
+
+        $fileName = 'appointments_' . Carbon::now()->format('Y-m-d_His') . '.csv';
+
+        // Prepare CSV data
+        $headers = [
+            'No.', 'Patient Name', 'Patient ID', 'Phone', 'Email', 'Service',
+            'Date', 'Start Time', 'End Time', 'Duration (minutes)', 'Status',
+            'Rescheduled', 'Emergency', 'Notes', 'Created At', 'Updated At'
+        ];
+
+        $data = $appointments->map(function($appointment, $index) {
+            $patientName = 'Unknown Patient';
+            $patientId = $appointment->patient_id ?? 'N/A';
+            $phone = '';
+            $email = '';
+
+            if ($appointment->patient && $appointment->patient->info) {
+                $info = $appointment->patient->info;
+                $patientName = trim(($info->first_name ?? '') . ' ' . ($info->last_name ?? ''));
+                $phone = $info->phone ?? '';
+                $email = $appointment->patient->email ?? '';
+            } elseif ($appointment->patient) {
+                $patientName = $appointment->patient->name ?? 'Unknown Patient';
+                $email = $appointment->patient->email ?? '';
+            }
+
+            $serviceName = 'No Service';
+            if ($appointment->service && $appointment->service->service_name) {
+                $serviceName = $appointment->service->service_name;
+            } elseif ($appointment->reason_for_visit) {
+                $serviceName = $appointment->reason_for_visit;
+            }
+
+            $startDate = Carbon::parse($appointment->start_datetime);
+            $endDate = Carbon::parse($appointment->end_datetime);
+            $isRescheduled = !is_null($appointment->rescheduled_at) ? 'Yes' : 'No';
+            $isEmergency = 'No';
+            if ($appointment->notes && (stripos($appointment->notes, 'emergency') !== false)) {
+                $isEmergency = 'Yes';
+            } elseif ($appointment->reason_for_visit && (stripos($appointment->reason_for_visit, 'emergency') !== false)) {
+                $isEmergency = 'Yes';
+            }
+
+            return [
+                $index + 1,
+                $patientName,
+                $patientId,
+                $phone,
+                $email,
+                $serviceName,
+                $startDate->format('Y-m-d'),
+                $startDate->format('h:i A'),
+                $endDate->format('h:i A'),
+                $appointment->duration_minutes ?? 0,
+                $appointment->status ?? 'Pending',
+                $isRescheduled,
+                $isEmergency,
+                $appointment->notes ?? '',
+                $appointment->created_at ? Carbon::parse($appointment->created_at)->format('Y-m-d h:i A') : '',
+                $appointment->updated_at ? Carbon::parse($appointment->updated_at)->format('Y-m-d h:i A') : ''
+            ];
+        });
+
+        // Generate CSV
+        $output = fopen('php://temp', 'r+');
+        fputcsv($output, $headers);
+        foreach ($data as $row) {
+            fputcsv($output, $row);
+        }
+        rewind($output);
+        $csv = stream_get_contents($output);
+        fclose($output);
+
+        return response($csv)
+            ->header('Content-Type', 'text/csv')
+            ->header('Content-Disposition', 'attachment; filename="' . $fileName . '"');
     }
 
     /**

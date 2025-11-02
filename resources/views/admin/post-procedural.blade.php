@@ -218,21 +218,24 @@
 
                     <!-- For Minors Section -->
                     <div class="mb-4">
-                        <label class="form-label fw-bold mb-3" style="color: #0a4275; font-size: 1rem;">
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="isMinorCheckbox" style="cursor: pointer;">
+                            <label class="form-check-label fw-bold" for="isMinorCheckbox" style="color: #0a4275; font-size: 1rem; cursor: pointer;">
                             <i class="bi bi-person-lines-fill me-2"></i>For minors:
                         </label>
-                        <div class="row" style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #dee2e6;">
-                            <div class="col-12 mb-2">
+                        </div>
+                        <div id="minorFormContainer" class="row" style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #dee2e6; display: none;">
+                            <div class="col-md-4 mb-2">
                                 <label for="guardianName" class="form-label mb-1" style="font-size: 0.875rem; color: #495057;">Parent/Guardian's Name</label>
                                 <input type="text" class="form-control" id="guardianName"
                                        style="border: 2px solid #dee2e6; border-radius: 6px;">
                             </div>
-                            <div class="col-md-6 mb-2">
+                            <div class="col-md-4 mb-2">
                                 <label for="guardianContact" class="form-label mb-1" style="font-size: 0.875rem; color: #495057;">Contact No.</label>
                                 <input type="text" class="form-control" id="guardianContact"
                                        style="border: 2px solid #dee2e6; border-radius: 6px;">
                             </div>
-                            <div class="col-md-6 mb-2">
+                            <div class="col-md-4 mb-2">
                                 <label for="guardianOccupation" class="form-label mb-1" style="font-size: 0.875rem; color: #495057;">Occupation</label>
                                 <input type="text" class="form-control" id="guardianOccupation"
                                        style="border: 2px solid #dee2e6; border-radius: 6px;">
@@ -1925,8 +1928,11 @@ function renderAddPatientHistoryForm(recordId) {
                                         </div>
                                     </div>
                                 </div>
-                                <div class="ps-4 mt-2">
-                                        <input type="text" class="form-control form-control-sm" name="treatment_condition" placeholder="If yes, what condition is being treated?" style="border: 1px solid #000;">
+                                <div id="treatmentConditionContainer" class="ps-4 mt-3 mb-2" style="display: none; border-left: 3px solid #0d6efd; padding-left: 1rem; background-color: #f8f9fa; border-radius: 4px; padding-top: 0.75rem; padding-bottom: 0.75rem;">
+                                    <label class="form-label fw-semibold text-primary mb-2" style="font-size: 0.9rem;">
+                                        <i class="bi bi-arrow-return-right me-1"></i>If YES, please specify:
+                                    </label>
+                                    <input type="text" class="form-control form-control-sm" name="treatment_condition" id="treatmentCondition" placeholder="What condition is being treated?" style="border: 1px solid #0d6efd;">
                                 </div>
                             </div>
                             <div class="col-12">
@@ -1943,8 +1949,11 @@ function renderAddPatientHistoryForm(recordId) {
                                         </div>
                                     </div>
                                 </div>
-                                <div class="ps-4 mt-2">
-                                        <input type="text" class="form-control form-control-sm" name="illness_details" placeholder="If yes, what illness or surgery?" style="border: 1px solid #000;">
+                                <div id="illnessDetailsContainer" class="ps-4 mt-3 mb-2" style="display: none; border-left: 3px solid #0d6efd; padding-left: 1rem; background-color: #f8f9fa; border-radius: 4px; padding-top: 0.75rem; padding-bottom: 0.75rem;">
+                                    <label class="form-label fw-semibold text-primary mb-2" style="font-size: 0.9rem;">
+                                        <i class="bi bi-arrow-return-right me-1"></i>If YES, please specify:
+                                    </label>
+                                    <input type="text" class="form-control form-control-sm" name="illness_details" id="illnessDetails" placeholder="What illness or surgery?" style="border: 1px solid #0d6efd;">
                                 </div>
                             </div>
                             <div class="col-12">
@@ -1961,8 +1970,11 @@ function renderAddPatientHistoryForm(recordId) {
                                         </div>
                                     </div>
                                 </div>
-                                <div class="ps-4 mt-2">
-                                        <input type="text" class="form-control form-control-sm" name="hospitalization_reason" placeholder="If yes, when and why?" style="border: 1px solid #000;">
+                                <div id="hospitalizationReasonContainer" class="ps-4 mt-3 mb-2" style="display: none; border-left: 3px solid #0d6efd; padding-left: 1rem; background-color: #f8f9fa; border-radius: 4px; padding-top: 0.75rem; padding-bottom: 0.75rem;">
+                                    <label class="form-label fw-semibold text-primary mb-2" style="font-size: 0.9rem;">
+                                        <i class="bi bi-arrow-return-right me-1"></i>If YES, please specify:
+                                    </label>
+                                    <input type="text" class="form-control form-control-sm" name="hospitalization_reason" id="hospitalizationReason" placeholder="When and why were you hospitalized?" style="border: 1px solid #0d6efd;">
                                 </div>
                             </div>
                             <div class="col-12">
@@ -1979,8 +1991,11 @@ function renderAddPatientHistoryForm(recordId) {
                                         </div>
                                     </div>
                                 </div>
-                                <div class="ps-4 mt-2">
-                                        <input type="text" class="form-control form-control-sm" name="medications" placeholder="If yes, what medications?" style="border: 1px solid #000;">
+                                <div id="medicationsContainer" class="ps-4 mt-3 mb-2" style="display: none; border-left: 3px solid #0d6efd; padding-left: 1rem; background-color: #f8f9fa; border-radius: 4px; padding-top: 0.75rem; padding-bottom: 0.75rem;">
+                                    <label class="form-label fw-semibold text-primary mb-2" style="font-size: 0.9rem;">
+                                        <i class="bi bi-arrow-return-right me-1"></i>If YES, please specify:
+                                    </label>
+                                    <input type="text" class="form-control form-control-sm" name="medications" id="medications" placeholder="What medications are you taking?" style="border: 1px solid #0d6efd;">
                                 </div>
                             </div>
                             <div class="col-12">
@@ -2547,12 +2562,136 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Toggle minor form visibility based on checkbox
+    const isMinorCheckbox = document.getElementById('isMinorCheckbox');
+    const minorFormContainer = document.getElementById('minorFormContainer');
+
+    if (isMinorCheckbox && minorFormContainer) {
+        isMinorCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                minorFormContainer.style.display = 'block';
+            } else {
+                minorFormContainer.style.display = 'none';
+                // Clear the form fields when hidden
+                document.getElementById('guardianName').value = '';
+                document.getElementById('guardianContact').value = '';
+                document.getElementById('guardianOccupation').value = '';
+            }
+        });
+    }
+
+    // Toggle medical history "If yes..." input fields based on radio button selections
+    function setupConditionalInputs(container) {
+        if (!container) return;
+
+        // Question 2: Medical treatment
+        const treatmentYes = container.querySelector('input[name="under_treatment"][value="yes"]');
+        const treatmentNo = container.querySelector('input[name="under_treatment"][value="no"]');
+        const treatmentContainer = container.querySelector('[name="treatment_condition"]')?.parentElement;
+        const treatmentInput = container.querySelector('[name="treatment_condition"]');
+
+        if (treatmentYes && treatmentNo && treatmentContainer && treatmentInput) {
+            const toggleTreatment = () => {
+                if (treatmentYes.checked) {
+                    treatmentContainer.style.display = 'block';
+                } else {
+                    treatmentContainer.style.display = 'none';
+                    treatmentInput.value = '';
+                }
+            };
+            treatmentYes.addEventListener('change', toggleTreatment);
+            treatmentNo.addEventListener('change', toggleTreatment);
+            toggleTreatment();
+        }
+
+        // Question 3: Serious illness
+        const illnessYes = container.querySelector('input[name="serious_illness"][value="yes"]');
+        const illnessNo = container.querySelector('input[name="serious_illness"][value="no"]');
+        const illnessContainer = container.querySelector('[name="illness_details"]')?.parentElement;
+        const illnessInput = container.querySelector('[name="illness_details"]');
+
+        if (illnessYes && illnessNo && illnessContainer && illnessInput) {
+            const toggleIllness = () => {
+                if (illnessYes.checked) {
+                    illnessContainer.style.display = 'block';
+                } else {
+                    illnessContainer.style.display = 'none';
+                    illnessInput.value = '';
+                }
+            };
+            illnessYes.addEventListener('change', toggleIllness);
+            illnessNo.addEventListener('change', toggleIllness);
+            toggleIllness();
+        }
+
+        // Question 4: Hospitalized
+        const hospitalizedYes = container.querySelector('input[name="been_hospitalized"][value="yes"]');
+        const hospitalizedNo = container.querySelector('input[name="been_hospitalized"][value="no"]');
+        const hospitalizedContainer = container.querySelector('[name="hospitalization_reason"]')?.parentElement;
+        const hospitalizedInput = container.querySelector('[name="hospitalization_reason"]');
+
+        if (hospitalizedYes && hospitalizedNo && hospitalizedContainer && hospitalizedInput) {
+            const toggleHospitalized = () => {
+                if (hospitalizedYes.checked) {
+                    hospitalizedContainer.style.display = 'block';
+                } else {
+                    hospitalizedContainer.style.display = 'none';
+                    hospitalizedInput.value = '';
+                }
+            };
+            hospitalizedYes.addEventListener('change', toggleHospitalized);
+            hospitalizedNo.addEventListener('change', toggleHospitalized);
+            toggleHospitalized();
+        }
+
+        // Question 5: Taking drugs
+        const drugsYes = container.querySelector('input[name="taking_drugs"][value="yes"]');
+        const drugsNo = container.querySelector('input[name="taking_drugs"][value="no"]');
+        const drugsContainer = container.querySelector('[name="medications"]')?.parentElement;
+        const drugsInput = container.querySelector('[name="medications"]');
+
+        if (drugsYes && drugsNo && drugsContainer && drugsInput) {
+            const toggleDrugs = () => {
+                if (drugsYes.checked) {
+                    drugsContainer.style.display = 'block';
+                } else {
+                    drugsContainer.style.display = 'none';
+                    drugsInput.value = '';
+                }
+            };
+            drugsYes.addEventListener('change', toggleDrugs);
+            drugsNo.addEventListener('change', toggleDrugs);
+            toggleDrugs();
+        }
+    }
+
+    // Setup for main form (by ID if exists, otherwise by querySelector)
+    const mainFormContainer = document.getElementById('treatmentConditionContainer')?.closest('.bg-white') ||
+                              document.querySelector('form [name="treatment_condition"]')?.closest('.bg-white');
+    if (mainFormContainer) {
+        setupConditionalInputs(mainFormContainer);
+    }
+
+    // Also setup for any dynamically created edit modals
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            mutation.addedNodes.forEach(function(node) {
+                if (node.nodeType === 1 && (node.classList.contains('modal-body') || node.querySelector('[name="treatment_condition"]'))) {
+                    setupConditionalInputs(node);
+                }
+            });
+        });
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+
     // Patient name search in Patient Record form
     const patientNameSearch = document.getElementById('patientNameSearch');
+    let selectedPatientIndex = -1;
     if (patientNameSearch) {
         patientNameSearch.addEventListener('input', function() {
             clearTimeout(patientSearchTimeout);
             const searchTerm = this.value.trim();
+            selectedPatientIndex = -1; // Reset selection
 
             if (searchTerm.length < 2) {
                 document.getElementById('patientNameSearchResults').innerHTML = '';
@@ -2564,21 +2703,68 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 300);
         });
 
+        // Keyboard navigation for search dropdown
+        patientNameSearch.addEventListener('keydown', function(e) {
+            const resultsDiv = document.getElementById('patientNameSearchResults');
+            const resultItems = resultsDiv.querySelectorAll('.search-result-item');
+
+            if (resultItems.length === 0) return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                selectedPatientIndex = Math.min(selectedPatientIndex + 1, resultItems.length - 1);
+                updateSearchSelection(resultItems, selectedPatientIndex);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                selectedPatientIndex = Math.max(selectedPatientIndex - 1, -1);
+                updateSearchSelection(resultItems, selectedPatientIndex);
+            } else if (e.key === 'Enter' && selectedPatientIndex >= 0) {
+                e.preventDefault();
+                resultItems[selectedPatientIndex].click();
+            } else if (e.key === 'Enter' && this.value.trim().length >= 2) {
+                // If Enter pressed with search term but no selection, trigger search
+                e.preventDefault();
+                const searchTerm = this.value.trim();
+                searchPatientsForPatientName(searchTerm);
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                resultsDiv.innerHTML = '';
+                selectedPatientIndex = -1;
+            }
+        });
+
         // Clear results when clicking outside
         document.addEventListener('click', function(e) {
             if (!patientNameSearch.contains(e.target) &&
                 !document.getElementById('patientNameSearchResults').contains(e.target)) {
                 document.getElementById('patientNameSearchResults').innerHTML = '';
+                selectedPatientIndex = -1;
+            }
+        });
+    }
+
+    // Helper function to update search selection highlighting
+    function updateSearchSelection(items, index) {
+        items.forEach((item, i) => {
+            if (i === index) {
+                item.style.backgroundColor = '#e7f1ff';
+                item.style.cursor = 'pointer';
+                item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            } else {
+                item.style.backgroundColor = '';
+                item.style.cursor = 'default';
             }
         });
     }
 
     // Patient search in "Sent to" section
     const patientSearchInput = document.getElementById('patientSearchInput');
+    let selectedSendToIndex = -1;
     if (patientSearchInput) {
         patientSearchInput.addEventListener('input', function() {
             clearTimeout(patientSearchTimeout);
             const searchTerm = this.value.trim();
+            selectedSendToIndex = -1; // Reset selection
 
             if (searchTerm.length < 2) {
                 document.getElementById('patientSearchResults').innerHTML = '';
@@ -2590,11 +2776,42 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 300);
         });
 
+        // Keyboard navigation for search dropdown
+        patientSearchInput.addEventListener('keydown', function(e) {
+            const resultsDiv = document.getElementById('patientSearchResults');
+            const resultItems = resultsDiv.querySelectorAll('.search-result-item');
+
+            if (resultItems.length === 0) return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                selectedSendToIndex = Math.min(selectedSendToIndex + 1, resultItems.length - 1);
+                updateSearchSelection(resultItems, selectedSendToIndex);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                selectedSendToIndex = Math.max(selectedSendToIndex - 1, -1);
+                updateSearchSelection(resultItems, selectedSendToIndex);
+            } else if (e.key === 'Enter' && selectedSendToIndex >= 0) {
+                e.preventDefault();
+                resultItems[selectedSendToIndex].click();
+            } else if (e.key === 'Enter' && this.value.trim().length >= 2) {
+                // If Enter pressed with search term but no selection, trigger search
+                e.preventDefault();
+                const searchTerm = this.value.trim();
+                searchPatientsForSendTo(searchTerm);
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                resultsDiv.innerHTML = '';
+                selectedSendToIndex = -1;
+            }
+        });
+
         // Clear results when clicking outside
         document.addEventListener('click', function(e) {
             if (!patientSearchInput.contains(e.target) &&
                 !document.getElementById('patientSearchResults').contains(e.target)) {
                 document.getElementById('patientSearchResults').innerHTML = '';
+                selectedSendToIndex = -1;
             }
         });
     }
@@ -3034,6 +3251,50 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Add Enter key support for forms - trigger save on Ctrl+Enter or Enter in textareas
+    document.addEventListener('keydown', function(e) {
+        // Ctrl+Enter or Cmd+Enter to save in post-procedural forms
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            const patientRecordSection = document.getElementById('patient-record-section');
+            if (patientRecordSection && !patientRecordSection.classList.contains('d-none')) {
+                e.preventDefault();
+                const saveBtn = document.querySelector('button[onclick="savePatientRecordFromTab()"]');
+                if (saveBtn && !saveBtn.disabled) {
+                    saveBtn.click();
+                }
+            }
+        }
+    });
+
+    // Enter key support in form inputs (except textareas) - save when Enter is pressed
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.keyCode === 13) {
+            const target = e.target;
+            // Don't trigger on textareas, selects, or inputs inside modals that might have other handlers
+            if (target.tagName === 'TEXTAREA') {
+                return; // Allow Enter in textareas
+            }
+
+            // Check if we're in patient record form section
+            const patientRecordSection = document.getElementById('patient-record-section');
+            if (patientRecordSection && !patientRecordSection.classList.contains('d-none')) {
+                // If Enter is pressed in a search input with results, let that handler take precedence
+                if (target.id === 'patientNameSearch' || target.id === 'patientSearchInput') {
+                    return; // Let search keyboard navigation handle it
+                }
+
+                // For other inputs in patient record form, trigger save on Enter
+                if (target.tagName === 'INPUT' && target.closest('#patient-record-section')) {
+                    e.preventDefault();
+                    const saveBtn = document.querySelector('button[onclick="savePatientRecordFromTab()"]');
+                    if (saveBtn && !saveBtn.disabled) {
+                        saveBtn.click();
+                    }
+                }
+            }
+        }
+    });
 });
 
 // Trigger patient search manually
@@ -6251,142 +6512,66 @@ function openEditHistoryModal(recordId) {
         .then(r => r.json())
         .then(res => {
             const container = document.getElementById('editHistoryModal-body');
-            // Always render the form skeleton
-            if (typeof renderMedicalHistoryFormOnly === 'function') {
-                // Temporarily rename the page container to avoid duplicate-id targeting
-                const pageContainer = document.getElementById('medicalHistoryFormContainer');
-                if (pageContainer) pageContainer.id = 'medicalHistoryFormContainer__page';
-
-                // Create modal-local container with the expected id
-                container.innerHTML = '<div id="medicalHistoryFormContainer"></div>';
-                renderMedicalHistoryFormOnly();
-
-                // After rendering, rename modal container to avoid future collisions and restore page id
-                const modalInner = document.getElementById('medicalHistoryFormContainer');
-                if (modalInner) modalInner.id = 'medicalHistoryFormContainer__modal';
-                if (pageContainer) pageContainer.id = 'medicalHistoryFormContainer';
-            } else {
-                container.innerHTML = '<div class="alert alert-info">Form renderer missing. Please fill from main tab.</div>';
-            }
-
-            // Hide the form's action buttons since we have modal buttons
-            const formActionButtons = container.querySelector('.mt-4.pt-3');
-            if (formActionButtons) {
-                formActionButtons.style.display = 'none';
-            }
-
-            // Populate if data exists
             const histories = (res && res.data) ? (Array.isArray(res.data) ? res.data : [res.data]) : [];
-            const latest = histories[0] || {};
-            if (typeof populateMedicalHistoryFormWithData === 'function') {
-                const inner = container; // scope within modal
-                populateMedicalHistoryFormWithData(inner, latest);
-            }
 
-            makeContainerEditable(container);
-
+            // Remove the save button from modal footer since we'll use individual save buttons for each history record
             const saveBtn = document.getElementById('save-history-btn');
             if (saveBtn) {
-                saveBtn.onclick = async function() {
-                    // Get the form data
-                    const form = document.getElementById('medicalHistoryForm');
-                    if (!form) {
-                        showNotification('Form not found', 'error');
-                        return;
-                    }
+                saveBtn.remove();
+            }
 
-                    const formData = new FormData(form);
-
-                    // Check if we have existing history data to update
-                    const hasExistingHistory = histories.length > 0;
-                    const historyId = hasExistingHistory ? histories[0].id : null;
-
-                    // Build the data object
-                    const data = {
-                        patient_record_id: recordId,
-                        visit_date: formData.get('visit_date'),
-                        // Dental History
-                        previous_dentist: formData.get('previous_dentist'),
-                        last_dental_visit: formData.get('last_dental_visit'),
-                        treatment_done: formData.get('treatment_done'),
-                        // Medical History
-                        physician_name: formData.get('physician_name'),
-                        physician_specialty: formData.get('physician_specialty'),
-                        physician_office_address: formData.get('physician_office_address'),
-                        physician_contact: formData.get('physician_contact'),
-                        // Health questions
-                        good_health: formData.get('good_health'),
-                        under_treatment: formData.get('under_treatment'),
-                        treatment_condition: formData.get('treatment_condition'),
-                        serious_illness: formData.get('serious_illness'),
-                        illness_details: formData.get('illness_details'),
-                        been_hospitalized: formData.get('been_hospitalized'),
-                        hospitalization_reason: formData.get('hospitalization_reason'),
-                        taking_drugs: formData.get('taking_drugs'),
-                        medications: formData.get('medications'),
-                        tobacco_use: formData.get('tobacco_use'),
-                        alcohol_use: formData.get('alcohol_use'),
-                        recreational_drugs: formData.get('recreational_drugs'),
-                        // Allergies
-                        allergy_anesthesia: formData.get('allergy_anesthesia') ? 1 : 0,
-                        allergy_sulfa: formData.get('allergy_sulfa') ? 1 : 0,
-                        allergy_antibiotics: formData.get('allergy_antibiotics') ? 1 : 0,
-                        allergy_aspirin: formData.get('allergy_aspirin') ? 1 : 0,
-                        allergy_analgesics: formData.get('allergy_analgesics') ? 1 : 0,
-                        allergy_latex: formData.get('allergy_latex') ? 1 : 0,
-                        food_allergy_details: formData.get('food_allergy_details'),
-                        other_allergy_details: formData.get('other_allergy_details'),
-                        // For women
-                        is_pregnant: formData.get('is_pregnant'),
-                        is_nursing: formData.get('is_nursing'),
-                        birth_control: formData.get('birth_control'),
-                        // Procedure details
-                        anesthesia_used: formData.get('anesthesia_used'),
-                        procedure_performed: formData.get('procedure_performed'),
-                        materials_used: formData.get('materials_used'),
-                        complications: formData.get('complications'),
-                        post_operative_instructions: formData.get('post_operative_instructions'),
-                        follow_up_notes: formData.get('follow_up_notes')
-                    };
-
-                    try {
-                        let response;
-                        if (hasExistingHistory && historyId) {
-                            // Update existing history
-                            response = await fetch(`/admin/post-procedural/patient-history/${historyId}`, {
-                                method: 'PUT',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                                },
-                                body: JSON.stringify(data)
-                            });
+            // Display all history records using renderPatientHistoryEditList
+            if (typeof renderPatientHistoryEditList === 'function') {
+                container.innerHTML = renderPatientHistoryEditList(histories, recordId);
                         } else {
-                            // Create new history
-                            response = await fetch('/admin/post-procedural/patient-history', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                                },
-                                body: JSON.stringify(data)
-                            });
-                        }
-
-                        const result = await response.json();
-                        if (result.success) {
-                            showNotification(hasExistingHistory ? 'Patient history updated successfully!' : 'Patient history saved successfully!', 'success');
-                            if (document.activeElement) document.activeElement.blur();
-                            modal.hide();
-                            loadPatientRecords();
+                // Fallback: display history records in a simple list format
+                if (histories.length > 0) {
+                    let html = '<div class="p-3"><h6 class="mb-3"><i class="bi bi-clock-history me-2"></i>Patient History Records</h6>';
+                    histories.forEach((h, index) => {
+                        html += `
+                            <div class="card mb-3" style="border-left: 4px solid #0d6efd;">
+                                <div class="card-header bg-light">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0" style="color: #0a4275;">
+                                            <i class="bi bi-calendar-event me-2"></i>Visit #${index + 1}
+                                            ${h.visit_date ? ` - ${new Date(h.visit_date).toLocaleDateString()}` : ''}
+                                        </h6>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="deletePatientHistory(${h.id})">
+                                            <i class="bi bi-trash"></i> Delete
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <form id="historyForm${h.id}">
+                                        <div class="row g-3">
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-semibold">Previous Dentist</label>
+                                                <input type="text" class="form-control" name="previous_dentist" value="${h.previous_dentist || ''}">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-semibold">Last Dental Visit</label>
+                                                <input type="date" class="form-control" name="last_dental_visit" value="${h.last_dental_visit || ''}">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-semibold">Treatment Done</label>
+                                                <input type="text" class="form-control" name="treatment_done" value="${h.treatment_done || ''}">
+                                            </div>
+                                        </div>
+                                        <div class="mt-3 text-end">
+                                            <button type="button" class="btn btn-success" onclick="savePatientHistory(${h.id}, ${recordId})">
+                                                <i class="bi bi-save me-1"></i>Save Changes
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                    container.innerHTML = html;
                         } else {
-                            showNotification('Failed to save patient history: ' + (result.message || 'Unknown error'), 'error');
+                    container.innerHTML = '<div class="alert alert-info p-4"><p class="mb-0">No patient history records found. Please add a new record using the Patient History Form tab.</p></div>';
                         }
-                    } catch (error) {
-                        console.error('Error saving patient history:', error);
-                        showNotification('Error saving patient history', 'error');
-                    }
-                };
             }
         })
         .catch(() => {
@@ -6900,6 +7085,100 @@ document.addEventListener('DOMContentLoaded', function() {
 
 [data-theme="dark"] .post-procedural-table .text-muted {
     color: var(--dm-text-muted, #94a3b8) !important;
+}
+
+/* Dark Mode - For Minors Section */
+[data-theme="dark"] #minorFormContainer {
+    background: var(--dm-card-bg, #1e293b) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] #minorFormContainer label {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] #minorFormContainer input.form-control {
+    background: var(--dm-input-bg, #0f172a) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] #minorFormContainer input.form-control:focus {
+    background: var(--dm-input-bg, #0f172a) !important;
+    border-color: var(--primary-blue, #2563eb) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] #minorFormContainer input.form-control::placeholder {
+    color: var(--dm-text-muted, #94a3b8) !important;
+}
+
+/* Dark Mode - History Record Cards */
+[data-theme="dark"] .card[style*="border: 2px solid #0d6efd"] {
+    border-color: var(--primary-blue, #2563eb) !important;
+    background: var(--dm-card-bg, #1e293b) !important;
+}
+
+[data-theme="dark"] .card-header[style*="background: linear-gradient(135deg, #e7f1ff"] {
+    background: linear-gradient(135deg, var(--dm-bg-tertiary, #334155) 0%, var(--dm-card-bg, #1e293b) 100%) !important;
+}
+
+[data-theme="dark"] .card-header[style*="background: linear-gradient(135deg, #e7f1ff"] strong {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .card-header[style*="background: linear-gradient(135deg, #e7f1ff"] .btn-primary,
+[data-theme="dark"] .card-header[style*="background: linear-gradient(135deg, #e7f1ff"] .btn-success,
+[data-theme="dark"] .card-header[style*="background: linear-gradient(135deg, #e7f1ff"] .btn-danger {
+    color: white !important;
+}
+
+[data-theme="dark"] .card-body[style*="background: #f8f9fa"] {
+    background: var(--dm-card-bg, #1e293b) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .card-body[style*="background: #f8f9fa"] h6,
+[data-theme="dark"] .card-body[style*="background: #f8f9fa"] strong,
+[data-theme="dark"] .card-body[style*="background: #f8f9fa"] label,
+[data-theme="dark"] .card-body[style*="background: #f8f9fa"] .form-label {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .card-body[style*="background: #f8f9fa"] input,
+[data-theme="dark"] .card-body[style*="background: #f8f9fa"] textarea,
+[data-theme="dark"] .card-body[style*="background: #f8f9fa"] select {
+    background: var(--dm-input-bg, #0f172a) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .card-body[style*="background: #f8f9fa"] input:focus,
+[data-theme="dark"] .card-body[style*="background: #f8f9fa"] textarea:focus,
+[data-theme="dark"] .card-body[style*="background: #f8f9fa"] select:focus {
+    background: var(--dm-input-bg, #0f172a) !important;
+    border-color: var(--primary-blue, #2563eb) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+/* Dark Mode - History Alert */
+[data-theme="dark"] .alert-success[style*="background: linear-gradient(135deg, #d1e7dd"] {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(22, 163, 74, 0.1) 100%) !important;
+    border-color: rgba(34, 197, 94, 0.3) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .alert-success[style*="background: linear-gradient(135deg, #d1e7dd"] strong {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .alert-success[style*="background: linear-gradient(135deg, #d1e7dd"] i {
+    color: #22c55e !important;
+}
+
+/* Dark Mode - Existing History Records Heading */
+[data-theme="dark"] h6[style*="color: #0a4275"] {
+    color: var(--dm-text-primary, #f1f5f9) !important;
 }
 </style>
 @endsection

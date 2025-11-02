@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use App\Models\User;
 use App\Models\UserInfo;
+use Carbon\Carbon;
 
 class ProfileController extends Controller
 {
@@ -38,8 +39,7 @@ class ProfileController extends Controller
             'last_name' => 'required|string|max:255',
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:255',
-            'age' => 'nullable|integer|min:0',
-            'gender' => 'nullable|string|max:10',
+            // Birthday and gender are read-only and come from user management
         ]);
 
         // Update user table
@@ -49,29 +49,44 @@ class ProfileController extends Controller
             'name' => trim($request->first_name . ' ' . $request->middle_name . ' ' . $request->last_name),
         ]);
 
-        // Update or create user_info
-        if ($user->info) {
-            $user->info->update([
-                'first_name' => $request->first_name,
-                'middle_name' => $request->middle_name,
-                'last_name' => $request->last_name,
-                'phone' => $request->phone,
-                'address' => $request->address,
-                'age' => $request->age,
-                'gender' => $request->gender,
-            ]);
-        } else {
-            UserInfo::create([
-                'user_id' => $user->id,
-                'first_name' => $request->first_name,
-                'middle_name' => $request->middle_name,
-                'last_name' => $request->last_name,
-                'phone' => $request->phone,
-                'address' => $request->address,
-                'age' => $request->age,
-                'gender' => $request->gender,
-            ]);
+        // Get existing user info to preserve birthday and gender from user management
+        $existingUserInfo = $user->info;
+
+        // Recalculate age from existing birthday if it exists
+        $age = null;
+        if ($existingUserInfo && $existingUserInfo->birthday) {
+            $birthday = Carbon::parse($existingUserInfo->birthday);
+            $age = $birthday->age;
         }
+
+        // Update or create user_info - preserve birthday and gender from user management
+        $userInfoData = [
+            'first_name' => $request->first_name,
+            'middle_name' => $request->middle_name,
+            'last_name' => $request->last_name,
+            'phone' => $request->phone,
+        ];
+
+        // Preserve birthday and gender from user management (only update age if birthday exists)
+        if ($existingUserInfo) {
+            if ($existingUserInfo->birthday) {
+                $userInfoData['birthday'] = $existingUserInfo->birthday;
+                $userInfoData['age'] = $age;
+            }
+            if ($existingUserInfo->gender) {
+                $userInfoData['gender'] = $existingUserInfo->gender;
+            }
+        }
+
+        // Add address if provided
+        if ($request->filled('address')) {
+            $userInfoData['address'] = $request->address;
+        }
+
+        UserInfo::updateOrCreate(
+            ['user_id' => $user->id],
+            $userInfoData
+        );
 
         return response()->json([
             'success' => true,

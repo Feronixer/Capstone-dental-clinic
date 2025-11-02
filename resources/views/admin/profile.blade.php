@@ -1,4 +1,4 @@
- @extends('layout.admin.app')
+@extends('layout.admin.app')
 @section('content')
 <div class="container-fluid px-4 py-4">
     <!-- Success Message -->
@@ -86,25 +86,33 @@
                             </div>
 
                             <!-- Phone -->
-                            <div class="col-md-6">
+                            <div class="col-md-3">
                                 <label for="phone" class="form-label fw-semibold">Phone Number</label>
                                 <input type="text" class="form-control" id="phone" name="phone" value="{{ $userInfo->phone ?? '' }}" placeholder="09XXXXXXXXX">
+                            </div>
+
+                            <!-- Birthday -->
+                            <div class="col-md-3">
+                                <label for="birthday" class="form-label fw-semibold">Birthday</label>
+                                <input type="date" class="form-control" id="birthday" name="birthday" value="{{ $userInfo->birthday ?? '' }}" readonly style="background: #f5f5f5; cursor: not-allowed;">
                             </div>
 
                             <!-- Age -->
                             <div class="col-md-3">
                                 <label for="age" class="form-label fw-semibold">Age</label>
-                                <input type="number" class="form-control" id="age" name="age" value="{{ $userInfo->age ?? '' }}" min="0">
+                                <input type="number" class="form-control" id="age" name="age" value="{{ $userInfo->age ?? '' }}" min="0" readonly style="background: #f5f5f5; cursor: not-allowed;">
                             </div>
 
                             <!-- Gender -->
                             <div class="col-md-3">
                                 <label for="gender" class="form-label fw-semibold">Gender</label>
-                                <select class="form-select" id="gender" name="gender">
+                                <select class="form-select" id="gender" name="gender" disabled style="background: #f5f5f5; cursor: not-allowed;">
                                     <option value="">Select</option>
                                     <option value="Male" {{ ($userInfo->gender ?? '') === 'Male' ? 'selected' : '' }}>Male</option>
                                     <option value="Female" {{ ($userInfo->gender ?? '') === 'Female' ? 'selected' : '' }}>Female</option>
                                 </select>
+                                <!-- Hidden input to preserve value when disabled -->
+                                <input type="hidden" name="gender" value="{{ $userInfo->gender ?? '' }}">
                             </div>
 
                             <!-- Address -->
@@ -354,6 +362,31 @@ document.addEventListener('DOMContentLoaded', function() {
         toastElement.addEventListener('hidden.bs.toast', () => {
             toastElement.remove();
         });
+    }
+
+    // Calculate age from birthday (read-only, but calculate on load)
+    function calculateAgeFromBirthday() {
+        const birthdayInput = document.getElementById('birthday');
+        const ageInput = document.getElementById('age');
+
+        if (birthdayInput && ageInput && birthdayInput.value) {
+            const birthday = new Date(birthdayInput.value);
+            const today = new Date();
+            let age = today.getFullYear() - birthday.getFullYear();
+            const monthDiff = today.getMonth() - birthday.getMonth();
+
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthday.getDate())) {
+                age--;
+            }
+
+            ageInput.value = age;
+        }
+    }
+
+    // Calculate initial age if birthday exists (birthday is read-only, so no change listener needed)
+    const birthdayInput = document.getElementById('birthday');
+    if (birthdayInput && birthdayInput.value) {
+        calculateAgeFromBirthday();
     }
 });
 </script>

@@ -1,7 +1,7 @@
 <div class="modal fade" id="addUserModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content enhanced-add-user-modal">
-            <form action="/admin/account-management" method="POST">
+            <form id="addUserForm" action="/admin/account-management" method="POST">
                 @csrf
                 <div class="modal-header enhanced-modal-header">
                     <h1 class="modal-title fw-bold" id="addUserModalLabel">
@@ -114,16 +114,43 @@
                                 <div class="form-floating">
                                     <select name="gender"
                                             id="floatingGender"
-                                            class="form-select @error('gender') is-invalid @enderror">
-                                        <option value="" {{ old('gender') === '' ? 'selected' : '' }}>Select Gender</option>
+                                            class="form-select @error('gender') is-invalid @enderror"
+                                            required>
+                                        <option value="" {{ old('gender') === '' ? 'selected' : '' }} class="text-muted small">Select Gender</option>
                                         <option value="Male" {{ old('gender') === 'Male' ? 'selected' : '' }}>Male</option>
                                         <option value="Female" {{ old('gender') === 'Female' ? 'selected' : '' }}>Female</option>
-                                        <option value="Other" {{ old('gender') === 'Other' ? 'selected' : '' }}>Other</option>
                                     </select>
                                     <label for="floatingGender">
-                                        <i class="bi bi-gender-ambiguous me-1"></i>Gender <small class="text-muted">(Optional)</small>
+                                        <i class="bi bi-gender-ambiguous me-1"></i>Gender <span class="text-danger">*</span>
                                     </label>
                                     @error('gender')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-floating">
+                                    <input name="birthday" type="date"
+                                           id="floatingBirthday"
+                                           placeholder="Enter birthday"
+                                           value="{{ old('birthday') }}"
+                                           class="form-control @error('birthday') is-invalid @enderror"
+                                           required>
+                                    <label for="floatingBirthday">
+                                        <i class="bi bi-calendar-event me-1"></i>Birthday <span class="text-danger">*</span>
+                                    </label>
+                                    @error('birthday')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-floating">
+                                    <input type="number"
+                                           id="floatingAge"
+                                           placeholder="Age"
+                                           class="form-control"
+                                           readonly
+                                           style="background-color: #e9ecef; cursor: not-allowed;">
+                                    <label for="floatingAge">
+                                        <i class="bi bi-calendar3 me-1"></i>Age <small class="text-muted">(auto-calculated)</small>
+                                    </label>
                                 </div>
                             </div>
                         </div>
@@ -164,6 +191,7 @@
                                     <input name="password" type="password"
                                            id="floatingPassword"
                                            placeholder="Enter password"
+                                           autocomplete="new-password"
                                            class="form-control @error('password') is-invalid @enderror">
                                     <label for="floatingPassword">
                                         <i class="bi bi-key me-1"></i>Password <span class="text-danger">*</span>
@@ -176,6 +204,7 @@
                                     <input name="confirm_password" type="password"
                                            id="floatingConfirmPassword"
                                            placeholder="Confirm password"
+                                           autocomplete="new-password"
                                            class="form-control @error('confirm_password') is-invalid @enderror">
                                     <label for="floatingConfirmPassword">
                                         <i class="bi bi-key-fill me-1"></i>Confirm Password <span class="text-danger">*</span>
@@ -452,5 +481,17 @@
 
 [data-theme="dark"] .btn-save:hover {
     background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%) !important;
+}
+
+/* Gender select placeholder font size */
+#floatingGender option:first-child,
+#editFloatingGender option:first-child {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+[data-theme="dark"] #floatingGender option:first-child,
+[data-theme="dark"] #editFloatingGender option:first-child {
+    color: #94a3b8;
 }
 </style>

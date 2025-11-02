@@ -598,6 +598,18 @@
 [data-theme="dark"] .form-floating > .form-select:focus ~ label::after {
     background-color: var(--dm-input-bg, #0f172a) !important;
 }
+
+/* Gender select placeholder font size */
+#floatingGender option:first-child,
+#editFloatingGender option:first-child {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+[data-theme="dark"] #floatingGender option:first-child,
+[data-theme="dark"] #editFloatingGender option:first-child {
+    color: #94a3b8;
+}
 </style>
 
 <script>
@@ -674,10 +686,28 @@ $(document).ready(function () {
     });
 
     // Search input typing
-    $(document).on('keyup', '#search-input', function() {
+    $(document).on('keyup', '#search-input', function(e) {
         if (isLoading) return;
-        clearTimeout(debounceTimer);
 
+        // If Enter key is pressed, search immediately
+        if (e.key === 'Enter' || e.keyCode === 13) {
+            e.preventDefault();
+            clearTimeout(debounceTimer);
+
+            $("#loader").show();
+            $("#users-table-body").hide();
+
+            let perPage = $('#per-page-form select[name="per_page"]').val();
+            let role = $('#filter-role').val();
+            let search = $('#search-input').val();
+            let url = "{{ route('staff-account-management') }}?per_page=" + perPage + "&role=" + role + "&search=" + encodeURIComponent(search);
+
+            fetchUsers(url);
+            return;
+        }
+
+        // Otherwise, use debounce for automatic search
+        clearTimeout(debounceTimer);
         $("#loader").show();
         $("#users-table-body").hide();
 
@@ -685,7 +715,7 @@ $(document).ready(function () {
             let perPage = $('#per-page-form select[name="per_page"]').val();
             let role = $('#filter-role').val();
             let search = $('#search-input').val();
-            let url = "{{ route('staff-account-management') }}?per_page=" + perPage + "&role=" + role + "&search=" + search;
+            let url = "{{ route('staff-account-management') }}?per_page=" + perPage + "&role=" + role + "&search=" + encodeURIComponent(search);
 
             fetchUsers(url);
         }, 1500);
@@ -744,6 +774,9 @@ $(document).ready(function () {
                 modal.find('input[name="phone"]').val(data.info.phone);
                 modal.find('select[name="role_id"]').val(data.role_id);
                 modal.find('select[name="gender"]').val(data.info.gender || '');
+                modal.find('input[name="birthday"]').val(data.info.birthday || '');
+                // Calculate and display age
+                calculateAgeFromBirthday('#editFloatingBirthday', '#editFloatingAge', data.info.birthday);
             });
         });
         //change password
@@ -837,6 +870,91 @@ $(document).ready(function () {
     });
 
     // Staff cannot delete users - form handler removed
+
+    // Handle add user form submission with AJAX for better error handling
+    $(document).on('submit', '#addUserForm', function(e) {
+        e.preventDefault();
+
+        let formData = $(this).serialize();
+        let form = $(this);
+
+        // Clear previous errors
+        form.find('.invalid-feedback').text('').hide();
+        form.find('.form-control, .form-select').removeClass('is-invalid');
+
+        $.ajax({
+            url: form.attr('action'),
+            method: 'POST',
+            data: formData,
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function(response) {
+                $('#addUserModal').modal('hide');
+                form[0].reset();
+                showToast('success', 'Patient account added successfully.');
+                fetchUsers("{{ route('staff-account-management') }}");
+            },
+            error: function(xhr) {
+                if (xhr.status === 422) {
+                    let errors = xhr.responseJSON.errors;
+                    form.find('.invalid-feedback').text('').hide();
+                    form.find('.form-control, .form-select').removeClass('is-invalid');
+                    $.each(errors, function(key, value) {
+                        let input = form.find(`[name="${key}"]`);
+                        input.addClass('is-invalid');
+                        input.closest('.form-floating').find('.invalid-feedback')
+                            .text(value[0])
+                            .show();
+                    });
+                } else {
+                    showToast('danger', 'Unexpected error occurred');
+                }
+            }
+        });
+    });
+
+    // Handle Enter key in add user form - using event delegation for dynamic content
+    $(document).on('keydown', '#addUserForm input, #addUserForm select', function(e) {
+        if (e.key === 'Enter' || e.keyCode === 13) {
+            e.preventDefault();
+            $('#addUserForm').trigger('submit');
+        }
+    });
+
+    // Function to calculate age from birthday
+    function calculateAgeFromBirthday(birthdayInputId, ageInputId, birthdayValue) {
+        let birthday = birthdayValue || $(birthdayInputId).val();
+        if (birthday) {
+            const birthDate = new Date(birthday);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            $(ageInputId).val(age);
+        } else {
+            $(ageInputId).val('');
+        }
+    }
+
+    // Calculate age when birthday changes in add modal
+    $(document).on('change', '#floatingBirthday', function() {
+        calculateAgeFromBirthday('#floatingBirthday', '#floatingAge');
+    });
+
+    // Calculate age when birthday changes in edit modal
+    $(document).on('change', '#editFloatingBirthday', function() {
+        calculateAgeFromBirthday('#editFloatingBirthday', '#editFloatingAge');
+    });
+
+    // Calculate initial age in add modal if birthday exists
+    $(document).ready(function() {
+        if ($('#floatingBirthday').val()) {
+            calculateAgeFromBirthday('#floatingBirthday', '#floatingAge');
+        }
+    });
 
     function showToast(type, message) {
         let toast = `

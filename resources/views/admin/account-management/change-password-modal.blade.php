@@ -14,6 +14,7 @@
                         <input name="password" type="password"
                                id="floatingPassword"
                                placeholder="Enter password"
+                               autocomplete="new-password"
                                class="form-control form-control-sm">
                         <label for="floatingPassword">New Password</label>
                         <div class="invalid-feedback"></div>
@@ -24,6 +25,7 @@
                         <input name="confirm_password" type="password"
                                id="floatingConfirmPassword"
                                placeholder="Confirm password"
+                               autocomplete="new-password"
                                class="form-control form-control-sm">
                         <label for="floatingConfirmPassword">Confirm Password</label>
                         <div class="invalid-feedback"></div>

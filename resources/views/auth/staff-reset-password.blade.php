@@ -28,7 +28,7 @@
                             <i class="bi bi-lock-fill"></i>
                         </span>
                         <input type="password" class="form-control @error('password') is-invalid @enderror"
-                               name="password" id="staffNewPassword" placeholder="Enter new password" required>
+                               name="password" id="staffNewPassword" placeholder="Enter new password" autocomplete="new-password" required>
                         <button class="btn btn-outline-secondary" type="button" id="toggleStaffPassword">
                             <i class="bi bi-eye" id="toggleStaffIcon"></i>
                         </button>
@@ -50,7 +50,7 @@
                             <i class="bi bi-lock-fill"></i>
                         </span>
                         <input type="password" class="form-control @error('password_confirmation') is-invalid @enderror"
-                               name="password_confirmation" id="staffPasswordConfirmation" placeholder="Confirm new password" required>
+                               name="password_confirmation" id="staffPasswordConfirmation" placeholder="Confirm new password" autocomplete="new-password" required>
                         <button class="btn btn-outline-secondary" type="button" id="toggleStaffPasswordConfirmation">
                             <i class="bi bi-eye" id="toggleStaffIconConfirmation"></i>
                         </button>
