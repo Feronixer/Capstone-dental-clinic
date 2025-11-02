@@ -1,15 +1,70 @@
 // Patient Calendar JavaScript
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Ensure data is available and is an array (set by blade template)
+    if (!window.patientAppointments) {
+        window.patientAppointments = [];
+    }
+    // Convert to array if it's an object (Laravel collection serialization issue)
+    if (!Array.isArray(window.patientAppointments)) {
+        console.warn('window.patientAppointments is not an array, converting...', typeof window.patientAppointments);
+        window.patientAppointments = Object.values(window.patientAppointments);
+    }
+
+    if (!window.allAppointments) {
+        window.allAppointments = [];
+    }
+    if (!Array.isArray(window.allAppointments)) {
+        window.allAppointments = Object.values(window.allAppointments);
+    }
+
+    if (!window.blockedTimes) {
+        window.blockedTimes = [];
+    }
+    if (!Array.isArray(window.blockedTimes)) {
+        window.blockedTimes = Object.values(window.blockedTimes);
+    }
+
+    // Calendar state variables (accessible to all functions)
     let currentDate = new Date();
     let currentView = 'month';
 
-    // Initialize
-    renderCalendar();
-    initEventListeners();
+    // Wait for data to be ready before initializing
+    function tryInit() {
+        // Check if data is set (window.patientAppointments exists, even if empty array)
+        if (typeof window.patientAppointments !== 'undefined') {
+            // Debug: Log appointments data
+            console.log('Patient appointments loaded:', window.patientAppointments.length, 'appointments');
+            if (window.patientAppointments.length > 0) {
+                console.log('Sample appointment:', window.patientAppointments[0]);
+                console.log('First appointment date:', window.patientAppointments[0].start_datetime);
+                console.log('All appointment dates:', window.patientAppointments.map(function(a) {
+                    return a.start_datetime ? a.start_datetime.split(' ')[0] : 'no date';
+                }));
+            } else {
+                console.warn('No patient appointments found - array is empty');
+            }
+
+            // Initialize calendar
+            renderCalendar();
+            initEventListeners();
+        } else {
+            // Retry after a short delay if data isn't ready
+            setTimeout(tryInit, 100);
+        }
+    }
+
+    // Start initialization
+    tryInit();
 
     // Main Calendar Rendering
     function renderCalendar() {
+        // Ensure data is available
+        if (!window.patientAppointments || !Array.isArray(window.patientAppointments)) {
+            console.error('Cannot render calendar: appointments data not available');
+            return;
+        }
+
         const content = document.getElementById('calendarContent');
         const periodDisplay = document.getElementById('currentPeriodDisplay');
 
@@ -77,34 +132,79 @@ document.addEventListener('DOMContentLoaded', function() {
                     const dayAppointments = getAppointmentsForDate(dateStr);
                     const dayBlockedTimes = getBlockedTimesForDate(dateStr);
 
-                    let appointmentsHtml = '';
-                    dayAppointments.forEach(apt => {
-                        const time = new Date(apt.start_datetime).toLocaleTimeString('en-US', {
-                            hour: 'numeric',
-                            minute: '2-digit',
-                            hour12: true
+                    // Debug logging for days with appointments or first few days
+                    if (dayAppointments.length > 0 || (dayCount <= 5 && window.patientAppointments && window.patientAppointments.length > 0)) {
+                        console.log('Date ' + dateStr + ':', {
+                            foundAppointments: dayAppointments.length,
+                            totalAppointments: window.patientAppointments ? window.patientAppointments.length : 0,
+                            sampleDates: window.patientAppointments && window.patientAppointments.length > 0 ? window.patientAppointments.slice(0, 5).map(function(a) {
+                                return a.start_datetime ? a.start_datetime.split(' ')[0] : 'no date';
+                            }) : []
                         });
-                        // Get proper title - don't show reschedule request text
-                        let title = 'Appointment';
-                        if (apt.service && apt.service.service_name) {
-                            title = apt.service.service_name;
-                        } else if (apt.reason_for_visit && !apt.reason_for_visit.toLowerCase().includes('reschedule')) {
-                            title = apt.reason_for_visit;
-                        }
-                        const status = apt.status ? apt.status.toLowerCase() : 'pending';
-                        const isCompleted = status === 'completed';
-                        const strikethrough = isCompleted ? 'style="text-decoration: line-through; opacity: 0.7;"' : '';
+                    }
 
-                        appointmentsHtml += `
-                            <div class="event-item ${status}" data-appointment-id="${apt.id}" ${strikethrough}>
-                                <div class="event-time">${time}</div>
-                                <div class="event-title">${title}</div>
-                            </div>
-                        `;
+                    let appointmentsHtml = '';
+                    dayAppointments.forEach(function(apt) {
+                        try {
+                            // Parse datetime string manually to avoid timezone issues
+                            // Format: YYYY-MM-DD HH:mm:ss
+                            if (!apt.start_datetime) {
+                                console.error('Appointment missing start_datetime:', apt);
+                                return;
+                            }
+
+                            const [datePart, timePart] = apt.start_datetime.split(' ');
+                            if (!datePart || !timePart) {
+                                console.error('Invalid datetime format:', apt.start_datetime);
+                                return;
+                            }
+
+                            const [aptYear, aptMonth, aptDay] = datePart.split('-').map(Number);
+                            const [hours, minutes] = timePart.split(':').map(Number);
+
+                            if (isNaN(aptYear) || isNaN(aptMonth) || isNaN(aptDay) || isNaN(hours) || isNaN(minutes)) {
+                                console.error('Invalid date/time values:', {aptYear, aptMonth, aptDay, hours, minutes});
+                                return;
+                            }
+
+                            const timeDate = new Date(aptYear, aptMonth - 1, aptDay, hours, minutes);
+
+                            const time = timeDate.toLocaleTimeString('en-US', {
+                                hour: 'numeric',
+                                minute: '2-digit',
+                                hour12: true
+                            });
+                            // Get proper title - don't show reschedule request text
+                            let title = 'Appointment';
+                            if (apt.service && apt.service.service_name) {
+                                title = apt.service.service_name;
+                            } else if (apt.reason_for_visit && !apt.reason_for_visit.toLowerCase().includes('reschedule')) {
+                                title = apt.reason_for_visit;
+                            }
+                            let status = apt.status ? apt.status.toLowerCase() : 'pending';
+                            // Map "missed" to "blocked" for styling consistency
+                            if (status === 'missed') {
+                                status = 'blocked';
+                            }
+                            const isCompleted = status === 'completed';
+                            const isCancelled = status === 'cancelled';
+                            const strikethrough = (isCompleted || isCancelled) ? 'style="text-decoration: line-through; opacity: 0.7;"' : '';
+                            const notes = isCancelled && apt.notes ? apt.notes : '';
+
+                            appointmentsHtml += `
+                                <div class="event-item ${status}" data-appointment-id="${apt.id}" ${strikethrough}>
+                                    <div class="event-time">${time}</div>
+                                    <div class="event-title">${title}</div>
+                                    ${notes ? `<div class="event-notes">${notes}</div>` : ''}
+                                </div>
+                            `;
+                        } catch (error) {
+                            console.error('Error rendering appointment:', apt, error);
+                        }
                     });
 
                     // Add blocked times
-                    dayBlockedTimes.forEach(blocked => {
+                    dayBlockedTimes.forEach(function(blocked) {
                         const startTime = new Date(blocked.start_datetime);
                         const endTime = new Date(blocked.end_datetime);
                         // Check if it's a full day closure (00:00 to 23:59)
@@ -114,11 +214,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         const title = blocked.title || 'Clinic Unavailable';
                         const displayTitle = (title === 'Clinic Closed' || isFullDayClosure) ? 'Clinic Closed' : title;
 
+                        const notes = blocked.notes || '';
                         if (isFullDayClosure) {
                             // Full day closure - don't show time
                             appointmentsHtml += `
                                 <div class="event-item blocked" data-blocked-time-id="${blocked.id}">
                                     <div class="event-title">${displayTitle}</div>
+                                    ${notes ? `<div class="event-notes">${notes}</div>` : ''}
                                 </div>
                             `;
                         } else {
@@ -132,6 +234,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <div class="event-item blocked" data-blocked-time-id="${blocked.id}">
                                     <div class="event-time">${time}</div>
                                     <div class="event-title">${displayTitle}</div>
+                                    ${notes ? `<div class="event-notes">${notes}</div>` : ''}
                                 </div>
                             `;
                         }
@@ -159,7 +262,7 @@ document.addEventListener('DOMContentLoaded', function() {
         addCalendarStyles();
 
         // Add click handlers to appointment items
-        document.querySelectorAll('.event-item').forEach(item => {
+        document.querySelectorAll('.event-item').forEach(function(item) {
             item.addEventListener('click', function(e) {
                 e.stopPropagation();
                 const appointmentId = this.dataset.appointmentId;
@@ -170,19 +273,49 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Get appointments for a specific date
     function getAppointmentsForDate(dateStr) {
-        if (!window.patientAppointments) return [];
+        if (!window.patientAppointments) {
+            console.warn('getAppointmentsForDate: window.patientAppointments is not defined');
+            return [];
+        }
 
-        return window.patientAppointments.filter(apt => {
+        if (!Array.isArray(window.patientAppointments)) {
+            console.error('window.patientAppointments is not an array:', typeof window.patientAppointments);
+            return [];
+        }
+
+        const matched = window.patientAppointments.filter(function(apt) {
+            if (!apt || !apt.start_datetime) {
+                if (apt) {
+                    console.warn('Appointment missing start_datetime:', apt);
+                }
+                return false;
+            }
+
+            // Extract date part from datetime string (format: YYYY-MM-DD HH:mm:ss)
             const aptDate = apt.start_datetime.split(' ')[0];
-            return aptDate === dateStr;
+            const matches = aptDate === dateStr;
+
+            // Debug first few matches for troubleshooting
+            if (matches && window.patientAppointments.length > 0 && window.patientAppointments.indexOf(apt) < 3) {
+                console.log('Matched appointment:', {
+                    appointmentId: apt.id,
+                    dateStr: dateStr,
+                    aptDate: aptDate,
+                    start_datetime: apt.start_datetime
+                });
+            }
+
+            return matches;
         });
+
+        return matched;
     }
 
     // Get blocked times for a specific date
     function getBlockedTimesForDate(dateStr) {
         if (!window.blockedTimes) return [];
 
-        return window.blockedTimes.filter(blocked => {
+        return window.blockedTimes.filter(function(blocked) {
             const blockedDate = blocked.start_datetime.split(' ')[0];
             return blockedDate === dateStr;
         });
@@ -190,11 +323,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Show appointment details in modal
     function showAppointmentDetails(appointmentId) {
-        const appointment = window.patientAppointments.find(apt => apt.id == appointmentId);
+        const appointment = window.patientAppointments.find(function(apt) {
+            return apt.id == appointmentId;
+        });
         if (!appointment) return;
 
-        const startDate = new Date(appointment.start_datetime);
-        const endDate = new Date(appointment.end_datetime);
+        // Parse datetime strings manually to avoid timezone issues
+        const [startDatePart, startTimePart] = appointment.start_datetime.split(' ');
+        const [startYear, startMonth, startDay] = startDatePart.split('-').map(Number);
+        const [startHours, startMinutes] = startTimePart.split(':').map(Number);
+        const startDate = new Date(startYear, startMonth - 1, startDay, startHours, startMinutes);
+
+        const [endDatePart, endTimePart] = appointment.end_datetime.split(' ');
+        const [endYear, endMonth, endDay] = endDatePart.split('-').map(Number);
+        const [endHours, endMinutes] = endTimePart.split(':').map(Number);
+        const endDate = new Date(endYear, endMonth - 1, endDay, endHours, endMinutes);
 
         const dateFormatted = startDate.toLocaleDateString('en-US', {
             weekday: 'long',
@@ -253,6 +396,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 break;
             case 'cancelled':
                 statusBadgeClass = 'bg-danger';
+                break;
+            case 'missed':
+            case 'blocked':
+                statusBadgeClass = 'bg-secondary';
                 break;
             default:
                 statusBadgeClass = 'bg-secondary';
@@ -333,14 +480,18 @@ document.addEventListener('DOMContentLoaded', function() {
         // Store appointment ID for potential actions
         document.getElementById('appointmentDetailsModal').dataset.appointmentId = appointmentId;
 
-        // Disable reschedule button if appointment is completed or cancelled
+        // Disable reschedule button if appointment is completed, cancelled, or missed
         const rescheduleBtn = document.getElementById('modalRescheduleBtn');
         if (rescheduleBtn) {
-            if (statusClass === 'completed' || statusClass === 'cancelled') {
+            if (statusClass === 'completed' || statusClass === 'cancelled' || statusClass === 'missed' || statusClass === 'blocked') {
                 rescheduleBtn.disabled = true;
                 rescheduleBtn.style.opacity = '0.5';
                 rescheduleBtn.style.cursor = 'not-allowed';
-                rescheduleBtn.title = `Cannot reschedule ${statusClass} appointments`;
+                if (statusClass === 'missed' || statusClass === 'blocked') {
+                    rescheduleBtn.title = 'Cannot reschedule missed appointments. Please book a new appointment instead.';
+                } else {
+                    rescheduleBtn.title = `Cannot reschedule ${statusClass} appointments`;
+                }
             } else {
                 rescheduleBtn.disabled = false;
                 rescheduleBtn.style.opacity = '1';
@@ -553,8 +704,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 const dateStr = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
 
                 const dayAppointments = getAppointmentsForDate(dateStr).filter(apt => {
-                    const aptHour = new Date(apt.start_datetime).getHours();
-                    return aptHour === hour;
+                    // Parse datetime string manually to avoid timezone issues
+                    const [datePart, timePart] = apt.start_datetime.split(' ');
+                    const [aptHours] = timePart.split(':').map(Number);
+                    return aptHours === hour;
                 });
 
                 // Get all blocked times for the day (not filtered by hour yet)
@@ -562,20 +715,33 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 let cellContent = '';
                 dayAppointments.forEach(apt => {
-                    const time = new Date(apt.start_datetime).toLocaleTimeString('en-US', {
+                    // Parse datetime string manually to avoid timezone issues
+                    const [datePart, timePart] = apt.start_datetime.split(' ');
+                    const [aptYear, aptMonth, aptDay] = datePart.split('-').map(Number);
+                    const [hours, minutes] = timePart.split(':').map(Number);
+                    const timeDate = new Date(aptYear, aptMonth - 1, aptDay, hours, minutes);
+
+                    const time = timeDate.toLocaleTimeString('en-US', {
                         hour: 'numeric',
                         minute: '2-digit',
                         hour12: true
                     });
-                    const title = apt.service ? apt.service.service_name : (apt.reason_for_visit || 'Appointment');
-                    const status = apt.status ? apt.status.toLowerCase() : 'pending';
+                    const title = apt.service && apt.service.service_name ? apt.service.service_name : (apt.reason_for_visit || 'Appointment');
+                    let status = apt.status ? apt.status.toLowerCase() : 'pending';
+                    // Map "missed" to "blocked" for styling consistency
+                    if (status === 'missed') {
+                        status = 'blocked';
+                    }
                     const isCompleted = status === 'completed';
-                    const strikethrough = isCompleted ? 'style="text-decoration: line-through; opacity: 0.7;"' : '';
+                    const isCancelled = status === 'cancelled';
+                    const strikethrough = (isCompleted || isCancelled) ? 'style="text-decoration: line-through; opacity: 0.7;"' : '';
+                    const notes = isCancelled && apt.notes ? apt.notes : '';
 
                     cellContent += `
                         <div class="week-appointment ${status}" data-appointment-id="${apt.id}" ${strikethrough}>
                             <div class="week-apt-time">${time}</div>
                             <div class="week-apt-title">${title}</div>
+                            ${notes ? `<div class="week-apt-notes">${notes}</div>` : ''}
                         </div>
                     `;
                 });
@@ -591,11 +757,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     const title = blocked.title || 'Clinic Unavailable';
                     const displayTitle = (title === 'Clinic Closed' || isFullDayClosure) ? 'Clinic Closed' : title;
 
+                    const notes = blocked.notes || '';
                     if (isFullDayClosure && hour === 8) {
                         // Full day closure - show only at first hour (8 AM) without time
                         cellContent += `
                             <div class="week-appointment blocked full-day-closure" data-blocked-time-id="${blocked.id}">
                                 <div class="week-apt-title">${displayTitle}</div>
+                                ${notes ? `<div class="week-apt-notes">${notes}</div>` : ''}
                             </div>
                         `;
                     } else if (!isFullDayClosure) {
@@ -611,6 +779,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <div class="week-appointment blocked" data-blocked-time-id="${blocked.id}">
                                     <div class="week-apt-time">${time}</div>
                                     <div class="week-apt-title">${displayTitle}</div>
+                                    ${notes ? `<div class="week-apt-notes">${notes}</div>` : ''}
                                 </div>
                             `;
                         }
@@ -661,8 +830,10 @@ document.addEventListener('DOMContentLoaded', function() {
         html += '<div class="day-view-body">';
         hours.forEach(hour => {
             const hourAppointments = dayAppointments.filter(apt => {
-                const aptHour = new Date(apt.start_datetime).getHours();
-                return aptHour === hour;
+                // Parse datetime string manually to avoid timezone issues
+                const [datePart, timePart] = apt.start_datetime.split(' ');
+                const [aptHours] = timePart.split(':').map(Number);
+                return aptHours === hour;
             });
 
             // Get blocked times for this hour (including full-day closures that should show at 8 AM)
@@ -696,20 +867,37 @@ document.addEventListener('DOMContentLoaded', function() {
             if (hourAppointments.length > 0) {
                 hasItems = true;
                 hourAppointments.forEach(apt => {
-                    const startTime = new Date(apt.start_datetime).toLocaleTimeString('en-US', {
+                    // Parse datetime strings manually to avoid timezone issues
+                    const [startDatePart, startTimePart] = apt.start_datetime.split(' ');
+                    const [startYear, startMonth, startDay] = startDatePart.split('-').map(Number);
+                    const [startHours, startMinutes] = startTimePart.split(':').map(Number);
+                    const startDateObj = new Date(startYear, startMonth - 1, startDay, startHours, startMinutes);
+
+                    const [endDatePart, endTimePart] = apt.end_datetime.split(' ');
+                    const [endYear, endMonth, endDay] = endDatePart.split('-').map(Number);
+                    const [endHours, endMinutes] = endTimePart.split(':').map(Number);
+                    const endDateObj = new Date(endYear, endMonth - 1, endDay, endHours, endMinutes);
+
+                    const startTime = startDateObj.toLocaleTimeString('en-US', {
                         hour: 'numeric',
                         minute: '2-digit',
                         hour12: true
                     });
-                    const endTime = new Date(apt.end_datetime).toLocaleTimeString('en-US', {
+                    const endTime = endDateObj.toLocaleTimeString('en-US', {
                         hour: 'numeric',
                         minute: '2-digit',
                         hour12: true
                     });
-                    const title = apt.service ? apt.service.service_name : (apt.reason_for_visit || 'Appointment');
-                    const status = apt.status ? apt.status.toLowerCase() : 'pending';
+                    const title = apt.service && apt.service.service_name ? apt.service.service_name : (apt.reason_for_visit || 'Appointment');
+                    let status = apt.status ? apt.status.toLowerCase() : 'pending';
+                    // Map "missed" to "blocked" for styling consistency
+                    if (status === 'missed') {
+                        status = 'blocked';
+                    }
                     const isCompleted = status === 'completed';
-                    const strikethrough = isCompleted ? 'style="text-decoration: line-through; opacity: 0.7;"' : '';
+                    const isCancelled = status === 'cancelled';
+                    const strikethrough = (isCompleted || isCancelled) ? 'style="text-decoration: line-through; opacity: 0.7;"' : '';
+                    const notes = isCancelled && apt.notes ? apt.notes : '';
 
                     html += `
                         <div class="day-appointment ${status}" data-appointment-id="${apt.id}" ${strikethrough}>
@@ -720,7 +908,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <span class="day-apt-badge ${status}">${apt.status}</span>
                             </div>
                             <div class="day-apt-title">${title}</div>
-                            ${apt.notes ? `<div class="day-apt-notes"><i class="bi bi-sticky me-1"></i>${apt.notes}</div>` : ''}
+                            ${notes ? `<div class="day-apt-notes"><i class="bi bi-sticky me-1"></i>${notes}</div>` : ''}
                         </div>
                     `;
                 });

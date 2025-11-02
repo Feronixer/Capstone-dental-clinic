@@ -222,33 +222,32 @@
                                             @endphp
                                             <span class="badge bg-{{ $statusClass }}">{{ $appointment->status }}</span>
                                         </td>
+                                         <td>
+                                             @if($isRescheduled)
+                                                 <span class="badge bg-info">
+                                                     <i class="bi bi-arrow-repeat me-1"></i>Yes
+                                                 </span>
+                                             @else
+                                                 <span class="badge bg-secondary bg-opacity-10 text-secondary">
+                                                     <i class="bi bi-x-circle me-1"></i>No
+                                                 </span>
+                                             @endif
+                                         </td>
+                                         <td>
+                                             @if($isEmergency)
+                                                 <span class="badge bg-danger">
+                                                     <i class="bi bi-exclamation-triangle me-1"></i>Yes
+                                                 </span>
+                                             @else
+                                                 <span class="badge bg-secondary bg-opacity-10 text-secondary">
+                                                     <i class="bi bi-x-circle me-1"></i>No
+                                                 </span>
+                                             @endif
+                                         </td>
                                         <td>
-                                            @if($isRescheduled)
-                                                <span class="badge bg-info">
-                                                    <i class="bi bi-arrow-repeat me-1"></i>Yes
-                                                </span>
-                                            @else
-                                                <span class="text-muted">No</span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if($isEmergency)
-                                                <span class="badge bg-danger">
-                                                    <i class="bi bi-exclamation-triangle me-1"></i>Yes
-                                                </span>
-                                            @else
-                                                <span class="text-muted">No</span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            <div class="d-flex gap-2">
                                             <button class="btn btn-sm btn-primary view-appointment" data-appointment-id="{{ $appointment->id }}" title="View Details">
                                                 <i class="bi bi-eye"></i>
                                             </button>
-                                                <button class="btn btn-sm btn-danger delete-appointment" data-appointment-id="{{ $appointment->id }}" title="Delete">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </div>
                                         </td>
                                     </tr>
                                 @empty
@@ -306,44 +305,6 @@
     </div>
 </div>
 
-<!-- Delete Appointment Confirmation Modal -->
-<div class="modal fade" id="deleteAppointmentModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header border-0 pb-0" style="background: linear-gradient(135deg, #dc2626, #b91c1c);">
-                <h5 class="modal-title text-white">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Delete
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body text-center py-4">
-                <div class="mb-4">
-                    <div class="mx-auto mb-3" style="width: 80px; height: 80px; background: linear-gradient(135deg, #fee2e2, #fecaca); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                        <i class="bi bi-trash text-danger" style="font-size: 2.5rem;"></i>
-                    </div>
-                    <h4 class="fw-bold text-dark mb-2">Are you sure you want to delete this?</h4>
-                    <p class="text-muted mb-0">This action cannot be undone. The patient will be notified of the cancellation.</p>
-                </div>
-                <div class="bg-light rounded p-3 mb-3">
-                    <div class="d-flex flex-column align-items-center gap-2">
-                        <div id="deleteAppointmentPatient" class="fw-bold">-</div>
-                        <div id="deleteAppointmentDateTime" class="text-muted small">-</div>
-                        <div id="deleteAppointmentService" class="text-muted small">-</div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer border-0 pt-0 bg-light">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="bi bi-x-circle me-1"></i>Cancel
-                </button>
-                <button type="button" class="btn btn-danger" id="confirm-delete-appointment-btn">
-                    <i class="bi bi-trash me-1"></i>Delete
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     renderActiveFilters();
@@ -354,20 +315,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const appointmentId = this.getAttribute('data-appointment-id');
             fetchAppointmentDetails(appointmentId);
         });
-    });
-
-    // Delete appointment handlers
-    document.querySelectorAll('.delete-appointment').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const appointmentId = this.getAttribute('data-appointment-id');
-            showDeleteConfirmation(appointmentId);
-        });
-    });
-
-    // Confirm delete appointment
-    document.getElementById('confirm-delete-appointment-btn').addEventListener('click', function() {
-        const appointmentId = this.getAttribute('data-appointment-id');
-        deleteAppointment(appointmentId);
     });
 
     function fetchAppointmentDetails(appointmentId) {
@@ -594,104 +541,6 @@ function initializeSorting() {
     });
 }
 
-function showDeleteConfirmation(appointmentId) {
-    // Fetch appointment details to show in confirmation modal
-    fetch(`/admin/appointment/${appointmentId}`, {
-        method: 'GET',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(appointment => {
-        // Populate confirmation modal with appointment details
-        let patientName = 'Unknown Patient';
-        if (appointment.patient && appointment.patient.info) {
-            const info = appointment.patient.info;
-            patientName = `${info.first_name} ${info.last_name}`.trim();
-        } else if (appointment.patient && appointment.patient.name) {
-            patientName = appointment.patient.name;
-        }
-
-        let serviceName = 'No Service';
-        if (appointment.service && appointment.service.service_name) {
-            serviceName = appointment.service.service_name;
-        } else if (appointment.reason_for_visit) {
-            serviceName = appointment.reason_for_visit;
-        }
-
-        const startDateTime = new Date(appointment.start_datetime);
-        const formattedDate = startDateTime.toLocaleDateString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-        const formattedTime = startDateTime.toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true
-        });
-
-        document.getElementById('deleteAppointmentPatient').textContent = patientName;
-        document.getElementById('deleteAppointmentDateTime').textContent = `${formattedDate} at ${formattedTime}`;
-        document.getElementById('deleteAppointmentService').textContent = serviceName;
-
-        // Store appointment ID for deletion
-        document.getElementById('confirm-delete-appointment-btn').setAttribute('data-appointment-id', appointmentId);
-
-        // Show modal
-        new bootstrap.Modal(document.getElementById('deleteAppointmentModal')).show();
-    })
-    .catch(error => {
-        console.error('Error fetching appointment:', error);
-        alert('Error loading appointment details');
-    });
-}
-
-function deleteAppointment(appointmentId) {
-    const confirmBtn = document.getElementById('confirm-delete-appointment-btn');
-    const originalText = confirmBtn.innerHTML;
-
-    // Disable button and show loading
-    confirmBtn.disabled = true;
-    confirmBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Deleting...';
-
-    fetch(`/admin/appointment/${appointmentId}/delete`, {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Close modal
-            const modal = bootstrap.Modal.getInstance(document.getElementById('deleteAppointmentModal'));
-            modal.hide();
-
-            // Show success message
-            alert('Appointment deleted successfully. The page will refresh.');
-
-            // Reload the page to reflect changes
-            window.location.reload();
-        } else {
-            alert(data.message || 'Error deleting appointment');
-            confirmBtn.disabled = false;
-            confirmBtn.innerHTML = originalText;
-        }
-    })
-    .catch(error => {
-        console.error('Error deleting appointment:', error);
-        alert('Network error. Please try again.');
-        confirmBtn.disabled = false;
-        confirmBtn.innerHTML = originalText;
-    });
-}
 </script>
 <style>
 /* Filter section - Clean white card style */

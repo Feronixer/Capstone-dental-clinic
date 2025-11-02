@@ -38,6 +38,18 @@
                         <div class="invalid-feedback"></div>
                     </div>
 
+                    {{-- Gender --}}
+                    <div class="form-floating mb-3">
+                        <select name="gender" class="form-select form-select-sm" id="floatingGender">
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <label for="floatingGender">Gender (Optional)</label>
+                        <div class="invalid-feedback"></div>
+                    </div>
+
                     {{-- Email --}}
                     <div class="form-floating mb-3">
                         <input name="email" type="email" class="form-control form-control-sm" id="floatingEmail" placeholder="name@example.com">

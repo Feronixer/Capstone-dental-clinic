@@ -620,6 +620,12 @@
     color: white;
 }
 
+.status-badge.missed,
+.status-badge.blocked {
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    color: white;
+}
+
 .status-badge.history {
     opacity: 0.8;
 }

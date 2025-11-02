@@ -99,10 +99,10 @@ class AppointmentController extends Controller
         $startDate = Carbon::create($currentYear, $currentMonth, 1)->startOfMonth()->subMonth();
         $endDate = Carbon::create($currentYear, $currentMonth, 1)->endOfMonth()->addMonth();
 
-        // Get only regular appointments (exclude blocked and cancelled status)
+        // Get appointments (exclude blocked status only, include cancelled)
         // Fetch appointments for current month + previous and next months to cover week/day views
         $appointments = Appointment::whereBetween('start_datetime', [$startDate, $endDate])
-            ->whereNotIn('status', ['blocked', 'Cancelled'])
+            ->whereNotIn('status', ['blocked'])
             ->with(['patient.info', 'service'])
             ->get()
             ->map(function($appointment) {
@@ -110,6 +110,8 @@ class AppointmentController extends Controller
                 $data = $appointment->toArray();
                 $data['start_datetime'] = $appointment->start_datetime->format('Y-m-d H:i:s');
                 $data['end_datetime'] = $appointment->end_datetime->format('Y-m-d H:i:s');
+                // Ensure status is explicitly set (default to 'Pending' if null)
+                $data['status'] = $appointment->status ?? 'Pending';
                 return $data;
             });
 
@@ -272,13 +274,15 @@ class AppointmentController extends Controller
                 ], 422);
             }
 
-            // Check for overlaps with other appointments
+            // Check for overlaps with other appointments (exclude cancelled appointments)
             $overlappingAppointment = Appointment::where(function($query) use ($startDateTime, $endDateTime) {
                 $query->where(function($q) use ($startDateTime, $endDateTime) {
                     // New appointment starts before existing ends AND new appointment ends after existing starts
                     $q->where('start_datetime', '<', $endDateTime)
                       ->where('end_datetime', '>', $startDateTime);
-                });
+                })
+                // Exclude cancelled appointments - they don't block time slots
+                ->where('status', '!=', 'Cancelled');
             })->first();
 
             if ($overlappingAppointment) {
@@ -293,6 +297,11 @@ class AppointmentController extends Controller
 
             $appointmentData = $request->all();
             $appointmentData['end_datetime'] = $endDateTime;
+
+            // Ensure status has a default value if not provided
+            if (!isset($appointmentData['status']) || empty($appointmentData['status'])) {
+                $appointmentData['status'] = 'Pending';
+            }
 
             \Log::info('Appointment data to create:', $appointmentData);
 
@@ -454,12 +463,15 @@ class AppointmentController extends Controller
                 return redirect()->back()->withErrors(['start_datetime' => $message]);
             }
 
-            // Check for overlaps with other appointments (excluding current one)
+            // Check for overlaps with other appointments (excluding current one and cancelled appointments)
             $overlappingAppointment = Appointment::where('id', '!=', $id)
                 ->where(function($query) use ($startDateTime, $endDateTime) {
                     $query->where('start_datetime', '<', $endDateTime)
                           ->where('end_datetime', '>', $startDateTime);
-                })->first();
+                })
+                // Exclude cancelled appointments - they don't block time slots
+                ->where('status', '!=', 'Cancelled')
+                ->first();
 
             if ($overlappingAppointment) {
                 if ($request->ajax() || $request->wantsJson() || $request->header('Accept') === 'application/json') {
@@ -555,9 +567,9 @@ class AppointmentController extends Controller
      */
     public function destroy(string $id)
     {
-        // Only allow admins (role_id === 1) to delete appointments
+        // Only allow admins (role_id === 1) to cancel appointments
         if (auth()->user()->role_id !== 1) {
-            \Log::warning('Unauthorized delete attempt by staff user', [
+            \Log::warning('Unauthorized cancel attempt by staff user', [
                 'user_id' => auth()->id(),
                 'appointment_id' => $id
             ]);
@@ -565,20 +577,45 @@ class AppointmentController extends Controller
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Unauthorized. Only administrators can delete appointments.'
+                    'message' => 'Unauthorized. Only administrators can cancel appointments.'
                 ], 403);
             }
 
-            return redirect()->route('admin-appointment')->with('error', 'Unauthorized. Only administrators can delete appointments.');
+            return redirect()->route('admin-appointment')->with('error', 'Unauthorized. Only administrators can cancel appointments.');
         }
 
         try {
             $appointment = Appointment::findOrFail($id);
-            \Log::info('Found appointment:', ['appointment' => $appointment]);
 
-            // Send cancellation email before deleting
+            // Check if appointment is already cancelled
+            if ($appointment->status === 'Cancelled') {
+                if (request()->ajax() || request()->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => 'Appointment is already cancelled.']);
+                }
+                return redirect()->route('admin-appointment')->with('error', 'Appointment is already cancelled.');
+            }
+
+            // Prevent cancelling confirmed appointments
+            if ($appointment->status === 'Confirmed') {
+                if (request()->ajax() || request()->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => 'Cannot cancel confirmed appointments.']);
+                }
+                return redirect()->route('admin-appointment')->with('error', 'Cannot cancel confirmed appointments.');
+            }
+
+            $oldStatus = $appointment->status;
+            \Log::info('Cancelling appointment:', ['appointment_id' => $appointment->id, 'old_status' => $oldStatus]);
+
+            // Update status to Cancelled instead of deleting
+            $appointment->update(['status' => 'Cancelled']);
+
+            // Reload relationships for email/notification
+            $appointment->load(['patient.info', 'service']);
+
+            // Send cancellation email
             try {
-                MailService::sendAppointmentEmail('cancellation', $appointment->load(['patient.info', 'service']));
+                MailService::sendAppointmentEmail('cancellation', $appointment);
+                \Log::info("Cancellation email sent for appointment {$appointment->id}");
             } catch (\Exception $e) {
                 \Log::error('Failed to send cancellation email:', ['error' => $e->getMessage()]);
             }
@@ -586,26 +623,26 @@ class AppointmentController extends Controller
             // Send cancellation notification
             try {
                 NotificationService::appointmentCancelled($appointment);
+                \Log::info("Cancellation notification sent for appointment {$appointment->id}");
             } catch (\Exception $e) {
                 \Log::error('Failed to send cancellation notification:', ['error' => $e->getMessage()]);
             }
 
-            $appointment->delete();
-            \Log::info('Appointment deleted successfully');
+            \Log::info('Appointment cancelled successfully', ['appointment_id' => $appointment->id, 'old_status' => $oldStatus]);
 
             if (request()->ajax() || request()->wantsJson()) {
-                return response()->json(['success' => true, 'message' => 'Appointment deleted successfully']);
+                return response()->json(['success' => true, 'message' => 'Appointment cancelled successfully']);
             }
 
-            return redirect()->route('admin-appointment')->with('success', 'Appointment deleted successfully.');
+            return redirect()->route('admin-appointment')->with('success', 'Appointment cancelled successfully.');
         } catch (\Exception $e) {
-            \Log::error('Error deleting appointment:', ['error' => $e->getMessage()]);
+            \Log::error('Error cancelling appointment:', ['error' => $e->getMessage()]);
 
             if (request()->ajax() || request()->wantsJson()) {
-                return response()->json(['success' => false, 'message' => 'Error deleting appointment: ' . $e->getMessage()], 500);
+                return response()->json(['success' => false, 'message' => 'Error cancelling appointment: ' . $e->getMessage()], 500);
             }
 
-            return redirect()->route('admin-appointment')->with('error', 'Error deleting appointment.');
+            return redirect()->route('admin-appointment')->with('error', 'Error cancelling appointment.');
         }
     }
 
@@ -628,7 +665,7 @@ class AppointmentController extends Controller
             // Validate status transitions
             $validTransitions = [
                 'Pending' => ['Confirmed', 'Cancelled'],
-                'Confirmed' => ['Completed'],
+                'Confirmed' => ['Completed'], // Confirmed appointments can only be completed, not cancelled
                 'Completed' => [], // Completed appointments cannot change status
                 'Cancelled' => [], // Cancelled appointments cannot change status
                 'Missed' => [] // Missed appointments cannot change status
@@ -798,6 +835,7 @@ class AppointmentController extends Controller
      */
     public function table(Request $request)
     {
+        // Include all appointment statuses except 'blocked' (this includes Cancelled, Pending, Confirmed, Completed, Missed)
         $query = Appointment::with(['patient.info', 'service'])
             ->whereNotIn('status', ['blocked']);
 
@@ -926,7 +964,7 @@ class AppointmentController extends Controller
             ->orderBy('month', 'desc')
             ->get()
             ->map(function($item) {
-                $monthName = \Carbon\Carbon::create($item->year, $item->month, 1)->format('F Y');
+                $monthName = Carbon::create($item->year, $item->month, 1)->format('F Y');
                 return [
                     'value' => $item->month . '-' . $item->year,
                     'label' => $monthName

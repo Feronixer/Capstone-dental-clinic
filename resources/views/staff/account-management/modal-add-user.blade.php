@@ -110,6 +110,22 @@
                                     @error('last_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
                             </div>
+                            <div class="col-md-4">
+                                <div class="form-floating">
+                                    <select name="gender"
+                                            id="floatingGender"
+                                            class="form-select @error('gender') is-invalid @enderror">
+                                        <option value="" {{ old('gender') === '' ? 'selected' : '' }}>Select Gender</option>
+                                        <option value="Male" {{ old('gender') === 'Male' ? 'selected' : '' }}>Male</option>
+                                        <option value="Female" {{ old('gender') === 'Female' ? 'selected' : '' }}>Female</option>
+                                        <option value="Other" {{ old('gender') === 'Other' ? 'selected' : '' }}>Other</option>
+                                    </select>
+                                    <label for="floatingGender">
+                                        <i class="bi bi-gender-ambiguous me-1"></i>Gender <small class="text-muted">(Optional)</small>
+                                    </label>
+                                    @error('gender')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -335,23 +351,23 @@
     .enhanced-add-user-modal .modal-dialog {
         margin: 0.5rem;
     }
-    
+
     .enhanced-modal-body {
         padding: 1rem;
     }
-    
+
     .form-section {
         padding: 1rem;
     }
-    
+
     .row.g-3 > * {
         margin-bottom: 0.75rem;
     }
-    
+
     .enhanced-modal-footer {
         flex-direction: column;
     }
-    
+
     .enhanced-modal-footer .btn {
         width: 100%;
     }

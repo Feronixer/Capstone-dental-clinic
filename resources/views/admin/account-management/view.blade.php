@@ -31,7 +31,7 @@
                                     </select>
                                 </form>
                             </div>
-                                
+
                                 <!-- Right: Filter and Search -->
                                 <div class="col-md-6 col-lg-9">
                                     <div class="row g-3">
@@ -49,16 +49,16 @@
                                         @endforeach
                                     </select>
                                 </div>
-                                        
+
                                         <!-- Search -->
                                         <div class="col-md-6">
                                             <label class="form-label fw-semibold small mb-1">
                                                 <i class="bi bi-search me-1 text-primary"></i>Search
                                             </label>
                                             <div class="search-bar-wrapper position-relative">
-                                                <input type="text" id="search-input" name="search" 
-                                                       class="form-control form-control-sm ps-5" 
-                                                       placeholder="Search by name, email, username..." 
+                                                <input type="text" id="search-input" name="search"
+                                                       class="form-control form-control-sm ps-5"
+                                                       placeholder="Search by name, email, username..."
                                                        value="{{ request('search') }}">
                                                 <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
                                             </div>
@@ -76,6 +76,7 @@
                                         <x-table.th column="username" label="Username" />
                                         <x-table.th column="name" label="Name" />
                                         <x-table.th column="email" label="Email" />
+                                        <th class="text-center">Gender</th>
                                         <x-table.th column="role" label="Role" />
                                         <x-table.th column="created_at" label="Created At" />
                                         <th class="text-center">Actions</th>
@@ -96,7 +97,7 @@
                                 </tr>
                             </table>
                         </div>
-                        
+
                         <!-- Enhanced Pagination Section -->
                         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mt-4 pt-3 border-top" id="users-pagination">
                             <button class="btn btn-primary btn-enhanced-add" data-bs-toggle="modal" data-bs-target="#addUserModal">
@@ -357,30 +358,30 @@
         width: 100% !important;
         flex: 0 0 100% !important;
     }
-    
+
     .enhanced-table-container {
         overflow-x: auto;
     }
-    
+
     .table-body-enhanced {
         font-size: 0.85rem;
     }
-    
+
     .table-body-enhanced td {
         padding: 0.75rem 0.5rem;
         white-space: nowrap;
     }
-    
+
     .btn-enhanced-add {
         width: 100%;
         margin-bottom: 1rem;
     }
-    
+
     #users-pagination {
         flex-direction: column;
         align-items: stretch !important;
     }
-    
+
     #users-pagination .pagination {
         justify-content: center;
         flex-wrap: wrap;
@@ -742,6 +743,7 @@ $(document).ready(function () {
                 modal.find('input[name="email"]').val(data.email);
                 modal.find('input[name="phone"]').val(data.info.phone);
                 modal.find('select[name="role_id"]').val(data.role_id);
+                modal.find('select[name="gender"]').val(data.info.gender || '');
             });
         });
         //change password

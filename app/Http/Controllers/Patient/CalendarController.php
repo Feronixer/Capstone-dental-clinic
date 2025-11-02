@@ -19,24 +19,77 @@ class CalendarController extends Controller
      */
     public function index()
     {
-        // Get the currently authenticated patient's appointments (exclude cancelled)
-        $appointments = Appointment::where('patient_id', auth()->id())
-            ->where('status', '!=', 'Cancelled')
+        // Get the currently authenticated patient's appointments (include cancelled)
+        // Explicitly handle NULL statuses - include all statuses including Cancelled
+        $patientId = auth()->id();
+
+        // Debug: Log patient ID
+        \Log::info('Patient Calendar: Fetching appointments', [
+            'patient_id' => $patientId,
+            'user_id' => auth()->id()
+        ]);
+
+        $appointments = Appointment::where('patient_id', $patientId)
             ->with(['service'])
             ->orderBy('start_datetime', 'asc')
-            ->get()
-            ->map(function($appointment) {
-                // Format dates as 'Y-m-d H:i:s' string without timezone to avoid JS conversion
-                $data = $appointment->toArray();
-                $data['start_datetime'] = $appointment->start_datetime->format('Y-m-d H:i:s');
-                $data['end_datetime'] = $appointment->end_datetime->format('Y-m-d H:i:s');
+            ->get();
+
+        // Debug: Log raw appointment count
+        \Log::info('Patient Calendar: Raw appointments fetched', [
+            'patient_id' => $patientId,
+            'count' => $appointments->count()
+        ]);
+
+        $appointments = $appointments->map(function($appointment) {
+                // Build data array manually to ensure proper formatting
+                $data = [
+                    'id' => $appointment->id,
+                    'patient_id' => $appointment->patient_id,
+                    'service_id' => $appointment->service_id,
+                    'duration_minutes' => $appointment->duration_minutes,
+                    'status' => $appointment->status ?? 'Pending',
+                    'notes' => $appointment->notes,
+                    'reason_for_visit' => $appointment->reason_for_visit,
+                    'is_new_patient' => $appointment->is_new_patient,
+                    'rescheduled_at' => $appointment->rescheduled_at ? $appointment->rescheduled_at->format('Y-m-d H:i:s') : null,
+                    'original_datetime' => $appointment->original_datetime ? $appointment->original_datetime->format('Y-m-d H:i:s') : null,
+                    'start_datetime' => $appointment->start_datetime->format('Y-m-d H:i:s'),
+                    'end_datetime' => $appointment->end_datetime->format('Y-m-d H:i:s'),
+                    'created_at' => $appointment->created_at->format('Y-m-d H:i:s'),
+                    'updated_at' => $appointment->updated_at->format('Y-m-d H:i:s'),
+                ];
+
+                // Include service relationship if it exists
+                if ($appointment->relationLoaded('service') && $appointment->service) {
+                    $data['service'] = [
+                        'id' => $appointment->service->id,
+                        'service_name' => $appointment->service->service_name,
+                        'default_duration_minutes' => $appointment->service->default_duration_minutes,
+                    ];
+                } else {
+                    $data['service'] = null;
+                }
+
                 return $data;
-            });
+            })
+            ->values() // Reset keys to ensure numeric indexing
+            ->toArray(); // Convert collection to array for proper JSON encoding
+
+        // Debug: Log final appointment count and sample dates
+        \Log::info('Patient Calendar: Mapped appointments', [
+            'patient_id' => $patientId,
+            'count' => count($appointments),
+            'sample_dates' => array_slice(array_column($appointments, 'start_datetime'), 0, 3),
+            'is_array' => is_array($appointments)
+        ]);
 
         // Get upcoming appointments (future appointments only)
         $upcomingAppointments = Appointment::where('patient_id', auth()->id())
             ->where('start_datetime', '>=', Carbon::now())
-            ->whereIn('status', ['Pending', 'Confirmed'])
+            ->where(function($query) {
+                $query->whereNull('status')
+                      ->orWhereIn('status', ['Pending', 'Confirmed']);
+            })
             ->with(['service'])
             ->orderBy('start_datetime', 'asc')
             ->limit(5)
@@ -67,7 +120,9 @@ class CalendarController extends Controller
                     'start_datetime' => $appointment->start_datetime->format('Y-m-d H:i:s'),
                     'end_datetime' => $appointment->end_datetime->format('Y-m-d H:i:s'),
                 ];
-            });
+            })
+            ->values()
+            ->toArray();
 
         // Get blocked times for conflict checking and display
         $blockedTimes = \App\Models\BlockedTime::where('start_datetime', '>=', Carbon::now()->startOfDay())
@@ -81,7 +136,9 @@ class CalendarController extends Controller
                     'duration_minutes' => $blockedTime->duration_minutes,
                     'notes' => $blockedTime->notes,
                 ];
-            });
+            })
+            ->values()
+            ->toArray();
 
         // Get services for the form
         $services = Service::active()->orderBy('service_name')->get();
@@ -124,203 +181,55 @@ class CalendarController extends Controller
                 'existing_appointment_id' => 'nullable|exists:appointments,id'
             ]);
 
-            // Create datetime string
             $requestedDateTime = Carbon::parse($request->date . ' ' . $request->time, 'Asia/Manila');
 
-            // CRITICAL: Validate that requested date/time is not in the past using SERVER time
-            $serverNow = Carbon::now('Asia/Manila');
-            if ($requestedDateTime->lt($serverNow)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Cannot request appointments in the past. Please select a future date and time.',
-                    'errors' => ['time' => ['Cannot request appointments in the past']]
-                ], 422);
+            // Validate date is not in past
+            if ($error = $this->validateRequestDateTime($requestedDateTime)) {
+                return $error;
             }
 
-            // Determine service_id, other_concern, and duration based on request type
-            $serviceId = $request->service_id;
-            $otherConcern = $request->other_concern;
-            $durationMinutes = null; // Will be set based on service or default to 30 for "Other"
-
-            // If this is a reschedule request, get service_id and duration from existing appointment
+            // Check if rescheduling a missed or cancelled appointment (prevent this)
             if ($request->type === 'reschedule' && $request->existing_appointment_id) {
-                $existingAppointment = Appointment::with('service')->find($request->existing_appointment_id);
-
-                if ($existingAppointment) {
-                    // Prevent rescheduling of Missed appointments
-                    if ($existingAppointment->status === 'Missed') {
-                        return response()->json([
-                            'success' => false,
-                            'message' => 'Cannot reschedule missed appointments. Please book a new appointment instead.'
-                        ], 400);
-                    }
-                    $serviceId = $existingAppointment->service_id;
-                    $otherConcern = $existingAppointment->service_id ? null : $existingAppointment->reason_for_visit;
-
-                    // For reschedule, use the service's current default duration (to correct any discrepancies)
-                    // If no service, use the stored duration from the appointment
-                    if ($serviceId && $existingAppointment->service) {
-                        $durationMinutes = $existingAppointment->service->default_duration_minutes;
-                        \Log::info('Reschedule - Using service default duration:', [
-                            'appointment_id' => $existingAppointment->id,
-                            'service_id' => $serviceId,
-                            'service_name' => $existingAppointment->service->service_name,
-                            'service_default_duration' => $durationMinutes,
-                            'appointment_stored_duration' => $existingAppointment->duration_minutes
-                        ]);
-                    } else {
-                        // No service (custom/other), use the appointment's stored duration
-                        $durationMinutes = $existingAppointment->duration_minutes;
-                        \Log::info('Reschedule - Using appointment stored duration (no service):', [
-                            'appointment_id' => $existingAppointment->id,
-                            'duration_minutes' => $durationMinutes,
-                            'reason_for_visit' => $existingAppointment->reason_for_visit
-                        ]);
-                    }
-                } else {
-                    \Log::error('Reschedule - Existing appointment not found:', [
-                        'existing_appointment_id' => $request->existing_appointment_id
-                    ]);
+                $existingAppointment = Appointment::find($request->existing_appointment_id);
+                if ($existingAppointment && $existingAppointment->status === 'Missed') {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Cannot reschedule missed appointments. Please book a new appointment instead.',
+                        'errors' => ['existing_appointment_id' => ['Cannot reschedule missed appointments']]
+                    ], 422);
                 }
-            } else {
-                // For emergency walk-in requests
-                // If a service is selected, fetch its actual duration from database
-                if ($serviceId) {
-                    $service = Service::find($serviceId);
-                    if ($service) {
-                        // Use the service's default_duration_minutes from the database
-                        $durationMinutes = $service->default_duration_minutes;
-                    } else {
-                        // Service not found, use fallback
-                        $durationMinutes = 30;
-                    }
-                } elseif ($otherConcern) {
-                    // If service_id is null but other_concern is provided (emergency walk-in with "Other" selected)
-                    // Use default duration of 30 minutes for custom services
-                    $serviceId = null;
-                    $durationMinutes = 30;
+                if ($existingAppointment && $existingAppointment->status === 'Cancelled') {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Cannot reschedule cancelled appointments. Please book a new appointment instead.',
+                        'errors' => ['existing_appointment_id' => ['Cannot reschedule cancelled appointments']]
+                    ], 422);
+                }
+                // Also verify the appointment belongs to the current patient
+                if ($existingAppointment && $existingAppointment->patient_id !== auth()->id()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Unauthorized: This appointment does not belong to you.',
+                        'errors' => ['existing_appointment_id' => ['Unauthorized access']]
+                    ], 403);
                 }
             }
 
-            // Final safety check - if duration is still null, default to 30
-            if ($durationMinutes === null) {
-                $durationMinutes = 30;
+            // Determine service and duration
+            [$serviceId, $otherConcern, $durationMinutes] = $this->determineServiceAndDuration($request);
+
+            // Check for conflicts
+            if ($error = $this->checkTimeConflicts($requestedDateTime, $durationMinutes)) {
+                return $error;
             }
 
             $requestedEndDateTime = $requestedDateTime->copy()->addMinutes($durationMinutes);
 
-            // Check for conflicts with blocked times (clinic closed or blocked times)
-            $blockedTime = \App\Models\BlockedTime::where(function($query) use ($requestedDateTime, $requestedEndDateTime) {
-                $query->where('start_datetime', '<', $requestedEndDateTime)
-                      ->where('end_datetime', '>', $requestedDateTime);
-            })->first();
+            // Create appointment request
+            $appointmentRequest = $this->createAppointmentRequest($request, $serviceId, $otherConcern, $durationMinutes, $requestedDateTime, $requestedEndDateTime);
 
-            if ($blockedTime) {
-                // Check if it's a full day closure
-                $isFullDayClosure = $blockedTime->start_datetime->format('H:i') === '00:00' &&
-                                    $blockedTime->end_datetime->format('H:i') === '23:59';
-
-                $message = $isFullDayClosure
-                    ? 'The clinic is closed on this date. Please select a different date for your appointment request.'
-                    : 'This time slot is blocked. Please select a different time slot for your appointment request.';
-
-                return response()->json([
-                    'success' => false,
-                    'message' => $message,
-                    'errors' => ['time' => [$message]]
-                ], 422);
-            }
-
-            // Check for conflicts with existing appointments
-            $conflictingAppointment = Appointment::where(function($query) use ($requestedDateTime, $requestedEndDateTime) {
-                $query->where('start_datetime', '<', $requestedEndDateTime)
-                      ->where('end_datetime', '>', $requestedDateTime)
-                      ->where('status', '!=', 'Cancelled');
-            })->first();
-
-            if ($conflictingAppointment) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'This time slot is already booked. Please select a different time slot.',
-                    'errors' => ['time' => ['This time slot is already booked. Please select a different time slot.']]
-                ], 422);
-            }
-
-            // Log the data before creating appointment request
-            \Log::info('Creating AppointmentRequest with:', [
-                'patient_id' => auth()->id(),
-                'service_id' => $serviceId,
-                'other_concern' => $otherConcern,
-                'existing_appointment_id' => $request->existing_appointment_id,
-                'request_type' => $request->type === 'emergency' ? 'walk-in' : 'reschedule',
-                'duration_minutes' => $durationMinutes,
-                'reason' => $request->reason
-            ]);
-
-            // Create the appointment request
-            $appointmentRequest = AppointmentRequest::create([
-                'patient_id' => auth()->id(),
-                'service_id' => $serviceId,
-                'other_concern' => $otherConcern,
-                'existing_appointment_id' => $request->existing_appointment_id,
-                'request_type' => $request->type === 'emergency' ? 'walk-in' : 'reschedule',
-                'requested_datetime' => $requestedDateTime,
-                'requested_end_datetime' => $requestedEndDateTime,
-                'duration_minutes' => $durationMinutes,
-                'reason' => $request->reason,
-                'status' => 'Pending'
-            ]);
-
-            \Log::info('AppointmentRequest created:', [
-                'id' => $appointmentRequest->id,
-                'service_id' => $appointmentRequest->service_id,
-                'duration_minutes' => $appointmentRequest->duration_minutes,
-                'request_type' => $appointmentRequest->request_type
-            ]);
-
-            // Get patient info
-            $patient = User::with('info')->find(auth()->id());
-            $patientName = $patient->info ? trim($patient->info->first_name . ' ' . $patient->info->last_name) : $patient->name;
-
-            // Format datetime for display
-            $formattedDate = $requestedDateTime->format('F j, Y');
-            $formattedTime = $requestedDateTime->format('g:i A');
-
-            // Get service name for the notification message
-            $serviceName = 'Unknown Service';
-            if ($serviceId) {
-                $service = Service::find($serviceId);
-                $serviceName = $service ? $service->service_name : 'Service Not Found';
-            } elseif ($otherConcern) {
-                $serviceName = $otherConcern;
-            }
-
-            // Create notifications for all admins and staff
-            $adminStaff = User::whereHas('info', function($query) {
-                $query->whereIn('role_id', [1, 2]); // Admin and Staff
-            })->get();
-
-            foreach ($adminStaff as $staff) {
-                Notification::create([
-                    'user_id' => $staff->id,
-                    'type' => 'appointment_request',
-                    'title' => $request->type === 'emergency' ? 'New Walk-in Request' : 'New Reschedule Request',
-                    'message' => "{$patientName} has requested a " .
-                                ($request->type === 'emergency' ? 'walk-in appointment' : 'reschedule') .
-                                " for {$serviceName} on {$formattedDate} at {$formattedTime}.",
-                    'icon' => 'bi-calendar-plus',
-                    'data' => json_encode([
-                        'request_id' => $appointmentRequest->id,
-                        'patient_id' => auth()->id(),
-                        'patient_name' => $patientName,
-                        'service_name' => $serviceName,
-                        'request_type' => $request->type,
-                        'requested_date' => $formattedDate,
-                        'requested_time' => $formattedTime,
-                        'reason' => $request->reason
-                    ])
-                ]);
-            }
+            // Send notifications
+            $this->sendNotificationToStaff($appointmentRequest, $request, $requestedDateTime);
 
             return response()->json([
                 'success' => true,
@@ -334,6 +243,201 @@ class CalendarController extends Controller
                 'message' => 'Error submitting request: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    private function validateRequestDateTime(Carbon $requestedDateTime)
+    {
+        $serverNow = Carbon::now('Asia/Manila');
+        if ($requestedDateTime->lt($serverNow)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot request appointments in the past. Please select a future date and time.',
+                'errors' => ['time' => ['Cannot request appointments in the past']]
+            ], 422);
+        }
+        return null;
+    }
+
+    private function determineServiceAndDuration(Request $request): array
+    {
+        $serviceId = $request->service_id;
+        $otherConcern = $request->other_concern;
+        $durationMinutes = null;
+
+        if ($request->type === 'reschedule' && $request->existing_appointment_id) {
+            [$serviceId, $otherConcern, $durationMinutes] = $this->getRescheduleDetails($request->existing_appointment_id);
+        } else {
+            [$serviceId, $otherConcern, $durationMinutes] = $this->getEmergencyDetails($serviceId, $otherConcern);
+        }
+
+        return [$serviceId, $otherConcern, $durationMinutes ?? 30];
+    }
+
+    private function getRescheduleDetails($appointmentId): array
+    {
+        $existingAppointment = Appointment::with('service')->find($appointmentId);
+
+        if (!$existingAppointment) {
+            \Log::error('Reschedule - Existing appointment not found:', ['existing_appointment_id' => $appointmentId]);
+            return [null, null, null];
+        }
+
+            if ($existingAppointment->status === 'Missed') {
+                throw new \Exception('Cannot reschedule missed appointments. Please book a new appointment instead.');
+            }
+            if ($existingAppointment->status === 'Cancelled') {
+                throw new \Exception('Cannot reschedule cancelled appointments. Please book a new appointment instead.');
+            }
+
+        $serviceId = $existingAppointment->service_id;
+        $otherConcern = $serviceId ? null : $existingAppointment->reason_for_visit;
+
+        if ($serviceId && $existingAppointment->service) {
+            $durationMinutes = $existingAppointment->service->default_duration_minutes;
+        } else {
+            $durationMinutes = $existingAppointment->duration_minutes;
+        }
+
+        return [$serviceId, $otherConcern, $durationMinutes];
+    }
+
+    private function getEmergencyDetails($serviceId, $otherConcern): array
+    {
+        $durationMinutes = null;
+
+        if ($serviceId) {
+            $service = Service::find($serviceId);
+            $durationMinutes = $service ? $service->default_duration_minutes : 30;
+        } elseif ($otherConcern) {
+            $serviceId = null;
+            $durationMinutes = 30;
+        }
+
+        return [$serviceId, $otherConcern, $durationMinutes];
+    }
+
+    private function checkTimeConflicts(Carbon $requestedDateTime, int $durationMinutes)
+    {
+        $requestedEndDateTime = $requestedDateTime->copy()->addMinutes($durationMinutes);
+
+        // Check blocked times
+        $blockedTime = \App\Models\BlockedTime::where(function($query) use ($requestedDateTime, $requestedEndDateTime) {
+            $query->where('start_datetime', '<', $requestedEndDateTime)
+                  ->where('end_datetime', '>', $requestedDateTime);
+        })->first();
+
+        if ($blockedTime) {
+            $isFullDayClosure = $blockedTime->start_datetime->format('H:i') === '00:00' &&
+                                $blockedTime->end_datetime->format('H:i') === '23:59';
+
+            $message = $isFullDayClosure
+                ? 'The clinic is closed on this date. Please select a different date for your appointment request.'
+                : 'This time slot is blocked. Please select a different time slot for your appointment request.';
+
+            return response()->json([
+                'success' => false,
+                'message' => $message,
+                'errors' => ['time' => [$message]]
+            ], 422);
+        }
+
+        // Check existing appointments
+        $conflictingAppointment = Appointment::where(function($query) use ($requestedDateTime, $requestedEndDateTime) {
+            $query->where('start_datetime', '<', $requestedEndDateTime)
+                  ->where('end_datetime', '>', $requestedDateTime)
+                  ->where('status', '!=', 'Cancelled');
+        })->first();
+
+        if ($conflictingAppointment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This time slot is already booked. Please select a different time slot.',
+                'errors' => ['time' => ['This time slot is already booked. Please select a different time slot.']]
+            ], 422);
+        }
+
+        return null;
+    }
+
+    private function createAppointmentRequest(Request $request, $serviceId, $otherConcern, $durationMinutes, Carbon $requestedDateTime, Carbon $requestedEndDateTime)
+    {
+        \Log::info('Creating AppointmentRequest with:', [
+            'patient_id' => auth()->id(),
+            'service_id' => $serviceId,
+            'other_concern' => $otherConcern,
+            'existing_appointment_id' => $request->existing_appointment_id,
+            'request_type' => $request->type === 'emergency' ? 'walk-in' : 'reschedule',
+            'duration_minutes' => $durationMinutes,
+            'reason' => $request->reason
+        ]);
+
+        $appointmentRequest = AppointmentRequest::create([
+            'patient_id' => auth()->id(),
+            'service_id' => $serviceId,
+            'other_concern' => $otherConcern,
+            'existing_appointment_id' => $request->existing_appointment_id,
+            'request_type' => $request->type === 'emergency' ? 'walk-in' : 'reschedule',
+            'requested_datetime' => $requestedDateTime,
+            'requested_end_datetime' => $requestedEndDateTime,
+            'duration_minutes' => $durationMinutes,
+            'reason' => $request->reason,
+            'status' => 'Pending'
+        ]);
+
+        \Log::info('AppointmentRequest created:', [
+            'id' => $appointmentRequest->id,
+            'service_id' => $appointmentRequest->service_id,
+            'duration_minutes' => $appointmentRequest->duration_minutes,
+            'request_type' => $appointmentRequest->request_type
+        ]);
+
+        return $appointmentRequest;
+    }
+
+    private function sendNotificationToStaff($appointmentRequest, Request $request, Carbon $requestedDateTime)
+    {
+        $patient = User::with('info')->find(auth()->id());
+        $patientName = $patient->info ? trim($patient->info->first_name . ' ' . $patient->info->last_name) : $patient->name;
+
+        $formattedDate = $requestedDateTime->format('F j, Y');
+        $formattedTime = $requestedDateTime->format('g:i A');
+
+        $serviceName = $this->getServiceName($appointmentRequest->service_id, $appointmentRequest->other_concern);
+
+        $adminStaff = User::whereHas('info', function($query) {
+            $query->whereIn('role_id', [1, 2]);
+        })->get();
+
+        foreach ($adminStaff as $staff) {
+            Notification::create([
+                'user_id' => $staff->id,
+                'type' => 'appointment_request',
+                'title' => $request->type === 'emergency' ? 'New Walk-in Request' : 'New Reschedule Request',
+                'message' => "{$patientName} has requested a " .
+                            ($request->type === 'emergency' ? 'walk-in appointment' : 'reschedule') .
+                            " for {$serviceName} on {$formattedDate} at {$formattedTime}.",
+                'icon' => 'bi-calendar-plus',
+                'data' => json_encode([
+                    'request_id' => $appointmentRequest->id,
+                    'patient_id' => auth()->id(),
+                    'patient_name' => $patientName,
+                    'service_name' => $serviceName,
+                    'request_type' => $request->type,
+                    'requested_date' => $formattedDate,
+                    'requested_time' => $formattedTime,
+                    'reason' => $request->reason
+                ])
+            ]);
+        }
+    }
+
+    private function getServiceName($serviceId, $otherConcern): string
+    {
+        if ($serviceId) {
+            $service = Service::find($serviceId);
+            return $service ? $service->service_name : 'Service Not Found';
+        }
+        return $otherConcern ?: 'Unknown Service';
     }
 
     /**

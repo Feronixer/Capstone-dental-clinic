@@ -252,7 +252,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="form-actions">
                                 <button type="submit" class="btn-submit">
                                     <i class="bi bi-check-circle me-2"></i>Submit Request
@@ -280,7 +280,8 @@
                                     data-datetime="{{ $appointment->start_datetime->format('F d, Y \a\t g:i A') }}"
                                     data-service-id="{{ $appointment->service_id ?? '' }}"
                                     data-duration="{{ $appointment->duration_minutes }}"
-                                    data-reason-for-visit="{{ $appointment->reason_for_visit ?? '' }}">
+                                    data-reason-for-visit="{{ $appointment->reason_for_visit ?? '' }}"
+                                    data-status="{{ $appointment->status ?? 'Pending' }}">
                                 {{ $appointment->service ? $appointment->service->service_name : $appointment->reason_for_visit }} -
                                 {{ $appointment->start_datetime->format('M d, Y') }} at
                                 {{ $appointment->start_datetime->format('g:i A') }}
@@ -894,29 +895,35 @@
 }
 
 .event-item.pending {
-    background: #fff3e0;
-    border-left-color: #ff9800;
+    background: #fef3c7;
+    border-left-color: #fbbf24;
+    color: #92400e;
 }
 
 .event-item.confirmed {
-    background: #e8f5e9;
-    border-left-color: #4caf50;
+    background: #dbeafe;
+    border-left-color: #3b82f6;
+    color: #1e40af;
 }
 
 .event-item.completed {
-    background: #f3e5f5;
-    border-left-color: #9c27b0;
+    background: #d1fae5;
+    border-left-color: #10b981;
+    color: #065f46;
 }
 
 .event-item.cancelled {
-    background: #ffebee;
-    border-left-color: #f44336;
+    background: #fee2e2;
+    border-left-color: #ef4444;
+    color: #991b1b;
     opacity: 0.7;
 }
 
-.event-item.blocked {
-    background: #f3f4f6;
+.event-item.blocked,
+.event-item.missed {
+    background: #e5e7eb;
     border-left-color: #6b7280;
+    color: #1f2937;
     cursor: not-allowed;
 }
 
@@ -934,6 +941,20 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.event-notes {
+    font-size: 0.65rem;
+    color: #64748b;
+    margin-top: 0.125rem;
+    opacity: 0.9;
+    line-height: 1.2;
+    word-wrap: break-word;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
 
 /* Upcoming Info - More Compact */
@@ -1058,6 +1079,12 @@
     color: white;
 }
 
+.status-badge.missed,
+.status-badge.blocked {
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    color: white;
+}
+
 /* Pending Request Items */
 .pending-request-item {
     border-left: 3px solid #f59e0b;
@@ -1090,7 +1117,7 @@
         grid-template-columns: 240px 1fr;
         gap: 0.875rem;
     }
-    
+
     .calendar-day {
         min-height: 75px;
         padding: 0.4rem;
@@ -1129,7 +1156,7 @@
     .sidebar-card {
         padding: 0.5rem;
     }
-    
+
     .nav-btn {
         width: 22px;
         height: 22px;
@@ -1153,22 +1180,22 @@
         flex-wrap: wrap;
         gap: 0.625rem;
     }
-    
+
     .calendar-day {
         min-height: 70px;
         padding: 0.375rem;
     }
-    
+
     .calendar-header-cell {
         padding: 0.5rem 0.375rem;
         font-size: 0.75rem;
     }
-    
+
     .day-number {
         font-size: 0.8rem;
         margin-bottom: 0.25rem;
     }
-    
+
     .event-item {
         padding: 0.2rem 0.3rem;
         font-size: 0.65rem;
@@ -1965,13 +1992,16 @@
     opacity: 0.7;
 }
 
-.week-appointment.blocked {
-    background: #f3f4f6;
+.week-appointment.blocked,
+.week-appointment.missed {
+    background: #e5e7eb;
     border-left-color: #6b7280;
+    color: #1f2937;
     cursor: not-allowed;
 }
 
-.week-appointment.blocked:hover {
+.week-appointment.blocked:hover,
+.week-appointment.missed:hover {
     transform: none;
     box-shadow: none;
 }
@@ -1987,6 +2017,20 @@
     font-size: 0.7rem;
     color: #64748b;
     line-height: 1.2;
+}
+
+.week-apt-notes {
+    font-size: 0.7rem;
+    color: #64748b;
+    margin-top: 0.25rem;
+    opacity: 0.85;
+    line-height: 1.2;
+    word-wrap: break-word;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
 
 /* Day View Styles - Compact to Fit Screen */
@@ -2125,13 +2169,16 @@
     opacity: 0.8;
 }
 
-.day-appointment.blocked {
-    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+.day-appointment.blocked,
+.day-appointment.missed {
+    background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
     border-left-color: #6b7280;
+    color: #1f2937;
     cursor: not-allowed;
 }
 
-.day-appointment.blocked:hover {
+.day-appointment.blocked:hover,
+.day-appointment.missed:hover {
     transform: none;
     box-shadow: 0 2px 6px rgba(0,0,0,0.08);
 }
@@ -2514,7 +2561,7 @@
 
 [data-theme="dark"] .empty-state i {
     color: #00EAFF !important;
-    filter: drop-shadow(0 0 8px rgba(0, 234, 255, 0.6)) 
+    filter: drop-shadow(0 0 8px rgba(0, 234, 255, 0.6))
             drop-shadow(0 0 12px rgba(0, 234, 255, 0.4)) !important;
 }
 
@@ -3041,14 +3088,14 @@
 
 [data-theme="dark"] .appointment-action-btn.reschedule-btn:hover i {
     color: white !important;
-    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8)) 
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8))
             drop-shadow(0 0 12px rgba(0, 234, 255, 0.8)) !important;
     animation: iconSpin 1.5s linear infinite !important;
 }
 
 [data-theme="dark"] .appointment-action-btn.reschedule-btn i {
     color: white !important;
-    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.6)) 
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.6))
             drop-shadow(0 0 10px rgba(0, 234, 255, 0.6)) !important;
 }
 
@@ -3155,7 +3202,7 @@ function openAppointmentModal(type) {
     // Hide both forms
     const emergencyFormSection = document.getElementById('emergencyFormSection');
     const rescheduleFormSection = document.getElementById('rescheduleFormSection');
-    
+
         if (type === 'emergency') {
         // Show emergency form, hide reschedule form
         if (emergencyFormSection) emergencyFormSection.style.display = 'block';
@@ -3170,7 +3217,7 @@ function openAppointmentModal(type) {
         // Show reschedule form, hide emergency form
         if (emergencyFormSection) emergencyFormSection.style.display = 'none';
         if (rescheduleFormSection) rescheduleFormSection.style.display = 'block';
-        
+
         // Update modal title
         const modalTitle = document.getElementById('appointmentRequestModalLabel');
         if (modalTitle) {
@@ -3202,7 +3249,7 @@ function switchTab(tabName) {
     }
 }
 
-let appointmentType = 'emergency';
+var appointmentType = 'emergency';
 
 // Removed updateCancelButtonVisibility function - cancel button no longer needed
 
@@ -3278,6 +3325,36 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Removed cancel button functionality - no longer needed
 
+// Global function to get request duration (used by form handlers)
+function getRequestDuration() {
+    let duration = 30; // Default 30 minutes for "Other" services
+
+    // If emergency mode and service is selected
+    if (typeof appointmentType !== 'undefined' && appointmentType === 'emergency') {
+        const emergencyServiceSelect = document.getElementById('emergencyServiceSelect');
+        if (emergencyServiceSelect && emergencyServiceSelect.value && emergencyServiceSelect.value !== 'other') {
+            const selectedOption = emergencyServiceSelect.options[emergencyServiceSelect.selectedIndex];
+            const serviceDuration = selectedOption.getAttribute('data-duration');
+            if (serviceDuration) {
+                duration = parseInt(serviceDuration);
+            }
+        }
+    }
+    // If reschedule mode, get duration from the selected appointment
+    else if (typeof appointmentType !== 'undefined' && appointmentType === 'reschedule') {
+        const rescheduleAppointmentSelect = document.getElementById('rescheduleAppointmentSelect');
+        if (rescheduleAppointmentSelect && rescheduleAppointmentSelect.value) {
+            const selectedOption = rescheduleAppointmentSelect.options[rescheduleAppointmentSelect.selectedIndex];
+            const aptDuration = selectedOption.getAttribute('data-duration');
+            if (aptDuration) {
+                duration = parseInt(aptDuration);
+            }
+        }
+    }
+
+    return duration;
+}
+
 // Form submission handler
 // Handle Emergency Form Submission
 document.getElementById('emergencyForm').addEventListener('submit', function(e) {
@@ -3317,50 +3394,50 @@ document.getElementById('emergencyForm').addEventListener('submit', function(e) 
     // Check for blocked/closed times before submitting
     const selectedDate = formData.date;
     const selectedTime = formData.time;
-    
+
     if (selectedDate && selectedTime) {
         const [hours, minutes] = selectedTime.split(':').map(Number);
         const requestedStart = new Date(selectedDate);
         requestedStart.setHours(hours, minutes, 0);
-        
+
         const duration = getRequestDuration();
         const requestedEnd = new Date(requestedStart.getTime() + duration * 60000);
-        
+
         // Check blocked times
         const isBlocked = window.blockedTimes.some(blockedTime => {
             const blockStart = parseLocalDateTime(blockedTime.start_datetime);
             const blockEnd = parseLocalDateTime(blockedTime.end_datetime);
             if (!blockStart || !blockEnd) return false;
-            
+
             // Check if on the same date
             if (blockStart.toDateString() !== requestedStart.toDateString()) return false;
-            
+
             // Check for overlap
             return (requestedStart < blockEnd && requestedEnd > blockStart);
         });
-        
+
         if (isBlocked) {
             // Find the blocking time for details
             const blockingTime = window.blockedTimes.find(blockedTime => {
                 const blockStart = parseLocalDateTime(blockedTime.start_datetime);
                 const blockEnd = parseLocalDateTime(blockedTime.end_datetime);
                 if (!blockStart || !blockEnd) return false;
-                
+
                 if (blockStart.toDateString() !== requestedStart.toDateString()) return false;
                 return (requestedStart < blockEnd && requestedEnd > blockStart);
             });
-            
+
                 if (blockingTime) {
                 const blockStart = parseLocalDateTime(blockingTime.start_datetime);
                 const blockEnd = parseLocalDateTime(blockingTime.end_datetime);
-                const isFullDayClosure = blockStart && blockEnd && 
+                const isFullDayClosure = blockStart && blockEnd &&
                     blockStart.getHours() === 0 && blockStart.getMinutes() === 0 &&
                     blockEnd.getHours() === 23 && blockEnd.getMinutes() === 59;
 
                 // Re-enable button
                 submitButton.disabled = false;
                 submitButton.innerHTML = originalText;
-                
+
                 if (isFullDayClosure) {
                     // Show clinic closed modal (red) - separate feedback for clinic closure
                     const conflictDate = new Date(selectedDate).toLocaleDateString('en-US', {
@@ -3369,10 +3446,10 @@ document.getElementById('emergencyForm').addEventListener('submit', function(e) 
                         month: 'long',
                         day: 'numeric'
                     });
-                    
+
                     document.getElementById('clinicClosedMessage').textContent = 'The clinic is closed on this date. Please select a different date for your appointment request.';
                     document.getElementById('clinicClosedDate').textContent = conflictDate;
-                    
+
                     // Show clinic closed modal
                     new bootstrap.Modal(document.getElementById('patientClinicClosedModal')).show();
                 } else {
@@ -3384,7 +3461,7 @@ document.getElementById('emergencyForm').addEventListener('submit', function(e) 
                         day: 'numeric'
                     });
                     const conflictTime = `${selectedTime}`;
-                    
+
                     document.getElementById('patientConflictMessage').textContent = 'This time slot is blocked. Please select a different time slot for your appointment request.';
                     document.getElementById('patientConflictDate').textContent = conflictDate;
                     document.getElementById('patientConflictTime').textContent = conflictTime;
@@ -3471,7 +3548,7 @@ document.getElementById('emergencyForm').addEventListener('submit', function(e) 
                 // Re-enable button
                 submitButton.disabled = false;
                 submitButton.innerHTML = originalText;
-                
+
                 if (data.message.includes('closed')) {
                     // Show clinic closed modal (red) - separate feedback for clinic closure
                     const conflictDate = new Date(formData.date).toLocaleDateString('en-US', {
@@ -3480,10 +3557,10 @@ document.getElementById('emergencyForm').addEventListener('submit', function(e) 
                         month: 'long',
                         day: 'numeric'
                     });
-                    
+
                     document.getElementById('clinicClosedMessage').textContent = data.message;
                     document.getElementById('clinicClosedDate').textContent = conflictDate;
-                    
+
                     // Show clinic closed modal
                     new bootstrap.Modal(document.getElementById('patientClinicClosedModal')).show();
                 } else {
@@ -3495,11 +3572,11 @@ document.getElementById('emergencyForm').addEventListener('submit', function(e) 
                         day: 'numeric'
                     });
                     const conflictTime = formData.time;
-                    
+
                     document.getElementById('patientConflictMessage').textContent = data.message;
                     document.getElementById('patientConflictDate').textContent = conflictDate;
                     document.getElementById('patientConflictTime').textContent = conflictTime;
-                    
+
                     // Show conflict modal
                     new bootstrap.Modal(document.getElementById('patientAppointmentConflictModal')).show();
                 }
@@ -3519,7 +3596,7 @@ document.getElementById('emergencyForm').addEventListener('submit', function(e) 
         `;
         this.parentElement.insertBefore(alert, this.parentElement.firstChild);
         this.parentElement.scrollIntoView({ behavior: 'smooth' });
-        
+
         // Re-enable button
         submitButton.disabled = false;
         submitButton.innerHTML = originalText;
@@ -3553,7 +3630,23 @@ document.getElementById('rescheduleForm').addEventListener('submit', function(e)
     // Include appointment ID for reschedule
     const appointmentSelect = document.getElementById('rescheduleAppointmentSelect');
     if (appointmentSelect && appointmentSelect.value) {
+        const selectedOption = appointmentSelect.options[appointmentSelect.selectedIndex];
+        const appointmentStatus = selectedOption.dataset.status;
+
+        // Prevent rescheduling missed appointments
+        if (appointmentStatus && appointmentStatus.toLowerCase() === 'missed') {
+            submitButton.disabled = false;
+            submitButton.innerHTML = originalText;
+            alert('Cannot reschedule missed appointments. Please book a new appointment instead.');
+            return;
+        }
+
         formData.existing_appointment_id = appointmentSelect.value;
+    } else {
+        submitButton.disabled = false;
+        submitButton.innerHTML = originalText;
+        alert('Please select an appointment to reschedule.');
+        return;
     }
 
     appointmentType = 'reschedule';
@@ -3561,50 +3654,50 @@ document.getElementById('rescheduleForm').addEventListener('submit', function(e)
     // Check for blocked/closed times before submitting
     const selectedDate = formData.date;
     const selectedTime = formData.time;
-    
+
     if (selectedDate && selectedTime) {
         const [hours, minutes] = selectedTime.split(':').map(Number);
         const requestedStart = new Date(selectedDate);
         requestedStart.setHours(hours, minutes, 0);
-        
+
         const duration = getRequestDuration();
         const requestedEnd = new Date(requestedStart.getTime() + duration * 60000);
-        
+
         // Check blocked times
         const isBlocked = window.blockedTimes.some(blockedTime => {
             const blockStart = parseLocalDateTime(blockedTime.start_datetime);
             const blockEnd = parseLocalDateTime(blockedTime.end_datetime);
             if (!blockStart || !blockEnd) return false;
-            
+
             // Check if on the same date
             if (blockStart.toDateString() !== requestedStart.toDateString()) return false;
-            
+
             // Check for overlap
             return (requestedStart < blockEnd && requestedEnd > blockStart);
         });
-        
+
         if (isBlocked) {
             // Find the blocking time for details
             const blockingTime = window.blockedTimes.find(blockedTime => {
                 const blockStart = parseLocalDateTime(blockedTime.start_datetime);
                 const blockEnd = parseLocalDateTime(blockedTime.end_datetime);
                 if (!blockStart || !blockEnd) return false;
-                
+
                 if (blockStart.toDateString() !== requestedStart.toDateString()) return false;
                 return (requestedStart < blockEnd && requestedEnd > blockStart);
             });
-            
+
                 if (blockingTime) {
                 const blockStart = parseLocalDateTime(blockingTime.start_datetime);
                 const blockEnd = parseLocalDateTime(blockingTime.end_datetime);
-                const isFullDayClosure = blockStart && blockEnd && 
+                const isFullDayClosure = blockStart && blockEnd &&
                     blockStart.getHours() === 0 && blockStart.getMinutes() === 0 &&
                     blockEnd.getHours() === 23 && blockEnd.getMinutes() === 59;
-                
+
                 // Re-enable button
                 submitButton.disabled = false;
                 submitButton.innerHTML = originalText;
-                
+
                 if (isFullDayClosure) {
                     // Show clinic closed modal (red) - separate feedback for clinic closure
                     const conflictDate = new Date(selectedDate).toLocaleDateString('en-US', {
@@ -3613,10 +3706,10 @@ document.getElementById('rescheduleForm').addEventListener('submit', function(e)
                         month: 'long',
                         day: 'numeric'
                     });
-                    
+
                     document.getElementById('clinicClosedMessage').textContent = 'The clinic is closed on this date. Please select a different date for your appointment request.';
                     document.getElementById('clinicClosedDate').textContent = conflictDate;
-                    
+
                     // Show clinic closed modal
                     new bootstrap.Modal(document.getElementById('patientClinicClosedModal')).show();
             } else {
@@ -3628,15 +3721,15 @@ document.getElementById('rescheduleForm').addEventListener('submit', function(e)
                         day: 'numeric'
                     });
                     const conflictTime = selectedTime;
-                    
+
                     document.getElementById('patientConflictMessage').textContent = 'This time slot is unavailable. Please select a different time.';
                     document.getElementById('patientConflictDate').textContent = conflictDate;
                     document.getElementById('patientConflictTime').textContent = conflictTime;
-                    
+
                     // Show conflict modal
                     new bootstrap.Modal(document.getElementById('patientAppointmentConflictModal')).show();
                 }
-                
+
                 return; // Don't submit if blocked
             }
         }
@@ -3697,7 +3790,7 @@ document.getElementById('rescheduleForm').addEventListener('submit', function(e)
                 // Re-enable button
                 submitButton.disabled = false;
                 submitButton.innerHTML = originalText;
-                
+
                 if (data.message.includes('closed')) {
                     // Show clinic closed modal (red) - separate feedback for clinic closure
                     const conflictDate = new Date(formData.date).toLocaleDateString('en-US', {
@@ -3706,10 +3799,10 @@ document.getElementById('rescheduleForm').addEventListener('submit', function(e)
                         month: 'long',
                         day: 'numeric'
                     });
-                    
+
                     document.getElementById('clinicClosedMessage').textContent = data.message;
                     document.getElementById('clinicClosedDate').textContent = conflictDate;
-                    
+
                     // Show clinic closed modal
                     new bootstrap.Modal(document.getElementById('patientClinicClosedModal')).show();
                 } else {
@@ -3721,11 +3814,11 @@ document.getElementById('rescheduleForm').addEventListener('submit', function(e)
                         day: 'numeric'
                     });
                     const conflictTime = formData.time;
-                    
+
                     document.getElementById('patientConflictMessage').textContent = data.message;
                     document.getElementById('patientConflictDate').textContent = conflictDate;
                     document.getElementById('patientConflictTime').textContent = conflictTime;
-                    
+
                     // Show conflict modal
                     new bootstrap.Modal(document.getElementById('patientAppointmentConflictModal')).show();
                 }
@@ -3745,7 +3838,7 @@ document.getElementById('rescheduleForm').addEventListener('submit', function(e)
         `;
         this.parentElement.insertBefore(alert, this.parentElement.firstChild);
         this.parentElement.scrollIntoView({ behavior: 'smooth' });
-        
+
         // Re-enable button
         submitButton.disabled = false;
         submitButton.innerHTML = originalText;
@@ -3983,9 +4076,25 @@ document.getElementById('rescheduleForm').addEventListener('submit', function(e)
 
 <script>
 // Pass appointments data to JavaScript
-window.patientAppointments = @json($appointments);
-window.allAppointments = @json($allAppointments);
-window.blockedTimes = @json($blockedTimes);
+var appointmentsData = @json($appointments ?? []);
+var allAppointmentsData = @json($allAppointments ?? []);
+var blockedTimesData = @json($blockedTimes ?? []);
+
+// Ensure arrays are properly formatted (convert objects to arrays if needed)
+window.patientAppointments = Array.isArray(appointmentsData) ? appointmentsData : Object.values(appointmentsData || []);
+window.allAppointments = Array.isArray(allAppointmentsData) ? allAppointmentsData : Object.values(allAppointmentsData || []);
+window.blockedTimes = Array.isArray(blockedTimesData) ? blockedTimesData : Object.values(blockedTimesData || []);
+
+// Debug: Verify data is loaded
+console.log('Blade template: Appointments data set', {
+    patientAppointments: window.patientAppointments ? window.patientAppointments.length : 0,
+    allAppointments: window.allAppointments ? window.allAppointments.length : 0,
+    blockedTimes: window.blockedTimes ? window.blockedTimes.length : 0,
+    rawAppointmentsCount: {{ count($appointments ?? []) }}
+});
+if (window.patientAppointments && window.patientAppointments.length > 0) {
+    console.log('First 3 appointments:', window.patientAppointments.slice(0, 3));
+}
 
 // Server time synchronization - CRITICAL for fault tolerance
 let serverTimeData = null;
@@ -4009,7 +4118,7 @@ async function syncServerTime() {
             // Server timestamp is in seconds, convert to milliseconds
             const serverTimestampMs = data.server_timestamp * 1000;
             serverTimeOffset = serverTimestampMs - clientNow;
-            
+
             console.log('Server time synced:', {
                 server_time: data.server_time,
                 client_time: new Date(clientNow).toISOString(),
@@ -4058,6 +4167,16 @@ document.addEventListener('DOMContentLoaded', function() {
         modalRescheduleBtn.addEventListener('click', function() {
             const modal = document.getElementById('appointmentDetailsModal');
             const appointmentId = modal.dataset.appointmentId;
+
+            // Check if appointment is missed - prevent rescheduling
+            const appointment = window.patientAppointments ? window.patientAppointments.find(function(apt) {
+                return apt.id == appointmentId;
+            }) : null;
+
+            if (appointment && appointment.status && appointment.status.toLowerCase() === 'missed') {
+                alert('Cannot reschedule missed appointments. Please book a new appointment instead.');
+                return;
+            }
 
             // Close the details modal
             const modalInstance = bootstrap.Modal.getInstance(modal);
@@ -4149,7 +4268,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function getActiveFormInputs() {
         const emergencyFormSection = document.getElementById('emergencyFormSection');
         const rescheduleFormSection = document.getElementById('rescheduleFormSection');
-        
+
         let dateInput, timeInput;
         if (emergencyFormSection && emergencyFormSection.style.display !== 'none') {
             dateInput = document.getElementById('emergencyDate');
@@ -4173,36 +4292,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return new Date(year, month - 1, day, hours, minutes, seconds || 0);
         }
 
-        // Function to get the duration for the current request
-        function getRequestDuration() {
-            let duration = 30; // Default 30 minutes for "Other" services
-
-            // If emergency mode and service is selected
-            if (appointmentType === 'emergency') {
-                const emergencyServiceSelect = document.getElementById('emergencyServiceSelect');
-                if (emergencyServiceSelect && emergencyServiceSelect.value && emergencyServiceSelect.value !== 'other') {
-                    // Find the service in the services array
-                    const selectedOption = emergencyServiceSelect.options[emergencyServiceSelect.selectedIndex];
-                    const serviceDuration = selectedOption.getAttribute('data-duration');
-                    if (serviceDuration) {
-                        duration = parseInt(serviceDuration);
-                    }
-                }
-            }
-            // If reschedule mode, get duration from the selected appointment
-            else if (appointmentType === 'reschedule') {
-                const rescheduleAppointmentSelect = document.getElementById('rescheduleAppointmentSelect');
-                if (rescheduleAppointmentSelect && rescheduleAppointmentSelect.value) {
-                    const selectedOption = rescheduleAppointmentSelect.options[rescheduleAppointmentSelect.selectedIndex];
-                    const aptDuration = selectedOption.getAttribute('data-duration');
-                    if (aptDuration) {
-                        duration = parseInt(aptDuration);
-                    }
-                }
-            }
-
-            return duration;
-        }
+        // getRequestDuration is now defined globally above
 
         // Function to check if a time conflicts with existing appointments or blocked times
         function isTimeSlotAvailable(selectedDate, selectedTime) {
@@ -4212,7 +4302,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const [hours, minutes] = selectedTime.split(':').map(Number);
             const requestedStart = new Date(selectedDate);
             requestedStart.setHours(hours, minutes, 0);
-            
+
             // Check if the requested time is in the past (using server time)
             const serverNow = getServerTime();
             if (requestedStart < serverNow) {
@@ -4260,7 +4350,7 @@ document.addEventListener('DOMContentLoaded', function() {
         function updateTimeAvailability() {
             const { dateInput, timeInput } = getActiveFormInputs();
             if (!dateInput || !timeInput) return;
-            
+
             const selectedDate = dateInput.value;
             const selectedTime = timeInput.value;
 
@@ -4448,14 +4538,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
-        }
+    }
 
         // Show suggested available times when date is selected (reschedule)
         if (rescheduleDateInput) {
             rescheduleDateInput.addEventListener('change', function() {
                 const { dateInput } = getActiveFormInputs();
                 if (!dateInput || dateInput !== this) return;
-                
+
                 const selectedDate = this.value;
                 if (!selectedDate) return;
 
@@ -4533,7 +4623,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         }
-    }
+
 });
 </script>
 <script src="{{ asset('js/patient-calendar.js') }}"></script>

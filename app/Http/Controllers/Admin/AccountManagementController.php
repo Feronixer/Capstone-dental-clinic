@@ -80,6 +80,7 @@ class AccountManagementController extends Controller
             'last_name' => $request->last_name,
             'email' => $request->email,
             'phone' => $request->phone,
+            'gender' => $request->gender,
             'created_at'=> Carbon::now(),
             'updated_at'=> Carbon::now(),
         ]);
@@ -144,6 +145,7 @@ class AccountManagementController extends Controller
                 'last_name' => $request->last_name,
                 'email' => $request->email,
                 'phone' => $request->phone,
+                'gender' => $request->gender,
                 'updated_at' => now(),
             ]);
         } else {
@@ -154,6 +156,7 @@ class AccountManagementController extends Controller
                 'last_name' => $request->last_name,
                 'email' => $request->email,
                 'phone' => $request->phone,
+                'gender' => $request->gender,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);

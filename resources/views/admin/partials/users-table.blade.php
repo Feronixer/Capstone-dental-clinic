@@ -4,6 +4,7 @@
         <td class="align-middle text-center">{{ $user->username }}</td>
         <td class="align-middle text-center">{{ $user->name }}</td>
         <td class="align-middle text-center">{{ $user->email }}</td>
+        <td class="align-middle text-center">{{ $user->info->gender ?? 'N/A' }}</td>
         <td class="align-middle text-center">{{ $user->role->role ?? 'N/A' }}</td>
         <td class="align-middle text-center">{{ $user->created_at ?? 'N/A' }}</td>
         <td class="text-center">
@@ -22,6 +23,6 @@
     </tr>
 @empty
     <tr>
-        <td colspan="7" class="align-middle text-center">No users found.</td>
+        <td colspan="8" class="align-middle text-center">No users found.</td>
     </tr>
 @endforelse

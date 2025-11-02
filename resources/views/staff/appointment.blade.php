@@ -338,11 +338,6 @@
                 <button type="button" class="btn btn-warning" id="reschedule-appointment-btn">
                     <i class="bi bi-calendar3 me-1"></i>Reschedule
                 </button>
-                @if(auth()->user()->role_id === 1)
-                <button type="button" class="btn btn-danger" id="delete-appointment-btn">
-                    <i class="bi bi-trash me-1"></i>Delete
-                </button>
-                @endif
             </div>
         </div>
     </div>
@@ -394,13 +389,13 @@
                     </small>
                 </div>
 
-                <!-- Optional Notes -->
-                <div class="mb-3">
+                <!-- Optional Notes (only for Cancelled status) -->
+                <div class="mb-3" id="status_notes_container" style="display: none;">
                     <label for="status_change_notes" class="form-label fw-bold">
-                        <i class="bi bi-pencil me-1"></i>Notes (Optional)
+                        <i class="bi bi-pencil me-1"></i>Notes <span class="text-danger">*</span>
                     </label>
                     <textarea class="form-control" id="status_change_notes" rows="3"
-                              placeholder="Add a note about this status change (optional)..." maxlength="500"></textarea>
+                              placeholder="Please provide a reason for cancelling this appointment..." maxlength="500"></textarea>
                     <small class="form-text text-muted">This note will be added to the appointment notes.</small>
                 </div>
 
@@ -599,40 +594,6 @@
                     </button>
                 </div>
             </form>
-        </div>
-    </div>
-</div>
-
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteConfirmationModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header border-0 pb-0">
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body text-center py-4">
-                <div class="mb-4">
-                    <div class="mx-auto mb-3" style="width: 80px; height: 80px; background: linear-gradient(135deg, #ff6b6b, #ee5a52); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                        <i class="bi bi-exclamation-triangle text-white" style="font-size: 2.5rem;"></i>
-                    </div>
-                    <h4 class="fw-bold text-dark mb-2">Delete Appointment</h4>
-                    <p class="text-muted mb-0">Are you sure you want to delete this appointment? This action cannot be undone.</p>
-                </div>
-                <div class="bg-light rounded p-3 mb-4">
-                    <div class="d-flex align-items-center justify-content-center">
-                        <i class="bi bi-calendar3 text-primary me-2"></i>
-                        <span class="fw-medium" id="delete-appointment-info">Appointment details will be shown here</span>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">
-                    <i class="bi bi-x-circle me-1"></i>Cancel
-                </button>
-                <button type="button" class="btn btn-danger" id="confirm-delete-btn">
-                    <i class="bi bi-trash me-1"></i>Delete Appointment
-                </button>
-            </div>
         </div>
     </div>
 </div>
@@ -2027,7 +1988,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
             hourAppointments.forEach(apt => {
                 const aptElement = document.createElement('div');
-                aptElement.className = `appointment-item ${apt.status.toLowerCase()}`;
+                const statusLower = (apt.status || 'pending').toLowerCase();
+                aptElement.className = `appointment-item ${statusLower}`;
 
                 // Format time
                 const aptTime = parseLocalDateTime(apt.start_datetime);
@@ -2070,12 +2032,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 aptElement.textContent = `${timeString}-${endTimeString} ${patientName}`;
-                aptElement.title = `${patientName} - ${apt.service ? apt.service.service_name : 'No Service'} - ${apt.status}`;
+                aptElement.title = `${patientName} - ${apt.service ? apt.service.service_name : 'No Service'} - ${apt.status || 'Pending'}`;
 
-                // Add strikethrough for completed appointments
-                if (apt.status.toLowerCase() === 'completed') {
+                // Add strikethrough for completed or cancelled appointments
+                const statusLower = (apt.status || 'pending').toLowerCase();
+                if (statusLower === 'completed' || statusLower === 'cancelled') {
                     aptElement.style.textDecoration = 'line-through';
                     aptElement.style.opacity = '0.7';
+                }
+
+                // Ensure cancelled status is properly set
+                if (statusLower === 'cancelled') {
+                    aptElement.classList.remove('confirmed', 'pending');
+                    aptElement.classList.add('cancelled');
                 }
                 }
 
@@ -2117,7 +2086,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         dayAppointments.forEach(apt => {
             const aptElement = document.createElement('div');
-            aptElement.className = `appointment-item ${apt.status.toLowerCase()}`;
+            const statusLower = (apt.status || 'pending').toLowerCase();
+            aptElement.className = `appointment-item ${statusLower}`;
 
             // Format time
             const aptTime = parseLocalDateTime(apt.start_datetime);
@@ -2160,12 +2130,19 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             aptElement.textContent = `${timeString}-${endTimeString} ${patientName}`;
-            aptElement.title = `${patientName} - ${apt.service ? apt.service.service_name : 'No Service'} - ${apt.status}`;
+            aptElement.title = `${patientName} - ${apt.service ? apt.service.service_name : 'No Service'} - ${apt.status || 'Pending'}`;
 
-            // Add strikethrough for completed appointments
-            if (apt.status.toLowerCase() === 'completed') {
+            // Add strikethrough for completed or cancelled appointments
+            const statusLower = (apt.status || 'pending').toLowerCase();
+            if (statusLower === 'completed' || statusLower === 'cancelled') {
                 aptElement.style.textDecoration = 'line-through';
                 aptElement.style.opacity = '0.7';
+            }
+
+            // Ensure cancelled status is properly set
+            if (statusLower === 'cancelled') {
+                aptElement.classList.remove('confirmed', 'pending');
+                aptElement.classList.add('cancelled');
             }
             }
 
@@ -2285,7 +2262,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 const newAppointmentEnd = new Date(newAppointmentStart.getTime() + (duration * 60000));
 
                 // Check for time overlaps with existing appointments and blocked times on the same date
+                // Exclude cancelled appointments - they don't block time slots
                 const overlappingItem = allCalendarItems.find(apt => {
+                    // Skip cancelled appointments
+                    const statusLower = (apt.status || 'pending').toLowerCase();
+                    if (statusLower === 'cancelled') {
+                        return false;
+                    }
+
                     const aptDate = parseLocalDateTime(apt.start_datetime);
                     const selectedDateObj = new Date(selectedDate);
                     if (!aptDate) return false;
@@ -3673,7 +3657,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Disable reschedule button if appointment is confirmed, completed, cancelled, or missed (staff restriction)
         const rescheduleBtn = document.getElementById('reschedule-appointment-btn');
-        if (['confirmed', 'completed', 'cancelled', 'missed'].includes(appointment.status.toLowerCase())) {
+        const statusLower = (appointment.status || 'pending').toLowerCase();
+        if (['confirmed', 'completed', 'cancelled', 'missed'].includes(statusLower)) {
             rescheduleBtn.disabled = true;
             rescheduleBtn.style.opacity = '0.5';
             rescheduleBtn.style.cursor = 'not-allowed';
@@ -3683,12 +3668,6 @@ document.addEventListener('DOMContentLoaded', function() {
             rescheduleBtn.style.opacity = '1';
             rescheduleBtn.style.cursor = 'pointer';
             rescheduleBtn.title = 'Reschedule this appointment';
-        }
-
-        // Only set delete button data if it exists (admin only)
-        const deleteAppointmentBtn = document.getElementById('delete-appointment-btn');
-        if (deleteAppointmentBtn) {
-            deleteAppointmentBtn.setAttribute('data-appointment-id', appointment.id);
         }
 
         // Show the modal
@@ -3953,45 +3932,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Delete appointment functionality (only for admin)
-    const deleteBtn = document.getElementById('delete-appointment-btn');
-    if (deleteBtn) {
-        deleteBtn.addEventListener('click', function() {
-            console.log('=== DELETE BUTTON CLICKED ===');
-            const appointmentId = this.getAttribute('data-appointment-id');
-            console.log('Raw appointmentId from delete button:', appointmentId);
-            console.log('Type of appointmentId:', typeof appointmentId);
-            console.log('Button element:', this);
-            console.log('All data attributes:', this.dataset);
-
-            if (appointmentId && appointmentId !== 'null' && appointmentId !== 'undefined') {
-                console.log('Calling showDeleteConfirmation with:', appointmentId);
-                showDeleteConfirmation(appointmentId);
-            } else {
-                console.error('No valid appointment ID found on delete button');
-                showValidationMessage('Error: No valid appointment ID found - ' + appointmentId, 'error');
-            }
-            console.log('=== END DELETE BUTTON DEBUG ===');
-        });
-    }
-
-    // Confirm delete functionality
-    document.getElementById('confirm-delete-btn').addEventListener('click', function() {
-        console.log('=== CONFIRM DELETE CLICKED ===');
-        const appointmentId = this.getAttribute('data-appointment-id');
-        console.log('Raw appointmentId from button:', appointmentId);
-        console.log('Type of appointmentId:', typeof appointmentId);
-        console.log('Button element:', this);
-        console.log('All data attributes:', this.dataset);
-
-        if (appointmentId && appointmentId !== 'null' && appointmentId !== 'undefined') {
-            console.log('Calling deleteAppointment with:', appointmentId);
-            deleteAppointment(appointmentId);
-        } else {
-            console.error('No valid appointment ID found on confirm delete button');
-            showValidationMessage('Error: No valid appointment ID found - ' + appointmentId, 'error');
-        }
-        console.log('=== END CONFIRM DELETE DEBUG ===');
-    });
+    // Cancel appointment functionality is now integrated into Change Status modal
 
     // Reschedule appointment functionality
     document.getElementById('reschedule-appointment-btn').addEventListener('click', function() {
@@ -4007,162 +3948,6 @@ document.addEventListener('DOMContentLoaded', function() {
         saveReschedule();
     });
 
-    function showDeleteConfirmation(appointmentId) {
-        // Find the appointment to show details
-        const appointment = appointments.find(apt => apt.id == appointmentId);
-        if (!appointment) {
-            showValidationMessage('Appointment not found', 'error');
-            return;
-        }
-
-        // Get patient name
-        let patientName = 'Unknown Patient';
-        if (appointment.patient && appointment.patient.info) {
-            const info = appointment.patient.info;
-            patientName = `${info.first_name} ${info.last_name}`.trim();
-        } else if (appointment.patient && appointment.patient.name) {
-            patientName = appointment.patient.name;
-        }
-
-        // Parse datetime strings as LOCAL time to avoid timezone conversion
-        const startDateTime = parseLocalDateTime(appointment.start_datetime);
-        const endDateTime = parseLocalDateTime(appointment.end_datetime);
-
-        const formattedDate = startDateTime.toLocaleDateString('en-US', {
-            weekday: 'short',
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric'
-        });
-
-        const formattedStartTime = startDateTime.toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true
-        });
-
-        const formattedEndTime = endDateTime.toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true
-        });
-
-        // Update the confirmation modal content
-        document.getElementById('delete-appointment-info').textContent =
-            `${patientName} - ${formattedDate} at ${formattedStartTime}-${formattedEndTime}`;
-
-        // Store appointment ID for confirmation
-        console.log('=== SETTING APPOINTMENT ID ===');
-        console.log('About to set appointmentId:', appointmentId);
-        console.log('Type of appointmentId:', typeof appointmentId);
-        document.getElementById('confirm-delete-btn').setAttribute('data-appointment-id', appointmentId);
-
-        // Verify it was set correctly
-        const verifyId = document.getElementById('confirm-delete-btn').getAttribute('data-appointment-id');
-        console.log('Set appointment ID on confirm button:', appointmentId);
-        console.log('Verified appointment ID on confirm button:', verifyId);
-        console.log('Are they equal?', appointmentId === verifyId);
-        console.log('=== END SETTING APPOINTMENT ID ===');
-
-        // Close the details modal and show confirmation modal
-        bootstrap.Modal.getInstance(document.getElementById('appointmentDetailsModal')).hide();
-
-        // Show confirmation modal after a short delay
-        setTimeout(() => {
-            new bootstrap.Modal(document.getElementById('deleteConfirmationModal')).show();
-        }, 300);
-    }
-
-    function deleteAppointment(appointmentId) {
-        console.log('=== DELETE APPOINTMENT DEBUG ===');
-        console.log('Raw appointmentId:', appointmentId);
-        console.log('Type of appointmentId:', typeof appointmentId);
-        console.log('Is appointmentId null?', appointmentId === null);
-        console.log('Is appointmentId undefined?', appointmentId === undefined);
-        console.log('String representation:', String(appointmentId));
-
-        // Validate appointment ID
-        if (!appointmentId || appointmentId === 'undefined' || appointmentId === 'null' || appointmentId === null || appointmentId === undefined) {
-            console.error('Invalid appointment ID:', appointmentId);
-            showValidationMessage('Error: Invalid appointment ID - ' + appointmentId, 'error');
-            return;
-        }
-
-        // Show loading state
-        const deleteBtn = document.getElementById('confirm-delete-btn');
-        const originalText = deleteBtn.innerHTML;
-        deleteBtn.disabled = true;
-
-        const deleteUrl = `/staff/appointment/${appointmentId}/delete`;
-        console.log('Final Delete URL:', deleteUrl);
-        console.log('=== END DEBUG ===');
-
-        // Add delay before making the request
-        const delay = 2000; // 2 seconds delay
-        console.log('Adding delay of', delay, 'ms before delete request...');
-
-        // Show countdown during delay
-        let countdown = delay / 1000;
-        const countdownInterval = setInterval(() => {
-            deleteBtn.innerHTML = `<i class="bi bi-hourglass-split me-1"></i>Deleting in ${countdown}s...`;
-            countdown--;
-
-            if (countdown < 0) {
-                clearInterval(countdownInterval);
-                deleteBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Deleting...';
-            }
-        }, 1000);
-
-        setTimeout(() => {
-            fetch(deleteUrl, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                })
-            })
-        .then(response => {
-            console.log('Delete response status:', response.status);
-            console.log('Delete response ok:', response.ok);
-            return response.json();
-        })
-        .then(data => {
-            console.log('Delete response data:', data);
-            if (data.success) {
-                console.log('Delete successful, closing modal and reloading page...');
-                // Close the confirmation modal
-                bootstrap.Modal.getInstance(document.getElementById('deleteConfirmationModal')).hide();
-
-                // Show success message
-                showValidationMessage('Appointment deleted successfully!', 'success');
-
-                // Reload the page to update the calendar
-                setTimeout(() => {
-                    console.log('Reloading page...');
-                    reloadWithCurrentMonth();
-                }, 1500);
-            } else {
-                console.log('Delete failed:', data.message);
-                showValidationMessage('Error deleting appointment: ' + (data.message || 'Unknown error'), 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Error deleting appointment:', error);
-            showValidationMessage('Error deleting appointment. Please try again.', 'error');
-        })
-        .finally(() => {
-            // Clear countdown interval
-            clearInterval(countdownInterval);
-            // Reset button state
-            deleteBtn.innerHTML = originalText;
-            deleteBtn.disabled = false;
-        });
-        }, delay); // Close setTimeout with delay
-    }
 
     function rescheduleAppointment(appointmentId) {
         // Fetch fresh appointment data from server
@@ -4796,13 +4581,38 @@ document.addEventListener('DOMContentLoaded', function() {
                 const option = document.createElement('option');
                 option.value = status;
                 option.textContent = status;
+                // Special styling hint for cancelled status
+                if (status === 'Cancelled') {
+                    option.style.color = '#dc2626';
+                }
                 newStatusSelect.appendChild(option);
             });
             newStatusSelect.disabled = false;
-            document.getElementById('status_transition_help').textContent =
-                'Select a new status for this appointment';
+
+            // Update help text based on available statuses
+            if (availableStatuses.includes('Cancelled')) {
+                document.getElementById('status_transition_help').innerHTML =
+                    '<span class="text-danger"><i class="bi bi-info-circle me-1"></i>Select "Cancelled" to cancel this appointment. A note is required when cancelling.</span>';
+            } else {
+                document.getElementById('status_transition_help').textContent =
+                    'Select a new status for this appointment';
+            }
             document.getElementById('confirm-status-change-btn').disabled = false;
         }
+
+        // Show/hide notes field based on selected status
+        const notesContainer = document.getElementById('status_notes_container');
+        const notesField = document.getElementById('status_change_notes');
+        newStatusSelect.addEventListener('change', function() {
+            if (this.value === 'Cancelled') {
+                notesContainer.style.display = 'block';
+                notesField.required = true;
+            } else {
+                notesContainer.style.display = 'none';
+                notesField.required = false;
+                notesField.value = ''; // Clear notes if not cancelling
+            }
+        });
 
         // Clear previous notes and validation
         document.getElementById('status_change_notes').value = '';
@@ -4822,7 +4632,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateAppointmentStatus() {
         const appointmentId = document.getElementById('status_change_appointment_id').value;
         const newStatus = document.getElementById('new_status').value;
-        const notes = document.getElementById('status_change_notes').value;
+        const notesField = document.getElementById('status_change_notes');
+        const notes = notesField.value.trim();
         const currentStatus = document.getElementById('status_change_current_status').value;
 
         // Validation
@@ -4836,17 +4647,26 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        // Require notes only when cancelling
+        if (newStatus === 'Cancelled' && !notes) {
+            showStatusValidationMessage('Please provide a reason for cancelling this appointment', 'danger');
+            notesField.focus();
+            return;
+        }
+
         // Show loading state
         const confirmBtn = document.getElementById('confirm-status-change-btn');
         const originalText = confirmBtn.innerHTML;
         confirmBtn.disabled = true;
         confirmBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Updating...';
 
-        // Prepare request data
+        // Prepare request data - only include notes if status is Cancelled
         const requestData = {
-            status: newStatus,
-            notes: notes
+            status: newStatus
         };
+        if (newStatus === 'Cancelled' && notes) {
+            requestData.notes = notes;
+        }
 
         // Send request
         fetch(`/staff/appointment/${appointmentId}/status`, {
