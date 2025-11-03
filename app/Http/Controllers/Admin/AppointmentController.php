@@ -582,6 +582,18 @@ class AppointmentController extends Controller
         }
 
         try {
+            // If request explicitly asks to force delete, bypass cancellation rules
+            if (request()->boolean('force')) {
+                $appointment = Appointment::findOrFail($id);
+                $appointment->delete();
+
+                if (request()->ajax() || request()->wantsJson()) {
+                    return response()->json(['success' => true, 'message' => 'Appointment deleted successfully']);
+                }
+
+                return redirect()->route('admin-appointment')->with('success', 'Appointment deleted successfully.');
+            }
+
             $appointment = Appointment::findOrFail($id);
 
             // Check if appointment is already cancelled

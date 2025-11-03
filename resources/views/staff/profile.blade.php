@@ -149,16 +149,31 @@
                         @csrf
                         <div class="mb-3">
                             <label for="current_password" class="form-label fw-semibold">Current Password <span class="text-danger">*</span></label>
-                            <input type="password" class="form-control" id="current_password" name="current_password" required>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="current_password" name="current_password" required>
+                                <button class="btn btn-outline-secondary toggle-password" type="button" data-target="#current_password" aria-label="Show password">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label for="new_password" class="form-label fw-semibold">New Password <span class="text-danger">*</span></label>
-                            <input type="password" class="form-control" id="new_password" name="new_password" required minlength="8">
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="new_password" name="new_password" required minlength="8">
+                                <button class="btn btn-outline-secondary toggle-password" type="button" data-target="#new_password" aria-label="Show password">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
                             <small class="text-muted">Minimum 8 characters</small>
                         </div>
                         <div class="mb-3">
                             <label for="new_password_confirmation" class="form-label fw-semibold">Confirm New Password <span class="text-danger">*</span></label>
-                            <input type="password" class="form-control" id="new_password_confirmation" name="new_password_confirmation" required>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="new_password_confirmation" name="new_password_confirmation" required>
+                                <button class="btn btn-outline-secondary toggle-password" type="button" data-target="#new_password_confirmation" aria-label="Show password">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
                         </div>
                         <button type="submit" class="btn btn-primary w-100">
                             <i class="bi bi-key me-2"></i>Update Password
@@ -315,6 +330,10 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                if (data.logout_redirect) {
+                    window.location.href = data.logout_redirect;
+                    return;
+                }
                 showToast('Success!', data.message, 'success');
                 this.reset();
             } else {
@@ -328,6 +347,22 @@ document.addEventListener('DOMContentLoaded', function() {
         .finally(() => {
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalText;
+        });
+    });
+
+    // Toggle password visibility buttons
+    document.querySelectorAll('.toggle-password').forEach(function(btn){
+        btn.addEventListener('click', function(){
+            const input = document.querySelector(this.getAttribute('data-target'));
+            if(!input) return;
+            const icon = this.querySelector('i');
+            const isPwd = input.getAttribute('type') === 'password';
+            input.setAttribute('type', isPwd ? 'text' : 'password');
+            if(icon){
+                icon.classList.toggle('bi-eye');
+                icon.classList.toggle('bi-eye-slash');
+            }
+            this.setAttribute('aria-label', isPwd ? 'Hide password' : 'Show password');
         });
     });
 

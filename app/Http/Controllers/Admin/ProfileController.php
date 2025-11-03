@@ -156,9 +156,17 @@ class ProfileController extends Controller
             'password' => Hash::make($request->new_password)
         ]);
 
+        // Force logout across all guards
+        Auth::guard('web')->logout();
+        Auth::guard('staff')->logout();
+        Auth::guard('admin')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
         return response()->json([
             'success' => true,
-            'message' => 'Password updated successfully!'
+            'message' => 'Password updated successfully! Please log in again.',
+            'logout_redirect' => route('admin.login')
         ]);
     }
 }

@@ -25,8 +25,13 @@
                 @csrf
                 <div class="mb-3">
                     <label for="current_password" class="form-label">Current Password</label>
+                    <div class="input-group">
                     <input type="password" class="form-control @error('current_password') is-invalid @enderror"
                            name="current_password" id="current_password" placeholder="Enter current password" autocomplete="current-password" required>
+                        <button class="btn btn-outline-secondary toggle-password" type="button" data-target="#current_password" aria-label="Show password">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
                     @error('current_password')
                         <p class="text-danger mt-1">* {{ $message }}</p>
                     @enderror
@@ -34,8 +39,13 @@
 
                 <div class="mb-3">
                     <label for="new_password" class="form-label">New Password</label>
+                    <div class="input-group">
                     <input type="password" class="form-control @error('new_password') is-invalid @enderror"
                            name="new_password" id="new_password" placeholder="Enter new password (min. 8 characters)" autocomplete="new-password" required>
+                        <button class="btn btn-outline-secondary toggle-password" type="button" data-target="#new_password" aria-label="Show password">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
                     @error('new_password')
                         <p class="text-danger mt-1">* {{ $message }}</p>
                     @enderror
@@ -43,8 +53,13 @@
 
                 <div class="mb-4">
                     <label for="new_password_confirmation" class="form-label">Confirm New Password</label>
+                    <div class="input-group">
                     <input type="password" class="form-control @error('new_password_confirmation') is-invalid @enderror"
                            name="new_password_confirmation" id="new_password_confirmation" placeholder="Confirm new password" autocomplete="new-password" required>
+                        <button class="btn btn-outline-secondary toggle-password" type="button" data-target="#new_password_confirmation" aria-label="Show password">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
                     @error('new_password_confirmation')
                         <p class="text-danger mt-1">* {{ $message }}</p>
                     @enderror
@@ -54,13 +69,18 @@
                     <i class="bi bi-shield-lock me-2"></i>Change Password
                 </button>
 
-                <div class="text-center mt-3">
+                <div class="mt-3 d-flex justify-content-between align-items-center">
+                    <a href="{{ route('patient-profile') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Back
+                    </a>
+                    <div>
                     <button type="button" class="btn btn-link text-muted" id="logoutBtn">
                         <i class="bi bi-box-arrow-left me-1"></i>Logout
                     </button>
                     <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
                         @csrf
                     </form>
+                    </div>
                 </div>
             </form>
         </div>
@@ -210,6 +230,22 @@
             console.error('Bootstrap is not loaded');
             return;
         }
+
+        // Toggle password visibility for any eye button
+        document.querySelectorAll('.toggle-password').forEach(function(btn){
+            btn.addEventListener('click', function(){
+                const input = document.querySelector(this.getAttribute('data-target'));
+                if(!input) return;
+                const icon = this.querySelector('i');
+                const isPwd = input.getAttribute('type') === 'password';
+                input.setAttribute('type', isPwd ? 'text' : 'password');
+                if(icon){
+                    icon.classList.toggle('bi-eye');
+                    icon.classList.toggle('bi-eye-slash');
+                }
+                this.setAttribute('aria-label', isPwd ? 'Hide password' : 'Show password');
+            });
+        });
 
         // Add event listener to logout button
         const logoutBtn = document.getElementById('logoutBtn');

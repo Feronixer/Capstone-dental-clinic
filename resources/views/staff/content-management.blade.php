@@ -8,6 +8,13 @@
     transition: all 0.3s ease;
 }
 
+/* Drag & Drop highlight */
+.announcement-image-container.drag-over {
+    border-color: #2196F3 !important;
+    box-shadow: 0 0 0 3px rgba(33,150,243,0.15) !important;
+    background: #f0f8ff !important;
+}
+
 .announcement-image-container:hover {
     border-color: #667eea;
     box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
@@ -1706,6 +1713,38 @@ document.getElementById('announcementImage').addEventListener('change', function
         reader.readAsDataURL(file);
     }
 });
+
+// Drag & Drop support for announcement image
+(function() {
+    const dropZone = document.querySelector('.announcement-image-container');
+    const fileInput = document.getElementById('announcementImage');
+    if (!dropZone || !fileInput) return;
+
+    const preventDefaults = (e) => { e.preventDefault(); e.stopPropagation(); };
+
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    ['dragenter','dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => dropZone.classList.add('drag-over'), false);
+    });
+    ['dragleave','drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => dropZone.classList.remove('drag-over'), false);
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        if (!dt || !dt.files || dt.files.length === 0) return;
+        const file = dt.files[0];
+        if (!file.type.startsWith('image/')) return; // only images
+
+        const transfer = new DataTransfer();
+        transfer.items.add(file);
+        fileInput.files = transfer.files;
+        fileInput.dispatchEvent(new Event('change'));
+    }, false);
+})();
 
 // Ticker Form Handler
 document.getElementById('tickerForm').addEventListener('submit', function(e) {

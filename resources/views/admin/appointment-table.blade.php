@@ -253,6 +253,9 @@
                                             <button class="btn btn-sm btn-primary view-appointment" data-appointment-id="{{ $appointment->id }}" title="View Details">
                                                 <i class="bi bi-eye"></i>
                                             </button>
+                                            <button class="btn btn-sm btn-danger delete-appointment" data-appointment-id="{{ $appointment->id }}" title="Delete Appointment">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
                                         </td>
                                     </tr>
                                 @empty
@@ -309,6 +312,25 @@
         </div>
     </div>
 </div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteAppointmentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-trash me-2 text-danger"></i>Delete Appointment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this appointment? This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteAppointmentBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+    </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -437,6 +459,43 @@ document.addEventListener('DOMContentLoaded', function() {
 
         new bootstrap.Modal(document.getElementById('appointmentDetailsModal')).show();
     }
+    // Delete appointment
+    let selectedAppointmentId = null;
+    document.querySelectorAll('.delete-appointment').forEach(btn => {
+        btn.addEventListener('click', function() {
+            selectedAppointmentId = this.getAttribute('data-appointment-id');
+            new bootstrap.Modal(document.getElementById('deleteAppointmentModal')).show();
+        });
+    });
+
+    document.getElementById('confirmDeleteAppointmentBtn').addEventListener('click', function() {
+        if (!selectedAppointmentId) return;
+        fetch(`/admin/appointment/${selectedAppointmentId}/delete`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ force: true })
+        })
+        .then(async (res) => {
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                throw new Error(data.message || 'Failed to delete appointment');
+            }
+            return res.json().catch(() => ({}));
+        })
+        .then(() => {
+            // Hide modal and refresh page to reflect deletion
+            bootstrap.Modal.getInstance(document.getElementById('deleteAppointmentModal')).hide();
+            window.location.reload();
+        })
+        .catch(err => {
+            bootstrap.Modal.getInstance(document.getElementById('deleteAppointmentModal')).hide();
+            alert(err.message || 'Failed to delete appointment');
+        });
+    });
 });
 
 function toggleSortOrder() {

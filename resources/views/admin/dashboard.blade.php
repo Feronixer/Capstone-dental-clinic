@@ -80,6 +80,18 @@
         background-color: white !important;
     }
 
+    /* Ensure proper contrast in light mode */
+    .appointment-item h6 {
+        color: #212529 !important;
+    }
+    .appointment-item small,
+    .appointment-item .text-muted {
+        color: #6c757d !important;
+    }
+    .appointment-item .rounded-circle.bg-primary.bg-opacity-10 i {
+        color: #0d6efd !important; /* bootstrap primary */
+    }
+
     .appointment-item:hover {
         background-color: #f8f9fa !important;
         border-left-color: #16a085;

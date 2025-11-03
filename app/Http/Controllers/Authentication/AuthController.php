@@ -123,7 +123,14 @@ class AuthController extends Controller
         $user->must_change_password = false;
         $user->save();
 
-        return redirect()->route('patient-home')->with('success', 'Password changed successfully!');
+        // Force logout from all guards after password change
+        Auth::guard('web')->logout();
+        Auth::guard('staff')->logout();
+        Auth::guard('admin')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login')->with('success', 'Password changed successfully. Please log in again.');
     }
 
     public function register(Request $request) {

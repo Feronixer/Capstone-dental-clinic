@@ -115,6 +115,24 @@
 @include('admin.account-management.modal-add-user')
 @include('admin.account-management.modal-edit-user')
 @include('admin.account-management.delete-user')
+
+<!-- Validation Help Modal -->
+<div class="modal fade" id="validationHelpModal" tabindex="-1" aria-labelledby="validationHelpLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="validationHelpLabel"><i class="bi bi-exclamation-triangle me-2 text-warning"></i>Field Requirement</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="validationHelpBody">
+                <!-- dynamically filled -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+    </div>
 {{-- @include('admin.account-management.change-password-modal') --}}
 
 <style>
@@ -309,6 +327,18 @@
 .btn-enhanced-add:active {
     transform: translateY(0);
 }
+
+/* Validation warning icon inside floating inputs */
+.validation-warning-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #dc3545;
+    cursor: pointer;
+    z-index: 2;
+}
+.form-floating { position: relative; }
 
 /* Enhanced Pagination */
 #users-pagination .pagination {
@@ -826,12 +856,14 @@ $(document).ready(function () {
                     let errors = xhr.responseJSON.errors;
                     $('#editUserForm .invalid-feedback').text('').hide();
                     $('#editUserForm .form-control, #editUserForm .form-select').removeClass('is-invalid');
+                    $('#editUserForm .validation-warning-icon').remove();
                     $.each(errors, function (key, value) {
                         let input = $('#editUserForm').find(`[name="${key}"]`);
                         input.addClass('is-invalid');
                         input.closest('.form-floating').find('.invalid-feedback')
                             .text(value[0])
                             .show();
+                        attachValidationIcon(input, value[0]);
                     });
                 } else {
                     showToast('danger', 'Unexpected error occurred');
@@ -860,12 +892,14 @@ $(document).ready(function () {
                     let errors = xhr.responseJSON.errors;
                     $('#changePasswordForm .invalid-feedback').text('').hide();
                     $('#changePasswordForm .form-control, #editUserForm .form-select').removeClass('is-invalid');
+                    $('#changePasswordForm .validation-warning-icon').remove();
                     $.each(errors, function (key, value) {
                         let input = $('#changePasswordForm').find(`[name="${key}"]`);
                         input.addClass('is-invalid');
                         input.closest('.form-floating').find('.invalid-feedback')
                             .text(value[0])
                             .show();
+                        attachValidationIcon(input, value[0]);
                     });
                 } else {
                     showToast('danger', 'Unexpected error occurred');
@@ -903,12 +937,14 @@ $(document).ready(function () {
                     let errors = xhr.responseJSON.errors;
                     form.find('.invalid-feedback').text('').hide();
                     form.find('.form-control, .form-select').removeClass('is-invalid');
+                    form.find('.validation-warning-icon').remove();
                     $.each(errors, function(key, value) {
                         let input = form.find(`[name="${key}"]`);
                         input.addClass('is-invalid');
                         input.closest('.form-floating').find('.invalid-feedback')
                             .text(value[0])
                             .show();
+                        attachValidationIcon(input, value[0]);
                     });
                 } else {
                     showToast('danger', 'Unexpected error occurred');
@@ -986,6 +1022,21 @@ $(document).ready(function () {
         $('#toast-container').append(toast);
         let bsToast = new bootstrap.Toast($('#toast-container .toast').last()[0]);
         bsToast.show();
+    }
+
+    // Attach clickable warning icon that opens modal with message
+    function attachValidationIcon($input, message) {
+        let wrapper = $input.closest('.form-floating');
+        if (!wrapper.length) return;
+        // Avoid duplicates
+        wrapper.find('.validation-warning-icon').remove();
+        const icon = $('<i class="bi bi-exclamation-circle-fill validation-warning-icon" title="See details"></i>');
+        icon.on('click', function() {
+            $('#validationHelpBody').text(message);
+            const modal = new bootstrap.Modal(document.getElementById('validationHelpModal'));
+            modal.show();
+        });
+        wrapper.append(icon);
     }
 });
 </script>
