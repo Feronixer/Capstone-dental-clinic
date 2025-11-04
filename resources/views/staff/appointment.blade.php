@@ -160,137 +160,56 @@
                             <div class="form-text" style="font-size: 0.7rem; margin-top: 0.25rem;">Click on a date to select it</div>
                         </div>
 
+                        <!-- Service Name -->
+                        <div class="col-md-6 mb-2">
+                            <label for="service_name" class="form-label fw-bold appointment-label mb-1">Service Name *</label>
+                            <select class="form-select form-select-sm" id="service_name" name="service_name" required>
+                                <option value="">Select a service</option>
+                                @foreach($services as $service)
+                                    <option value="{{ $service->id }}"
+                                            data-duration="{{ $service->default_duration_minutes }}"
+                                            data-price="{{ $service->price }}"
+                                            data-description="{{ $service->description }}">
+                                        {{ $service->service_name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <div id="service-info" class="mt-1" style="display: none;">
+                                <small class="text-muted" id="service-description" style="font-size: 0.75rem;"></small>
+                                <br>
+                                <small class="text-muted" id="service-duration" style="font-size: 0.75rem;"></small>
+                            </div>
+                        </div>
+
                         <!-- Time Slot Selection -->
+                        <style>
+                            .time-slots-list .form-check { cursor: pointer; border: 1px solid #e2e8f0; border-radius: 8px; padding: 6px 10px; margin-bottom: 6px; transition: background-color .15s ease, border-color .15s ease; }
+                            .time-slots-list .form-check:hover { background-color: #f1f5f9; border-color: #cbd5e1; }
+                            .time-slots-list .form-check.selected { background-color: #e0f2fe; border-color: #38bdf8; }
+                            [data-theme="dark"] .time-slots-list .form-check { border-color: #334155; }
+                            [data-theme="dark"] .time-slots-list .form-check:hover { background-color: #1f2937; border-color: #475569; }
+                            [data-theme="dark"] .time-slots-list .form-check.selected { background-color: #0b3b52; border-color: #0ea5e9; }
+                            .time-slots-list .form-check.time-slot-disabled { opacity: .55; text-decoration: line-through; cursor: not-allowed; }
+                            .time-slots-list .form-check.time-slot-disabled label { text-decoration: line-through; }
+                            .time-slots-list .form-check.time-slot-blocked { opacity: .6; cursor: not-allowed; }
+                            #end-time-preview { color: #0f172a !important; }
+                            [data-theme="dark"] #end-time-preview { color: #e2e8f0 !important; }
+                        </style>
                         <div class="col-md-6 mb-2">
                             <label class="form-label fw-bold appointment-label mb-1">Select Time Slot</label>
                             <div class="time-slots-container">
                                 <div class="time-slots-list" id="time-slots-list">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="time_slot" id="slot1" value="08:00-08:30">
-                                        <label class="form-check-label" for="slot1">08:00 AM</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="time_slot" id="slot2" value="08:30-09:00">
-                                        <label class="form-check-label" for="slot2">08:30 AM</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="time_slot" id="slot3" value="09:00-09:30">
-                                        <label class="form-check-label" for="slot3">09:00 AM</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="time_slot" id="slot4" value="09:30-10:00">
-                                        <label class="form-check-label" for="slot4">09:30 AM</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="time_slot" id="slot5" value="10:00-10:30">
-                                        <label class="form-check-label" for="slot5">10:00 AM</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="time_slot" id="slot6" value="10:30-11:00">
-                                        <label class="form-check-label" for="slot6">10:30 AM</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="time_slot" id="slot7" value="11:00-11:30">
-                                        <label class="form-check-label" for="slot7">11:00 AM</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="time_slot" id="slot8" value="11:30-12:00">
-                                        <label class="form-check-label" for="slot8">11:30 AM</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="time_slot" id="slot9" value="13:00-13:30">
-                                        <label class="form-check-label" for="slot9">01:00 PM</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="time_slot" id="slot10" value="13:30-14:00">
-                                        <label class="form-check-label" for="slot10">01:30 PM</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="time_slot" id="slot11" value="14:00-14:30">
-                                        <label class="form-check-label" for="slot11">02:00 PM</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="time_slot" id="slot12" value="14:30-15:00">
-                                        <label class="form-check-label" for="slot12">02:30 PM</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="time_slot" id="slot13" value="15:00-15:30">
-                                        <label class="form-check-label" for="slot13">03:00 PM</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="time_slot" id="slot14" value="15:30-16:00">
-                                        <label class="form-check-label" for="slot14">03:30 PM</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="time_slot" id="slot15" value="16:00-16:30">
-                                        <label class="form-check-label" for="slot15">04:00 PM</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="time_slot" id="slot16" value="16:30-17:00">
-                                        <label class="form-check-label" for="slot16">04:30 PM</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="time_slot" id="slot17" value="17:00-17:30">
-                                        <label class="form-check-label" for="slot17">05:00 PM</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="time_slot" id="slot18" value="17:30-18:00">
-                                        <label class="form-check-label" for="slot18">05:30 PM</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="time_slot" id="slot19" value="18:00-18:30">
-                                        <label class="form-check-label" for="slot19">06:00 PM</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="time_slot" id="slot20" value="18:30-19:00">
-                                        <label class="form-check-label" for="slot20">06:30 PM</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="time_slot" id="slot21" value="19:00-19:30">
-                                        <label class="form-check-label" for="slot21">07:00 PM</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="time_slot" id="slot22" value="19:30-20:00">
-                                        <label class="form-check-label" for="slot22">07:30 PM</label>
+                                    <!-- Time slots will be generated dynamically based on selected service duration and date -->
+                                    <div class="text-muted text-center" style="padding: 20px;">
+                                        <small>Please select a service and date to view available time slots</small>
                                     </div>
                                 </div>
-                                <div class="form-check mt-2">
-                                    <input class="form-check-input" type="radio" name="time_slot" id="custom_time" value="custom">
-                                    <label class="form-check-label" for="custom_time" style="font-size: 0.8rem;">Custom Time</label>
-                                </div>
-                                <div id="custom-time-inputs" class="mt-2" style="display: none;">
-                                    <div class="row">
-                                        <div class="col-12">
-                                            <label for="custom_start_time" class="form-label" style="font-size: 0.8rem;">Start Time</label>
-                                            <input type="time" class="form-control form-control-sm" id="custom_start_time" name="custom_start_time">
-                                            <div class="form-text" style="font-size: 0.7rem;">End time calculated automatically</div>
-                                        </div>
-                                    </div>
-                                </div>
+                                <div id="end-time-preview" class="mt-2" style="display: none; font-size: 0.8rem; color: #6c757d;"></div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Service Name -->
-                    <div class="mb-3">
-                        <label for="service_name" class="form-label fw-bold appointment-label mb-1">Service Name *</label>
-                        <select class="form-select form-select-sm" id="service_name" name="service_name" required>
-                            <option value="">Select a service</option>
-                            @foreach($services as $service)
-                                <option value="{{ $service->id }}"
-                                        data-duration="{{ $service->default_duration_minutes }}"
-                                        data-price="{{ $service->price }}"
-                                        data-description="{{ $service->description }}">
-                                    {{ $service->service_name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <div id="service-info" class="mt-1" style="display: none;">
-                            <small class="text-muted" id="service-description" style="font-size: 0.75rem;"></small>
-                            <br>
-                            <small class="text-muted" id="service-duration" style="font-size: 0.75rem;"></small>
-                        </div>
-                    </div>
+                    
 
                     <!-- Notes -->
                     <div class="mb-2">
@@ -570,19 +489,7 @@
                                         <label class="form-check-label" for="reschedule_slot22">07:30 PM</label>
                                     </div>
                                 </div>
-                                <div class="form-check mt-3">
-                                    <input class="form-check-input" type="radio" name="reschedule_time_slot" id="reschedule_custom_time" value="custom">
-                                    <label class="form-check-label" for="reschedule_custom_time">Custom Time</label>
-                                </div>
-                                <div id="reschedule-custom-time-inputs" class="mt-3" style="display: none;">
-                                    <div class="row">
-                                        <div class="col-12">
-                                            <label for="reschedule_custom_start_time" class="form-label">Start Time</label>
-                                            <input type="time" class="form-control" id="reschedule_custom_start_time" name="reschedule_custom_start_time">
-                                            <div class="form-text">End time will be calculated automatically based on service duration</div>
-                                        </div>
-                                    </div>
-                                </div>
+                                
                             </div>
                         </div>
                     </div>
@@ -1718,14 +1625,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // For custom time input - allow Enter to submit
-        if (e.target.id === 'custom_start_time' && (e.key === 'Enter' || e.keyCode === 13)) {
-            e.preventDefault();
-            const form = document.getElementById('appointmentForm');
-            if (form) {
-                form.dispatchEvent(new Event('submit'));
-            }
-            return;
-        }
+        
 
         // For other inputs and selects, submit form on Enter
         if (e.key === 'Enter' || e.keyCode === 13) {
@@ -1767,10 +1667,84 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             serviceInfo.style.display = 'block';
+
+            // Generate time slots based on service duration and selected date
+            const selectedDate = document.getElementById('selected_date').value;
+            generateTimeSlots(parseInt(duration, 10), selectedDate);
+            updateTimeSlotAvailability(selectedDate);
         } else {
             serviceInfo.style.display = 'none';
+            // Clear slots
+            const timeSlotsList = document.getElementById('time-slots-list');
+            if (timeSlotsList) {
+                timeSlotsList.innerHTML = '<div class="text-muted text-center" style="padding: 20px;"><small>Please select a service and date to view available time slots</small></div>';
+            }
         }
     });
+
+    // Generate time slots according to selected service duration and clinic hours
+    function generateTimeSlots(durationMinutes, selectedDate) {
+        const timeSlotsList = document.getElementById('time-slots-list');
+        if (!timeSlotsList) return;
+
+        timeSlotsList.innerHTML = '';
+
+        if (!durationMinutes || !selectedDate) {
+            timeSlotsList.innerHTML = '<div class="text-muted text-center" style="padding: 20px;"><small>Please select a service and date to view available time slots</small></div>';
+            return;
+        }
+
+        const [year, month, day] = selectedDate.split('-').map(Number);
+        const clinicOpenHour = 11;
+        const clinicCloseHour = 18;
+
+        let slotIndex = 1;
+        for (let hour = clinicOpenHour; hour < clinicCloseHour; hour++) {
+            for (let minute = 0; minute < 60; minute += durationMinutes) {
+                const start = new Date(year, month - 1, day, hour, minute, 0);
+                const end = new Date(start.getTime() + durationMinutes * 60000);
+
+                if (end.getHours() > clinicCloseHour || (end.getHours() === clinicCloseHour && end.getMinutes() > 0)) {
+                    break;
+                }
+
+                const val = `${String(start.getHours()).padStart(2,'0')}:${String(start.getMinutes()).padStart(2,'0')}-${String(end.getHours()).padStart(2,'0')}:${String(end.getMinutes()).padStart(2,'0')}`;
+                const startLabel = start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+
+                const slotDiv = document.createElement('div');
+                slotDiv.className = 'form-check';
+                slotDiv.innerHTML = `
+                    <input class=\"form-check-input\" type=\"radio\" name=\"time_slot\" id=\"slot${slotIndex}\" value=\"${val}\">\n                    <label class=\"form-check-label\" for=\"slot${slotIndex}\">${startLabel}</label>
+                `;
+                timeSlotsList.appendChild(slotDiv);
+
+                const radio = slotDiv.querySelector('input[type=\"radio\"]');
+                if (radio) {
+                    radio.addEventListener('change', function() {
+                        document.querySelectorAll('.time-slots-list .form-check').forEach(s => s.classList.remove('selected'));
+                        slotDiv.classList.add('selected');
+                        if (typeof updateEndTimePreview === 'function') updateEndTimePreview();
+                    });
+                }
+                slotIndex++;
+            }
+        }
+
+        if (slotIndex === 1) {
+            timeSlotsList.innerHTML = '<div class="text-muted text-center" style="padding: 20px;"><small>No available time slots for this date</small></div>';
+        }
+
+        document.querySelectorAll('.time-slots-list .form-check').forEach(slot => {
+            slot.addEventListener('click', function(e) {
+                if (e.target.type === 'radio') return;
+                const radio = this.querySelector('input[type="radio"]');
+                if (radio) {
+                    radio.checked = true;
+                    radio.dispatchEvent(new Event('change'));
+                }
+            });
+        });
+    }
 
     // Time slot selection highlighting
     document.querySelectorAll('input[name="time_slot"]').forEach(radio => {
@@ -1784,6 +1758,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (this.checked) {
                 this.closest('.form-check').classList.add('selected');
             }
+
+            // Update end time preview
+            updateEndTimePreview();
         });
     });
 
@@ -1800,6 +1777,58 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // Update end-time preview whenever service or date changes
+    document.getElementById('selected_date').addEventListener('change', updateEndTimePreview);
+
+    function updateEndTimePreview() {
+        const preview = document.getElementById('end-time-preview');
+        if (!preview) return;
+
+        const serviceSelect = document.getElementById('service_name');
+        const opt = serviceSelect && serviceSelect.options[serviceSelect.selectedIndex];
+        const duration = opt ? parseInt(opt.getAttribute('data-duration') || '0', 10) : 0;
+
+        if (!duration) {
+            preview.style.display = 'none';
+            return;
+        }
+
+        const selectedDate = document.getElementById('selected_date').value;
+        const checked = document.querySelector('input[name="time_slot"]:checked');
+        let startStr = '';
+        if (checked) {
+            startStr = checked.value.split('-')[0];
+        }
+
+        if (!selectedDate || !startStr) {
+            preview.style.display = 'none';
+            return;
+        }
+
+        const [y, m, d] = selectedDate.split('-').map(Number);
+        const [hh, mm] = startStr.split(':').map(Number);
+        if (Number.isNaN(hh) || Number.isNaN(mm)) {
+            preview.style.display = 'none';
+            return;
+        }
+
+        const start = new Date(y, m - 1, d, hh, mm, 0);
+        const end = new Date(start.getTime() + duration * 60000);
+        const endLabel = end.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+        preview.textContent = `Ends at ${endLabel}`;
+        preview.style.display = 'block';
+    }
+
+    // Adjust generated slots based on selected date
+    function updateTimeSlotAvailability(selectedDate) {
+        const serviceSelect = document.getElementById('service_name');
+        if (serviceSelect && serviceSelect.value) {
+            const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
+            const duration = parseInt(selectedOption.getAttribute('data-duration') || '0', 10);
+            generateTimeSlots(duration, selectedDate);
+        }
+    }
 
     // Modal calendar functionality
     let modalCurrentDate = new Date();
@@ -1831,13 +1860,13 @@ document.addEventListener('DOMContentLoaded', function() {
         generateModalCalendar();
     });
 
-    // Function to disable blocked time slots
+    // Function to disable blocked time slots and booked appointments
     function updateTimeSlotAvailability(selectedDate) {
         if (!selectedDate) {
             // If no date selected, enable all time slots
             document.querySelectorAll('input[name="time_slot"]').forEach(radio => {
                 radio.disabled = false;
-                radio.closest('.form-check').classList.remove('disabled', 'time-slot-blocked');
+                radio.closest('.form-check').classList.remove('disabled', 'time-slot-blocked', 'time-slot-booked', 'time-slot-disabled');
             });
             return;
         }
@@ -1852,7 +1881,13 @@ document.addEventListener('DOMContentLoaded', function() {
             return apt.status === 'blocked' && aptDate.toDateString() === selectedDateObj.toDateString();
         });
 
-        console.log('Blocked times on selected date:', blockedTimesOnDate);
+        // Find booked appointments on the selected date (exclude cancelled and blocked)
+        const bookedOnDate = allCalendarItems.filter(apt => {
+            const aptDate = parseLocalDateTime(apt.start_datetime);
+            if (!aptDate) return false;
+            const statusLower = (apt.status || 'pending').toLowerCase();
+            return aptDate.toDateString() === selectedDateObj.toDateString() && statusLower !== 'cancelled' && apt.status !== 'blocked';
+        });
 
         // Check each time slot
         document.querySelectorAll('input[name="time_slot"]').forEach(radio => {
@@ -1879,13 +1914,31 @@ document.addEventListener('DOMContentLoaded', function() {
             if (isBlocked) {
                 radio.disabled = true;
                 radio.checked = false;
-                radio.closest('.form-check').classList.add('disabled', 'time-slot-blocked');
+                radio.closest('.form-check').classList.add('disabled', 'time-slot-blocked', 'time-slot-disabled');
                 radio.closest('.form-check').title = 'This time slot is blocked';
-            } else {
-                radio.disabled = false;
-                radio.closest('.form-check').classList.remove('disabled', 'time-slot-blocked');
-                radio.closest('.form-check').title = '';
+                return;
             }
+
+            // Check overlap with booked appointments
+            const isBooked = bookedOnDate.some(apt => {
+                const aptStart = parseLocalDateTime(apt.start_datetime);
+                const aptEnd = parseLocalDateTime(apt.end_datetime);
+                if (!aptStart || !aptEnd) return false;
+                return (slotStart < aptEnd && slotEnd > aptStart);
+            });
+
+            if (isBooked) {
+                radio.disabled = true;
+                radio.checked = false;
+                radio.closest('.form-check').classList.add('disabled', 'time-slot-booked', 'time-slot-disabled');
+                radio.closest('.form-check').title = 'This time slot is already booked';
+                return;
+            }
+
+            // If not blocked or booked, ensure it's enabled
+            radio.disabled = false;
+            radio.closest('.form-check').classList.remove('disabled', 'time-slot-blocked', 'time-slot-booked', 'time-slot-disabled');
+            radio.closest('.form-check').title = '';
         });
     }
 
@@ -2303,23 +2356,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!appointmentData.patient_id) {
             showFieldError('patient_search', 'Please select a patient');
             isValid = false;
-        } else {
-            // Check if patient already has an appointment on the selected date
-        const selectedDate = document.getElementById('selected_date').value;
-            if (selectedDate) {
-                const existingAppointment = appointments.find(apt => {
-                    const aptDate = new Date(apt.start_datetime);
-                    const selectedDateObj = new Date(selectedDate);
-                    return apt.patient_id == appointmentData.patient_id &&
-                           apt.status !== 'blocked' &&
-                           aptDate.toDateString() === selectedDateObj.toDateString();
-                });
-
-                if (existingAppointment) {
-                    showFieldError('patient_search', 'This patient already has an appointment on this date');
-                    isValid = false;
-                }
-            }
         }
 
         // Check date selection
@@ -2379,6 +2415,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 const duration = parseInt(selectedService.getAttribute('data-duration')) || 30;
                 const newAppointmentEnd = new Date(newAppointmentStart.getTime() + (duration * 60000));
 
+                // Check if the selected patient already has an overlapping appointment
+                const overlappingForPatient = allCalendarItems.find(apt => {
+                    if (String(apt.patient_id) !== String(appointmentData.patient_id)) return false;
+                    const statusLower = (apt.status || 'pending').toLowerCase();
+                    if (statusLower === 'cancelled') return false;
+                    const existingStart = parseLocalDateTime(apt.start_datetime);
+                    const existingEnd = parseLocalDateTime(apt.end_datetime);
+                    if (!existingStart || !existingEnd) return false;
+                    return newAppointmentStart < existingEnd && newAppointmentEnd > existingStart;
+                });
+
+                if (overlappingForPatient) {
+                    showFieldError('patient_search', 'This patient already has an appointment that overlaps this time');
+                    isValid = false;
+                }
+
                 // Check for time overlaps with existing appointments and blocked times on the same date
                 // Exclude cancelled appointments - they don't block time slots
                 const overlappingItem = allCalendarItems.find(apt => {
@@ -2424,10 +2476,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             month: 'long',
                             day: 'numeric'
                         });
-                        // Get end time from the form
-                        const endTimeField = document.getElementById('custom_start_time').value
-                            ? document.getElementById('custom_start_time').value
-                            : document.querySelector('input[name="time_slot"]:checked')?.value?.split('-')[1] || endTime;
+                        // Get end time from selected slot
+                        const endTimeField = document.querySelector('input[name="time_slot"]:checked')?.value?.split('-')[1] || endTime;
                         const conflictTime = `${startTime} - ${endTimeField}`;
 
                         document.getElementById('conflictTitle').textContent = isFullDayClosure
@@ -2504,16 +2554,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Get the selected time slot again for appointment creation
         const timeSlotForCreation = document.querySelector('input[name="time_slot"]:checked');
 
-        // Validate custom time if selected
+        // Get start time from selected slot
         let startTime;
-        if (timeSlotForCreation && timeSlotForCreation.value === 'custom') {
-            startTime = document.getElementById('custom_start_time').value;
-            if (!startTime) {
-                showFieldError('custom-time-inputs', 'Please enter custom start time');
-                showValidationMessage('Please enter custom start time', 'error');
-                return;
-            }
-        } else if (timeSlotForCreation) {
+        if (timeSlotForCreation) {
             const [start, end] = timeSlotForCreation.value.split('-');
             startTime = start;
         } else {
@@ -4164,14 +4207,12 @@ document.addEventListener('DOMContentLoaded', function() {
             timeSlot.dispatchEvent(new Event('change'));
         } else {
             // If no exact match, use custom time
-            document.getElementById('reschedule_custom_time').checked = true;
-            document.getElementById('reschedule_custom_start_time').value = startTime;
-            document.getElementById('reschedule-custom-time-inputs').style.display = 'block';
+        // Custom reschedule time removed
             // Add visual selection for custom time
             document.querySelectorAll('#reschedule-time-slots-list .form-check').forEach(container => {
                 container.classList.remove('selected');
             });
-            document.getElementById('reschedule_custom_time').closest('.form-check').classList.add('selected');
+        
         }
 
         // Show the reschedule modal
@@ -4191,8 +4232,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('patient_id').value = '';
 
         // Hide custom time inputs
-        document.getElementById('custom-time-inputs').style.display = 'none';
-        document.getElementById('custom_start_time').value = '';
+        
 
         // Clear validation messages
         clearValidationMessages();
@@ -4380,9 +4420,9 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('input[name="reschedule_time_slot"]').forEach(radio => {
         radio.addEventListener('change', function() {
             if (this.value === 'custom') {
-                document.getElementById('reschedule-custom-time-inputs').style.display = 'block';
+                
             } else {
-                document.getElementById('reschedule-custom-time-inputs').style.display = 'none';
+                
             }
         });
     });
@@ -4425,7 +4465,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Get start time
         let startTime;
         if (timeSlot.value === 'custom') {
-            startTime = document.getElementById('reschedule_custom_start_time').value;
+            
             if (!startTime) {
                 showRescheduleValidationMessage('Please enter a custom start time', 'error');
                 return;

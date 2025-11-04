@@ -217,7 +217,7 @@ function startPolling() {
     pollingInterval = setInterval(async () => {
         if (!currentConversationId) return;
         try {
-            const response = await fetch(`{{ route('staff-chat.messages', ':id') }}`.replace(':id', currentConversationId));
+            const response = await fetch(`{{ url('/staff/chat/conversations') }}/${currentConversationId}/messages`);
             const data = await response.json();
             
             data.messages.forEach(msg => {
@@ -267,6 +267,113 @@ setInterval(loadConversations, 10000); // Refresh list every 10 seconds
 }
 .cursor-pointer {
     cursor: pointer;
+}
+
+/* Dark Mode Styles for Chat */
+[data-theme="dark"] .card {
+    background-color: var(--dm-card-bg, #1e293b) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] .card-header {
+    background-color: var(--dm-bg-secondary, #0f172a) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .card-body {
+    background-color: var(--dm-card-bg, #1e293b) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] #chat-messages {
+    background-color: var(--dm-bg-secondary, #0f172a) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] #chat-messages .text-muted {
+    color: var(--dm-text-muted, #94a3b8) !important;
+}
+
+[data-theme="dark"] .conversation-item {
+    border-color: var(--dm-border-color, #334155) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .conversation-item:hover {
+    background-color: var(--dm-bg-tertiary, #334155) !important;
+}
+
+[data-theme="dark"] .conversation-item.bg-light {
+    background-color: var(--dm-bg-tertiary, #334155) !important;
+}
+
+[data-theme="dark"] .conversation-item h6 {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .conversation-item small {
+    color: var(--dm-text-muted, #94a3b8) !important;
+}
+
+[data-theme="dark"] .conversation-item p {
+    color: var(--dm-text-secondary, #cbd5e1) !important;
+}
+
+[data-theme="dark"] .form-control {
+    background-color: var(--dm-bg-secondary, #0f172a) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .form-control::placeholder {
+    color: var(--dm-text-muted, #64748b) !important;
+}
+
+[data-theme="dark"] .form-control:focus {
+    background-color: var(--dm-bg-secondary, #0f172a) !important;
+    border-color: #60a5fa !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .form-select {
+    background-color: var(--dm-bg-secondary, #0f172a) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .form-select:focus {
+    background-color: var(--dm-bg-secondary, #0f172a) !important;
+    border-color: #60a5fa !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .border-bottom {
+    border-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] .border-top {
+    border-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] #chat-messages .bg-white {
+    background-color: var(--dm-bg-tertiary, #334155) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] #chat-messages .bg-white small {
+    color: var(--dm-text-muted, #94a3b8) !important;
+}
+
+[data-theme="dark"] .btn-outline-secondary {
+    border-color: var(--dm-border-color, #334155) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .btn-outline-secondary:hover {
+    background-color: var(--dm-bg-tertiary, #334155) !important;
+    border-color: var(--dm-border-color, #475569) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
 }
 </style>
 @endsection

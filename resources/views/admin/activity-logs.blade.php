@@ -269,8 +269,18 @@
     background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
     padding: 2rem;
     border-radius: 15px;
-    color: white;
+    color: white !important;
     box-shadow: 0 10px 40px rgba(59, 130, 246, 0.3);
+}
+
+.page-header-modern h2,
+.page-header-modern p,
+.page-header-modern .text-muted {
+    color: white !important;
+}
+
+.page-header-modern .icon-circle {
+    color: white !important;
 }
 
 .icon-circle {

@@ -773,10 +773,10 @@
                     <table class="feedback-table">
                         <thead>
                             <tr>
-                                <th style="width: 15%;">Patient</th>
-                                <th style="width: 15%;">Service</th>
-                                <th style="width: 10%;">Rating</th>
-                                <th style="width: 40%;">Comments</th>
+                                <th style="width: 20%;">Patient</th>
+                                <th style="width: 18%;">Service</th>
+                                <th style="width: 12%;">Rating</th>
+                                <th style="width: 30%;">Comments</th>
                                 <th style="width: 20%;">Submitted</th>
                             </tr>
                         </thead>
@@ -784,12 +784,7 @@
                             @foreach($recentFeedback as $index => $feedback)
                                 <tr class="feedback-row">
                                     <td>
-                                        <div class="d-flex align-items-center justify-content-center">
-                                            <div class="patient-avatar me-3">
-                                                <i class="bi bi-person-fill"></i>
-                                            </div>
-                                            <strong style="color: #00695c;">{{ $feedback['patient_name'] }}</strong>
-                                        </div>
+                                        <strong style="color: #00695c;">{{ $feedback['patient_name'] }}</strong>
                                     </td>
                                     <td>
                                         <span class="service-name">{{ $feedback['service_name'] }}</span>
@@ -889,19 +884,6 @@
             text-align: center;
         }
 
-        .patient-avatar {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.3rem;
-            box-shadow: 0 2px 8px rgba(0, 188, 212, 0.3);
-        }
-
         .service-name {
             color: #00695c;
             font-weight: 500;
@@ -925,6 +907,12 @@
 
         .submission-info {
             line-height: 1.6;
+            white-space: nowrap;
+        }
+
+        .submission-info small {
+            white-space: nowrap;
+            display: inline-block;
         }
 
         @media (max-width: 1200px) {

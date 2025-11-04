@@ -105,13 +105,44 @@ class NotificationController extends Controller
                 if ($appointmentRequest->isWalkIn()) {
                     // For walk-in requests, use the duration from request if provided, otherwise use the appointment request's duration
                     $durationMinutes = $request->input('duration_minutes', $appointmentRequest->duration_minutes);
+                    // If still no duration, get from service if available
+                    if (!$durationMinutes && $serviceId) {
+                        $service = \App\Models\Service::find($serviceId);
+                        if ($service) {
+                            $durationMinutes = $service->default_duration_minutes;
+                        }
+                    }
+                    // Fallback to 30 minutes
+                    $durationMinutes = $durationMinutes ?? 30;
                 } else {
                     // For reschedule requests, always use the duration from the appointment request (from original appointment)
                     $durationMinutes = $appointmentRequest->duration_minutes;
                 }
 
+                // Validate clinic hours: 11:00 AM to 6:00 PM only
+                $appointmentTime = $appointmentRequest->requested_datetime->copy()->setTime($appointmentRequest->requested_datetime->hour, $appointmentRequest->requested_datetime->minute, 0);
+                $clinicOpen = Carbon::parse($appointmentRequest->requested_datetime->toDateString() . ' 11:00:00', 'Asia/Manila');
+                $clinicClose = Carbon::parse($appointmentRequest->requested_datetime->toDateString() . ' 18:00:00', 'Asia/Manila');
+                
+                if ($appointmentTime->lt($clinicOpen) || $appointmentTime->gte($clinicClose)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Appointments can only be scheduled between 11:00 AM and 6:00 PM. The clinic is closed outside these hours.',
+                        'errors' => ['requested_datetime' => ['Appointments can only be scheduled between 11:00 AM and 6:00 PM']]
+                    ], 422);
+                }
+
                 // Recalculate end_datetime based on the final duration
                 $endDateTime = $appointmentRequest->requested_datetime->copy()->addMinutes($durationMinutes);
+                
+                // Validate that appointment end time doesn't exceed clinic closing time (6:00 PM)
+                if ($endDateTime->gt($clinicClose)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Appointment end time exceeds clinic closing time (6:00 PM). Please adjust the appointment time or duration.',
+                        'errors' => ['requested_datetime' => ['Appointment end time exceeds clinic closing time (6:00 PM)']]
+                    ], 422);
+                }
 
                 // Prepare notes - add "Emergency" prefix for walk-in requests
                 $notes = $appointmentRequest->reason;
@@ -123,6 +154,15 @@ class NotificationController extends Controller
                 }
 
                 // Create the new appointment
+                // Ensure duration is set from service if not already set
+                if (!$durationMinutes && $serviceId) {
+                    $service = \App\Models\Service::find($serviceId);
+                    if ($service) {
+                        $durationMinutes = $service->default_duration_minutes;
+                    }
+                }
+                $durationMinutes = $durationMinutes ?? 30;
+
                 $appointmentData = [
                     'patient_id' => $appointmentRequest->patient_id,
                     'service_id' => $serviceId,

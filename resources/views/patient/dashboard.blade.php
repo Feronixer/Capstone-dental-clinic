@@ -2544,9 +2544,10 @@ function loadPendingFeedbackCount() {
                 titleEl.textContent = 'ToothTalk Assistant';
                 inputEl.placeholder = 'Ask about services, hours, pricing...';
                 inputContainer.style.display = 'none'; // Hide input
-                chipsEl.style.display = 'flex'; // Show chips
+                chipsEl.style.display = 'flex'; // Show FAQ chips
+                chipsEl.innerHTML = ''; // Clear any previous buttons
                 stopPolling();
-                if (!faqInitialized) {
+                if (!faqInitialized || messagesEl.innerHTML === '') {
                     messagesEl.innerHTML = '';
                     showTypingIndicator();
                     setTimeout(() => {
@@ -2555,6 +2556,9 @@ function loadPendingFeedbackCount() {
                         renderChips();
                         faqInitialized = true;
                     }, 800);
+                } else {
+                    // If FAQ already initialized, just ensure chips are rendered
+                    renderChips();
                 }
             }
         }

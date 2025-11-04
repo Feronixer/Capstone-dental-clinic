@@ -221,6 +221,19 @@ class CalendarController extends Controller
                 }
             }
 
+            // Validate clinic hours: 11:00 AM to 6:00 PM only
+            $appointmentTime = $requestedDateTime->copy()->setTime($requestedDateTime->hour, $requestedDateTime->minute, 0);
+            $clinicOpen = Carbon::parse($requestedDateTime->toDateString() . ' 11:00:00', 'Asia/Manila');
+            $clinicClose = Carbon::parse($requestedDateTime->toDateString() . ' 18:00:00', 'Asia/Manila');
+            
+            if ($appointmentTime->lt($clinicOpen) || $appointmentTime->gte($clinicClose)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Appointments can only be scheduled between 11:00 AM and 6:00 PM. The clinic is closed outside these hours.',
+                    'errors' => ['requested_datetime' => ['Appointments can only be scheduled between 11:00 AM and 6:00 PM']]
+                ], 422);
+            }
+
             // Determine service and duration
             [$serviceId, $otherConcern, $durationMinutes] = $this->determineServiceAndDuration($request);
 
@@ -230,6 +243,15 @@ class CalendarController extends Controller
             }
 
             $requestedEndDateTime = $requestedDateTime->copy()->addMinutes($durationMinutes);
+            
+            // Validate that appointment end time doesn't exceed clinic closing time (6:00 PM)
+            if ($requestedEndDateTime->gt($clinicClose)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Appointment end time exceeds clinic closing time (6:00 PM). Please adjust the appointment time or select a shorter service.',
+                    'errors' => ['requested_datetime' => ['Appointment end time exceeds clinic closing time (6:00 PM)']]
+                ], 422);
+            }
 
             // Create appointment request
             $appointmentRequest = $this->createAppointmentRequest($request, $serviceId, $otherConcern, $durationMinutes, $requestedDateTime, $requestedEndDateTime);

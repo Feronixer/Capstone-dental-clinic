@@ -247,22 +247,8 @@ class AppointmentController extends Controller
                 'is_new_patient' => 'nullable|boolean'
             ]);
 
-            // Additional validation: Check if patient already has appointment on same date
             // Parse in Asia/Manila timezone to avoid UTC conversion
             $startDateTime = Carbon::parse($request->start_datetime, 'Asia/Manila');
-            $appointmentDate = $startDateTime->toDateString();
-
-            $existingAppointment = Appointment::where('patient_id', $request->patient_id)
-                ->whereDate('start_datetime', $appointmentDate)
-                ->first();
-
-            if ($existingAppointment) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'This patient already has an appointment on this date',
-                    'errors' => ['patient_id' => ['This patient already has an appointment on this date']]
-                ], 422);
-            }
 
             // CRITICAL: Validate that appointment is not in the past using SERVER time
             $serverNow = Carbon::now('Asia/Manila');
@@ -274,8 +260,44 @@ class AppointmentController extends Controller
                 ], 422);
             }
 
+            // Validate clinic hours: 11:00 AM to 6:00 PM only
+            $appointmentHour = $startDateTime->hour;
+            $appointmentMinute = $startDateTime->minute;
+            $appointmentTime = $startDateTime->copy()->setTime($appointmentHour, $appointmentMinute, 0);
+            $clinicOpen = Carbon::parse($startDateTime->toDateString() . ' 11:00:00', 'Asia/Manila');
+            $clinicClose = Carbon::parse($startDateTime->toDateString() . ' 18:00:00', 'Asia/Manila');
+            
+            if ($appointmentTime->lt($clinicOpen) || $appointmentTime->gte($clinicClose)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Appointments can only be scheduled between 11:00 AM and 6:00 PM. The clinic is closed outside these hours.',
+                    'errors' => ['start_datetime' => ['Appointments can only be scheduled between 11:00 AM and 6:00 PM']]
+                ], 422);
+            }
+
+            // Get duration from service if not provided
+            $durationMinutes = $request->duration_minutes;
+            if (!$durationMinutes && $request->service_id) {
+                $service = \App\Models\Service::find($request->service_id);
+                if ($service) {
+                    $durationMinutes = $service->default_duration_minutes;
+                }
+            }
+            // Fallback to 30 minutes if no service or duration provided
+            $durationMinutes = $durationMinutes ?? 30;
+
             // Additional validation: Check for time overlaps
-            $endDateTime = $startDateTime->copy()->addMinutes($request->duration_minutes ?? 30);
+            $endDateTime = $startDateTime->copy()->addMinutes($durationMinutes);
+            
+            // Validate that appointment end time doesn't exceed clinic closing time (6:00 PM)
+            $clinicClose = Carbon::parse($startDateTime->toDateString() . ' 18:00:00', 'Asia/Manila');
+            if ($endDateTime->gt($clinicClose)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Appointment end time exceeds clinic closing time (6:00 PM). Please adjust the appointment time or duration.',
+                    'errors' => ['start_datetime' => ['Appointment end time exceeds clinic closing time (6:00 PM)']]
+                ], 422);
+            }
 
             // Check for overlaps with blocked times
             $overlappingBlockedTime = \App\Models\BlockedTime::where(function($query) use ($startDateTime, $endDateTime) {
@@ -309,6 +331,23 @@ class AppointmentController extends Controller
                 // Exclude cancelled appointments - they don't block time slots
                 ->where('status', '!=', 'Cancelled');
             })->first();
+
+            // Check that this patient doesn't already have an overlapping appointment
+            $patientOverlap = Appointment::where('patient_id', $request->patient_id)
+                ->where('status', '!=', 'Cancelled')
+                ->where(function($q) use ($startDateTime, $endDateTime) {
+                    $q->where('start_datetime', '<', $endDateTime)
+                      ->where('end_datetime', '>', $startDateTime);
+                })
+                ->first();
+
+            if ($patientOverlap) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This patient already has an appointment that overlaps this time',
+                    'errors' => ['patient_id' => ['This patient already has an appointment that overlaps this time']]
+                ], 422);
+            }
 
             if ($overlappingAppointment) {
                 return response()->json([
@@ -445,10 +484,21 @@ class AppointmentController extends Controller
                 'is_new_patient' => 'nullable|boolean'
             ]);
 
+            // Get duration from service if not provided
+            $durationMinutes = $request->duration_minutes;
+            if (!$durationMinutes && $request->service_id) {
+                $service = \App\Models\Service::find($request->service_id);
+                if ($service) {
+                    $durationMinutes = $service->default_duration_minutes;
+                }
+            }
+            // Fallback to 30 minutes if no service or duration provided
+            $durationMinutes = $durationMinutes ?? 30;
+
             // Calculate end_datetime based on start_datetime and duration
             // Parse in Asia/Manila timezone to avoid UTC conversion
             $startDateTime = Carbon::parse($request->start_datetime, 'Asia/Manila');
-            $endDateTime = $startDateTime->copy()->addMinutes($request->duration_minutes ?? 30);
+            $endDateTime = $startDateTime->copy()->addMinutes($durationMinutes);
 
             // CRITICAL: Validate that appointment is not in the past using SERVER time
             $serverNow = Carbon::now('Asia/Manila');
@@ -461,6 +511,34 @@ class AppointmentController extends Controller
                     ], 422);
                 }
                 return redirect()->back()->withErrors(['start_datetime' => 'Cannot reschedule appointments to a past date or time.']);
+            }
+
+            // Validate clinic hours: 11:00 AM to 6:00 PM only
+            $appointmentTime = $startDateTime->copy()->setTime($startDateTime->hour, $startDateTime->minute, 0);
+            $clinicOpen = Carbon::parse($startDateTime->toDateString() . ' 11:00:00', 'Asia/Manila');
+            $clinicClose = Carbon::parse($startDateTime->toDateString() . ' 18:00:00', 'Asia/Manila');
+            
+            if ($appointmentTime->lt($clinicOpen) || $appointmentTime->gte($clinicClose)) {
+                if ($request->ajax() || $request->wantsJson() || $request->header('Accept') === 'application/json') {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Appointments can only be scheduled between 11:00 AM and 6:00 PM. The clinic is closed outside these hours.',
+                        'errors' => ['start_datetime' => ['Appointments can only be scheduled between 11:00 AM and 6:00 PM']]
+                    ], 422);
+                }
+                return redirect()->back()->withErrors(['start_datetime' => 'Appointments can only be scheduled between 11:00 AM and 6:00 PM.']);
+            }
+            
+            // Validate that appointment end time doesn't exceed clinic closing time (6:00 PM)
+            if ($endDateTime->gt($clinicClose)) {
+                if ($request->ajax() || $request->wantsJson() || $request->header('Accept') === 'application/json') {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Appointment end time exceeds clinic closing time (6:00 PM). Please adjust the appointment time or duration.',
+                        'errors' => ['start_datetime' => ['Appointment end time exceeds clinic closing time (6:00 PM)']]
+                    ], 422);
+                }
+                return redirect()->back()->withErrors(['start_datetime' => 'Appointment end time exceeds clinic closing time (6:00 PM).']);
             }
 
             // Check for overlaps with blocked times
@@ -510,6 +588,7 @@ class AppointmentController extends Controller
             }
 
             $appointmentData = $request->all();
+            $appointmentData['duration_minutes'] = $durationMinutes;
             $appointmentData['end_datetime'] = $endDateTime;
 
             // Check if datetime changed (rescheduling)

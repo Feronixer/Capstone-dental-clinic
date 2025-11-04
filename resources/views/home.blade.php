@@ -1878,17 +1878,21 @@
                 widget.setAttribute('aria-hidden', 'false');
                 
                 if (!messagesEl.dataset.checked) {
-                    if (currentMode === 'faqs' && !faqInitialized) {
+                    if (currentMode === 'faqs') {
+                        // FAQs mode - show chips for guests
                         chipsEl.style.display = 'flex'; // Show chips in FAQs
+                        chipsEl.innerHTML = ''; // Clear any previous buttons or login buttons
+                        messagesEl.innerHTML = ''; // Clear messages
                         showTypingIndicator();
                         setTimeout(() => {
                             hideTypingIndicator();
                             addMessage(@json($chatbotSetting->welcome_message ?: 'Welcome! How can I help today?'), 'bot');
-                            renderChips();
+                            renderChips(); // Render FAQ chips
                             faqInitialized = true;
                         }, 800);
                     } else if (currentMode === 'live-chat') {
-                        chipsEl.style.display = 'none'; // Hide chips in live chat
+                        chipsEl.style.display = 'none'; // Hide FAQ chips in live chat
+                        chipsEl.innerHTML = ''; // Clear any FAQ chips
                         const isAuth = await checkAuth();
                         if (isAuth) {
                             inputEl.placeholder = 'Type your message to staff...';
@@ -1896,16 +1900,21 @@
                         } else {
                             messagesEl.innerHTML = '';
                             addMessage('To chat with our staff, please log in to your account. You can use the FAQ chatbot for general questions.', 'bot');
+                            // Add login button to messages area, not chips
                             const loginBtn = document.createElement('button');
                             loginBtn.className = 'chip';
                             loginBtn.textContent = 'Login to Chat with Staff';
                             loginBtn.style.background = '#0d6efd';
                             loginBtn.style.color = 'white';
+                            loginBtn.style.marginTop = '10px';
+                            loginBtn.style.width = '100%';
                             loginBtn.addEventListener('click', () => {
                                 window.location.href = '{{ route("login") }}';
                             });
-                            chipsEl.innerHTML = '';
-                            chipsEl.appendChild(loginBtn);
+                            const loginContainer = document.createElement('div');
+                            loginContainer.style.marginTop = '10px';
+                            loginContainer.appendChild(loginBtn);
+                            messagesEl.appendChild(loginContainer);
                             inputEl.disabled = true;
                             sendBtn.disabled = true;
                         }
@@ -2010,51 +2019,61 @@
                     titleEl.textContent = 'Live Chat - Staff';
                     inputEl.placeholder = 'Type your message to staff...';
                     inputContainer.style.display = 'flex'; // Show input
-                    chipsEl.style.display = 'none'; // Hide chips
+                    chipsEl.style.display = 'none'; // Hide FAQ chips
+                    chipsEl.innerHTML = ''; // Clear any FAQ chips
                     stopPolling();
                     // Check auth and initialize live chat
                     checkAuth().then(isAuth => {
                         if (isAuth) {
+                            messagesEl.innerHTML = ''; // Clear messages
                             if (!conversationId) {
                                 initializeLiveChat();
                             } else {
+                                loadMessages();
                                 startPolling();
                             }
                         } else {
                             messagesEl.innerHTML = '';
                             addMessage('To chat with our staff, please log in to your account. You can use the FAQ chatbot for general questions.', 'bot');
+                            // Show login button in messages area, not chips
                             const loginBtn = document.createElement('button');
                             loginBtn.className = 'chip';
                             loginBtn.textContent = 'Login to Chat with Staff';
                             loginBtn.style.background = '#0d6efd';
                             loginBtn.style.color = 'white';
+                            loginBtn.style.marginTop = '10px';
+                            loginBtn.style.width = '100%';
                             loginBtn.addEventListener('click', () => {
                                 window.location.href = '{{ route("login") }}';
                             });
-                            chipsEl.innerHTML = '';
-                            chipsEl.appendChild(loginBtn);
+                            // Add login button to messages area, not chips
+                            const loginContainer = document.createElement('div');
+                            loginContainer.style.marginTop = '10px';
+                            loginContainer.appendChild(loginBtn);
+                            messagesEl.appendChild(loginContainer);
                             inputEl.disabled = true;
                             sendBtn.disabled = true;
                         }
                     });
                 } else {
+                    // FAQs mode
                     titleEl.textContent = 'ToothTalk Assistant';
                     inputEl.placeholder = 'Ask about services, hours, pricing...';
                     inputContainer.style.display = 'none'; // Hide input
-                    chipsEl.style.display = 'flex'; // Show chips
+                    chipsEl.style.display = 'flex'; // Show FAQ chips
+                    chipsEl.innerHTML = ''; // Clear any login buttons or previous chips
                     stopPolling();
                     inputEl.disabled = false;
                     sendBtn.disabled = false;
-                    if (!faqInitialized) {
-                        messagesEl.innerHTML = '';
-                        showTypingIndicator();
-                        setTimeout(() => {
-                            hideTypingIndicator();
-                            addMessage(@json($chatbotSetting->welcome_message ?: 'Welcome! How can I help today?'), 'bot');
-                            renderChips();
-                            faqInitialized = true;
-                        }, 800);
-                    }
+                    // Always show FAQ chips for guests - reset and show welcome
+                    messagesEl.innerHTML = '';
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage(@json($chatbotSetting->welcome_message ?: 'Welcome! How can I help today?'), 'bot');
+                        renderChips(); // Render FAQ chips
+                        faqInitialized = true;
+                    }, 800);
                 }
             }
 
