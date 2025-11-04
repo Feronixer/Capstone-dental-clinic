@@ -75,7 +75,7 @@
                                         <x-table.th column="id" label="No." center="true" />
                                         <x-table.th column="username" label="Username" />
                                         <x-table.th column="name" label="Name" />
-                                        <x-table.th column="email" label="Email" />
+                                        <x-table.th column="email" label="Email (hidden)" />
                                         <th class="text-center">Gender</th>
                                         <x-table.th column="role" label="Role" />
                                         <x-table.th column="created_at" label="Created At" />
@@ -115,6 +115,127 @@
 @include('admin.account-management.modal-add-user')
 @include('admin.account-management.modal-edit-user')
 @include('admin.account-management.delete-user')
+
+<!-- Admin Password Confirm Modal -->
+<div class="modal fade" id="adminConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm with Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="adminConfirmPassword" class="form-label">Your Password</label>
+                    <input type="password" class="form-control" id="adminConfirmPassword" autocomplete="current-password" required>
+                </div>
+                <div class="text-danger small" id="adminConfirmError" style="display:none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="adminConfirmSubmitBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Email Modal -->
+<div class="modal fade" id="viewEmailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Verify to view email</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="viewEmailForm">
+                    <input type="hidden" name="user_id" id="viewEmailUserId">
+                    <div class="mb-3">
+                        <label for="verifyPassword" class="form-label">Your Password</label>
+                        <input type="password" class="form-control" id="verifyPassword" name="password" required>
+                    </div>
+                    <div class="text-danger small" id="viewEmailError" style="display:none;"></div>
+                </form>
+                <div class="mt-2 small text-muted">For security, enter your password to reveal the user's email.</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmViewEmailBtn">View Email</button>
+            </div>
+        </div>
+    </div>
+    
+</div>
+
+<script>
+document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.view-email-btn');
+    if (!btn) return;
+
+    const userId = btn.getAttribute('data-user-id');
+    const emailSpan = document.querySelector(`.masked-email[data-user-id="${userId}"]`);
+    const icon = btn.querySelector('[data-icon]');
+
+    // If currently visible, mask immediately without asking password
+    if (emailSpan && emailSpan.getAttribute('data-visible') === '1') {
+        emailSpan.textContent = '••••••••';
+        emailSpan.setAttribute('data-visible', '0');
+        if (icon) {
+            icon.classList.remove('bi-eye-slash');
+            icon.classList.add('bi-eye');
+            icon.setAttribute('data-icon', 'eye');
+        }
+        return;
+    }
+
+    // Otherwise, show modal to verify and reveal
+    document.getElementById('viewEmailUserId').value = userId;
+    document.getElementById('verifyPassword').value = '';
+    document.getElementById('viewEmailError').style.display = 'none';
+    const modal = new bootstrap.Modal(document.getElementById('viewEmailModal'));
+    modal.show();
+});
+
+document.getElementById('confirmViewEmailBtn')?.addEventListener('click', async function () {
+    const userId = document.getElementById('viewEmailUserId').value;
+    const password = document.getElementById('verifyPassword').value;
+    const errorBox = document.getElementById('viewEmailError');
+    try {
+        const res = await fetch(`/admin/account-management/${userId}/reveal-email`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ password })
+        });
+        const data = await res.json();
+        if (!res.ok || data.success === false) {
+            errorBox.textContent = data.message || 'Verification failed.';
+            errorBox.style.display = 'block';
+            return;
+        }
+        const cell = document.querySelector(`.masked-email[data-user-id="${userId}"]`);
+        if (cell) {
+            cell.textContent = data.email;
+            cell.setAttribute('data-visible', '1');
+        }
+        const btn = document.querySelector(`.view-email-btn[data-user-id="${userId}"]`);
+        if (btn) {
+            const icon = btn.querySelector('[data-icon]');
+            if (icon) {
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+                icon.setAttribute('data-icon', 'eye-slash');
+            }
+        }
+        bootstrap.Modal.getInstance(document.getElementById('viewEmailModal')).hide();
+    } catch (err) {
+        errorBox.textContent = 'Something went wrong. Please try again.';
+        errorBox.style.display = 'block';
+    }
+});
+</script>
 
 <!-- Validation Help Modal -->
 <div class="modal fade" id="validationHelpModal" tabindex="-1" aria-labelledby="validationHelpLabel" aria-hidden="true">
@@ -836,40 +957,23 @@ $(document).ready(function () {
     });
 
 
+    // Intercept edit submit to request admin password first
+    let pendingEditPayload = null;
+    let pendingParentModalId = null; // '#editUserModal' or '#deleteUserModal'
+    let returnToParentOnCancel = false;
     $('#editUserForm').on('submit', function (e) {
         e.preventDefault();
-
-        let userId = $(this).find('input[name="user_id"]').val();
-        let formData = $(this).serialize();
-
-        $.ajax({
-            url: '/admin/account-management/users/' + userId,
-            method: 'PUT',
-            data: formData,
-            success: function (response) {
-                $('#editUserModal').modal('hide');
-                showToast('success', response.message);
-                fetchUsers("{{ route('admin-account-management') }}");
-            },
-            error: function (xhr) {
-                if (xhr.status === 422) {
-                    let errors = xhr.responseJSON.errors;
-                    $('#editUserForm .invalid-feedback').text('').hide();
-                    $('#editUserForm .form-control, #editUserForm .form-select').removeClass('is-invalid');
-                    $('#editUserForm .validation-warning-icon').remove();
-                    $.each(errors, function (key, value) {
-                        let input = $('#editUserForm').find(`[name="${key}"]`);
-                        input.addClass('is-invalid');
-                        input.closest('.form-floating').find('.invalid-feedback')
-                            .text(value[0])
-                            .show();
-                        attachValidationIcon(input, value[0]);
-                    });
-                } else {
-                    showToast('danger', 'Unexpected error occurred');
-                }
-            }
-        });
+        const userId = $(this).find('input[name="user_id"]').val();
+        pendingEditPayload = {
+            userId: userId,
+            data: $(this).serializeArray()
+        };
+        $('#adminConfirmPassword').val('');
+        $('#adminConfirmError').hide();
+        pendingParentModalId = '#editUserModal';
+        returnToParentOnCancel = true;
+        $(pendingParentModalId).modal('hide');
+        new bootstrap.Modal(document.getElementById('adminConfirmModal')).show();
     });
 
     $('#changePasswordForm').on('submit', function (e) {
@@ -961,20 +1065,104 @@ $(document).ready(function () {
         }
     });
 
+    // Intercept delete submit
+    let pendingDeleteUserId = null;
     $('#deleteUserForm').on('submit', function (e) {
         e.preventDefault();
-        let userId = $(this).find('input[name="user_id"]').val();
+        pendingDeleteUserId = $(this).find('input[name="user_id"]').val();
+        $('#adminConfirmPassword').val('');
+        $('#adminConfirmError').hide();
+        pendingParentModalId = '#deleteUserModal';
+        returnToParentOnCancel = true;
+        $(pendingParentModalId).modal('hide');
+        new bootstrap.Modal(document.getElementById('adminConfirmModal')).show();
+    });
 
-        $.ajax({
-            url: '/admin/account-management/users/' + userId,
-            method: 'POST',
-            data: $(this).serialize(),
-            success: function (response) {
-                $('#deleteUserModal').modal('hide');
-                showToast('success', response.message);
-                fetchUsers("{{ route('admin-account-management') }}");
-            },
-        });
+    // Confirm handler (used by both edit and delete)
+    document.getElementById('adminConfirmSubmitBtn').addEventListener('click', function() {
+        const pwd = document.getElementById('adminConfirmPassword').value;
+        if (!pwd) return;
+        const modalEl = document.getElementById('adminConfirmModal');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        // prevent returning to parent on this close
+        returnToParentOnCancel = false;
+
+        if (pendingEditPayload) {
+            // hide the parent modal immediately on confirm
+            if (pendingParentModalId) {
+                $(pendingParentModalId).modal('hide');
+            }
+            // submit edit
+            const userId = pendingEditPayload.userId;
+            const dataArray = pendingEditPayload.data;
+            dataArray.push({ name: 'admin_password', value: pwd });
+            $.ajax({
+                url: '/admin/account-management/users/' + userId,
+                method: 'PUT',
+                data: $.param(dataArray),
+                success: function (response) {
+                    modal.hide();
+                    $('#editUserModal').modal('hide');
+                    showToast('success', response.message);
+                    fetchUsers("{{ route('admin-account-management') }}");
+                },
+                error: function (xhr) {
+                    if (xhr.status === 403) {
+                        $('#adminConfirmError').text(xhr.responseJSON?.message || 'Incorrect password.').show();
+                    } else if (xhr.status === 422) {
+                        modal.hide();
+                        let errors = xhr.responseJSON.errors;
+                        $('#editUserForm .invalid-feedback').text('').hide();
+                        $('#editUserForm .form-control, #editUserForm .form-select').removeClass('is-invalid');
+                        $('#editUserForm .validation-warning-icon').remove();
+                        $.each(errors, function (key, value) {
+                            let input = $('#editUserForm').find(`[name="${key}"]`);
+                            input.addClass('is-invalid');
+                            input.closest('.form-floating').find('.invalid-feedback').text(value[0]).show();
+                            attachValidationIcon(input, value[0]);
+                        });
+                    } else {
+                        modal.hide();
+                        showToast('danger', 'Unexpected error occurred');
+                    }
+                },
+                complete: function() { pendingEditPayload = null; pendingParentModalId = null; }
+            });
+            return;
+        }
+
+        if (pendingDeleteUserId) {
+            if (pendingParentModalId) {
+                $(pendingParentModalId).modal('hide');
+            }
+            $.ajax({
+                url: '/admin/account-management/users/' + pendingDeleteUserId,
+                method: 'POST',
+                data: $('#deleteUserForm').serialize() + '&admin_password=' + encodeURIComponent(pwd),
+                success: function (response) {
+                    modal.hide();
+                    showToast('success', response.message);
+                    fetchUsers("{{ route('admin-account-management') }}");
+                },
+                error: function(xhr){
+                    if (xhr.status === 403) {
+                        $('#adminConfirmError').text(xhr.responseJSON?.message || 'Incorrect password.').show();
+                    } else {
+                        modal.hide();
+                        showToast('danger', 'Unexpected error occurred');
+                    }
+                },
+                complete: function(){ pendingDeleteUserId = null; pendingParentModalId = null; }
+            });
+        }
+    });
+
+    // If confirm modal is closed without confirming, return to the previous modal
+    document.getElementById('adminConfirmModal').addEventListener('hidden.bs.modal', function () {
+        if (returnToParentOnCancel && pendingParentModalId) {
+            $(pendingParentModalId).modal('show');
+        }
+        returnToParentOnCancel = false;
     });
 
     // Function to calculate age from birthday

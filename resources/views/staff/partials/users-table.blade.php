@@ -3,7 +3,12 @@
         <td class="align-middle text-center">{{ ($users->currentPage() - 1) * $users->perPage() + $loop->iteration }}</td>
         <td class="align-middle text-center">{{ $user->username }}</td>
         <td class="align-middle text-center">{{ $user->name }}</td>
-        <td class="align-middle text-center">{{ $user->email }}</td>
+        <td class="align-middle text-center">
+            <span class="masked-email" data-user-id="{{ $user->id }}" data-visible="0">••••••••</span>
+            <button class="btn btn-outline-secondary btn-sm ms-2 view-email-btn" data-user-id="{{ $user->id }}" title="View email">
+                <i class="bi bi-eye" data-icon="eye"></i>
+            </button>
+        </td>
         <td class="align-middle text-center">{{ $user->info->gender ?? 'N/A' }}</td>
         <td class="align-middle text-center">{{ $user->role->role ?? 'N/A' }}</td>
         <td class="align-middle text-center">{{ $user->created_at ?? 'N/A' }}</td>

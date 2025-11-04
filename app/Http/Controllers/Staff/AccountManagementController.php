@@ -8,6 +8,8 @@ use App\Models\User;
 use App\Models\UserInfo;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class AccountManagementController extends Controller
 {
@@ -124,6 +126,18 @@ class AccountManagementController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        // Verify staff password
+        $request->validate([
+            'staff_password' => 'required|string'
+        ]);
+        $staff = Auth::guard('staff')->user();
+        if (!$staff || !Hash::check($request->staff_password, $staff->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Incorrect password.'
+            ], 403);
+        }
+
         // Staff can only update patient accounts
         $user = User::with('info')
             ->where('role_id', 3)
@@ -191,6 +205,28 @@ class AccountManagementController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Patient account updated successfully.',
+        ]);
+    }
+
+    /**
+     * Verify staff password and reveal user's email
+     */
+    public function revealEmail(Request $request, string $id)
+    {
+        $request->validate([
+            'password' => 'required|string'
+        ]);
+        $staff = Auth::guard('staff')->user();
+        if (!$staff || !Hash::check($request->password, $staff->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Incorrect password.'
+            ], 403);
+        }
+        $user = User::where('role_id', 3)->findOrFail($id);
+        return response()->json([
+            'success' => true,
+            'email' => $user->email,
         ]);
     }
 

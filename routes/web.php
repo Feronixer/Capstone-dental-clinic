@@ -82,6 +82,7 @@ Route::middleware(['auth:admin'])->group(function(): void{
     Route::get('/admin/account-management/users/{id}', [AccountManagementController::class, 'show'])->name('users.show');
     Route::delete('/admin/account-management/users/{id}', [AccountManagementController::class, 'destroy'])->name('users.delete');
     Route::post('/admin/account-management/users/change-password/{id}', [AccountManagementController::class,'changePasswword']);
+    Route::post('/admin/account-management/{id}/reveal-email', [AccountManagementController::class,'revealEmail'])->name('admin-account-management.reveal-email');
 
 
     Route::get('/admin/appointment', [AppointmentController::class,'index'])->name('admin-appointment');
@@ -255,6 +256,7 @@ Route::middleware(['auth:staff'])->group(function(): void{
     Route::get('/staff/account-management/users/{id}', [StaffAccountManagementController::class, 'show'])->name('staff.users.show');
     Route::delete('/staff/account-management/users/{id}', [StaffAccountManagementController::class, 'destroy'])->name('staff.users.delete');
     Route::post('/staff/account-management/users/change-password/{id}', [StaffAccountManagementController::class,'changePasswword']);
+    Route::post('/staff/account-management/{id}/reveal-email', [StaffAccountManagementController::class,'revealEmail'])->name('staff-account-management.reveal-email');
 
     // Staff Appointment Routes (No delete permission)
     Route::get('/staff/appointment', [App\Http\Controllers\Staff\AppointmentController::class,'index'])->name('staff-appointment');
