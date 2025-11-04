@@ -116,6 +116,17 @@
                         @endif
                     </a>
                 </li>
+                <li class="{{ request()->routeIs('staff-chat') ? 'active' : '' }}">
+                    <a href="{{ route('staff-chat') }}" class="nav-item-link">
+                        <div class="nav-icon-wrapper">
+                            <i class="bi bi-chat-dots"></i>
+                        </div>
+                        <span class="nav-item-text">Live Chat</span>
+                        @if(request()->routeIs('staff-chat'))
+                            <div class="nav-active-indicator"></div>
+                        @endif
+                    </a>
+                </li>
                 <li>
                     <a href="#" class="nav-item-link dark-mode-toggle-btn" onclick="toggleDarkMode(); return false;" title="Toggle Dark Mode">
                         <div class="nav-icon-wrapper">

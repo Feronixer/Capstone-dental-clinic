@@ -2085,6 +2085,68 @@ function loadPendingFeedbackCount() {
         background: #60a5fa !important;
     }
 
+    /* Chatbot Tabs */
+    .chatbot-tabs {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid #eef2f5;
+    }
+
+    .chatbot-tab {
+        flex: 1;
+        padding: 8px 12px;
+        border: 1px solid #dfe7ef;
+        border-radius: 8px;
+        background: #f8f9fa;
+        color: #64748b;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+    }
+
+    .chatbot-tab:hover {
+        background: #e9ecef;
+        border-color: #90caf9;
+    }
+
+    .chatbot-tab.active {
+        background: #2196F3;
+        color: #fff;
+        border-color: #2196F3;
+    }
+
+    .chatbot-tab.active:hover {
+        background: #1976D2;
+        border-color: #1976D2;
+    }
+
+    [data-theme="dark"] .chatbot-tabs {
+        border-top-color: var(--dm-border-color, #334155) !important;
+    }
+
+    [data-theme="dark"] .chatbot-tab {
+        background: var(--dm-bg-secondary, #0f172a) !important;
+        border-color: var(--dm-border-color, #334155) !important;
+        color: var(--dm-text-muted, #64748b) !important;
+    }
+
+    [data-theme="dark"] .chatbot-tab:hover {
+        background: var(--dm-bg-tertiary, #334155) !important;
+        border-color: #60a5fa !important;
+    }
+
+    [data-theme="dark"] .chatbot-tab.active {
+        background: #2196F3 !important;
+        color: #fff !important;
+        border-color: #2196F3 !important;
+    }
+
     /* Dark Mode for Modals */
     [data-theme="dark"] .modal-content {
         background: var(--dm-card-bg, #1e293b) !important;
@@ -2166,9 +2228,17 @@ function loadPendingFeedbackCount() {
         <div id="chatbot-messages" class="chatbot-messages" aria-live="polite"></div>
         <div class="chips" id="chatbot-chips"></div>
         <div class="chatbot-input">
-            <input id="chatbot-input" type="text" placeholder="Ask about services, hours, pricing..." autocomplete="off" />
+            <input id="chatbot-input" type="text" placeholder="Type your message to staff..." autocomplete="off" />
             <button id="chatbot-send" class="send-btn" aria-label="Send message">
                 <i class="bi bi-send-fill"></i>
+            </button>
+        </div>
+        <div class="chatbot-tabs">
+            <button id="tab-live-chat" class="chatbot-tab active" data-tab="live-chat">
+                <i class="bi bi-chat-dots me-1"></i> Live Chat
+            </button>
+            <button id="tab-faqs" class="chatbot-tab" data-tab="faqs">
+                <i class="bi bi-question-circle me-1"></i> FAQs
             </button>
         </div>
     </div>
@@ -2183,9 +2253,19 @@ function loadPendingFeedbackCount() {
         const inputEl = document.getElementById('chatbot-input');
         const sendBtn = document.getElementById('chatbot-send');
         const chipsEl = document.getElementById('chatbot-chips');
+        const titleEl = document.getElementById('chatbotTitle');
+        const tabLiveChat = document.getElementById('tab-live-chat');
+        const tabFaqs = document.getElementById('tab-faqs');
 
+        let conversationId = null;
+        let pollingInterval = null;
+        let isAuthenticated = true; // Patient is always authenticated on dashboard
+        let lastMessageId = null;
+        let currentMode = 'live-chat'; // 'live-chat' or 'faqs'
+        let faqInitialized = false;
+
+        // FAQ data
         const quickIntents = {!! json_encode($chatbotSetting->quick_intents ?? []) !!};
-
         const faqRaw = @json($chatbotFaqs ?? []);
         const faqPairs = (faqRaw || []).map(function(f){
             return { q: (f.question || ''), a: (f.answer || '') };
@@ -2195,37 +2275,32 @@ function loadPendingFeedbackCount() {
             messagesEl.scrollTop = messagesEl.scrollHeight;
         }
 
-        function addMessage(text, sender) {
-            const div = document.createElement('div');
-            div.className = 'message ' + (sender === 'user' ? 'user' : 'bot');
+        function addMessage(text, sender, messageId = null) {
+            // Check if message already exists
+            if (messageId) {
+                const existing = messagesEl.querySelector(`[data-message-id="${messageId}"]`);
+                if (existing) return;
+            }
 
-            if (sender === 'bot') {
-                // Process text line by line
+            const div = document.createElement('div');
+            div.className = 'message ' + (sender === 'user' || sender === 'patient' ? 'user' : 'bot');
+            if (messageId) div.setAttribute('data-message-id', messageId);
+
+            if (sender === 'bot' || sender === 'staff' || sender === 'admin') {
                 let lines = text.split('\n');
                 let formattedHTML = '';
-
                 for (let i = 0; i < lines.length; i++) {
                     let line = lines[i].trim();
                     if (!line) continue;
-
-                    // Check if line ends with colon (section header)
                     if (line.endsWith(':')) {
                         formattedHTML += `<span class="section-header">${line}</span>`;
-                    }
-                    // Check if line starts with bullet
-                    else if (line.startsWith('•')) {
+                    } else if (line.startsWith('•')) {
                         formattedHTML += `<span class="bullet-item">${line}</span>`;
-                    }
-                    // Regular text
-                    else {
+                    } else {
                         formattedHTML += line;
-                        // Add spacing after sentences if next line exists
-                        if (i < lines.length - 1) {
-                            formattedHTML += '<br>';
+                        if (i < lines.length - 1) formattedHTML += '<br>';
                         }
                     }
-                }
-
                 div.innerHTML = formattedHTML;
             } else {
                 div.textContent = text;
@@ -2246,11 +2321,42 @@ function loadPendingFeedbackCount() {
 
         function hideTypingIndicator() {
             const indicator = document.getElementById('typing-indicator');
-            if (indicator) {
-                indicator.remove();
+            if (indicator) indicator.remove();
+        }
+
+        async function loadConversation() {
+            try {
+                const response = await fetch('{{ route("patient-chat.conversation") }}');
+                const data = await response.json();
+                conversationId = data.conversation_id;
+                titleEl.textContent = 'Live Chat - Staff';
+                await loadMessages();
+                startPolling();
+            } catch (error) {
+                console.error('Error loading conversation:', error);
             }
         }
 
+        async function loadMessages() {
+            if (!conversationId) return;
+            try {
+                const response = await fetch(`{{ route("patient-chat.messages") }}?conversation_id=${conversationId}`);
+                const data = await response.json();
+                
+                messagesEl.innerHTML = '';
+                data.messages.forEach(msg => {
+                    const sender = msg.sender_type === 'patient' ? 'user' : msg.sender_type;
+                    addMessage(msg.message, sender, msg.id);
+                    if (!lastMessageId || msg.id > lastMessageId) {
+                        lastMessageId = msg.id;
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading messages:', error);
+            }
+        }
+
+        // FAQ Bot Functions
         function normalize(s) {
             return String(s)
                 .toLowerCase()
@@ -2275,7 +2381,6 @@ function loadPendingFeedbackCount() {
             return { inter, jaccard: inter / union };
         }
 
-        // Precompute FAQ tokens
         const faqIndexed = (faqPairs || []).map(p => ({ q: p.q, a: p.a, tokens: tokenize(p.q || '') }));
 
         function getBotReply(query) {
@@ -2283,7 +2388,6 @@ function loadPendingFeedbackCount() {
             const qLower = q.toLowerCase();
             const qTokens = tokenize(q);
 
-            // Check for help requests and general queries first
             const helpPatterns = ['help', 'assist', 'support', 'can you', 'could you', 'need help', 'i need', 'i want', 'how can', 'what can'];
             const greetingPatterns = ['hi', 'hello', 'hey', 'good morning', 'good afternoon', 'good evening', 'greetings'];
             const servicePatterns = ['service', 'treatment', 'procedure', 'what do you', 'what services', 'offer', 'available'];
@@ -2291,62 +2395,42 @@ function loadPendingFeedbackCount() {
             const pricePatterns = ['price', 'cost', 'fee', 'payment', 'how much', 'expensive', 'charge'];
             const appointmentPatterns = ['appointment', 'book', 'schedule', 'reserve', 'visit', 'see dentist'];
 
-            // Check for help requests first
             if (helpPatterns.some(pattern => qLower.includes(pattern))) {
                 return 'Of course! I\'m here to help you. You can ask me about:\n\n• Our clinic hours and availability\n• Services and treatments we offer\n• Appointment scheduling\n• Pricing information\n• General questions about dental care\n\nWhat would you like to know more about?';
             }
-
-            // Check for greetings
             if (greetingPatterns.some(pattern => qLower.includes(pattern))) {
                 return 'Hello! Welcome to our dental clinic. How can I assist you today? You can ask about our services, hours, pricing, or schedule an appointment.';
             }
-
-            // Check for service-related queries
             if (servicePatterns.some(pattern => qLower.includes(pattern))) {
                 return 'We offer a comprehensive range of dental services including:\n\n• General dentistry (cleanings, check-ups)\n• Cosmetic dentistry (whitening, veneers)\n• Orthodontics (braces, aligners)\n• Root canals and fillings\n• Crowns and bridges\n• Implants\n• Emergency dental care\n\nWould you like to know more about a specific service?';
             }
-
-            // Check for hours-related queries
             if (hoursPatterns.some(pattern => qLower.includes(pattern))) {
                 return 'Our clinic hours are:\n\n• Tuesday to Saturday: 11:00 AM to 6:00 PM\n• Sunday and Monday: Closed\n\nWe recommend scheduling an appointment in advance. Would you like to book one?';
             }
-
-            // Check for pricing queries
             if (pricePatterns.some(pattern => qLower.includes(pattern))) {
                 return 'Pricing varies depending on the service and treatment needed. For specific pricing information, please contact our office or schedule a consultation. We\'d be happy to provide a detailed quote based on your needs.';
             }
-
-            // Check for appointment queries
             if (appointmentPatterns.some(pattern => qLower.includes(pattern))) {
                 return 'You can schedule an appointment by:\n\n• Logging into your patient portal and using the calendar\n• Contacting us directly at (63)915 622 9695\n• Visiting our clinic at Policarpio St. Gen. T. de Leon Valenzuela City\n\nWould you like help with anything else?';
             }
 
-            // 1) Fuzzy match FAQs by token overlap
             let best = { score: 0, inter: 0, a: null };
             for (const item of faqIndexed) {
                 if (!item.tokens.length) continue;
                 const { inter, jaccard } = overlapScore(qTokens, item.tokens);
-                // Lower threshold for matching - be more lenient
                 const score = inter >= 1 ? jaccard + 0.15 : jaccard;
                 if (score > best.score) best = { score, inter, a: item.a };
             }
-            // Lower the threshold for FAQ matching
             if (best.a && (best.score >= 0.15 || best.inter >= 1)) return best.a;
 
-            // 2) More helpful fallback message
             return 'I\'m here to help! You can ask me about:\n\n• Clinic hours and availability\n• Our dental services\n• Appointment scheduling\n• Pricing information\n• General questions\n\nOr feel free to browse our FAQs for more detailed information. What would you like to know?';
         }
 
-        function sendUserMessage(text) {
+        function sendFaqMessage(text) {
             if (!text.trim()) return;
             addMessage(text.trim(), 'user');
-
-            // Show typing indicator
             showTypingIndicator();
-
-            // Simulate bot thinking time (1-2 seconds)
             const typingDelay = 1000 + Math.random() * 1000;
-
             setTimeout(() => {
                 hideTypingIndicator();
                 addMessage(getBotReply(text), 'bot');
@@ -2360,23 +2444,142 @@ function loadPendingFeedbackCount() {
                 btn.type = 'button';
                 btn.className = 'chip';
                 btn.textContent = intent.label;
-                btn.addEventListener('click', () => sendUserMessage(intent.value));
+                btn.addEventListener('click', () => {
+                    if (currentMode === 'faqs') {
+                        sendFaqMessage(intent.value);
+                    } else {
+                        sendMessage(intent.value);
+                    }
+                });
                 chipsEl.appendChild(btn);
             });
+        }
+
+        async function sendMessage(text) {
+            if (currentMode === 'faqs') {
+                sendFaqMessage(text);
+                return;
+            }
+
+            if (!text.trim() || !conversationId) return;
+
+            const messageText = text.trim();
+            addMessage(messageText, 'user');
+            inputEl.value = '';
+            inputEl.disabled = true;
+            sendBtn.disabled = true;
+
+            try {
+                const response = await fetch('{{ route("patient-chat.send") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        conversation_id: conversationId,
+                        message: messageText
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    lastMessageId = data.message.id;
+                }
+            } catch (error) {
+                console.error('Error sending message:', error);
+                addMessage('Sorry, there was an error sending your message. Please try again.', 'bot');
+            } finally {
+                inputEl.disabled = false;
+                sendBtn.disabled = false;
+                inputEl.focus();
+            }
+        }
+
+        function startPolling() {
+            if (pollingInterval) clearInterval(pollingInterval);
+            pollingInterval = setInterval(async () => {
+                if (!conversationId) return;
+                try {
+                    const response = await fetch(`{{ route("patient-chat.messages") }}?conversation_id=${conversationId}`);
+                    const data = await response.json();
+                    
+                    data.messages.forEach(msg => {
+                        if (msg.id > lastMessageId) {
+                            const sender = msg.sender_type === 'patient' ? 'user' : msg.sender_type;
+                            addMessage(msg.message, sender, msg.id);
+                            lastMessageId = msg.id;
+                        }
+                    });
+                } catch (error) {
+                    console.error('Error polling messages:', error);
+                }
+            }, 3000); // Poll every 3 seconds
+        }
+
+        function stopPolling() {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+                pollingInterval = null;
+            }
+        }
+
+        function switchTab(mode) {
+            currentMode = mode;
+            tabLiveChat.classList.toggle('active', mode === 'live-chat');
+            tabFaqs.classList.toggle('active', mode === 'faqs');
+            
+            const inputContainer = document.querySelector('.chatbot-input');
+            
+            if (mode === 'live-chat') {
+                titleEl.textContent = 'Live Chat - Staff';
+                inputEl.placeholder = 'Type your message to staff...';
+                inputContainer.style.display = 'flex'; // Show input
+                chipsEl.style.display = 'none'; // Hide chips
+                if (!conversationId) {
+                    loadConversation();
+                }
+                startPolling();
+            } else {
+                titleEl.textContent = 'ToothTalk Assistant';
+                inputEl.placeholder = 'Ask about services, hours, pricing...';
+                inputContainer.style.display = 'none'; // Hide input
+                chipsEl.style.display = 'flex'; // Show chips
+                stopPolling();
+                if (!faqInitialized) {
+                    messagesEl.innerHTML = '';
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage(@json($chatbotSetting->welcome_message ?: 'Welcome! How can I help today?'), 'bot');
+                        renderChips();
+                        faqInitialized = true;
+                    }, 800);
+                }
+            }
         }
 
         function openChat() {
             widget.classList.add('open');
             widget.setAttribute('aria-hidden', 'false');
-            if (!messagesEl.dataset.welcomed) {
-                // Show typing indicator before welcome message
+            
+            if (currentMode === 'live-chat' && !messagesEl.dataset.initialized) {
+                chipsEl.style.display = 'none'; // Hide chips in live chat
+                showTypingIndicator();
+                loadConversation().then(() => {
+                    hideTypingIndicator();
+                    messagesEl.dataset.initialized = '1';
+                });
+            } else if (currentMode === 'faqs' && !faqInitialized) {
+                chipsEl.style.display = 'flex'; // Show chips in FAQs
+                messagesEl.innerHTML = '';
                 showTypingIndicator();
                 setTimeout(() => {
                     hideTypingIndicator();
                     addMessage(@json($chatbotSetting->welcome_message ?: 'Welcome! How can I help today?'), 'bot');
                     renderChips();
+                    faqInitialized = true;
                 }, 800);
-                messagesEl.dataset.welcomed = '1';
             }
             inputEl.focus();
         }
@@ -2384,17 +2587,29 @@ function loadPendingFeedbackCount() {
         function closeChat() {
             widget.classList.remove('open');
             widget.setAttribute('aria-hidden', 'true');
+            stopPolling();
         }
 
         toggleBtn.addEventListener('click', () => {
             if (widget.classList.contains('open')) closeChat(); else openChat();
         });
         closeBtn.addEventListener('click', closeChat);
+        tabLiveChat.addEventListener('click', () => switchTab('live-chat'));
+        tabFaqs.addEventListener('click', () => switchTab('faqs'));
         sendBtn.addEventListener('click', () => {
-            const v = inputEl.value; inputEl.value = ''; sendUserMessage(v);
+            const v = inputEl.value;
+            if (v.trim()) sendMessage(v);
         });
         inputEl.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') { const v = inputEl.value; inputEl.value = ''; sendUserMessage(v); }
+            if (e.key === 'Enter') {
+                const v = inputEl.value;
+                if (v.trim()) sendMessage(v);
+            }
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            stopPolling();
         });
     })();
 </script>

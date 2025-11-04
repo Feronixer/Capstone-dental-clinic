@@ -113,6 +113,17 @@
                 <span>Settings</span>
             </div>
             <ul class="nav-menu-list">
+                <li class="{{ request()->routeIs('admin-chat') ? 'active' : '' }}">
+                    <a href="{{ route('admin-chat') }}" class="nav-item-link">
+                        <div class="nav-icon-wrapper">
+                            <i class="bi bi-chat-dots"></i>
+                        </div>
+                        <span class="nav-item-text">Live Chat</span>
+                        @if(request()->routeIs('admin-chat'))
+                            <div class="nav-active-indicator"></div>
+                        @endif
+                    </a>
+                </li>
                 <li class="{{ request()->routeIs('admin-notification') ? 'active' : '' }}">
                     <a href="{{ route('admin-notification') }}" class="nav-item-link">
                         <div class="nav-icon-wrapper">

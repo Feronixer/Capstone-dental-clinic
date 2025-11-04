@@ -1118,6 +1118,47 @@
             .chatbot-messages { height: 240px; }
         }
 
+        /* Chatbot Tabs */
+        .chatbot-tabs {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #eef2f5;
+        }
+
+        .chatbot-tab {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #dfe7ef;
+            border-radius: 8px;
+            background: #f8f9fa;
+            color: #64748b;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .chatbot-tab:hover {
+            background: #e9ecef;
+            border-color: #90caf9;
+        }
+
+        .chatbot-tab.active {
+            background: #2196F3;
+            color: #fff;
+            border-color: #2196F3;
+        }
+
+        .chatbot-tab.active:hover {
+            background: #1976D2;
+            border-color: #1976D2;
+        }
+
         /* Global Scrollbar Styles - White & Blue Theme */
         ::-webkit-scrollbar {
             width: 12px;
@@ -1577,6 +1618,14 @@
                     <i class="bi bi-send-fill"></i>
                 </button>
             </div>
+            <div class="chatbot-tabs">
+                <button id="tab-live-chat" class="chatbot-tab" data-tab="live-chat">
+                    <i class="bi bi-chat-dots me-1"></i> Live Chat
+                </button>
+                <button id="tab-faqs" class="chatbot-tab active" data-tab="faqs">
+                    <i class="bi bi-question-circle me-1"></i> FAQs
+                </button>
+            </div>
         </div>
     </div>
 
@@ -1589,9 +1638,18 @@
             const inputEl = document.getElementById('chatbot-input');
             const sendBtn = document.getElementById('chatbot-send');
             const chipsEl = document.getElementById('chatbot-chips');
+            const tabLiveChat = document.getElementById('tab-live-chat');
+            const tabFaqs = document.getElementById('tab-faqs');
+            const titleEl = document.getElementById('chatbotTitle');
 
+            let currentMode = 'faqs'; // Start with FAQs for guests
+            let conversationId = null;
+            let pollingInterval = null;
+            let lastMessageId = null;
+            let faqInitialized = false;
+
+            // FAQ data
             const quickIntents = {!! json_encode($chatbotSetting->quick_intents ?? []) !!};
-
             const faqRaw = @json($chatbotFaqs ?? []);
             const faqPairs = (faqRaw || []).map(function(f){
                 return { q: (f.question || ''), a: (f.answer || '') };
@@ -1745,20 +1803,35 @@
                 return 'I\'m here to help! You can ask me about:\n\n• Clinic hours and availability\n• Our dental services\n• Appointment scheduling\n• Pricing information\n• General questions\n\nOr feel free to browse our FAQs for more detailed information. What would you like to know?';
             }
 
-            function sendUserMessage(text) {
+            function stopPolling() {
+                if (pollingInterval) {
+                    clearInterval(pollingInterval);
+                    pollingInterval = null;
+                }
+            }
+
+            async function sendUserMessage(text) {
                 if (!text.trim()) return;
-                addMessage(text.trim(), 'user');
-
-                // Show typing indicator
-                showTypingIndicator();
-
-                // Simulate bot thinking time (1-2 seconds)
-                const typingDelay = 1000 + Math.random() * 1000;
-
-                setTimeout(() => {
-                    hideTypingIndicator();
-                    addMessage(getBotReply(text), 'bot');
-                }, typingDelay);
+                
+                // If live chat is active and authenticated, use it
+                if (currentMode === 'live-chat' && conversationId) {
+                    await sendLiveMessage(text.trim());
+                    return;
+                }
+                
+                // Otherwise use FAQ chatbot
+                if (currentMode === 'faqs') {
+                    addMessage(text.trim(), 'user');
+                    showTypingIndicator();
+                    const typingDelay = 1000 + Math.random() * 1000;
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage(getBotReply(text), 'bot');
+                    }, typingDelay);
+                } else {
+                    // Live chat mode but not authenticated or not initialized
+                    addMessage('Please wait for the chat to initialize...', 'bot');
+                }
             }
 
             function renderChips() {
@@ -1768,41 +1841,240 @@
                     btn.type = 'button';
                     btn.className = 'chip';
                     btn.textContent = intent.label;
-                    btn.addEventListener('click', () => sendUserMessage(intent.value));
+                    btn.addEventListener('click', () => {
+                        if (currentMode === 'faqs') {
+                            sendFaqMessage(intent.value);
+                        } else {
+                            sendUserMessage(intent.value);
+                        }
+                    });
                     chipsEl.appendChild(btn);
                 });
             }
 
-            function openChat() {
+            function sendFaqMessage(text) {
+                if (!text.trim()) return;
+                addMessage(text.trim(), 'user');
+                showTypingIndicator();
+                const typingDelay = 1000 + Math.random() * 1000;
+                setTimeout(() => {
+                    hideTypingIndicator();
+                    addMessage(getBotReply(text), 'bot');
+                }, typingDelay);
+            }
+
+            async function checkAuth() {
+                try {
+                    const response = await fetch('{{ route("chat.check-auth") }}');
+                    const data = await response.json();
+                    return data.authenticated;
+                } catch (error) {
+                    return false;
+                }
+            }
+
+            async function openChat() {
                 widget.classList.add('open');
                 widget.setAttribute('aria-hidden', 'false');
-                if (!messagesEl.dataset.welcomed) {
-                    // Show typing indicator before welcome message
-                    showTypingIndicator();
-                    setTimeout(() => {
-                        hideTypingIndicator();
-                        addMessage(@json($chatbotSetting->welcome_message ?: 'Welcome! How can I help today?'), 'bot');
-                        renderChips();
-                    }, 800);
-                    messagesEl.dataset.welcomed = '1';
+                
+                if (!messagesEl.dataset.checked) {
+                    if (currentMode === 'faqs' && !faqInitialized) {
+                        chipsEl.style.display = 'flex'; // Show chips in FAQs
+                        showTypingIndicator();
+                        setTimeout(() => {
+                            hideTypingIndicator();
+                            addMessage(@json($chatbotSetting->welcome_message ?: 'Welcome! How can I help today?'), 'bot');
+                            renderChips();
+                            faqInitialized = true;
+                        }, 800);
+                    } else if (currentMode === 'live-chat') {
+                        chipsEl.style.display = 'none'; // Hide chips in live chat
+                        const isAuth = await checkAuth();
+                        if (isAuth) {
+                            inputEl.placeholder = 'Type your message to staff...';
+                            await initializeLiveChat();
+                        } else {
+                            messagesEl.innerHTML = '';
+                            addMessage('To chat with our staff, please log in to your account. You can use the FAQ chatbot for general questions.', 'bot');
+                            const loginBtn = document.createElement('button');
+                            loginBtn.className = 'chip';
+                            loginBtn.textContent = 'Login to Chat with Staff';
+                            loginBtn.style.background = '#0d6efd';
+                            loginBtn.style.color = 'white';
+                            loginBtn.addEventListener('click', () => {
+                                window.location.href = '{{ route("login") }}';
+                            });
+                            chipsEl.innerHTML = '';
+                            chipsEl.appendChild(loginBtn);
+                            inputEl.disabled = true;
+                            sendBtn.disabled = true;
+                        }
+                    }
+                    messagesEl.dataset.checked = '1';
                 }
                 inputEl.focus();
+            }
+
+            async function initializeLiveChat() {
+                try {
+                    const response = await fetch('{{ route("patient-chat.conversation") }}');
+                    const data = await response.json();
+                    conversationId = data.conversation_id;
+                    await loadMessages();
+                    startPolling();
+                } catch (error) {
+                    console.error('Error initializing chat:', error);
+                }
+            }
+
+            async function loadMessages() {
+                if (!conversationId) return;
+                try {
+                    const response = await fetch(`{{ route("patient-chat.messages") }}?conversation_id=${conversationId}`);
+                    const data = await response.json();
+                    data.messages.forEach(msg => {
+                        const sender = msg.sender_type === 'patient' ? 'user' : msg.sender_type;
+                        addMessage(msg.message, sender);
+                        if (!lastMessageId || msg.id > lastMessageId) {
+                            lastMessageId = msg.id;
+                        }
+                    });
+                } catch (error) {
+                    console.error('Error loading messages:', error);
+                }
+            }
+
+            function startPolling() {
+                if (pollingInterval) clearInterval(pollingInterval);
+                pollingInterval = setInterval(async () => {
+                    if (!conversationId) return;
+                    try {
+                        const response = await fetch(`{{ route("patient-chat.messages") }}?conversation_id=${conversationId}`);
+                        const data = await response.json();
+                        data.messages.forEach(msg => {
+                            if (msg.id > lastMessageId) {
+                                const sender = msg.sender_type === 'patient' ? 'user' : msg.sender_type;
+                                addMessage(msg.message, sender);
+                                lastMessageId = msg.id;
+                            }
+                        });
+                    } catch (error) {
+                        console.error('Error polling:', error);
+                    }
+                }, 3000);
+            }
+
+            async function sendLiveMessage(text) {
+                if (!conversationId) return;
+                addMessage(text, 'user');
+                inputEl.value = '';
+                
+                try {
+                    const response = await fetch('{{ route("patient-chat.send") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({
+                            conversation_id: conversationId,
+                            message: text
+                        })
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        lastMessageId = data.message.id;
+                    }
+                } catch (error) {
+                    addMessage('Error sending message. Please try again.', 'bot');
+                }
             }
 
             function closeChat() {
                 widget.classList.remove('open');
                 widget.setAttribute('aria-hidden', 'true');
+                if (pollingInterval) {
+                    clearInterval(pollingInterval);
+                    pollingInterval = null;
+                }
+            }
+
+            function switchTab(mode) {
+                currentMode = mode;
+                tabLiveChat.classList.toggle('active', mode === 'live-chat');
+                tabFaqs.classList.toggle('active', mode === 'faqs');
+                
+                const inputContainer = document.querySelector('.chatbot-input');
+                
+                if (mode === 'live-chat') {
+                    titleEl.textContent = 'Live Chat - Staff';
+                    inputEl.placeholder = 'Type your message to staff...';
+                    inputContainer.style.display = 'flex'; // Show input
+                    chipsEl.style.display = 'none'; // Hide chips
+                    stopPolling();
+                    // Check auth and initialize live chat
+                    checkAuth().then(isAuth => {
+                        if (isAuth) {
+                            if (!conversationId) {
+                                initializeLiveChat();
+                            } else {
+                                startPolling();
+                            }
+                        } else {
+                            messagesEl.innerHTML = '';
+                            addMessage('To chat with our staff, please log in to your account. You can use the FAQ chatbot for general questions.', 'bot');
+                            const loginBtn = document.createElement('button');
+                            loginBtn.className = 'chip';
+                            loginBtn.textContent = 'Login to Chat with Staff';
+                            loginBtn.style.background = '#0d6efd';
+                            loginBtn.style.color = 'white';
+                            loginBtn.addEventListener('click', () => {
+                                window.location.href = '{{ route("login") }}';
+                            });
+                            chipsEl.innerHTML = '';
+                            chipsEl.appendChild(loginBtn);
+                            inputEl.disabled = true;
+                            sendBtn.disabled = true;
+                        }
+                    });
+                } else {
+                    titleEl.textContent = 'ToothTalk Assistant';
+                    inputEl.placeholder = 'Ask about services, hours, pricing...';
+                    inputContainer.style.display = 'none'; // Hide input
+                    chipsEl.style.display = 'flex'; // Show chips
+                    stopPolling();
+                    inputEl.disabled = false;
+                    sendBtn.disabled = false;
+                    if (!faqInitialized) {
+                        messagesEl.innerHTML = '';
+                        showTypingIndicator();
+                        setTimeout(() => {
+                            hideTypingIndicator();
+                            addMessage(@json($chatbotSetting->welcome_message ?: 'Welcome! How can I help today?'), 'bot');
+                            renderChips();
+                            faqInitialized = true;
+                        }, 800);
+                    }
+                }
             }
 
             toggleBtn.addEventListener('click', () => {
                 if (widget.classList.contains('open')) closeChat(); else openChat();
             });
             closeBtn.addEventListener('click', closeChat);
+            tabLiveChat.addEventListener('click', () => switchTab('live-chat'));
+            tabFaqs.addEventListener('click', () => switchTab('faqs'));
             sendBtn.addEventListener('click', () => {
-                const v = inputEl.value; inputEl.value = ''; sendUserMessage(v);
+                const v = inputEl.value; 
+                inputEl.value = ''; 
+                sendUserMessage(v);
             });
             inputEl.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') { const v = inputEl.value; inputEl.value = ''; sendUserMessage(v); }
+                if (e.key === 'Enter') { 
+                    const v = inputEl.value; 
+                    inputEl.value = ''; 
+                    sendUserMessage(v); 
+                }
             });
         })();
     </script>

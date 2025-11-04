@@ -158,6 +158,14 @@ Route::middleware(['auth:admin'])->group(function(): void{
     Route::get('/admin/activity-logs/data', [\App\Http\Controllers\Admin\ActivityLogController::class,'getLogs'])->name('admin-activity-logs.data');
     Route::get('/admin/activity-logs/{id}', [\App\Http\Controllers\Admin\ActivityLogController::class,'show'])->name('admin-activity-logs.show');
 
+    // Admin Chat Routes
+    Route::get('/admin/chat', [App\Http\Controllers\Admin\ChatController::class, 'index'])->name('admin-chat');
+    Route::get('/admin/chat/conversations', [App\Http\Controllers\Admin\ChatController::class, 'getConversations'])->name('admin-chat.conversations');
+    Route::get('/admin/chat/conversations/{id}/messages', [App\Http\Controllers\Admin\ChatController::class, 'getMessages'])->name('admin-chat.messages');
+    Route::post('/admin/chat/conversations/{id}/send', [App\Http\Controllers\Admin\ChatController::class, 'sendMessage'])->name('admin-chat.send');
+    Route::put('/admin/chat/conversations/{id}/status', [App\Http\Controllers\Admin\ChatController::class, 'updateStatus'])->name('admin-chat.update-status');
+    Route::get('/admin/chat/unread-count', [App\Http\Controllers\Admin\ChatController::class, 'getUnreadCount'])->name('admin-chat.unread-count');
+
     // Admin Logout Route
     Route::post('/admin/logout', [AdminAuthController::class,'logout'])->name('admin.logout');
 
@@ -300,6 +308,14 @@ Route::middleware(['auth:staff'])->group(function(): void{
     Route::post('/staff/notifications/approve/{id}', [App\Http\Controllers\Staff\NotificationController::class,'approveRequest'])->name('staff-notification.approve');
     Route::post('/staff/notifications/deny/{id}', [App\Http\Controllers\Staff\NotificationController::class,'denyRequest'])->name('staff-notification.deny');
 
+    // Staff Chat Routes
+    Route::get('/staff/chat', [App\Http\Controllers\Staff\ChatController::class, 'index'])->name('staff-chat');
+    Route::get('/staff/chat/conversations', [App\Http\Controllers\Staff\ChatController::class, 'getConversations'])->name('staff-chat.conversations');
+    Route::get('/staff/chat/conversations/{id}/messages', [App\Http\Controllers\Staff\ChatController::class, 'getMessages'])->name('staff-chat.messages');
+    Route::post('/staff/chat/conversations/{id}/send', [App\Http\Controllers\Staff\ChatController::class, 'sendMessage'])->name('staff-chat.send');
+    Route::put('/staff/chat/conversations/{id}/status', [App\Http\Controllers\Staff\ChatController::class, 'updateStatus'])->name('staff-chat.update-status');
+    Route::get('/staff/chat/unread-count', [App\Http\Controllers\Staff\ChatController::class, 'getUnreadCount'])->name('staff-chat.unread-count');
+
     // Staff Logout Route
     Route::post('/staff/logout', [StaffAuthController::class,'logout'])->name('staff.logout');
 });
@@ -344,8 +360,16 @@ Route::middleware(['auth:web'])->group(function(): void{
     Route::post('/patient/feedback/submit', [FeedbackController::class, 'submitFeedback'])->name('patient-feedback.submit');
     Route::get('/patient/feedback/history', [FeedbackController::class, 'getFeedbackHistory'])->name('patient-feedback.history');
 
+    // Patient Chat Routes
+    Route::get('/patient/chat/conversation', [App\Http\Controllers\Patient\ChatController::class, 'getConversation'])->name('patient-chat.conversation');
+    Route::get('/patient/chat/messages', [App\Http\Controllers\Patient\ChatController::class, 'getMessages'])->name('patient-chat.messages');
+    Route::post('/patient/chat/send', [App\Http\Controllers\Patient\ChatController::class, 'sendMessage'])->name('patient-chat.send');
+
     // Patient Logout Route
     Route::post('/logout', [AuthController::class,'logout'])->name('logout');
     Route::post('/patient/logout', [AuthController::class,'logout'])->name('patient.logout');
 });
+
+// Public route for checking chat authentication
+Route::get('/chat/check-auth', [App\Http\Controllers\Patient\ChatController::class, 'checkAuth'])->name('chat.check-auth');
 
