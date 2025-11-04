@@ -8,6 +8,8 @@ use App\Models\User;
 use App\Models\UserInfo;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 use function PHPUnit\Framework\isEmpty;
 
 class AccountManagementController extends Controller
@@ -33,6 +35,31 @@ class AccountManagementController extends Controller
         }
 
         return view("admin.account-management.view", compact('users', 'roles'));
+    }
+
+    /**
+     * Verify admin's password and reveal user's email
+     */
+    public function revealEmail(Request $request, string $id)
+    {
+        $request->validate([
+            'password' => 'required|string'
+        ]);
+
+        $admin = Auth::guard('admin')->user();
+        if (!$admin || !Hash::check($request->password, $admin->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Incorrect password.'
+            ], 403);
+        }
+
+        $user = User::findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'email' => $user->email,
+        ]);
     }
 
 
@@ -135,6 +162,18 @@ class AccountManagementController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        // Verify admin password
+        $request->validate([
+            'admin_password' => 'required|string'
+        ]);
+        $admin = Auth::guard('admin')->user();
+        if (!$admin || !Hash::check($request->admin_password, $admin->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Incorrect password.'
+            ], 403);
+        }
+
         $user = User::with('info')->findOrFail($id);
         $request->validate([
             'role_id' => ['required', 'integer', 'exists:roles,id'],
@@ -201,8 +240,18 @@ class AccountManagementController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id)
     {
+        $request->validate([
+            'admin_password' => 'required|string'
+        ]);
+        $admin = Auth::guard('admin')->user();
+        if (!$admin || !Hash::check($request->admin_password, $admin->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Incorrect password.'
+            ], 403);
+        }
         $user = User::findOrFail($id);
         $user->delete();
         return response()->json([

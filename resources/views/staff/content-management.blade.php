@@ -746,12 +746,12 @@
                                         <div class="col-md-6">
                                             <label for="dateStart" class="form-label fw-semibold small mb-1">Start Date <span class="text-danger">*</span></label>
                                             <input type="date" class="form-control form-control-sm" id="dateStart" name="date_start"
-                                                   value="{{ $announcement->date_start ? $announcement->date_start->format('Y-m-d') : '' }}" required>
+                                                   value="{{ $announcement && $announcement->date_start ? $announcement->date_start->format('Y-m-d') : '' }}" required>
                                         </div>
                                         <div class="col-md-6">
                                             <label for="dateEnd" class="form-label fw-semibold small mb-1">End Date <span class="text-muted" style="font-size: 0.75rem;">(Optional)</span></label>
                                             <input type="date" class="form-control form-control-sm" id="dateEnd" name="date_end"
-                                                   value="{{ $announcement->date_end ? $announcement->date_end->format('Y-m-d') : '' }}">
+                                                   value="{{ $announcement && $announcement->date_end ? $announcement->date_end->format('Y-m-d') : '' }}">
                                         </div>
 
                                         <!-- Time Duration Toggle -->
@@ -771,12 +771,12 @@
                                                 <div class="col-md-6">
                                                     <label for="timeStart" class="form-label fw-semibold small mb-1">Start Time</label>
                                                     <input type="time" class="form-control form-control-sm" id="timeStart" name="time_start"
-                                                           value="{{ $announcement->time_start ? \Carbon\Carbon::parse($announcement->time_start)->format('H:i') : '' }}">
+                                                           value="{{ $announcement && $announcement->time_start ? \Carbon\Carbon::parse($announcement->time_start)->format('H:i') : '' }}">
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label for="timeEnd" class="form-label fw-semibold small mb-1">End Time</label>
                                                     <input type="time" class="form-control form-control-sm" id="timeEnd" name="time_end"
-                                                           value="{{ $announcement->time_end ? \Carbon\Carbon::parse($announcement->time_end)->format('H:i') : '' }}">
+                                                           value="{{ $announcement && $announcement->time_end ? \Carbon\Carbon::parse($announcement->time_end)->format('H:i') : '' }}">
                                                 </div>
                                             </div>
                                         </div>

@@ -75,7 +75,7 @@
                                         <x-table.th column="id" label="No." center="true" />
                                         <x-table.th column="username" label="Username" />
                                         <x-table.th column="name" label="Name" />
-                                        <x-table.th column="email" label="Email" />
+                                        <x-table.th column="email" label="Email (hidden)" />
                                         <th class="text-center">Gender</th>
                                         <x-table.th column="role" label="Role" />
                                         <x-table.th column="created_at" label="Created At" />
@@ -116,6 +116,56 @@
 @include('staff.account-management.modal-edit-user')
 {{-- Staff cannot delete users --}}
 {{-- @include('admin.account-management.change-password-modal') --}}
+
+<!-- View Email Modal (Staff) -->
+<div class="modal fade" id="viewEmailModalStaff" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Verify to view email</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="viewEmailFormStaff">
+                    <input type="hidden" name="user_id" id="viewEmailUserIdStaff">
+                    <div class="mb-3">
+                        <label for="verifyPasswordStaff" class="form-label">Your Password</label>
+                        <input type="password" class="form-control" id="verifyPasswordStaff" name="password" required>
+                    </div>
+                    <div class="text-danger small" id="viewEmailErrorStaff" style="display:none;"></div>
+                </form>
+                <div class="mt-2 small text-muted">For security, enter your password to reveal the patient's email.</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmViewEmailBtnStaff">View Email</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm with Password Modal (Staff - Edit only) -->
+<div class="modal fade" id="staffConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm with Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="staffConfirmPassword" class="form-label">Your Password</label>
+                    <input type="password" class="form-control" id="staffConfirmPassword" autocomplete="current-password" required>
+                </div>
+                <div class="text-danger small" id="staffConfirmError" style="display:none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="staffConfirmSubmitBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <style>
 /* ============================================
@@ -801,37 +851,57 @@ $(document).ready(function () {
     });
 
 
+    // Intercept edit submit to require staff password
+    let pendingEditPayload = null;
     $('#editUserForm').on('submit', function (e) {
         e.preventDefault();
+        const userId = $(this).find('input[name="user_id"]').val();
+        pendingEditPayload = {
+            userId: userId,
+            data: $(this).serializeArray()
+        };
+        $('#staffConfirmPassword').val('');
+        $('#staffConfirmError').hide();
+        // Hide parent modal, show confirm in center
+        $('#editUserModal').modal('hide');
+        new bootstrap.Modal(document.getElementById('staffConfirmModal')).show();
+    });
 
-        let userId = $(this).find('input[name="user_id"]').val();
-        let formData = $(this).serialize();
-
+    document.getElementById('staffConfirmSubmitBtn').addEventListener('click', function(){
+        const pwd = document.getElementById('staffConfirmPassword').value;
+        if (!pwd || !pendingEditPayload) return;
+        const modal = bootstrap.Modal.getInstance(document.getElementById('staffConfirmModal'));
+        const userId = pendingEditPayload.userId;
+        const dataArray = pendingEditPayload.data;
+        dataArray.push({ name: 'staff_password', value: pwd });
         $.ajax({
             url: '/staff/account-management/users/' + userId,
             method: 'PUT',
-            data: formData,
-            success: function (response) {
-                $('#editUserModal').modal('hide');
+            data: $.param(dataArray),
+            success: function(response){
+                modal.hide();
                 showToast('success', response.message);
                 fetchUsers("{{ route('staff-account-management') }}");
             },
-            error: function (xhr) {
-                if (xhr.status === 422) {
+            error: function(xhr){
+                if (xhr.status === 403) {
+                    $('#staffConfirmError').text(xhr.responseJSON?.message || 'Incorrect password.').show();
+                } else if (xhr.status === 422) {
+                    modal.hide();
                     let errors = xhr.responseJSON.errors;
                     $('#editUserForm .invalid-feedback').text('').hide();
                     $('#editUserForm .form-control, #editUserForm .form-select').removeClass('is-invalid');
                     $.each(errors, function (key, value) {
                         let input = $('#editUserForm').find(`[name="${key}"]`);
                         input.addClass('is-invalid');
-                        input.closest('.form-floating').find('.invalid-feedback')
-                            .text(value[0])
-                            .show();
+                        input.closest('.form-floating').find('.invalid-feedback').text(value[0]).show();
                     });
                 } else {
+                    modal.hide();
                     showToast('danger', 'Unexpected error occurred');
                 }
-            }
+            },
+            complete: function(){ pendingEditPayload = null; }
         });
     });
 
@@ -870,6 +940,56 @@ $(document).ready(function () {
     });
 
     // Staff cannot delete users - form handler removed
+
+    // View email toggle + verification
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('.view-email-btn');
+        if (!btn) return;
+        const userId = btn.getAttribute('data-user-id');
+        const span = document.querySelector(`.masked-email[data-user-id="${userId}"]`);
+        const icon = btn.querySelector('[data-icon]');
+        if (span.getAttribute('data-visible') === '1') {
+            span.textContent = '••••••••';
+            span.setAttribute('data-visible','0');
+            if (icon) { icon.classList.remove('bi-eye-slash'); icon.classList.add('bi-eye'); }
+            return;
+        }
+        document.getElementById('viewEmailUserIdStaff').value = userId;
+        document.getElementById('verifyPasswordStaff').value = '';
+        document.getElementById('viewEmailErrorStaff').style.display = 'none';
+        new bootstrap.Modal(document.getElementById('viewEmailModalStaff')).show();
+    });
+
+    document.getElementById('confirmViewEmailBtnStaff').addEventListener('click', async function(){
+        const userId = document.getElementById('viewEmailUserIdStaff').value;
+        const password = document.getElementById('verifyPasswordStaff').value;
+        const errorBox = document.getElementById('viewEmailErrorStaff');
+        try {
+            const res = await fetch(`/staff/account-management/${userId}/reveal-email`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ password })
+            });
+            const data = await res.json();
+            if (!res.ok || data.success === false) {
+                errorBox.textContent = data.message || 'Verification failed.';
+                errorBox.style.display = 'block';
+                return;
+            }
+            const span = document.querySelector(`.masked-email[data-user-id="${userId}"]`);
+            span.textContent = data.email;
+            span.setAttribute('data-visible','1');
+            const btn = document.querySelector(`.view-email-btn[data-user-id="${userId}"]`);
+            if (btn) { const icon = btn.querySelector('[data-icon]'); if (icon) { icon.classList.remove('bi-eye'); icon.classList.add('bi-eye-slash'); } }
+            bootstrap.Modal.getInstance(document.getElementById('viewEmailModalStaff')).hide();
+        } catch(err) {
+            errorBox.textContent = 'Something went wrong. Please try again.';
+            errorBox.style.display = 'block';
+        }
+    });
 
     // Handle add user form submission with AJAX for better error handling
     $(document).on('submit', '#addUserForm', function(e) {
