@@ -24,24 +24,24 @@
     .announcement-page {
         background: linear-gradient(135deg, #f8fafc 0%, #e3f2fd 100%);
         min-height: calc(100vh - 70px);
-        padding: 2rem 0;
+        padding: clamp(1.5rem, 4vw, 2rem) 0;
     }
 
     .announcement-content-wrapper {
         max-width: 1200px;
         margin: 0 auto;
-        padding: 0 1.5rem;
+        padding: 0 clamp(1rem, 3vw, 1.5rem);
     }
 
     /* Page Header */
     .page-header {
         text-align: center;
-        margin-bottom: 1.75rem;
+        margin-bottom: clamp(1.25rem, 3.5vw, 1.75rem);
         animation: fadeInDown 0.6s ease-out;
     }
 
     .page-header h1 {
-        font-size: 2.25rem;
+        font-size: clamp(1.5rem, 4vw, 2.25rem);
         font-weight: 800;
         background: linear-gradient(135deg, var(--primary-blue), var(--accent-teal));
         -webkit-background-clip: text;
@@ -52,7 +52,7 @@
 
     .page-header p {
         color: var(--text-medium);
-        font-size: 0.95rem;
+        font-size: clamp(0.85rem, 2vw, 0.95rem);
     }
 
     /* Main Announcement Card */
@@ -74,10 +74,14 @@
 
     .announcement-banner {
         background: linear-gradient(135deg, #2196F3 0%, #1976D2 50%, #0d47a1 100%);
-        padding: 1.5rem 2rem;
+        padding: clamp(1rem, 3vw, 1.5rem) clamp(1rem, 4vw, 2rem);
         text-align: center;
         position: relative;
         overflow: hidden;
+        min-height: clamp(70px, 15vw, 80px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .announcement-banner::before {
@@ -114,14 +118,17 @@
         position: relative;
         text-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
         letter-spacing: -0.5px;
+        line-height: 1.3;
+        padding: 0 0.5rem;
     }
 
     .announcement-content-section {
-        padding: 1.5rem 2rem;
+        padding: clamp(1rem, 3vw, 1.5rem) clamp(1rem, 4vw, 2rem);
+        position: relative;
     }
 
     .announcement-image-wrapper {
-        margin-bottom: 1.25rem;
+        margin-bottom: clamp(1rem, 2.5vw, 1.25rem);
         text-align: center;
         border-radius: 12px;
         overflow: hidden;
@@ -133,6 +140,8 @@
         cursor: pointer;
         background: #f8f9fa;
         aspect-ratio: 3840 / 2000;
+        width: 100%;
+        display: block;
     }
 
     .announcement-image-wrapper::before {
@@ -173,41 +182,46 @@
     }
 
     .announcement-subheading p {
-        font-size: 1.1rem !important;
+        font-size: clamp(0.9rem, 2.2vw, 1.1rem) !important;
         line-height: 1.4 !important;
     }
 
     .announcement-message {
         background: linear-gradient(135deg, #f8fafc 0%, #e3f2fd 100%);
         border-left: 4px solid var(--primary-blue);
-        padding: 1.25rem 1.5rem;
+        padding: clamp(0.875rem, 2.5vw, 1.25rem) clamp(1rem, 3vw, 1.5rem);
         border-radius: 10px;
         color: var(--text-dark);
         line-height: 1.6;
-        font-size: 0.95rem;
+        font-size: clamp(0.85rem, 2vw, 0.95rem);
         box-shadow: var(--shadow-sm);
         position: relative;
         margin-top: 0;
+        margin-bottom: 1rem;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
     }
 
 
     .new-badge {
         display: inline-flex;
         align-items: center;
-        gap: 0.375rem;
+        gap: clamp(0.25rem, 0.75vw, 0.375rem);
         background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
         color: white;
-        padding: 0.4rem 1rem;
+        padding: clamp(0.3rem, 0.8vw, 0.4rem) clamp(0.65rem, 2vw, 1rem);
         border-radius: 50px;
         font-weight: 700;
-        font-size: 0.8rem;
+        font-size: clamp(0.65rem, 1.6vw, 0.8rem);
         letter-spacing: 0.5px;
         box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
         position: absolute;
-        top: 1rem;
-        left: 1.5rem;
+        top: clamp(0.5rem, 2vw, 1rem);
+        left: clamp(0.5rem, 3vw, 1.5rem);
         z-index: 10;
         animation: pulse-badge 2s ease-in-out infinite;
+        margin-bottom: 0.5rem;
+        white-space: nowrap;
     }
 
     @keyframes pulse-badge {
@@ -217,21 +231,21 @@
 
     .announcement-details {
         display: flex;
-        gap: 1rem;
+        gap: clamp(0.75rem, 2vw, 1rem);
         flex-wrap: wrap;
-        margin-top: 1.25rem;
-        padding-top: 1.25rem;
+        margin-top: clamp(1rem, 2.5vw, 1.25rem);
+        padding-top: clamp(1rem, 2.5vw, 1.25rem);
         border-top: 2px solid #f0f0f0;
     }
 
     .detail-item {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: clamp(0.375rem, 1vw, 0.5rem);
         color: var(--text-medium);
         font-weight: 600;
-        font-size: 0.875rem;
-        padding: 0.5rem 1rem;
+        font-size: clamp(0.75rem, 1.75vw, 0.875rem);
+        padding: clamp(0.4rem, 1vw, 0.5rem) clamp(0.75rem, 2vw, 1rem);
         background: var(--bg-light);
         border-radius: 50px;
         transition: all 0.3s ease;
@@ -252,13 +266,13 @@
     .event-badge {
         background: linear-gradient(135deg, var(--accent-teal) 0%, var(--accent-teal-dark) 100%);
         color: white;
-        padding: 0.5rem 1.5rem;
+        padding: clamp(0.4rem, 1vw, 0.5rem) clamp(1rem, 3vw, 1.5rem);
         border-radius: 50px;
         font-weight: 700;
-        font-size: 0.85rem;
+        font-size: clamp(0.7rem, 1.7vw, 0.85rem);
         display: inline-flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: clamp(0.375rem, 1vw, 0.5rem);
         box-shadow: 0 4px 12px rgba(38, 166, 154, 0.3);
         letter-spacing: 0.5px;
     }
@@ -266,12 +280,12 @@
     /* Archive Section */
     .archive-section-header {
         text-align: center;
-        margin: 2.5rem 0 1.75rem 0;
+        margin: clamp(2rem, 5vw, 2.5rem) 0 clamp(1.5rem, 3.5vw, 1.75rem) 0;
         animation: fadeInUp 0.6s ease-out 0.3s both;
     }
 
     .archive-section-header h2 {
-        font-size: 1.875rem;
+        font-size: clamp(1.25rem, 3.75vw, 1.875rem);
         font-weight: 800;
         color: var(--text-dark);
         margin-bottom: 0.5rem;
@@ -293,15 +307,15 @@
 
     .archive-section-header p {
         color: var(--text-medium);
-        font-size: 0.95rem;
+        font-size: clamp(0.85rem, 2vw, 0.95rem);
         margin-top: 0.75rem;
     }
 
     .archive-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 2rem;
+        grid-template-columns: repeat(auto-fit, minmax(clamp(280px, 68vw, 340px), 1fr));
+        gap: clamp(1rem, 3vw, 1.5rem);
+        margin-bottom: clamp(1.5rem, 4vw, 2rem);
     }
 
     /* Archive Cards */
@@ -338,21 +352,21 @@
     }
 
     .archive-card-content {
-        padding: 1.25rem 1.5rem;
+        padding: clamp(1rem, 2.5vw, 1.25rem) clamp(1rem, 3vw, 1.5rem);
         position: relative;
         z-index: 1;
     }
 
     .archive-date {
         color: var(--text-light);
-        font-size: 0.8rem;
+        font-size: clamp(0.7rem, 1.6vw, 0.8rem);
         font-weight: 700;
         margin-bottom: 0.75rem;
         text-transform: uppercase;
         letter-spacing: 1px;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: clamp(0.375rem, 1vw, 0.5rem);
     }
 
     .archive-date i {
@@ -360,7 +374,7 @@
     }
 
     .archive-title {
-        font-size: 1.2rem;
+        font-size: clamp(1rem, 2.4vw, 1.2rem);
         font-weight: 800;
         color: var(--text-dark);
         margin-bottom: 0.75rem;
@@ -373,7 +387,7 @@
 
     .archive-content {
         color: var(--text-medium);
-        font-size: 0.875rem;
+        font-size: clamp(0.8rem, 1.75vw, 0.875rem);
         line-height: 1.6;
         margin: 0;
     }
@@ -430,7 +444,77 @@
     }
 
     /* Responsive */
-    @media (max-width: 768px) {
+    @media (max-width: 360px) {
+        .announcement-banner {
+            padding-top: 2rem;
+            min-height: 85px;
+        }
+
+        .banner-title {
+            font-size: 1.25rem;
+        }
+
+        .new-badge {
+            top: 0.4rem;
+            left: 0.4rem;
+            padding: 0.25rem 0.55rem;
+            font-size: 0.6rem;
+        }
+
+        .announcement-content-section {
+            padding: 0.875rem 0.625rem;
+        }
+
+        .announcement-message {
+            padding: 0.75rem 0.75rem;
+            font-size: 0.8rem;
+            line-height: 1.4;
+        }
+
+        .announcement-subheading p {
+            font-size: 0.85rem !important;
+        }
+
+        .detail-item {
+            font-size: 0.7rem;
+            padding: 0.35rem 0.65rem;
+        }
+    }
+
+    @media (min-width: 361px) and (max-width: 480px) {
+        .announcement-banner {
+            padding-top: 3rem;
+            min-height: 80px;
+        }
+
+        .banner-title {
+            font-size: 1.3rem;
+            padding: 0.375rem 0.375rem;
+        }
+
+        .new-badge {
+            top: 0.5rem;
+            left: 0.5rem;
+            padding: 0.3rem 0.65rem;
+            font-size: 0.65rem;
+        }
+
+        .announcement-content-section {
+            padding: 1rem 0.75rem;
+        }
+
+        .announcement-message {
+            padding: 0.875rem 0.875rem;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        .announcement-subheading p {
+            font-size: 0.9rem !important;
+        }
+    }
+
+    @media (min-width: 481px) and (max-width: 768px) {
         .announcement-page {
             padding: 1.5rem 0;
         }
@@ -444,32 +528,39 @@
         }
 
         .page-header h1 {
-            font-size: 1.75rem;
+            font-size: clamp(1.25rem, 3.5vw, 1.75rem);
+        }
+
+        .announcement-banner {
+            padding: clamp(1rem, 2.5vw, 1.25rem) clamp(0.875rem, 2.5vw, 1rem);
+            min-height: clamp(70px, 14vw, 75px);
+            padding-top: clamp(2.75rem, 6vw, 3rem);
+        }
+
+        .announcement-banner::after {
+            font-size: clamp(3rem, 8vw, 4rem);
+            right: -1rem;
         }
 
         .banner-title {
             font-size: 1.35rem;
-        }
-
-        .announcement-banner {
-            padding: 1.25rem 1.25rem;
-        }
-
-        .announcement-banner::after {
-            font-size: 4rem;
-            right: -1rem;
+            padding-top: 0.25rem;
         }
 
         .announcement-content-section {
-            padding: 1.25rem 1.25rem;
+            padding: 1.25rem 1rem;
         }
 
         .announcement-image-wrapper {
             margin-bottom: 1rem;
+            width: 100%;
+            max-width: 100%;
         }
 
         .announcement-image-wrapper img {
             height: auto;
+            width: 100%;
+            display: block;
         }
 
         .announcement-subheading {
@@ -477,31 +568,42 @@
         }
 
         .announcement-subheading p {
-            font-size: 1rem !important;
+            font-size: 0.95rem !important;
+            line-height: 1.5 !important;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
 
         .announcement-message {
-            padding: 1rem 1.25rem;
+            padding: 1rem 1rem;
             font-size: 0.875rem;
+            margin-bottom: 1rem;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
 
-
         .new-badge {
-            padding: 0.35rem 0.875rem;
-            font-size: 0.75rem;
-            top: 1rem;
-            left: 1rem;
+            padding: 0.35rem 0.75rem;
+            font-size: 0.7rem;
+            top: 0.75rem;
+            left: 0.75rem;
+            right: auto;
+            max-width: calc(100% - 1.5rem);
+            white-space: nowrap;
         }
 
         .announcement-details {
-            gap: 0.75rem;
+            gap: 0.5rem;
             margin-top: 1rem;
             padding-top: 1rem;
+            flex-direction: column;
         }
 
         .detail-item {
             font-size: 0.8rem;
             padding: 0.45rem 0.875rem;
+            width: 100%;
+            justify-content: flex-start;
         }
 
         .detail-item i {
@@ -510,15 +612,15 @@
 
         .archive-grid {
             grid-template-columns: 1fr;
-            gap: 1.5rem;
+            gap: clamp(1rem, 3vw, 1.5rem);
         }
 
         .archive-section-header {
-            margin: 2rem 0 1.5rem 0;
+            margin: clamp(1.5rem, 4vw, 2rem) 0 clamp(1.25rem, 3vw, 1.5rem) 0;
         }
 
         .archive-section-header h2 {
-            font-size: 1.5rem;
+            font-size: clamp(1.25rem, 3vw, 1.5rem);
         }
 
         .new-badge {

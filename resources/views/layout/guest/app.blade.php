@@ -58,6 +58,196 @@
             gap: 1rem;
         }
 
+        /* Hamburger Menu Styles */
+        .menu-toggle {
+            display: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            background: #2196F3;
+            color: #fff;
+            border: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            cursor: pointer;
+            z-index: 10002;
+        }
+
+        /* When menu is open, pin the toggle above everything */
+        .menu-toggle.fixed-open {
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            background: #ffffff;
+            color: #1976D2;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+        .burger-icon {
+            position: relative;
+            width: 22px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .burger-icon .bar {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            display: block;
+            background: currentColor;
+            border-radius: 2px;
+            transition: transform 0.25s ease, top 0.25s ease, opacity 0.2s ease;
+        }
+        .burger-icon .bar:nth-child(1) { top: 0; }
+        .burger-icon .bar:nth-child(2) { top: 7px; }
+        .burger-icon .bar:nth-child(3) { top: 14px; }
+        .burger-icon.open .bar:nth-child(1) { top: 7px; transform: rotate(45deg); }
+        .burger-icon.open .bar:nth-child(2) { opacity: 0; }
+        .burger-icon.open .bar:nth-child(3) { top: 7px; transform: rotate(-45deg); }
+
+
+        .mobile-menu-overlay {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 320px;
+            max-width: 85vw;
+            height: 100vh;
+            background: #ffffff;
+            box-shadow: -4px 0 30px rgba(0,0,0,0.2);
+            z-index: 10001;
+            transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding-bottom: env(safe-area-inset-bottom, 0);
+            padding-top: env(safe-area-inset-top, 0);
+        }
+
+        .mobile-menu-overlay.active { right: 0; }
+
+        .mobile-menu-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            background: #ffffff;
+            color: #1976D2;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            box-shadow: 0 1px 0 rgba(0,0,0,0.06);
+        }
+
+        .mobile-menu-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: #fff;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mobile-nav { 
+            padding: 0.75rem; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 0.75rem; 
+            flex: 1;
+        }
+        .mobile-nav a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.9rem 1rem;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            color: #ffffff;
+            text-decoration: none;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            box-shadow: 0 6px 18px rgba(33, 150, 243, 0.25);
+        }
+        .mobile-nav a:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(33,150,243,0.35); }
+
+        /* Account section at bottom */
+        .mobile-account-section {
+            margin-top: auto;
+            padding: 0.75rem;
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .mobile-account-label {
+            color: #495057;
+            font-size: 0.95rem;
+            font-weight: 600;
+            padding-left: 0.25rem;
+            display: block;
+        }
+
+        .mobile-account-item {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 0.75rem;
+            padding: 0.9rem 1rem;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            color: #495057;
+            text-decoration: none;
+            transition: all 0.15s ease;
+        }
+
+        .mobile-account-item:hover {
+            background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+            transform: translateY(-2px);
+        }
+
+        .mobile-account-item-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2196F3;
+        }
+
+        .mobile-account-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.65rem;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .mobile-menu-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(1px);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+            z-index: 10000;
+        }
+        .mobile-menu-backdrop.active { opacity: 1; visibility: visible; }
+
         .nav-btn {
             padding: 0.75rem 1.5rem;
             border-radius: 25px;
@@ -193,6 +383,34 @@
             font-size: 0.9rem;
         }
 
+        /* Services bullets aligned with other lists */
+        .footer-section ul.services-bullets {
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+        }
+        .footer-section ul.services-bullets li {
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 0.8rem;
+            padding-left: 1.4rem;
+            position: relative;
+            text-indent: 0;
+        }
+        .footer-section ul.services-bullets li::before {
+            content: '\25CF';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #ffffff;
+            font-size: 0.9rem;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 0.9rem;
+        }
+
         .footer-contact p {
             color: rgba(255, 255, 255, 1);
             margin-bottom: 1.2rem;
@@ -236,13 +454,23 @@
         @media (max-width: 768px) {
             .navbar {
                 padding: 1rem;
-                flex-direction: column;
-                gap: 1rem;
+                flex-direction: row;
+                align-items: center;
+                gap: 0.75rem;
+                width: 100%;
             }
 
             .nav-links {
-                flex-wrap: wrap;
-                justify-content: center;
+                display: none;
+            }
+
+            .menu-toggle {
+                display: inline-flex !important;
+                margin-left: auto;
+                position: relative;
+                pointer-events: auto;
+                -webkit-tap-highlight-color: transparent;
+                user-select: none;
             }
 
             .footer {
@@ -252,6 +480,24 @@
             .footer-content {
                 grid-template-columns: 1fr;
                 gap: 2rem;
+            }
+
+            /* Responsive adjustments for services bullets */
+            .footer-section ul.services-bullets li {
+                padding-left: 1.3rem;
+            }
+            .footer-section ul.services-bullets li::before {
+                width: 0.9rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            /* Responsive adjustments for services bullets on small screens */
+            .footer-section ul.services-bullets li {
+                padding-left: 1.2rem;
+            }
+            .footer-section ul.services-bullets li::before {
+                width: 0.9rem;
             }
         }
 
@@ -285,6 +531,70 @@
             scrollbar-width: thin;
             scrollbar-color: #2196F3 #ffffff;
         }
+
+        body.no-scroll {
+            overflow: hidden;
+        }
+
+        /* Scroll to Top Button */
+        .scroll-to-top-btn {
+            position: fixed;
+            right: 24px;
+            bottom: 100px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(33, 150, 243, 0.85) 0%, rgba(25, 118, 210, 0.85) 100%);
+            color: white;
+            border: none;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+            cursor: pointer;
+            z-index: 999;
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(20px);
+            font-size: 1.2rem;
+        }
+
+        .scroll-to-top-btn.show {
+            display: flex;
+            opacity: 0.85;
+            transform: translateY(0);
+        }
+
+        .scroll-to-top-btn:hover {
+            opacity: 1;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(33, 150, 243, 0.5);
+            background: linear-gradient(135deg, rgba(25, 118, 210, 0.95) 0%, rgba(21, 101, 192, 0.95) 100%);
+        }
+
+        .scroll-to-top-btn:active {
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 768px) {
+            .scroll-to-top-btn {
+                right: 20px;
+                bottom: 90px;
+                width: 45px;
+                height: 45px;
+                font-size: 1.1rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .scroll-to-top-btn {
+                right: 16px;
+                bottom: 75px;
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -308,7 +618,46 @@
                 About Us
             </a>
         </div>
+        <button id="guestMenuToggle" class="menu-toggle" aria-label="Open menu">
+            <span class="burger-icon" id="guestMenuToggleIcon">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </span>
+        </button>
     </nav>
+
+    <!-- Mobile Menu -->
+    <div id="guestMenuBackdrop" class="mobile-menu-backdrop" aria-hidden="true"></div>
+    <div id="guestMobileMenu" class="mobile-menu-overlay" aria-hidden="true">
+        <div class="mobile-menu-header">
+            <div class="logo" style="gap: 0.5rem; font-size: 1.1rem;">
+                <img src="{{ asset('images/logo4.png') }}" alt="ToothTalk" class="logo-img" style="width:40px;height:40px;">
+                <span>Tooth<span style="color:#26a69a;">Talk</span></span>
+            </div>
+            <button id="guestMenuClose" class="mobile-menu-close" aria-label="Close menu">
+                <span class="burger-icon" id="guestMenuCloseIcon">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </span>
+            </button>
+        </div>
+        <nav class="mobile-nav">
+            <a href="{{ url('/') }}"><i class="bi bi-house-door"></i> <span>Home</span></a>
+            <a href="{{ route('announcements') }}"><i class="bi bi-megaphone"></i> <span>Announcements</span></a>
+            <a href="{{ route('about-us') }}"><i class="bi bi-info-circle"></i> <span>About Us</span></a>
+        </nav>
+        <div class="mobile-account-section">
+            <span class="mobile-account-label">Account</span>
+            <a href="{{ route('login') }}" class="mobile-account-item">
+                <div class="mobile-account-item-icon">
+                    <i class="bi bi-person-circle"></i>
+                </div>
+                <span class="mobile-account-badge">Guest</span>
+            </a>
+        </div>
+    </div>
 
     <!-- Main Content -->
     @yield('content')
@@ -350,7 +699,7 @@
                 <!-- Services -->
                 <div class="footer-section">
                     <h4>Our Services</h4>
-                    <ul style="list-style-type:disc;">
+                    <ul class="services-bullets">
                         <li>General Dentistry</li>
                         <li>Cosmetic Dentistry</li>
                         <li>Orthodontics</li>
@@ -387,6 +736,94 @@
             </div>
         </div>
     </footer>
+
+    <!-- Scroll to Top Button -->
+    <button id="scrollToTopBtn" class="scroll-to-top-btn" aria-label="Scroll to top" title="Scroll to top">
+        <i class="bi bi-arrow-up"></i>
+    </button>
+
+    <script>
+        // Mobile menu toggle for guest pages
+        (function(){
+            const toggle = document.getElementById('guestMenuToggle');
+            const closeBtn = document.getElementById('guestMenuClose');
+            const menu = document.getElementById('guestMobileMenu');
+            const backdrop = document.getElementById('guestMenuBackdrop');
+            const toggleIcon = document.getElementById('guestMenuToggleIcon');
+            const closeIcon = document.getElementById('guestMenuCloseIcon');
+            
+            function openMenu(){
+                menu.classList.add('active');
+                menu.setAttribute('aria-hidden','false');
+                backdrop.classList.add('active');
+                backdrop.setAttribute('aria-hidden','false');
+                toggleIcon?.classList.add('open');
+                closeIcon?.classList.add('open');
+                document.body.style.overflow = 'hidden'; // lock page scroll under menu
+                // pin toggle on top
+                toggle?.classList.add('fixed-open');
+                toggle?.setAttribute('aria-label','Close menu');
+            }
+            
+            function closeMenu(){
+                menu.classList.remove('active');
+                menu.setAttribute('aria-hidden','true');
+                backdrop.classList.remove('active');
+                backdrop.setAttribute('aria-hidden','true');
+                toggleIcon?.classList.remove('open');
+                closeIcon?.classList.remove('open');
+                document.body.style.overflow = ''; // restore scroll
+                toggle?.classList.remove('fixed-open');
+                toggle?.setAttribute('aria-label','Open menu');
+            }
+            
+            toggle?.addEventListener('click', function(e){
+                e.stopPropagation();
+                if (menu.classList.contains('active')) closeMenu(); else openMenu();
+            });
+            
+            closeBtn?.addEventListener('click', function(){ closeMenu(); });
+            
+            document.addEventListener('click', function(e){
+                if (menu.classList.contains('active') && !menu.contains(e.target) && e.target !== toggle) { 
+                    closeMenu(); 
+                }
+            });
+            
+            backdrop?.addEventListener('click', closeMenu);
+        })();
+
+        // Scroll to Top Button
+        (function() {
+            const scrollToTopBtn = document.getElementById('scrollToTopBtn');
+            
+            if (!scrollToTopBtn) return;
+
+            // Show/hide button based on scroll position
+            function toggleScrollButton() {
+                if (window.pageYOffset > 300) {
+                    scrollToTopBtn.classList.add('show');
+                } else {
+                    scrollToTopBtn.classList.remove('show');
+                }
+            }
+
+            // Scroll to top function
+            function scrollToTop() {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            }
+
+            // Event listeners
+            window.addEventListener('scroll', toggleScrollButton);
+            scrollToTopBtn.addEventListener('click', scrollToTop);
+
+            // Initial check
+            toggleScrollButton();
+        })();
+    </script>
 </body>
 </html>
 

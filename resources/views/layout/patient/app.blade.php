@@ -86,6 +86,70 @@
         [data-theme="dark"] * {
             scrollbar-color: #2196F3 var(--dm-bg-secondary, #1e293b);
         }
+
+        body.no-scroll {
+            overflow: hidden;
+        }
+
+        /* Scroll to Top Button */
+        .scroll-to-top-btn {
+            position: fixed;
+            right: 24px;
+            bottom: 100px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(33, 150, 243, 0.85) 0%, rgba(25, 118, 210, 0.85) 100%);
+            color: white;
+            border: none;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+            cursor: pointer;
+            z-index: 999;
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(20px);
+            font-size: 1.2rem;
+        }
+
+        .scroll-to-top-btn.show {
+            display: flex;
+            opacity: 0.85;
+            transform: translateY(0);
+        }
+
+        .scroll-to-top-btn:hover {
+            opacity: 1;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(33, 150, 243, 0.5);
+            background: linear-gradient(135deg, rgba(25, 118, 210, 0.95) 0%, rgba(21, 101, 192, 0.95) 100%);
+        }
+
+        .scroll-to-top-btn:active {
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 768px) {
+            .scroll-to-top-btn {
+                right: 20px;
+                bottom: 90px;
+                width: 45px;
+                height: 45px;
+                font-size: 1.1rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .scroll-to-top-btn {
+                right: 16px;
+                bottom: 75px;
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -102,6 +166,11 @@
 
     {{-- Footer --}}
     @include('layout.patient.footer')
+
+    <!-- Scroll to Top Button -->
+    <button id="scrollToTopBtn" class="scroll-to-top-btn" aria-label="Scroll to top" title="Scroll to top">
+        <i class="bi bi-arrow-up"></i>
+    </button>
 
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
@@ -146,6 +215,39 @@
 
             // Set patient session active flag
             localStorage.setItem('patient_session_active', Date.now().toString());
+        })();
+    </script>
+
+    {{-- Scroll to Top Button Script --}}
+    <script>
+        (function() {
+            const scrollToTopBtn = document.getElementById('scrollToTopBtn');
+            
+            if (!scrollToTopBtn) return;
+
+            // Show/hide button based on scroll position
+            function toggleScrollButton() {
+                if (window.pageYOffset > 300) {
+                    scrollToTopBtn.classList.add('show');
+                } else {
+                    scrollToTopBtn.classList.remove('show');
+                }
+            }
+
+            // Scroll to top function
+            function scrollToTop() {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            }
+
+            // Event listeners
+            window.addEventListener('scroll', toggleScrollButton);
+            scrollToTopBtn.addEventListener('click', scrollToTop);
+
+            // Initial check
+            toggleScrollButton();
         })();
     </script>
 

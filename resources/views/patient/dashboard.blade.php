@@ -73,11 +73,17 @@
         gap: 3rem;
         max-width: 1400px;
         margin: 0 auto;
+        margin-bottom: 2rem; /* spacing before next section */
     }
 
     .hero-content {
         flex: 1;
         max-width: 600px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-start;
+        gap: 0;
     }
 
     .badge {
@@ -126,6 +132,7 @@
         max-width: 550px;
         position: relative;
         padding: 1rem;
+        min-width: 0;
     }
 
     .main-card {
@@ -612,46 +619,61 @@
 
     @media (max-width: 1024px) {
         .hero-section {
-            flex-direction: column;
-            padding: 2rem 1.5rem;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            gap: 2rem;
         }
 
         .hero-content {
             max-width: 100%;
-            text-align: center;
-        }
-
-        .badge {
-            justify-content: center;
-        }
-
-        .hero-title {
-            font-size: 2.5rem;
+            align-items: flex-start;
+            flex: 1;
         }
 
         .hero-card {
+            flex: 1;
             max-width: 100%;
-            width: 100%;
+        }
+
+        .hero-title { 
+            font-size: 2.4rem; 
         }
 
         .main-card {
-            min-height: 350px;
-            padding: 2rem;
+            min-height: 420px;
+            padding: 1.5rem 1.5rem 2.25rem;
+            width: 100%;
         }
 
         .main-card-image {
-            width: 130%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 135%;
             max-width: none;
+            height: auto;
+            min-height: 100%;
+            object-fit: cover;
+            opacity: 1;
+            z-index: 1;
+            filter: brightness(1) contrast(1) drop-shadow(0 8px 24px rgba(128, 128, 128, 0.25));
+            pointer-events: none;
+            mix-blend-mode: normal;
         }
 
-        .feature-card {
-            position: relative;
-            right: auto;
-            top: auto;
-            bottom: auto;
-            margin-bottom: 1rem;
-            max-width: 100%;
+        /* Keep cards absolutely positioned on right side */
+        .feature-card { 
+            position: absolute !important;
+            max-width: 200px;
+            padding: 0.85rem 0.9rem;
+            box-shadow: 0 8px 22px rgba(0,0,0,0.12);
+            z-index: 10;
         }
+        .feature-card.top { top: 0.5rem !important; right: 0.5rem !important; }
+        .feature-card.bottom { bottom: 5rem !important; right: 0.5rem !important; }
+        .feature-text h4 { font-size: 0.95rem; }
+        .feature-text p { font-size: 0.8rem; }
 
         .services-section {
             padding: 4rem 2rem;
@@ -664,7 +686,24 @@
 
     @media (max-width: 768px) {
         .hero-section {
+            flex-direction: row; /* keep side-by-side at 768px */
             padding: 1.5rem 1rem;
+            gap: 1.5rem;
+            align-items: flex-start;
+        }
+
+        .hero-content {
+            max-width: 100%;
+            align-items: flex-start;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .hero-card {
+            flex: 1;
+            max-width: 100%;
+            min-width: 0;
+            padding: 0.5rem;
         }
 
         .badge {
@@ -683,38 +722,55 @@
         }
 
         .main-card {
-            min-height: 300px;
-            padding: 1.5rem;
+            min-height: 360px;
+            padding: 1.25rem 1.25rem 2.25rem;
+            border-radius: 24px;
+            position: relative;
+            overflow: visible;
+            width: 100%;
         }
 
         .main-card-image {
-            width: 120%;
+            position: absolute;
+            top: 50%;
+            left: 60%;
+            transform: translate(-50%, -50%);
+            width: 135%;
             max-width: none;
-            opacity: 0.3;
+            height: auto;
+            min-height: 100%;
+            object-fit: cover;
+            opacity: 1;
+            z-index: 1;
+            filter: brightness(1) contrast(1) drop-shadow(0 8px 24px rgba(128, 128, 128, 0.25));
+            pointer-events: none;
+            mix-blend-mode: normal;
         }
 
         .card-title {
-            font-size: 1.1rem;
-            bottom: 1.5rem;
+            position: absolute;
+            left: 1rem;
+            bottom: -2.5rem;
+            width: calc(100% - 2rem);
+            text-align: left;
+            font-size: 2rem;
+        }
+
+        .card-title i {
+            color: #00EAFF;
+            font-size: 2rem;
+            filter: drop-shadow(0 0 8px rgba(0, 234, 255, 0.8)) drop-shadow(0 0 16px rgba(0, 234, 255, 0.6));
+            animation: arrow-pulse 2s ease-in-out infinite;
         }
 
         .feature-card {
-            padding: 1rem;
+            position: absolute !important;
+            padding: 0.9rem 1rem;
+            max-width: 240px;
+            z-index: 10;
         }
-
-        .feature-icon {
-            width: 40px;
-            height: 40px;
-            font-size: 1.1rem;
-        }
-
-        .feature-text h4 {
-            font-size: 0.95rem;
-        }
-
-        .feature-text p {
-            font-size: 0.8rem;
-        }
+        .feature-card.top { top: 0.75rem !important; right: 0.75rem !important; }
+        .feature-card.bottom { bottom: 2.25rem !important; right: 0.75rem !important; }
 
         .services-section {
             padding: 3rem 1rem;
@@ -723,44 +779,69 @@
         .services-title {
             font-size: 1.8rem;
         }
-
-        .services-description {
-            font-size: 0.9rem;
-            padding: 0 1rem;
-        }
-
-        .services-grid {
-            grid-template-columns: 1fr;
-            gap: 1.5rem;
-        }
-
-        .service-icon-box {
-            padding: 2rem;
-            height: 120px;
-        }
-
-        .service-icon-box i {
-            font-size: 2.5rem;
-        }
-
-        .service-content {
-            padding: 1.25rem;
-        }
-
-        .service-content h3 {
-            font-size: 1.1rem;
-        }
-
-        .service-content p {
-            font-size: 0.85rem;
-        }
     }
 
-    @media (max-width: 576px) {
+    /* Stack hero vertically on medium-small screens */
+    @media (max-width: 640px) {
         .hero-section {
-            padding: 1rem;
+            flex-direction: column;
+            gap: 5rem;
+            margin-bottom: 7rem;
+            align-items: stretch;
         }
 
+        .hero-content {
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .hero-card {
+            width: 100%;
+            max-width: 100%;
+            padding: 0.5rem;
+        }
+
+        .card-title {
+            position: absolute;
+            left: 1rem;
+            bottom: -2.5rem;
+            width: calc(100% - 2rem);
+            text-align: left;
+            font-size: 1.5rem;
+        }            
+
+        /* Keep cards absolutely positioned on right side */
+        .feature-card { 
+            position: absolute !important;
+            max-width: 200px;
+            padding: 0.85rem 0.9rem;
+            box-shadow: 0 8px 22px rgba(0,0,0,0.12);
+            z-index: 10;
+        }
+        .feature-card.top { top: 0.5rem !important; right: -0.5rem !important; }
+        .feature-card.bottom { bottom: 8rem !important; right: -0.5rem !important; }
+        .feature-text h4 { font-size: 0.95rem; }
+        .feature-text p { font-size: 0.8rem; }
+    }
+
+    /* Extra-small phones - keep absolute positioning like tablet */
+    @media (max-width: 576px) {
+        .hero-section {
+            padding: 1rem 0.75rem;
+            gap: 5rem;
+        }
+
+        .hero-content {
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .hero-card { 
+            padding: 0.25rem; 
+            width: 100%;
+            max-width: 100%;
+        }
+        
         .hero-title {
             font-size: 1.6rem;
         }
@@ -768,43 +849,50 @@
         .hero-description {
             font-size: 0.9rem;
         }
-
-        .main-card {
-            min-height: 250px;
-            padding: 1rem;
+        
+        .main-card { 
+            min-height: 320px; 
+            padding: 1rem 1rem 2rem;
+            position: relative;
+            overflow: visible;
+            width: 100%;
         }
-
-        .main-card-image {
-            width: 110%;
+        .main-card-image { 
+            position: absolute;
+            top: 50%;
+            left: 60%;
+            transform: translate(-50%, -50%);
+            width: 135%;
             max-width: none;
-            opacity: 0.25;
+            height: auto;
+            min-height: 100%;
+            object-fit: cover;
+            opacity: 1;
+            z-index: 1;
+            filter: brightness(1) contrast(1) drop-shadow(0 8px 24px rgba(128, 128, 128, 0.25));
+            pointer-events: none;
+            mix-blend-mode: normal;
         }
+        /* Keep cards absolutely positioned on right side */
+        .feature-card { 
+            position: absolute !important;
+            max-width: 200px;
+            padding: 0.85rem 0.9rem;
+            box-shadow: 0 8px 22px rgba(0,0,0,0.12);
+            z-index: 10;
+        }
+        .feature-card.top { top: 0.5rem !important; right: -0.5rem !important; }
+        .feature-card.bottom { bottom: 6rem !important; right: -0.5rem !important; }
+        .feature-text h4 { font-size: 0.95rem; }
+        .feature-text p { font-size: 0.8rem; }
 
         .card-title {
             font-size: 1rem;
             bottom: 1rem;
         }
 
-        .feature-card.top,
-        .feature-card.bottom {
-            position: static;
-            margin: 0.5rem auto;
-        }
-
         .services-title {
             font-size: 1.5rem;
-        }
-
-        .services-description br {
-            display: none;
-        }
-
-        .service-icon-box {
-            height: 100px;
-        }
-
-        .service-icon-box i {
-            font-size: 2rem;
         }
     }
 </style>

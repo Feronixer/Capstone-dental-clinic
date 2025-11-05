@@ -44,8 +44,10 @@
             </ul>
         </nav>
 
-        <!-- User Actions -->
-        <div class="header-actions">
+        <!-- Right Side Container -->
+        <div class="header-container-right">
+            <!-- User Actions -->
+            <div class="header-actions">
             <!-- Notifications -->
             <div class="dropdown">
                 <button class="icon-btn" type="button" data-bs-toggle="dropdown" id="notificationDropdownBtn">
@@ -134,16 +136,23 @@
                     </form>
                 </div>
             </div>
-        </div>
 
-        <!-- Mobile Menu Toggle -->
-        <button class="mobile-menu-toggle" id="mobileMenuToggle">
-            <i class="bi bi-list"></i>
-        </button>
+            <!-- Mobile Menu Toggle -->
+            <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Open menu">
+                <span class="burger-icon" id="mobileMenuToggleIcon">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </span>
+            </button>
+        </div>
     </div>
 
+    <!-- Mobile Menu Backdrop -->
+    <div class="mobile-menu-backdrop" id="mobileMenuBackdrop" aria-hidden="true"></div>
+
     <!-- Mobile Menu Overlay -->
-    <div class="mobile-menu-overlay" id="mobileMenuOverlay">
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay" aria-hidden="true">
         <div class="mobile-menu-header">
             <a href="{{ route('patient-dashboard') }}" class="header-logo" style="text-decoration: none;">
                 <img src="{{ asset('images/logo4.png') }}" alt="ToothTalk" class="logo-img">
@@ -151,9 +160,6 @@
                     <span class="clinic-name">Tooth<span class="clinic-name-talk">Talk</span></span>
                 </div>
             </a>
-            <button class="mobile-menu-close" id="mobileMenuClose">
-                <i class="bi bi-x-lg"></i>
-            </button>
         </div>
 
         <!-- User Profile Info at Top -->
@@ -246,6 +252,12 @@
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
+}
+
+.header-container-right {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
 }
 
 .header-logo {
@@ -772,19 +784,91 @@
 
 .mobile-menu-toggle {
     display: none;
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
     background: rgba(255,255,255,0.15);
     border: none;
     color: white;
-    font-size: 1.5rem;
     cursor: pointer;
     transition: all 0.3s;
+    align-items: center;
+    justify-content: center;
+    z-index: 10002;
+    position: relative;
+    pointer-events: auto;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
 }
+
 
 .mobile-menu-toggle:hover {
     background: rgba(255,255,255,0.25);
+}
+
+/* When menu is open, pin the toggle above everything */
+.mobile-menu-toggle.fixed-open {
+    position: fixed;
+    top: 25px;
+    right: 15px;
+    background: rgba(255,255,255,0.25);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    z-index: 10003;
+}
+
+/* Burger icon (hamburger -> X) */
+.burger-icon {
+    position: relative;
+    width: 22px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.burger-icon .bar {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    display: block;
+    background: currentColor;
+    border-radius: 2px;
+    transition: transform 0.25s ease, top 0.25s ease, opacity 0.2s ease;
+    margin: auto;
+}
+
+.burger-icon .bar:nth-child(1) { top: 0; }
+.burger-icon .bar:nth-child(2) { top: 50%; transform: translateY(-50%); }
+.burger-icon .bar:nth-child(3) { bottom: 0; }
+
+.burger-icon.open .bar:nth-child(1) { 
+    top: 50%; 
+    transform: translateY(-50%) rotate(45deg); 
+}
+.burger-icon.open .bar:nth-child(2) { opacity: 0; }
+.burger-icon.open .bar:nth-child(3) { 
+    bottom: auto;
+    top: 50%; 
+    transform: translateY(-50%) rotate(-45deg); 
+}
+
+
+/* Mobile Menu Backdrop */
+.mobile-menu-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(1px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+    z-index: 10000;
+}
+
+.mobile-menu-backdrop.active {
+    opacity: 1;
+    visibility: visible;
 }
 
 /* Mobile Menu Overlay */
@@ -812,28 +896,76 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1rem;
+    padding: 1.5rem 1rem;
     background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
     color: white;
+    min-height: 90px;
+    height: 90px;
+    box-sizing: border-box;
+    position: relative;
+}
+
+.mobile-menu-header .header-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-shrink: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.mobile-menu-header .logo-img {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    flex-shrink: 0;
+    display: block;
+    margin: 0;
+    padding: 0;
+}
+
+.mobile-menu-header .logo-text {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.mobile-menu-header .clinic-name {
+    font-size: 1.5rem;
+    line-height: 1.2;
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    vertical-align: middle;
 }
 
 .mobile-menu-close {
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
     border-radius: 8px;
     background: rgba(255,255,255,0.2);
     border: none;
     color: white;
-    font-size: 1.2rem;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.3s;
+    flex-shrink: 0;
+    margin: 0;
+    padding: 0;
 }
 
 .mobile-menu-close:hover {
     background: rgba(255,255,255,0.3);
+}
+
+.mobile-menu-close .burger-icon {
+    width: 22px;
+    height: 16px;
 }
 
 .mobile-nav {
@@ -919,7 +1051,8 @@
     padding: 1rem 0;
     background: #fafbfc;
     border-top: 2px solid #e8e8e8;
-    margin-top: 1rem;
+    margin-top: auto;
+    margin-bottom: 0;
 }
 
 .mobile-action-item {
@@ -971,10 +1104,19 @@
         display: none;
     }
 
-    .mobile-menu-toggle {
+    .header-container-right {
         display: flex;
         align-items: center;
+        gap: 0.5rem;
+        margin-left: auto;
+    }
+
+    .mobile-menu-toggle {
+        display: flex !important;
+        align-items: center;
         justify-content: center;
+        visibility: visible !important;
+        opacity: 1 !important;
     }
 
     .user-info {
@@ -1074,42 +1216,94 @@
 
 <script>
 // Mobile Menu Toggle
-document.addEventListener('DOMContentLoaded', function() {
-    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
-    const mobileMenuClose = document.getElementById('mobileMenuClose');
-    const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
+document.addEventListener('DOMContentLoaded', function(){
+    const toggle = document.getElementById('mobileMenuToggle');
+    const menu = document.getElementById('mobileMenuOverlay');
+    const backdrop = document.getElementById('mobileMenuBackdrop');
+    const toggleIcon = document.getElementById('mobileMenuToggleIcon');
 
-    // Open mobile menu
-    mobileMenuToggle?.addEventListener('click', function(e) {
+    if (!toggle || !menu || !backdrop) {
+        console.error('Mobile menu elements not found', {
+            toggle: !!toggle,
+            menu: !!menu,
+            backdrop: !!backdrop
+        });
+        return;
+    }
+
+    console.log('Mobile menu elements found', {
+        toggle: toggle,
+        menu: menu,
+        backdrop: backdrop
+    });
+
+    function openMenu(){
+        console.log('Opening menu');
+        menu.classList.add('active');
+        menu.setAttribute('aria-hidden','false');
+        backdrop.classList.add('active');
+        backdrop.setAttribute('aria-hidden','false');
+        if (toggleIcon) toggleIcon.classList.add('open');
+        document.body.style.overflow = 'hidden'; // lock page scroll under menu
+        // pin toggle on top
+        toggle.classList.add('fixed-open');
+        toggle.setAttribute('aria-label','Close menu');
+    }
+
+    function closeMenu(){
+        console.log('Closing menu');
+        menu.classList.remove('active');
+        menu.setAttribute('aria-hidden','true');
+        backdrop.classList.remove('active');
+        backdrop.setAttribute('aria-hidden','true');
+        if (toggleIcon) toggleIcon.classList.remove('open');
+        document.body.style.overflow = ''; // restore scroll
+        toggle.classList.remove('fixed-open');
+        toggle.setAttribute('aria-label','Open menu');
+    }
+
+    // Add both click and touchstart for better mobile support
+    toggle.addEventListener('click', function(e){
+        console.log('Toggle button clicked');
+        e.preventDefault();
         e.stopPropagation();
-        mobileMenuOverlay.classList.add('active');
-    });
-
-    // Close mobile menu
-    mobileMenuClose?.addEventListener('click', function() {
-        mobileMenuOverlay.classList.remove('active');
-    });
-
-    // Close menu when clicking outside
-    document.addEventListener('click', function(e) {
-        if (mobileMenuOverlay.classList.contains('active')) {
-            // Check if click is outside the menu
-            if (!mobileMenuOverlay.contains(e.target) && e.target !== mobileMenuToggle) {
-                mobileMenuOverlay.classList.remove('active');
-            }
+        if (menu.classList.contains('active')) {
+            closeMenu();
+        } else {
+            openMenu();
         }
     });
 
-    // Prevent clicks inside menu from closing it
-    mobileMenuOverlay?.addEventListener('click', function(e) {
+    toggle.addEventListener('touchstart', function(e){
+        console.log('Toggle button touched');
+        e.preventDefault();
         e.stopPropagation();
+        if (menu.classList.contains('active')) {
+            closeMenu();
+        } else {
+            openMenu();
+        }
     });
+
+
+    document.addEventListener('click', function(e){
+        if (menu.classList.contains('active') && !menu.contains(e.target) && e.target !== toggle && !toggle.contains(e.target)) { 
+            closeMenu(); 
+        }
+    });
+
+    if (backdrop) {
+        backdrop.addEventListener('click', function(e){
+            e.preventDefault();
+            closeMenu();
+        });
+    }
 
     // Close menu when clicking on navigation links
     const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
     mobileNavLinks.forEach(link => {
         link.addEventListener('click', function() {
-            mobileMenuOverlay.classList.remove('active');
+            closeMenu();
         });
     });
 
@@ -1117,12 +1311,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const actionItems = document.querySelectorAll('.mobile-action-item:not(.mobile-action-logout)');
     actionItems.forEach(item => {
         item.addEventListener('click', function() {
-            mobileMenuOverlay.classList.remove('active');
+            closeMenu();
         });
     });
+});
 
-    // Notification system
-    let previousUnreadCount = 0;
+// Notification system
+let previousUnreadCount = 0;
+
+document.addEventListener('DOMContentLoaded', function(){
     loadNotifications();
 
     // Refresh notifications every 30 seconds
@@ -1293,6 +1490,29 @@ document.addEventListener('DOMContentLoaded', function() {
     if (mobilePatientLogoutBtn) {
         mobilePatientLogoutBtn.addEventListener('click', function(e) {
             e.preventDefault();
+            e.stopPropagation();
+            // Close mobile menu first
+            const menu = document.getElementById('mobileMenuOverlay');
+            const backdrop = document.getElementById('mobileMenuBackdrop');
+            const toggle = document.getElementById('mobileMenuToggle');
+            const toggleIcon = document.getElementById('mobileMenuToggleIcon');
+            
+            if (menu) {
+                menu.classList.remove('active');
+                menu.setAttribute('aria-hidden', 'true');
+            }
+            if (backdrop) {
+                backdrop.classList.remove('active');
+                backdrop.setAttribute('aria-hidden', 'true');
+            }
+            if (toggleIcon) toggleIcon.classList.remove('open');
+            if (toggle) {
+                toggle.classList.remove('fixed-open');
+                toggle.setAttribute('aria-label', 'Open menu');
+            }
+            document.body.style.overflow = '';
+            
+            // Then show logout modal
             const modalElement = document.getElementById('patientLogoutModal');
             if (modalElement) {
                 const logoutModal = new bootstrap.Modal(modalElement);
@@ -1468,3 +1688,4 @@ document.addEventListener('DOMContentLoaded', function() {
         color: white !important;
     }
 </style>
+
