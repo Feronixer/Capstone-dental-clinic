@@ -141,6 +141,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function renderMonthView(container, year, month) {
+        console.log('renderMonthView called for', year, month);
         const firstDay = new Date(year, month, 1).getDay();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
 
@@ -197,8 +198,64 @@ document.addEventListener('DOMContentLoaded', function() {
                         });
                     }
 
-                    let appointmentsHtml = '';
+                    // Check if day is fully booked (11:00 AM - 6:00 PM)
+                    const isFullyBooked = checkIfDayIsFullyBooked(dateStr, dayAppointments, dayBlockedTimes);
+                    
+                    // Check if there's a full day closure (clinic closed)
+                    const hasFullDayClosure = dayBlockedTimes && dayBlockedTimes.length > 0 && dayBlockedTimes.some(function(blocked) {
+                        if (!blocked || !blocked.start_datetime || !blocked.end_datetime) return false;
+                        const startTime = parseLocalDateTime(blocked.start_datetime);
+                        const endTime = parseLocalDateTime(blocked.end_datetime);
+                        if (!startTime || !endTime) return false;
+                        return startTime.getHours() === 0 && startTime.getMinutes() === 0 &&
+                               endTime.getHours() === 23 && endTime.getMinutes() === 59;
+                    });
+                    
+                    // Prioritize patient's own appointments
+                    const currentPatientId = window.currentPatientId;
+                    const patientOwnAppointments = [];
+                    const otherAppointments = [];
+                    
+                    // Separate appointments into patient's own and others
                     dayAppointments.forEach(function(apt) {
+                        const isOwnAppointment = apt.is_own_appointment === true || 
+                                               (currentPatientId && apt.patient_id === currentPatientId) ||
+                                               (window.patientAppointments && window.patientAppointments.some(function(pa) {
+                                                   return pa && pa.id === apt.id;
+                                               }));
+                        
+                        if (isOwnAppointment) {
+                            patientOwnAppointments.push(apt);
+                        } else {
+                            otherAppointments.push(apt);
+                        }
+                    });
+                    
+                    // Sort both arrays chronologically by start_datetime
+                    function sortByDateTime(a, b) {
+                        const timeA = parseLocalDateTime(a.start_datetime);
+                        const timeB = parseLocalDateTime(b.start_datetime);
+                        if (!timeA || !timeB) return 0;
+                        return timeA - timeB;
+                    }
+                    
+                    patientOwnAppointments.sort(sortByDateTime);
+                    otherAppointments.sort(sortByDateTime);
+                    
+                    // Combine arrays with patient's own appointments first
+                    const prioritizedAppointments = patientOwnAppointments.concat(otherAppointments);
+                    
+                    let appointmentsHtml = '';
+                    const maxVisible = 2; // Show only first 2 appointments
+                    const visibleAppointments = prioritizedAppointments.slice(0, maxVisible);
+                    const hiddenCount = Math.max(0, prioritizedAppointments.length - maxVisible);
+                    
+                    // Debug: Log if there are 3+ appointments
+                    if (prioritizedAppointments.length >= 3) {
+                        console.log('Day ' + dateStr + ' has ' + prioritizedAppointments.length + ' appointments (' + patientOwnAppointments.length + ' own, ' + otherAppointments.length + ' others). Showing ' + visibleAppointments.length + ', hiding ' + hiddenCount);
+                    }
+                    
+                    visibleAppointments.forEach(function(apt) {
                         try {
                             // Parse datetime string manually to avoid timezone issues
                             // Format: YYYY-MM-DD HH:mm:ss
@@ -298,6 +355,16 @@ document.addEventListener('DOMContentLoaded', function() {
                             console.error('Error rendering appointment:', apt, error);
                         }
                     });
+                    
+                    // Add "X more" indicator if there are 3 or more appointments (hiddenCount > 0 means >= 3)
+                    if (hiddenCount > 0) {
+                        console.log('Adding "X more" indicator for', dateStr, 'with', hiddenCount, 'hidden appointments');
+                        appointmentsHtml += `
+                            <div class="event-more-indicator" data-date="${dateStr}">
+                                <span class="more-text">${hiddenCount} more</span>
+                            </div>
+                        `;
+                    }
 
                     // Add blocked times
                     dayBlockedTimes.forEach(function(blocked) {
@@ -336,9 +403,17 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     });
 
+                    // Add fully booked indicator only if fully booked AND not closed (no full day closure)
+                    if (isFullyBooked && !hasFullDayClosure) {
+                        console.log('Day', dateStr, 'is fully booked');
+                    }
+                    const fullyBookedHtml = (isFullyBooked && !hasFullDayClosure) ? '<div class="fully-booked-indicator"><i class="bi bi-x-circle"></i> Fully Booked</div>' : '';
+                    
+                    // Store prioritized appointments in data attribute for modal
                     html += `
-                        <div class="calendar-day ${isToday ? 'today' : ''}" data-date="${dateStr}">
+                        <div class="calendar-day ${isToday ? 'today' : ''} ${(isFullyBooked && !hasFullDayClosure) ? 'fully-booked' : ''}" data-date="${dateStr}" data-day-appointments='${JSON.stringify(prioritizedAppointments)}' data-day-blocked='${JSON.stringify(dayBlockedTimes)}'>
                             <div class="day-number">${dayCount}</div>
+                            ${fullyBookedHtml}
                             <div class="day-events">
                                 ${appointmentsHtml}
                             </div>
@@ -362,15 +437,384 @@ document.addEventListener('DOMContentLoaded', function() {
             item.addEventListener('click', function(e) {
                 e.stopPropagation();
                 const appointmentId = this.dataset.appointmentId;
-                const isReadOnly = this.dataset.readOnly === 'true';
+                const blockedTimeId = this.dataset.blockedTimeId;
                 
-                // Only show details for patient's own appointments (no modal for other patients' appointments)
-                if (!isReadOnly) {
-                    showAppointmentDetails(appointmentId);
+                // Check if it's a blocked time
+                if (blockedTimeId) {
+                    showBlockedTimeDetails(blockedTimeId);
+                    return;
                 }
-                // Do nothing for other patients' appointments (privacy)
+                
+                // Handle appointments
+                if (appointmentId) {
+                    const isReadOnly = this.dataset.readOnly === 'true';
+                    
+                    // Show details for patient's own appointments
+                    if (!isReadOnly) {
+                        showAppointmentDetails(appointmentId);
+                    } else {
+                        // Show read-only modal for booked time (other patients' appointments)
+                        showOtherAppointmentDetails(appointmentId);
+                    }
+                }
             });
         });
+        
+        // Add click handlers to calendar days to show all appointments
+        document.querySelectorAll('.calendar-day[data-date]').forEach(function(dayElement) {
+            const dateStr = dayElement.dataset.date;
+            if (!dateStr) return;
+            
+            try {
+                const appointments = JSON.parse(dayElement.dataset.dayAppointments || '[]');
+                const blockedTimes = JSON.parse(dayElement.dataset.dayBlocked || '[]');
+                
+                // Only make clickable if there are appointments or blocked times
+                if (appointments.length > 0 || blockedTimes.length > 0) {
+                    dayElement.style.cursor = 'pointer';
+                    dayElement.addEventListener('click', function(e) {
+                        // Don't trigger if clicking on an appointment item or more indicator
+                        if (e.target.closest('.event-item') || e.target.closest('.event-more-indicator') || e.target.closest('.fully-booked-indicator')) {
+                            return;
+                        }
+                        
+                        showDayAppointmentsModal(dateStr, appointments, blockedTimes);
+                    });
+                }
+            } catch (error) {
+                console.error('Error parsing day appointments:', error);
+            }
+        });
+        
+        // Add click handler for "X more" indicator
+        document.querySelectorAll('.event-more-indicator').forEach(function(indicator) {
+            indicator.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const dateStr = this.dataset.date;
+                if (!dateStr) return;
+                
+                const dayElement = this.closest('.calendar-day');
+                if (dayElement) {
+                    try {
+                        const appointments = JSON.parse(dayElement.dataset.dayAppointments || '[]');
+                        const blockedTimes = JSON.parse(dayElement.dataset.dayBlocked || '[]');
+                        
+                        if (appointments.length > 0 || blockedTimes.length > 0) {
+                            showDayAppointmentsModal(dateStr, appointments, blockedTimes);
+                        }
+                    } catch (error) {
+                        console.error('Error parsing day appointments:', error);
+                    }
+                }
+            });
+        });
+    }
+    
+    // Function to parse datetime string as LOCAL time
+    function parseLocalDateTime(datetimeStr) {
+        if (!datetimeStr || typeof datetimeStr !== 'string') return null;
+        const parts = datetimeStr.split(' ');
+        if (parts.length !== 2) return null;
+        const [datePart, timePart] = parts;
+        const [year, month, day] = datePart.split('-').map(Number);
+        const [hours, minutes, seconds] = timePart.split(':').map(Number);
+        if (isNaN(year) || isNaN(month) || isNaN(day) || isNaN(hours) || isNaN(minutes)) return null;
+        return new Date(year, month - 1, day, hours, minutes, seconds || 0);
+    }
+    
+    // Function to check if a day is fully booked (11:00 AM - 6:00 PM)
+    function checkIfDayIsFullyBooked(dateStr, appointments, blockedTimes) {
+        // Check if there's a full day closure
+        const hasFullDayClosure = blockedTimes && blockedTimes.length > 0 && blockedTimes.some(function(blocked) {
+            if (!blocked || !blocked.start_datetime || !blocked.end_datetime) return false;
+            const startTime = parseLocalDateTime(blocked.start_datetime);
+            const endTime = parseLocalDateTime(blocked.end_datetime);
+            if (!startTime || !endTime) return false;
+            return startTime.getHours() === 0 && startTime.getMinutes() === 0 &&
+                   endTime.getHours() === 23 && endTime.getMinutes() === 59;
+        });
+        
+        if (hasFullDayClosure) {
+            return true;
+        }
+        
+        // Generate all 15-minute time slots from 11:00 AM to 6:00 PM
+        const timeSlots = [];
+        for (let hour = 11; hour <= 18; hour++) {
+            for (let minute = 0; minute < 60; minute += 15) {
+                if (hour === 18 && minute > 0) break; // Stop at 6:00 PM
+                timeSlots.push({ hour: hour, minute: minute });
+            }
+        }
+        
+        // Check each time slot for availability
+        // We check for slots that can fit at least a minimum service duration (15 minutes minimum)
+        // This ensures that if no service can fit in any slot, the day is marked as fully booked
+        const [year, month, day] = dateStr.split('-').map(Number);
+        const minServiceDuration = 15; // Minimum service duration in minutes (most services need at least 15 minutes)
+        const defaultDuration = 30; // Default appointment duration in minutes
+        
+        // Check slots with minimum duration first (15 minutes), then default duration (30 minutes)
+        const durationsToCheck = [minServiceDuration, defaultDuration];
+        
+        for (let d = 0; d < durationsToCheck.length; d++) {
+            const duration = durationsToCheck[d];
+            
+            for (let i = 0; i < timeSlots.length; i++) {
+                const slot = timeSlots[i];
+                const slotStart = new Date(year, month - 1, day, slot.hour, slot.minute);
+                const slotEnd = new Date(slotStart.getTime() + duration * 60000);
+                
+                // Make sure slot doesn't go past clinic closing time (6:00 PM)
+                if (slotEnd.getHours() > 18 || (slotEnd.getHours() === 18 && slotEnd.getMinutes() > 0)) {
+                    continue; // Skip slots that extend past closing time
+                }
+                
+                // Check if this slot is available
+                let isAvailable = true;
+                
+                // Check against appointments
+                if (appointments && appointments.length > 0) {
+                    for (let j = 0; j < appointments.length; j++) {
+                        const apt = appointments[j];
+                        if (!apt || !apt.start_datetime || !apt.end_datetime) continue;
+                        
+                        const aptStart = parseLocalDateTime(apt.start_datetime);
+                        const aptEnd = parseLocalDateTime(apt.end_datetime);
+                        if (!aptStart || !aptEnd) continue;
+                        
+                        // Check for overlap (excluding cancelled appointments)
+                        const status = (apt.status || '').toLowerCase();
+                        if (status !== 'cancelled' && slotStart < aptEnd && slotEnd > aptStart) {
+                            isAvailable = false;
+                            break;
+                        }
+                    }
+                }
+                
+                // Check against blocked times
+                if (isAvailable && blockedTimes && blockedTimes.length > 0) {
+                    for (let j = 0; j < blockedTimes.length; j++) {
+                        const blocked = blockedTimes[j];
+                        if (!blocked || !blocked.start_datetime || !blocked.end_datetime) continue;
+                        
+                        const blockStart = parseLocalDateTime(blocked.start_datetime);
+                        const blockEnd = parseLocalDateTime(blocked.end_datetime);
+                        if (!blockStart || !blockEnd) continue;
+                        
+                        // Check for overlap
+                        if (slotStart < blockEnd && slotEnd > blockStart) {
+                            isAvailable = false;
+                            break;
+                        }
+                    }
+                }
+                
+                // If any slot is available, day is not fully booked
+                if (isAvailable) {
+                    return false;
+                }
+            }
+        }
+        
+        // All slots are booked
+        return true;
+    }
+    
+    // Function to show day appointments modal
+    function showDayAppointmentsModal(dateStr, appointments, blockedTimes) {
+        const [year, month, day] = dateStr.split('-').map(Number);
+        const date = new Date(year, month - 1, day);
+        const formattedDate = date.toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        
+        // Check if day is fully booked
+        const isFullyBooked = checkIfDayIsFullyBooked(dateStr, appointments, blockedTimes);
+        
+        // Check if there's a full day closure (clinic closed)
+        const hasFullDayClosure = blockedTimes && blockedTimes.length > 0 && blockedTimes.some(function(blocked) {
+            if (!blocked || !blocked.start_datetime || !blocked.end_datetime) return false;
+            const startTime = parseLocalDateTime(blocked.start_datetime);
+            const endTime = parseLocalDateTime(blocked.end_datetime);
+            if (!startTime || !endTime) return false;
+            return startTime.getHours() === 0 && startTime.getMinutes() === 0 &&
+                   endTime.getHours() === 23 && endTime.getMinutes() === 59;
+        });
+        
+        // Sort appointments by time
+        appointments.sort(function(a, b) {
+            const timeA = parseLocalDateTime(a.start_datetime);
+            const timeB = parseLocalDateTime(b.start_datetime);
+            if (!timeA || !timeB) return 0;
+            return timeA - timeB;
+        });
+        
+        // Build fully booked indicator HTML only if fully booked AND not closed (no full day closure)
+        const fullyBookedIndicatorHtml = (isFullyBooked && !hasFullDayClosure) ? `
+            <div class="modal-fully-booked-indicator">
+                <i class="bi bi-x-circle me-2"></i>
+                <span>Fully Booked</span>
+            </div>
+        ` : '';
+        
+        let modalContent = `
+            <div class="day-appointments-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-calendar-event me-2"></i>${formattedDate}
+                </h5>
+                <div class="d-flex align-items-center justify-content-between">
+                    <p class="text-muted mb-0">${appointments.length} appointment${appointments.length !== 1 ? 's' : ''}</p>
+                    ${fullyBookedIndicatorHtml}
+                </div>
+            </div>
+            <div class="day-appointments-list">
+        `;
+        
+        if (appointments.length === 0 && blockedTimes.length === 0) {
+            modalContent += '<div class="text-center text-muted py-4">No appointments scheduled for this day.</div>';
+        } else {
+            // Show appointments
+            appointments.forEach(function(apt) {
+                const aptStart = parseLocalDateTime(apt.start_datetime);
+                const aptEnd = parseLocalDateTime(apt.end_datetime);
+                
+                if (!aptStart) return;
+                
+                const timeStr = aptStart.toLocaleTimeString('en-US', {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                });
+                
+                let endTimeStr = '';
+                if (aptEnd) {
+                    endTimeStr = aptEnd.toLocaleTimeString('en-US', {
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true
+                    });
+                }
+                
+                const isOwnAppointment = apt.is_own_appointment === true || 
+                                       (window.patientAppointments && window.patientAppointments.some(function(pa) {
+                                           return pa && pa.id === apt.id;
+                                       }));
+                
+                let title = 'Appointment';
+                if (apt.service && apt.service.service_name) {
+                    title = apt.service.service_name;
+                } else if (apt.reason_for_visit && !apt.reason_for_visit.toLowerCase().includes('reschedule')) {
+                    title = apt.reason_for_visit;
+                }
+                
+                let status = (apt.status || 'pending').toLowerCase();
+                if (status === 'missed') status = 'blocked';
+                if (!isOwnAppointment) status = 'booked';
+                
+                const isCompleted = status === 'completed';
+                const isCancelled = status === 'cancelled';
+                
+                // Only make patient's own appointments clickable
+                const clickableClass = isOwnAppointment ? 'clickable-appointment' : '';
+                const cursorStyle = isOwnAppointment ? 'cursor: pointer;' : 'cursor: default;';
+                
+                modalContent += `
+                    <div class="day-appointment-item ${status} ${clickableClass}" data-appointment-id="${apt.id}" data-is-own="${isOwnAppointment}" style="${cursorStyle}">
+                        <div class="appointment-time">
+                            <i class="bi bi-clock"></i>
+                            ${timeStr}${endTimeStr ? ' - ' + endTimeStr : ''}
+                        </div>
+                        <div class="appointment-title ${isCompleted || isCancelled ? 'text-decoration-line-through' : ''}">${title}</div>
+                        ${apt.notes && isCancelled ? `<div class="appointment-notes text-muted small">${apt.notes}</div>` : ''}
+                    </div>
+                `;
+            });
+            
+            // Show blocked times
+            blockedTimes.forEach(function(blocked) {
+                const blockStart = parseLocalDateTime(blocked.start_datetime);
+                const blockEnd = parseLocalDateTime(blocked.end_datetime);
+                
+                if (!blockStart) return;
+                
+                const isFullDayClosure = blockStart.getHours() === 0 && blockStart.getMinutes() === 0 &&
+                                         blockEnd && blockEnd.getHours() === 23 && blockEnd.getMinutes() === 59;
+                
+                const title = blocked.title || 'Clinic Unavailable';
+                const displayTitle = (title === 'Clinic Closed' || isFullDayClosure) ? 'Clinic Closed' : title;
+                
+                let timeStr = '';
+                if (!isFullDayClosure && blockStart) {
+                    timeStr = blockStart.toLocaleTimeString('en-US', {
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true
+                    });
+                    
+                    if (blockEnd) {
+                        const endTimeStr = blockEnd.toLocaleTimeString('en-US', {
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true
+                        });
+                        timeStr += ' - ' + endTimeStr;
+                    }
+                }
+                
+                modalContent += `
+                    <div class="day-appointment-item blocked">
+                        <div class="appointment-time">
+                            <i class="bi bi-x-circle"></i>
+                            ${isFullDayClosure ? 'All Day' : timeStr}
+                        </div>
+                        <div class="appointment-title">${displayTitle}</div>
+                        ${blocked.notes ? `<div class="appointment-notes text-muted small">${blocked.notes}</div>` : ''}
+                    </div>
+                `;
+            });
+        }
+        
+        modalContent += '</div>';
+        
+        // Update modal content
+        const modal = document.getElementById('dayAppointmentsModal');
+        if (modal) {
+            const modalBody = modal.querySelector('.modal-body');
+            if (modalBody) {
+                modalBody.innerHTML = modalContent;
+                
+                // Add click event listeners to patient's own appointment items after content is inserted
+                modalBody.querySelectorAll('.day-appointment-item[data-appointment-id]').forEach(function(item) {
+                    const appointmentId = item.dataset.appointmentId;
+                    if (appointmentId) {
+                        const isOwnAppointment = item.dataset.isOwn === 'true';
+                        item.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            // Close the day appointments modal first
+                            const bsModal = bootstrap.Modal.getInstance(modal);
+                            if (bsModal) {
+                                bsModal.hide();
+                            }
+                            // Then open the appointment details modal
+                            if (isOwnAppointment) {
+                                showAppointmentDetails(parseInt(appointmentId));
+                            } else {
+                                // Show read-only modal for booked time (other patients' appointments)
+                                showOtherAppointmentDetails(parseInt(appointmentId));
+                            }
+                        });
+                    }
+                });
+            }
+            
+            // Show modal
+            const bsModal = new bootstrap.Modal(modal);
+            bsModal.show();
+        }
     }
 
     // Get appointments for a specific date (includes both patient's own and other patients' appointments)
@@ -452,6 +896,147 @@ document.addEventListener('DOMContentLoaded', function() {
         return window.blockedTimes.filter(function(blocked) {
             const blockedDate = blocked.start_datetime.split(' ')[0];
             return blockedDate === dateStr;
+        });
+    }
+
+    // Show blocked time details in modal
+    function showBlockedTimeDetails(blockedTimeId) {
+        // Find the blocked time in the window.blockedTimes array
+        const blockedTime = window.blockedTimes.find(function(bt) {
+            return bt.id == blockedTimeId;
+        });
+        
+        if (!blockedTime) {
+            console.error('Blocked time not found:', blockedTimeId);
+            return;
+        }
+        
+        // Parse datetime strings
+        const startDateTime = parseLocalDateTime(blockedTime.start_datetime);
+        const endDateTime = parseLocalDateTime(blockedTime.end_datetime);
+        
+        if (!startDateTime || !endDateTime) {
+            console.error('Invalid datetime for blocked time:', blockedTime);
+            return;
+        }
+        
+        // Format date
+        const dateStr = startDateTime.toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        
+        // Check if it's a full day closure
+        const isFullDayClosure = startDateTime.getHours() === 0 && startDateTime.getMinutes() === 0 &&
+                                 endDateTime.getHours() === 23 && endDateTime.getMinutes() === 59;
+        
+        // Format time
+        let timeStr = '';
+        if (isFullDayClosure) {
+            timeStr = 'All Day';
+        } else {
+            const startTime = startDateTime.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            });
+            const endTime = endDateTime.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            });
+            timeStr = `${startTime} - ${endTime}`;
+        }
+        
+        // Calculate duration
+        const durationMs = endDateTime - startDateTime;
+        const durationMinutes = Math.floor(durationMs / (1000 * 60));
+        let durationStr = '';
+        if (isFullDayClosure) {
+            durationStr = 'All Day';
+        } else if (durationMinutes < 60) {
+            durationStr = `${durationMinutes} minutes`;
+        } else {
+            const hours = Math.floor(durationMinutes / 60);
+            const minutes = durationMinutes % 60;
+            if (minutes === 0) {
+                durationStr = `${hours} ${hours === 1 ? 'hour' : 'hours'}`;
+            } else {
+                durationStr = `${hours} ${hours === 1 ? 'hour' : 'hours'} ${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
+            }
+        }
+        
+        // Get title and reason
+        const title = blockedTime.title || 'Clinic Unavailable';
+        const displayTitle = (title === 'Clinic Closed' || isFullDayClosure) ? 'Clinic Closed' : title;
+        const reason = blockedTime.notes || 'No reason provided';
+        
+        // Create modal content
+        const modalContent = `
+            <div class="text-center mb-4">
+                <div class="mx-auto mb-3" style="width: 80px; height: 80px; background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-x-circle text-warning" style="font-size: 2.5rem; color: #92400e !important;"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-2">${displayTitle}</h5>
+            </div>
+            
+            <div class="mb-3">
+                <div class="d-flex align-items-center mb-2">
+                    <i class="bi bi-calendar3 me-2 text-primary"></i>
+                    <strong>Date:</strong>
+                    <span class="ms-2">${dateStr}</span>
+                </div>
+                <div class="d-flex align-items-center mb-2">
+                    <i class="bi bi-clock me-2 text-primary"></i>
+                    <strong>Time:</strong>
+                    <span class="ms-2">${timeStr}</span>
+                </div>
+                <div class="d-flex align-items-center mb-2">
+                    <i class="bi bi-hourglass-split me-2 text-primary"></i>
+                    <strong>Duration:</strong>
+                    <span class="ms-2">${durationStr}</span>
+                </div>
+                <div class="d-flex align-items-start">
+                    <i class="bi bi-info-circle me-2 text-primary mt-1"></i>
+                    <div>
+                        <strong>Reason:</strong>
+                        <p class="mb-0 ms-2">${reason}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Create and show modal
+        const modal = document.createElement('div');
+        modal.className = 'modal fade';
+        modal.id = 'blockedTimeDetailsModal';
+        modal.innerHTML = `
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Blocked Time Details</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        ${modalContent}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        const bsModal = new bootstrap.Modal(modal);
+        bsModal.show();
+        
+        // Remove modal from DOM after it's hidden
+        modal.addEventListener('hidden.bs.modal', function() {
+            document.body.removeChild(modal);
         });
     }
 
@@ -748,7 +1333,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <i class="bi bi-calendar-x text-secondary" style="font-size: 2.5rem;"></i>
                 </div>
                 <h5 class="fw-bold text-dark mb-2">Booked Time Slot</h5>
-                <p class="text-muted mb-0">This time slot is already booked by another patient.</p>
+                <p class="text-muted mb-0">This particular appointment was occupied by another patient.</p>
             </div>
 
             <div class="appointment-details-grid">
@@ -871,6 +1456,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             .calendar-day {
+                position: relative;
                 background: white;
                 min-height: 80px;
                 padding: 0.5rem;
@@ -960,8 +1546,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             .event-item.blocked {
-                background: #f3f4f6;
-                border-left-color: #6b7280;
+                background: #fef3c7;
+                border-left-color: #92400e;
+                color: #78350f;
                 cursor: not-allowed;
             }
 
@@ -971,21 +1558,21 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             .event-item.booked {
-                background: #e0f2fe;
-                border-left: 2px solid #0ea5e9;
-                color: #0c4a6e;
-                cursor: default;
+                background: #f3e8ff;
+                border-left: 2px solid #9333ea;
+                color: #6b21a8;
+                cursor: pointer;
                 opacity: 1;
             }
 
             .event-item.booked:hover {
-                transform: none;
-                box-shadow: none;
+                transform: translateX(2px);
+                box-shadow: 0 2px 8px rgba(147, 51, 234, 0.3);
                 opacity: 1;
             }
 
             .event-item[data-read-only="true"] {
-                cursor: default;
+                cursor: pointer;
             }
 
             .event-time {
@@ -1181,19 +1768,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
         container.innerHTML = html;
 
-        // Add click handlers (only for patient's own appointments)
+        // Add click handlers for appointments (including booked time) and blocked times
         document.querySelectorAll('.week-appointment').forEach(item => {
             item.addEventListener('click', function() {
                 const appointmentId = this.dataset.appointmentId;
-                if (!appointmentId) return; // Skip blocked times
+                const blockedTimeId = this.dataset.blockedTimeId;
                 
-                const isReadOnly = this.dataset.readOnly === 'true';
-                
-                // Only show details for patient's own appointments (no modal for other patients' appointments)
-                if (!isReadOnly) {
-                    showAppointmentDetails(appointmentId);
+                // Check if it's a blocked time
+                if (blockedTimeId) {
+                    showBlockedTimeDetails(blockedTimeId);
+                    return;
                 }
-                // Do nothing for other patients' appointments (privacy)
+                
+                // Handle appointments
+                if (appointmentId) {
+                    const isReadOnly = this.dataset.readOnly === 'true';
+                    
+                    // Show details for patient's own appointments
+                    if (!isReadOnly) {
+                        showAppointmentDetails(appointmentId);
+                    } else {
+                        // Show read-only modal for booked time (other patients' appointments)
+                        showOtherAppointmentDetails(appointmentId);
+                    }
+                }
             });
         });
     }
@@ -1397,19 +1995,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
         container.innerHTML = html;
 
-        // Add click handlers (only for patient's own appointments)
+        // Add click handlers for appointments (including booked time) and blocked times
         document.querySelectorAll('.day-appointment').forEach(item => {
             item.addEventListener('click', function() {
                 const appointmentId = this.dataset.appointmentId;
-                if (!appointmentId) return; // Skip blocked times
+                const blockedTimeId = this.dataset.blockedTimeId;
                 
-                const isReadOnly = this.dataset.readOnly === 'true';
-                
-                // Only show details for patient's own appointments (no modal for other patients' appointments)
-                if (!isReadOnly) {
-                    showAppointmentDetails(appointmentId);
+                // Check if it's a blocked time
+                if (blockedTimeId) {
+                    showBlockedTimeDetails(blockedTimeId);
+                    return;
                 }
-                // Do nothing for other patients' appointments (privacy)
+                
+                // Handle appointments
+                if (appointmentId) {
+                    const isReadOnly = this.dataset.readOnly === 'true';
+                    
+                    // Show details for patient's own appointments
+                    if (!isReadOnly) {
+                        showAppointmentDetails(appointmentId);
+                    } else {
+                        // Show read-only modal for booked time (other patients' appointments)
+                        showOtherAppointmentDetails(appointmentId);
+                    }
+                }
             });
         });
     }
@@ -1483,5 +2092,61 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
+
+    // Real-time appointment updates
+    function refreshAppointments(data) {
+        if (!data || !data.has_updates) return;
+
+        // Update appointment data
+        if (data.appointments) {
+            window.patientAppointments = data.appointments;
+        }
+        if (data.upcoming_appointments) {
+            // Update upcoming appointments in sidebar
+            updateUpcomingAppointments(data.upcoming_appointments);
+        }
+        if (data.pending_requests) {
+            // Update pending requests
+            updatePendingRequests(data.pending_requests);
+        }
+
+        // Re-render calendar
+        renderCalendar();
+    }
+
+    function updateUpcomingAppointments(upcomingAppointments) {
+        const upcomingList = document.getElementById('upcomingAppointments');
+        if (!upcomingList) return;
+
+        // Update the upcoming appointments list
+        // This will be handled by the blade template's @forelse loop
+        // We'll trigger a page refresh or update the DOM directly
+        if (upcomingAppointments && upcomingAppointments.length > 0) {
+            // Dispatch custom event to update the list
+            window.dispatchEvent(new CustomEvent('upcomingAppointmentsUpdate', {
+                detail: upcomingAppointments
+            }));
+        }
+    }
+
+    function updatePendingRequests(pendingRequests) {
+        const pendingList = document.getElementById('pendingRequestsList');
+        if (!pendingList) return;
+
+        // Update pending requests list
+        if (pendingRequests && pendingRequests.length > 0) {
+            window.dispatchEvent(new CustomEvent('pendingRequestsUpdate', {
+                detail: pendingRequests
+            }));
+        }
+    }
+
+    // Listen for appointment updates from real-time system
+    window.addEventListener('appointmentUpdate', function(event) {
+        refreshAppointments(event.detail);
+    });
+
+    // Export refresh function for global access
+    window.refreshAppointments = refreshAppointments;
 });
 

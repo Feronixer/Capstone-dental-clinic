@@ -7,6 +7,7 @@ use App\Models\ChatConversation;
 use App\Models\ChatMessage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class ChatController extends Controller
 {
@@ -201,6 +202,47 @@ class ChatController extends Controller
             ->count();
 
         return response()->json(['count' => $count]);
+    }
+
+    /**
+     * Delete a conversation (Admin only)
+     */
+    public function deleteConversation(Request $request, $conversationId)
+    {
+        $request->validate([
+            'password' => 'required|string',
+        ]);
+
+        $admin = Auth::guard('admin')->user();
+
+        // Verify admin is authenticated
+        if (!$admin || $admin->role_id !== 1) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. Admin access required.',
+            ], 403);
+        }
+
+        // Verify password
+        if (!Hash::check($request->password, $admin->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Incorrect password. Please try again.',
+            ], 422);
+        }
+
+        $conversation = ChatConversation::findOrFail($conversationId);
+        
+        // Delete all messages first (cascade should handle this, but being explicit)
+        $conversation->messages()->delete();
+        
+        // Delete the conversation
+        $conversation->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Conversation deleted successfully',
+        ]);
     }
 }
 

@@ -2313,7 +2313,29 @@ document.addEventListener('DOMContentLoaded', function() {
             return timeA - timeB;
         });
 
-        dayAppointments.forEach(apt => {
+        // Check if day is fully booked
+        const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        const isFullyBooked = checkIfDayIsFullyBooked(dateStr, dayAppointments);
+        
+        // Store appointments data for modal
+        dayElement.dataset.dayAppointments = JSON.stringify(dayAppointments);
+        dayElement.dataset.date = dateStr;
+        
+        // Add fully booked indicator
+        if (isFullyBooked) {
+            dayElement.classList.add('fully-booked');
+            const fullyBookedIndicator = document.createElement('div');
+            fullyBookedIndicator.className = 'fully-booked-indicator';
+            fullyBookedIndicator.innerHTML = '<i class="bi bi-x-circle"></i> Fully Booked';
+            dayElement.appendChild(fullyBookedIndicator);
+        }
+        
+        // Show only first 3 appointments
+        const maxVisible = 3;
+        const visibleAppointments = dayAppointments.slice(0, maxVisible);
+        const hiddenCount = Math.max(0, dayAppointments.length - maxVisible);
+
+        visibleAppointments.forEach(apt => {
             const aptElement = document.createElement('div');
             const statusLower = (apt.status || 'pending').toLowerCase();
             aptElement.className = `appointment-item ${statusLower}`;
@@ -2396,6 +2418,31 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             dayElement.appendChild(aptElement);
         });
+        
+        // Add "X more" indicator if there are more appointments
+        if (hiddenCount > 0) {
+            const moreIndicator = document.createElement('div');
+            moreIndicator.className = 'event-more-indicator';
+            moreIndicator.innerHTML = `<span class="more-text">${hiddenCount} more</span>`;
+            moreIndicator.dataset.date = dateStr;
+            moreIndicator.addEventListener('click', (e) => {
+                e.stopPropagation();
+                showDayAppointmentsModal(dateStr, dayAppointments);
+            });
+            dayElement.appendChild(moreIndicator);
+        }
+        
+        // Add click handler for the day to show all appointments
+        dayElement.addEventListener('click', function(e) {
+            // Don't trigger if clicking on an appointment item or more indicator
+            if (e.target.closest('.appointment-item') || e.target.closest('.event-more-indicator') || e.target.closest('.fully-booked-indicator')) {
+                return;
+            }
+            
+            if (dayAppointments.length > 0) {
+                showDayAppointmentsModal(dateStr, dayAppointments);
+            }
+        });
     }
 
     function formatHour(hour) {
@@ -2413,6 +2460,169 @@ document.addEventListener('DOMContentLoaded', function() {
         const dateToCheck = new Date(date);
         dateToCheck.setHours(0, 0, 0, 0);
         return dateToCheck.toDateString() === serverToday.toDateString();
+    }
+    
+    // Function to check if a day is fully booked (11:00 AM - 6:00 PM)
+    function checkIfDayIsFullyBooked(dateStr, appointments) {
+        // Generate all 15-minute time slots from 11:00 AM to 6:00 PM
+        const timeSlots = [];
+        for (let hour = 11; hour <= 18; hour++) {
+            for (let minute = 0; minute < 60; minute += 15) {
+                if (hour === 18 && minute > 0) break; // Stop at 6:00 PM
+                timeSlots.push({ hour: hour, minute: minute });
+            }
+        }
+        
+        // Check each time slot for availability (assuming 30-minute default duration)
+        const [year, month, day] = dateStr.split('-').map(Number);
+        const defaultDuration = 30; // minutes
+        
+        for (let i = 0; i < timeSlots.length; i++) {
+            const slot = timeSlots[i];
+            const slotStart = new Date(year, month - 1, day, slot.hour, slot.minute);
+            const slotEnd = new Date(slotStart.getTime() + defaultDuration * 60000);
+            
+            // Check if this slot is available
+            let isAvailable = true;
+            
+            // Check against appointments
+            for (let j = 0; j < appointments.length; j++) {
+                const apt = appointments[j];
+                if (!apt.start_datetime || !apt.end_datetime) continue;
+                
+                const aptStart = parseLocalDateTime(apt.start_datetime);
+                const aptEnd = parseLocalDateTime(apt.end_datetime);
+                if (!aptStart || !aptEnd) continue;
+                
+                // Check for overlap (excluding cancelled and blocked appointments)
+                const status = (apt.status || '').toLowerCase();
+                if (status !== 'cancelled' && status !== 'blocked' && slotStart < aptEnd && slotEnd > aptStart) {
+                    isAvailable = false;
+                    break;
+                }
+            }
+            
+            // If any slot is available, day is not fully booked
+            if (isAvailable) {
+                return false;
+            }
+        }
+        
+        // All slots are booked
+        return true;
+    }
+    
+    // Function to show day appointments modal
+    function showDayAppointmentsModal(dateStr, appointments) {
+        const [year, month, day] = dateStr.split('-').map(Number);
+        const date = new Date(year, month - 1, day);
+        const formattedDate = date.toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        
+        // Sort appointments by time
+        appointments.sort((a, b) => {
+            const timeA = parseLocalDateTime(a.start_datetime);
+            const timeB = parseLocalDateTime(b.start_datetime);
+            if (!timeA || !timeB) return 0;
+            return timeA - timeB;
+        });
+        
+        let modalContent = `
+            <div class="day-appointments-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-calendar-event me-2"></i>${formattedDate}
+                </h5>
+                <p class="text-muted mb-0">${appointments.length} appointment${appointments.length !== 1 ? 's' : ''}</p>
+            </div>
+            <div class="day-appointments-list">
+        `;
+        
+        if (appointments.length === 0) {
+            modalContent += '<div class="text-center text-muted py-4">No appointments scheduled for this day.</div>';
+        } else {
+            appointments.forEach(apt => {
+                const aptStart = parseLocalDateTime(apt.start_datetime);
+                const aptEnd = parseLocalDateTime(apt.end_datetime);
+                
+                if (!aptStart) return;
+                
+                const timeStr = aptStart.toLocaleTimeString('en-US', {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                });
+                
+                let endTimeStr = '';
+                if (aptEnd) {
+                    endTimeStr = aptEnd.toLocaleTimeString('en-US', {
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true
+                    });
+                }
+                
+                let patientName = 'Unknown Patient';
+                if (apt.patient && apt.patient.info) {
+                    const info = apt.patient.info;
+                    patientName = `${info.first_name} ${info.last_name}`.trim();
+                } else if (apt.patient && apt.patient.name) {
+                    patientName = apt.patient.name;
+                }
+                
+                let serviceName = apt.service ? apt.service.service_name : 'No Service';
+                let status = (apt.status || 'pending').toLowerCase();
+                const isCompleted = status === 'completed';
+                const isCancelled = status === 'cancelled';
+                
+                modalContent += `
+                    <div class="day-appointment-item ${status}" data-appointment-id="${apt.id}" style="cursor: pointer;">
+                        <div class="appointment-time">
+                            <i class="bi bi-clock"></i>
+                            ${timeStr}${endTimeStr ? ' - ' + endTimeStr : ''}
+                        </div>
+                        <div class="appointment-title ${isCompleted || isCancelled ? 'text-decoration-line-through' : ''}">${patientName} - ${serviceName}</div>
+                        <div class="appointment-status">Status: ${apt.status || 'Pending'}</div>
+                        ${apt.notes && isCancelled ? `<div class="appointment-notes text-muted small">${apt.notes}</div>` : ''}
+                    </div>
+                `;
+            });
+        }
+        
+        modalContent += '</div>';
+        
+        // Update modal content
+        const modal = document.getElementById('dayAppointmentsModal');
+        if (modal) {
+            const modalBody = modal.querySelector('.modal-body');
+            if (modalBody) {
+                modalBody.innerHTML = modalContent;
+                
+                // Add click event listeners to appointment items after content is inserted
+                modalBody.querySelectorAll('.day-appointment-item[data-appointment-id]').forEach(function(item) {
+                    const appointmentId = item.dataset.appointmentId;
+                    if (appointmentId) {
+                        item.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            // Close the day appointments modal first
+                            const bsModal = bootstrap.Modal.getInstance(modal);
+                            if (bsModal) {
+                                bsModal.hide();
+                            }
+                            // Then open the appointment details modal
+                            editAppointment(parseInt(appointmentId));
+                        });
+                    }
+                });
+            }
+            
+            // Show modal
+            const bsModal = new bootstrap.Modal(modal);
+            bsModal.show();
+        }
     }
 
     function saveAppointment() {
@@ -5706,4 +5916,281 @@ document.addEventListener('DOMContentLoaded', function() {
     background: var(--dm-card-bg, #1e293b) !important;
 }
 </style>
+<!-- Day Appointments Modal -->
+<div class="modal fade" id="dayAppointmentsModal" tabindex="-1" aria-labelledby="dayAppointmentsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); border: none;">
+                <h5 class="modal-title text-white" id="dayAppointmentsModalLabel">
+                    <i class="bi bi-calendar-event me-2"></i>Day Appointments
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Content will be dynamically inserted here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Day Appointments Modal Styles */
+.day-appointments-header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.day-appointments-header .modal-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+}
+
+.day-appointments-list {
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+.day-appointment-item {
+    padding: 0.875rem;
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+    border-left: 3px solid;
+    transition: all 0.2s ease;
+}
+
+.day-appointment-item:hover {
+    transform: translateX(3px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.day-appointment-item.pending {
+    background: #fef3c7;
+    border-left-color: #fbbf24;
+}
+
+.day-appointment-item.confirmed {
+    background: #dbeafe;
+    border-left-color: #3b82f6;
+}
+
+.day-appointment-item.completed {
+    background: #d1fae5;
+    border-left-color: #10b981;
+}
+
+.day-appointment-item.cancelled {
+    background: #fee2e2;
+    border-left-color: #ef4444;
+    opacity: 0.8;
+}
+
+.day-appointment-item.blocked {
+    background: #e5e7eb;
+    border-left-color: #6b7280;
+}
+
+.appointment-time {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 0.375rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.appointment-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 0.25rem;
+}
+
+.appointment-status {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-top: 0.25rem;
+}
+
+.appointment-notes {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-top: 0.375rem;
+    padding-top: 0.375rem;
+    border-top: 1px solid rgba(0,0,0,0.1);
+}
+
+/* Fully Booked Indicator */
+.fully-booked-indicator {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.25rem;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    z-index: 10;
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);
+}
+
+.calendar-day.fully-booked {
+    position: relative;
+}
+
+.calendar-day.fully-booked::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(239, 68, 68, 0.05);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 4px;
+    pointer-events: none;
+}
+
+/* "X more" Indicator */
+.event-more-indicator {
+    background: linear-gradient(135deg, rgba(52, 152, 219, 0.1) 0%, rgba(41, 128, 185, 0.05) 100%);
+    border: 1px dashed #3498db;
+    border-radius: 6px;
+    padding: 0.375rem 0.5rem;
+    margin-top: 0.25rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.event-more-indicator:hover {
+    background: linear-gradient(135deg, rgba(52, 152, 219, 0.15) 0%, rgba(41, 128, 185, 0.1) 100%);
+    border-color: #2980b9;
+    transform: translateY(-1px);
+}
+
+.event-more-indicator .more-text {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #3498db;
+}
+
+/* Calendar Day Clickable */
+.calendar-day {
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.calendar-day[data-day-appointments]:not([data-day-appointments="[]"]):hover {
+    background: rgba(52, 152, 219, 0.03);
+    cursor: pointer;
+}
+
+/* Dark Mode Styles */
+[data-theme="dark"] #dayAppointmentsModal .modal-content {
+    background: var(--dm-card-bg, #1e293b) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] #dayAppointmentsModal .modal-header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #1a2e4a 100%) !important;
+    border-bottom-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] #dayAppointmentsModal .modal-footer {
+    background: var(--dm-bg-secondary, #1e293b) !important;
+    border-top-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] #dayAppointmentsModal .btn-secondary {
+    background: var(--dm-bg-tertiary, #334155) !important;
+    border-color: var(--dm-border-color, #475569) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] #dayAppointmentsModal .btn-secondary:hover {
+    background: var(--dm-bg-quaternary, #475569) !important;
+}
+
+[data-theme="dark"] .day-appointments-header {
+    border-bottom-color: #334155;
+}
+
+[data-theme="dark"] .day-appointments-header .modal-title {
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .day-appointment-item.pending {
+    background: #2F2F1F !important;
+    border-left-color: #B8860B !important;
+    color: #F5DEB3 !important;
+}
+
+[data-theme="dark"] .day-appointment-item.confirmed {
+    background: #2F4F4F !important;
+    border-left-color: #4299E1 !important;
+    color: #BFDBFE !important;
+}
+
+[data-theme="dark"] .day-appointment-item.completed {
+    background: #1F3F2F !important;
+    border-left-color: #10b981 !important;
+    color: #A7F3D0 !important;
+}
+
+[data-theme="dark"] .day-appointment-item.cancelled {
+    background: #3F2F2F !important;
+    border-left-color: #ef4444 !important;
+    color: #FCA5A5 !important;
+    opacity: 0.8;
+}
+
+[data-theme="dark"] .day-appointment-item.blocked {
+    background: #2F2F2F !important;
+    border-left-color: #6b7280 !important;
+    color: #D1D5DB !important;
+}
+
+[data-theme="dark"] .day-appointment-item .appointment-time {
+    color: inherit !important;
+}
+
+[data-theme="dark"] .day-appointment-item .appointment-title {
+    color: inherit !important;
+}
+
+[data-theme="dark"] .day-appointment-item .appointment-status {
+    color: inherit !important;
+}
+
+[data-theme="dark"] .day-appointment-item .appointment-notes {
+    color: inherit !important;
+    border-top-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .day-appointments-list {
+        max-height: 300px;
+    }
+    
+    .day-appointment-item {
+        padding: 0.75rem;
+    }
+    
+    .fully-booked-indicator {
+        font-size: 0.6rem;
+        padding: 0.2rem 0.4rem;
+    }
+}
+</style>
+
 @endsection

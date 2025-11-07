@@ -1377,9 +1377,16 @@ function playNotificationSound() {
     }
 }
 
+let lastNotificationCheck = null;
+let notificationPollInterval = null;
+
 async function loadNotifications() {
     try {
-        const response = await fetch('/patient/notifications/recent');
+        const url = lastNotificationCheck 
+            ? `/patient/notifications/poll?last_check=${encodeURIComponent(lastNotificationCheck)}`
+            : '/patient/notifications/recent';
+        
+        const response = await fetch(url);
         const data = await response.json();
 
         // Check if unread count increased (new notification)
@@ -1387,20 +1394,106 @@ async function loadNotifications() {
         if (typeof previousUnreadCount !== 'undefined' && currentUnreadCount > previousUnreadCount) {
             // New notification received - play sound
             playNotificationSound();
+            
+            // Show browser notification if permission granted
+            if (Notification.permission === 'granted' && data.has_new) {
+                const newNotif = data.notifications && data.notifications[0];
+                if (newNotif) {
+                    new Notification(newNotif.title, {
+                        body: newNotif.message,
+                        icon: '/images/logo4.png',
+                        tag: 'notification-' + newNotif.id
+                    });
+                }
+            }
         }
         previousUnreadCount = currentUnreadCount;
 
+        // Update last check timestamp
+        if (data.timestamp) {
+            lastNotificationCheck = data.timestamp;
+        } else if (data.notifications && data.notifications.length > 0) {
+            lastNotificationCheck = data.notifications[0].created_at;
+        }
+
         updateNotificationBadge(data.unread_count);
         updateNotificationSubtitle(data.unread_count);
-        renderNotifications(data.notifications);
+        
+        // Only update notifications list if dropdown is open or we have new notifications
+        const dropdown = document.getElementById('notificationDropdown');
+        if (dropdown && (dropdown.classList.contains('show') || data.has_new)) {
+            if (data.has_new && data.notifications) {
+                // Prepend new notifications to the list
+                const existingNotifications = getCurrentNotifications();
+                const allNotifications = [...data.notifications, ...existingNotifications]
+                    .filter((v, i, a) => a.findIndex(t => t.id === v.id) === i)
+                    .slice(0, 5);
+                renderNotifications(allNotifications);
+            } else if (!lastNotificationCheck) {
+                // Initial load
+                renderNotifications(data.notifications || []);
+            }
+        }
     } catch (error) {
         console.error('Error loading notifications:', error);
-        document.getElementById('notificationsList').innerHTML = `
-            <div class="text-center py-3 text-muted">
-                <small>Failed to load notifications</small>
-            </div>
-        `;
+        if (!lastNotificationCheck) {
+            document.getElementById('notificationsList').innerHTML = `
+                <div class="text-center py-3 text-muted">
+                    <small>Failed to load notifications</small>
+                </div>
+            `;
+        }
     }
+}
+
+function getCurrentNotifications() {
+    const container = document.getElementById('notificationsList');
+    const items = container.querySelectorAll('.notification-item');
+    const notifications = [];
+    items.forEach(item => {
+        const title = item.querySelector('.notification-title')?.textContent;
+        const message = item.querySelector('small')?.textContent;
+        const timeAgo = item.querySelector('.notification-time')?.textContent;
+        const isRead = !item.classList.contains('unread');
+        const iconClass = item.querySelector('.bi')?.className.match(/bi-[\w-]+/)?.[0];
+        const iconColor = item.querySelector('.notification-icon')?.className.match(/bg-\w+/)?.[0];
+        
+        if (title) {
+            notifications.push({
+                title,
+                message,
+                time_ago: timeAgo,
+                is_read: isRead,
+                icon_class: iconClass,
+                icon_color: iconColor
+            });
+        }
+    });
+    return notifications;
+}
+
+// Start polling for notifications
+function startNotificationPolling() {
+    // Load initial notifications
+    loadNotifications();
+    
+    // Poll every 5 seconds for new notifications
+    if (notificationPollInterval) {
+        clearInterval(notificationPollInterval);
+    }
+    notificationPollInterval = setInterval(loadNotifications, 5000);
+}
+
+// Request notification permission on page load
+if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+}
+
+// Start polling when page loads
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startNotificationPolling);
+} else {
+    startNotificationPolling();
 }
 
 function updateNotificationBadge(count) {

@@ -641,4 +641,62 @@ class CalendarController extends Controller
     {
         //
     }
+
+    /**
+     * Poll for appointment updates since last check
+     */
+    public function poll(Request $request): JsonResponse
+    {
+        $patientId = auth()->id();
+        $lastCheck = $request->input('last_check');
+        
+        // Get all appointments
+        $appointments = $this->getPatientAppointments($patientId);
+        $upcomingAppointments = $this->getUpcomingAppointments();
+        $pendingRequests = $this->getPendingRequests();
+        $appointmentHistory = $this->getAppointmentHistory();
+        
+        // Check if there are updates since last check
+        $hasUpdates = false;
+        if ($lastCheck) {
+            $lastCheckTime = Carbon::parse($lastCheck);
+            $hasUpdates = Appointment::where('patient_id', $patientId)
+                ->where(function($query) use ($lastCheckTime) {
+                    $query->where('created_at', '>', $lastCheckTime)
+                          ->orWhere('updated_at', '>', $lastCheckTime);
+                })
+                ->exists();
+        } else {
+            $hasUpdates = true; // Initial load
+        }
+        
+        return response()->json([
+            'appointments' => $appointments,
+            'upcoming_appointments' => $upcomingAppointments->map(function($apt) {
+                return [
+                    'id' => $apt->id,
+                    'start_datetime' => $apt->start_datetime->format('Y-m-d H:i:s'),
+                    'status' => $apt->status,
+                    'service_name' => $apt->service?->service_name ?? $apt->reason_for_visit,
+                    'service_id' => $apt->service_id,
+                ];
+            }),
+            'pending_requests' => $pendingRequests->map(function($req) {
+                return [
+                    'id' => $req->id,
+                    'status' => $req->status,
+                    'requested_datetime' => $req->requested_datetime->format('Y-m-d H:i:s'),
+                ];
+            }),
+            'appointment_history' => $appointmentHistory->map(function($apt) {
+                return [
+                    'id' => $apt->id,
+                    'start_datetime' => $apt->start_datetime->format('Y-m-d H:i:s'),
+                    'status' => $apt->status,
+                ];
+            }),
+            'has_updates' => $hasUpdates,
+            'timestamp' => now()->toISOString(),
+        ]);
+    }
 }

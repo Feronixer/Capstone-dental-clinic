@@ -604,6 +604,15 @@ class AppointmentController extends Controller
                 $appointmentData['rescheduled_at'] = now();
             }
 
+            // Reset reminder flags if appointment datetime changed (rescheduled)
+            $oldStartDateTime = $appointment->start_datetime;
+            if ($oldStartDateTime && $oldStartDateTime->ne($startDateTime)) {
+                $appointmentData['reminder_24h_sent'] = false;
+                $appointmentData['reminder_3h_sent'] = false;
+                $appointmentData['reminder_24h_sent_at'] = null;
+                $appointmentData['reminder_3h_sent_at'] = null;
+            }
+            
             $oldValues = $appointment->toArray();
             $appointment->update($appointmentData);
 
@@ -812,7 +821,24 @@ class AppointmentController extends Controller
             }
 
             // Update appointment status
-            $appointment->update(['status' => $validated['status']]);
+            $updateData = ['status' => $validated['status']];
+            
+            // Reset reminder flags if status changes from Confirmed to something else
+            // or if status changes to Confirmed (so reminders can be sent again)
+            if ($oldStatus === 'Confirmed' && $validated['status'] !== 'Confirmed') {
+                $updateData['reminder_24h_sent'] = false;
+                $updateData['reminder_3h_sent'] = false;
+                $updateData['reminder_24h_sent_at'] = null;
+                $updateData['reminder_3h_sent_at'] = null;
+            } elseif ($oldStatus !== 'Confirmed' && $validated['status'] === 'Confirmed') {
+                // Reset reminder flags when appointment is newly confirmed
+                $updateData['reminder_24h_sent'] = false;
+                $updateData['reminder_3h_sent'] = false;
+                $updateData['reminder_24h_sent_at'] = null;
+                $updateData['reminder_3h_sent_at'] = null;
+            }
+            
+            $appointment->update($updateData);
 
             // Log activity
             ActivityLog::log(

@@ -262,16 +262,26 @@
 
     .navigation-bar-container,
     aside.navigation-bar-container {
-        width: 260px !important;
-        min-width: 260px !important;
-        max-width: 260px !important;
-        flex: 0 0 260px !important;
+        width: 80px !important;
+        min-width: 80px !important;
+        max-width: 80px !important;
+        flex: 0 0 80px !important;
         flex-shrink: 0 !important;
         flex-grow: 0 !important;
-        flex-basis: 260px !important;
+        flex-basis: 80px !important;
         position: relative !important;
         z-index: 100 !important;
         font-size: 16px !important;
+        transition: width 0.3s ease, min-width 0.3s ease, max-width 0.3s ease, flex-basis 0.3s ease !important;
+    }
+
+    /* Expanded state on hover */
+    .navigation-bar-container:hover,
+    aside.navigation-bar-container:hover {
+        width: 260px !important;
+        min-width: 260px !important;
+        max-width: 260px !important;
+        flex-basis: 260px !important;
     }
 
     .navigation-bar-container *,
@@ -298,9 +308,17 @@
         overflow-y: auto !important;
         overflow-x: hidden !important;
         flex: 1 1 auto !important;
+        width: calc(100vw - 80px) !important;
+        max-width: calc(100vw - 80px) !important;
+        position: relative !important;
+        transition: width 0.3s ease, max-width 0.3s ease !important;
+    }
+
+    /* Adjust main content when sidebar is hovered */
+    body:has(.navigation-bar-container:hover) main,
+    body:has(aside.navigation-bar-container:hover) main {
         width: calc(100vw - 260px) !important;
         max-width: calc(100vw - 260px) !important;
-        position: relative !important;
     }
 
     .container-fluid {
@@ -309,7 +327,7 @@
         padding-right: 1rem !important;
     }
 
-    /* FIX NAVIGATION BUTTONS - NO SIZE CHANGES */
+    /* FIX NAVIGATION BUTTONS - Collapsed state (icons only) */
     .navigation-bar-container .nav-item-link,
     .navigation-bar-container .nav-logout-btn,
     aside.navigation-bar-container .nav-item-link,
@@ -320,12 +338,22 @@
         height: auto !important;
         min-height: 40px !important;
         max-height: 40px !important;
-        padding: 0.5rem 0.875rem !important;
+        padding: 0.5rem 0.5rem !important;
         margin: 0 0.5rem !important;
         box-sizing: border-box !important;
         transform: none !important;
         scale: 1 !important;
-        transition: background-color 0.3s ease, color 0.3s ease !important;
+        transition: background-color 0.3s ease, color 0.3s ease, padding 0.3s ease, justify-content 0.3s ease !important;
+        justify-content: center !important;
+    }
+
+    /* Expanded state on hover */
+    .navigation-bar-container:hover .nav-item-link,
+    .navigation-bar-container:hover .nav-logout-btn,
+    aside.navigation-bar-container:hover .nav-item-link,
+    aside.navigation-bar-container:hover .nav-logout-btn {
+        padding: 0.5rem 0.875rem !important;
+        justify-content: flex-start !important;
     }
 
     .navigation-bar-container .nav-item-link:hover,
@@ -459,6 +487,16 @@
         white-space: nowrap !important;
         overflow: hidden !important;
         text-overflow: ellipsis !important;
+        opacity: 0 !important;
+        max-width: 0 !important;
+        transition: opacity 0.3s ease, max-width 0.3s ease !important;
+    }
+
+    /* Show text on hover */
+    .navigation-bar-container:hover .nav-item-text,
+    aside.navigation-bar-container:hover .nav-item-text {
+        opacity: 1 !important;
+        max-width: 200px !important;
     }
 
     .navigation-bar-container .nav-menu-list li.active .nav-item-text,
@@ -467,13 +505,13 @@
         font-weight: 600 !important;
     }
 
-    /* FIX SECTION LABELS - MAIN AND SETTINGS - NO SIZE CHANGES */
+    /* FIX SECTION LABELS - Collapsed state (icons only) */
     .navigation-bar-container .nav-section-label,
     aside.navigation-bar-container .nav-section-label {
         display: flex !important;
         align-items: center !important;
         gap: 0.375rem !important;
-        padding: 0.375rem 1rem !important;
+        padding: 0.375rem 0.5rem !important;
         font-size: 0.65rem !important;
         font-weight: 600 !important;
         text-transform: uppercase !important;
@@ -488,7 +526,15 @@
         box-sizing: border-box !important;
         transform: none !important;
         scale: 1 !important;
-        transition: none !important;
+        transition: padding 0.3s ease, justify-content 0.3s ease !important;
+        justify-content: center !important;
+    }
+
+    /* Expanded state on hover */
+    .navigation-bar-container:hover .nav-section-label,
+    aside.navigation-bar-container:hover .nav-section-label {
+        padding: 0.375rem 1rem !important;
+        justify-content: flex-start !important;
     }
 
     .navigation-bar-container .nav-section-label:hover,
@@ -542,6 +588,14 @@
         display: inline-block !important;
         line-height: 1 !important;
         flex-shrink: 0 !important;
+        margin: 0 !important;
+        transition: margin 0.3s ease !important;
+    }
+
+    /* Show margin on hover */
+    .navigation-bar-container:hover .nav-section-label i,
+    aside.navigation-bar-container:hover .nav-section-label i {
+        margin-right: 0.5rem !important;
     }
 
     .navigation-bar-container .nav-section-label:hover i,
@@ -564,6 +618,16 @@
         flex: 0 0 auto !important;
         transform: none !important;
         scale: 1 !important;
+        opacity: 0 !important;
+        max-width: 0 !important;
+        transition: opacity 0.3s ease, max-width 0.3s ease !important;
+    }
+
+    /* Show section label text on hover */
+    .navigation-bar-container:hover .nav-section-label span,
+    aside.navigation-bar-container:hover .nav-section-label span {
+        opacity: 1 !important;
+        max-width: 200px !important;
     }
 
     .navigation-bar-container .nav-section-label:hover span,
@@ -599,7 +663,16 @@
         box-sizing: border-box !important;
         transform: none !important;
         scale: 1 !important;
-        transition: background-color 0.3s ease !important;
+        transition: background-color 0.3s ease, padding 0.3s ease, justify-content 0.3s ease !important;
+        justify-content: center !important;
+    }
+
+    /* Expanded state on hover */
+    .navigation-bar-container:hover .user-profile-link,
+    aside.navigation-bar-container:hover .user-profile-link {
+        justify-content: flex-start !important;
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
     }
 
     .navigation-bar-container .user-profile-link:hover,
@@ -644,10 +717,20 @@
         flex: 1 !important;
         min-width: 0 !important;
         width: auto !important;
-        max-width: calc(100% - 50px) !important;
         box-sizing: border-box !important;
         transform: none !important;
         scale: 1 !important;
+        opacity: 0 !important;
+        max-width: 0 !important;
+        overflow: hidden !important;
+        transition: opacity 0.3s ease, max-width 0.3s ease !important;
+    }
+
+    /* Show user profile info on hover */
+    .navigation-bar-container:hover .user-profile-info,
+    aside.navigation-bar-container:hover .user-profile-info {
+        opacity: 1 !important;
+        max-width: calc(100% - 50px) !important;
     }
 
     .navigation-bar-container .user-profile-name,

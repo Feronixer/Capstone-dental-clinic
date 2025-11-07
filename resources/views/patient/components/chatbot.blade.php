@@ -1,9 +1,10 @@
 @if(!empty($chatbotSetting) && $chatbotSetting->enabled)
 <style>
     .chatbot-toggle-btn {
-        position: fixed;
-        right: 24px;
-        bottom: 24px;
+        position: fixed !important;
+        right: 24px !important;
+        left: auto !important;
+        bottom: 24px !important;
         width: 60px;
         height: 60px;
         border-radius: 50%;
@@ -19,6 +20,38 @@
         padding: 8px;
     }
 
+    .chatbot-unread-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        min-width: 20px;
+        height: 20px;
+        padding: 0 5px;
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: white;
+        border-radius: 10px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid white;
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.5);
+        z-index: 10;
+        animation: badgePulse 2s ease-in-out infinite;
+    }
+
+    @keyframes badgePulse {
+        0%, 100% {
+            transform: scale(1);
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.5);
+        }
+        50% {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.7);
+        }
+    }
+
     .chatbot-toggle-btn:hover {
         transform: translateY(-2px) scale(1.05);
         box-shadow: 0 14px 36px rgba(33, 150, 243, 0.45);
@@ -32,9 +65,10 @@
     }
 
     .chatbot-widget {
-        position: fixed;
-        right: 24px;
-        bottom: 92px;
+        position: fixed !important;
+        right: 24px !important;
+        left: auto !important;
+        bottom: 92px !important;
         width: 340px;
         max-width: calc(100vw - 32px);
         border-radius: 16px;
@@ -211,7 +245,17 @@
     }
 
     @media (max-width: 480px) {
-        .chatbot-widget { right: 16px; left: 16px; width: auto; }
+        .chatbot-toggle-btn {
+            right: 16px !important;
+            left: auto !important;
+            bottom: 16px !important;
+        }
+        .chatbot-widget { 
+            right: 16px !important; 
+            left: 16px !important; 
+            width: auto; 
+            bottom: 88px !important;
+        }
         .chatbot-messages { height: 240px; }
     }
 
@@ -332,6 +376,7 @@
 
 <div id="chatbot-toggle" class="chatbot-toggle-btn" aria-label="Open chat" title="Chat with us">
     <img src="{{ asset('images/chatbot-logo_3.png') }}" alt="ToothTalk Assistant">
+    <span class="chatbot-unread-badge" id="patient-chat-badge" style="display: none;">0</span>
 </div>
 
 <div id="chatbot" class="chatbot-widget" role="dialog" aria-modal="false" aria-labelledby="chatbotTitle">
@@ -386,6 +431,8 @@
         let pollingInterval = null;
         let lastMessageId = null;
         let faqInitialized = false;
+        let liveChatMessages = []; // Store live chat messages
+        let faqMessages = []; // Store FAQ messages
 
         const quickIntents = {!! json_encode($chatbotSetting->quick_intents ?? []) !!};
         const faqRaw = @json($chatbotFaqs ?? []);
@@ -484,7 +531,7 @@
             }
 
             if (greetingPatterns.some(pattern => qLower.includes(pattern))) {
-                return 'Hello! Welcome to our dental clinic. How can I assist you today? You can ask about our services, hours, pricing, or schedule an appointment.';
+                return 'Hello! Welcome to J Valera dental clinic. How can I assist you today? You can ask about our services, hours, pricing, or schedule an appointment.';
             }
 
             if (servicePatterns.some(pattern => qLower.includes(pattern))) {
@@ -643,18 +690,39 @@
             }
         }
 
+        function restoreLiveChatMessages() {
+            messagesEl.innerHTML = '';
+            if (liveChatMessages.length === 0) {
+                addMessage("Hello! 👋 Welcome to our dental clinic chat. Our staff is here to assist you with any questions or concerns. How can we help you today?", 'bot');
+            } else {
+                liveChatMessages.forEach(msg => {
+                    const sender = msg.sender_type === 'patient' ? 'user' : msg.sender_type;
+                    addMessage(msg.message, sender);
+                });
+            }
+        }
+
         async function loadMessages() {
             if (!conversationId) return;
             try {
                 const response = await fetch(`{{ route("patient-chat.messages") }}?conversation_id=${conversationId}`);
                 const data = await response.json();
-                data.messages.forEach(msg => {
-                    const sender = msg.sender_type === 'patient' ? 'user' : msg.sender_type;
-                    addMessage(msg.message, sender);
-                    if (!lastMessageId || msg.id > lastMessageId) {
-                        lastMessageId = msg.id;
-                    }
-                });
+                
+                // Store messages for restoration when switching tabs
+                liveChatMessages = data.messages || [];
+                
+                // Show welcome message if no messages exist
+                if (liveChatMessages.length === 0) {
+                    addMessage("Hello! 👋 Welcome to our dental clinic chat. Our staff is here to assist you with any questions or concerns. How can we help you today?", 'bot');
+                } else {
+                    liveChatMessages.forEach(msg => {
+                        const sender = msg.sender_type === 'patient' ? 'user' : msg.sender_type;
+                        addMessage(msg.message, sender);
+                        if (!lastMessageId || msg.id > lastMessageId) {
+                            lastMessageId = msg.id;
+                        }
+                    });
+                }
             } catch (error) {
                 console.error('Error loading messages:', error);
             }
@@ -663,7 +731,7 @@
         function startPolling() {
             if (pollingInterval) clearInterval(pollingInterval);
             pollingInterval = setInterval(async () => {
-                if (!conversationId) return;
+                if (!conversationId || currentMode !== 'live-chat') return;
                 try {
                     const response = await fetch(`{{ route("patient-chat.messages") }}?conversation_id=${conversationId}`);
                     const data = await response.json();
@@ -671,6 +739,8 @@
                         if (msg.id > lastMessageId) {
                             const sender = msg.sender_type === 'patient' ? 'user' : msg.sender_type;
                             addMessage(msg.message, sender);
+                            // Update stored messages
+                            liveChatMessages.push(msg);
                             lastMessageId = msg.id;
                         }
                     });
@@ -683,6 +753,12 @@
         async function sendLiveMessage(text) {
             if (!conversationId) return;
             addMessage(text, 'user');
+            // Store user message
+            liveChatMessages.push({
+                sender_type: 'patient',
+                message: text,
+                id: Date.now() // Temporary ID
+            });
             inputEl.value = '';
 
             try {
@@ -699,6 +775,13 @@
                 });
                 const data = await response.json();
                 if (data.success) {
+                    // Update the temporary message with the real one
+                    const lastIndex = liveChatMessages.length - 1;
+                    if (liveChatMessages[lastIndex] && liveChatMessages[lastIndex].id === Date.now()) {
+                        liveChatMessages[lastIndex] = data.message;
+                    } else {
+                        liveChatMessages.push(data.message);
+                    }
                     lastMessageId = data.message.id;
                 }
             } catch (error) {
@@ -713,6 +796,36 @@
         }
 
         function switchTab(mode) {
+            // Store current messages before switching
+            if (currentMode === 'live-chat') {
+                // Save current live chat messages state
+                const currentMessages = Array.from(messagesEl.children).map(el => {
+                    const isUser = el.classList.contains('user');
+                    return {
+                        sender_type: isUser ? 'patient' : 'bot',
+                        message: isUser ? el.textContent : el.innerHTML,
+                        isUser: isUser
+                    };
+                }).filter(msg => msg.message && msg.message.trim());
+                // Only update if we have messages (not just welcome message)
+                if (currentMessages.length > 0) {
+                    liveChatMessages = currentMessages;
+                }
+            } else if (currentMode === 'faqs') {
+                // Save current FAQ messages state
+                const currentMessages = Array.from(messagesEl.children).map(el => {
+                    const isUser = el.classList.contains('user');
+                    return {
+                        sender_type: isUser ? 'patient' : 'bot',
+                        message: isUser ? el.textContent : el.innerHTML,
+                        isUser: isUser
+                    };
+                }).filter(msg => msg.message && msg.message.trim());
+                if (currentMessages.length > 0) {
+                    faqMessages = currentMessages;
+                }
+            }
+
             currentMode = mode;
             tabLiveChat.classList.toggle('active', mode === 'live-chat');
             tabFaqs.classList.toggle('active', mode === 'faqs');
@@ -726,15 +839,16 @@
                 chipsEl.style.display = 'none';
                 chipsEl.innerHTML = '';
                 stopPolling();
-                checkAuth().then(isAuth => {
+                checkAuth().then(async isAuth => {
                     if (isAuth) {
-                        messagesEl.innerHTML = '';
                         inputEl.disabled = false;
                         sendBtn.disabled = false;
                         if (!conversationId) {
                             initializeLiveChat();
                         } else {
-                            loadMessages();
+                            // Always load fresh messages from server to ensure we have the latest
+                            messagesEl.innerHTML = '';
+                            await loadMessages();
                             startPolling();
                         }
                     } else {
@@ -767,13 +881,23 @@
                 stopPolling();
                 inputEl.disabled = false;
                 sendBtn.disabled = false;
-                messagesEl.innerHTML = '';
-                showTypingIndicator();
-                setTimeout(() => {
-                    hideTypingIndicator();
-                    addMessage(@json($chatbotSetting->welcome_message ?: 'Welcome! How can I help today?'), 'bot');
+                
+                // Restore FAQ messages if available
+                if (faqMessages.length > 0) {
+                    messagesEl.innerHTML = '';
+                    faqMessages.forEach(msg => {
+                        addMessage(msg.message, msg.isUser ? 'user' : 'bot');
+                    });
                     renderChips();
-                }, 600);
+                } else {
+                    messagesEl.innerHTML = '';
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage(@json($chatbotSetting->welcome_message ?: 'Welcome! How can I help today?'), 'bot');
+                        renderChips();
+                    }, 600);
+                }
             }
         }
 
@@ -814,6 +938,34 @@
 
         widget.setAttribute('aria-hidden', 'true');
     })();
+
+    // Chat unread count polling for patient
+    let patientChatUnreadInterval = null;
+    
+    async function updatePatientChatUnreadCount() {
+        try {
+            const response = await fetch('{{ route("patient-chat.unread-count") }}');
+            const data = await response.json();
+            const badge = document.getElementById('patient-chat-badge');
+            
+            if (badge) {
+                if (data.count > 0) {
+                    badge.textContent = data.count > 99 ? '99+' : data.count;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching patient chat unread count:', error);
+        }
+    }
+    
+    // Start polling for chat unread count
+    if (document.getElementById('patient-chat-badge')) {
+        updatePatientChatUnreadCount(); // Initial load
+        patientChatUnreadInterval = setInterval(updatePatientChatUnreadCount, 10000); // Update every 10 seconds
+    }
 </script>
 @endif
 

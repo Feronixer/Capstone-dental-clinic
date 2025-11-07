@@ -355,7 +355,7 @@
 
             <!-- Progress Notes Section -->
             <div class="content-section d-none" id="progress-notes-section">
-                <div class="form-header mb-4" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); color: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(23, 162, 184, 0.2);">
+                <div class="form-header mb-4" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); color: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(13, 110, 253, 0.2);">
                     <h5 class="mb-0 fw-bold">
                         <i class="bi bi-journal-text me-2"></i>Progress Notes
                     </h5>
@@ -363,9 +363,9 @@
                 </div>
 
                 <!-- Patient Selection -->
-                <div class="card mb-4" style="border: 2px solid #17a2b8; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
-                    <div class="card-header" style="background: linear-gradient(135deg, #e7f9fc 0%, #d0f4fa 100); border-bottom: 2px solid #17a2b8;">
-                        <h6 class="mb-0 fw-bold text-info">
+                <div class="card mb-4" style="border: 2px solid #0d6efd; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+                    <div class="card-header" style="background: linear-gradient(135deg, #e7f1ff 0%, #cfe2ff 100%); border-bottom: 2px solid #0d6efd;">
+                        <h6 class="mb-0 fw-bold text-primary">
                             <i class="bi bi-person-circle me-2"></i>Select Patient
                         </h6>
                     </div>
@@ -373,15 +373,15 @@
                         <div class="position-relative mt-2">
                             <input type="text" class="form-control form-control-lg patient-search-input" id="progressNotePatientSearch"
                                    placeholder="Start typing patient name or username..." autocomplete="off"
-                                   style="border: 2px solid #17a2b8; border-radius: 8px; padding-left: 45px;">
-                            <i class="bi bi-search position-absolute" style="left: 15px; top: 50%; transform: translateY(-50%); color: #17a2b8; font-size: 1.2rem;"></i>
+                                   style="border: 2px solid #0d6efd; border-radius: 8px; padding-left: 45px;">
+                            <i class="bi bi-search position-absolute" style="left: 15px; top: 50%; transform: translateY(-50%); color: #0d6efd; font-size: 1.2rem;"></i>
                             <div id="progressNotePatientSearchResults" class="search-results-dropdown"></div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Selected Patient Info Alert -->
-                <div id="selectedProgressNotePatientAlert" class="alert alert-info d-none mb-4" style="background: linear-gradient(135deg, #e7f9fc 0%, #d0f4fa 100%); border: 1px solid #17a2b8; border-radius: 8px;">
+                <div id="selectedProgressNotePatientAlert" class="alert alert-info d-none mb-4" style="background: linear-gradient(135deg, #e7f1ff 0%, #cfe2ff 100%); border: 1px solid #0d6efd; border-radius: 8px;">
                     <div class="d-flex align-items-center">
                         <i class="bi bi-check-circle-fill text-success me-2" style="font-size: 1.5rem;"></i>
                         <div>
@@ -393,8 +393,8 @@
 
                 <!-- Progress Notes Table -->
                 <div id="progressNotesTableContainer">
-                    <div class="card mb-4" style="border: 2px solid #17a2b8; border-radius: 12px;">
-                        <div class="card-header" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); color: white;">
+                    <div class="card mb-4" style="border: 2px solid #0d6efd; border-radius: 12px;">
+                        <div class="card-header" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); color: white;">
                             <div class="d-flex justify-content-between align-items-center">
                                 <h6 class="mb-0 fw-bold">
                                     <i class="bi bi-table me-2"></i>Progress Notes History
@@ -409,11 +409,12 @@
                                 <table class="table table-bordered mb-0" id="progressNotesTable">
                                     <thead class="table-light">
                                         <tr>
-                                            <th style="width: 15%;">DATE</th>
-                                            <th style="width: 25%;">Progress Note</th>
-                                            <th style="width: 20%;">Oral Hygiene</th>
-                                            <th style="width: 25%;">Conformed Practices</th>
-                                            <th style="width: 15%;" class="text-center">Actions</th>
+                                            <th style="width: 12%;" class="text-center">DATE</th>
+                                            <th style="width: 30%;" class="text-center">PROGRESS NOTES</th>
+                                            <th style="width: 15%;" class="text-center">AMOUNT<br>PAID</th>
+                                            <th style="width: 15%;" class="text-center">BALANCE</th>
+                                            <th style="width: 18%;" class="text-center">CONFORME</th>
+                                            <th style="width: 10%;" class="text-center">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody id="progressNotesTableBody">
@@ -425,11 +426,11 @@
                     </div>
 
                     <!-- Save Progress Notes (auto-sent to patient on save) -->
-                    <div class="card mb-4" style="border: 2px solid #17a2b8; border-radius: 12px; background: linear-gradient(135deg, #f8fdfe 0%, #f0fbfc 100%);">
+                    <div class="card mb-4" style="border: 2px solid #0d6efd; border-radius: 12px; background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);">
                         <div class="card-body">
                             <div class="row align-items-end">
                                 <div class="col-md-12">
-                                    <button type="button" class="btn btn-info btn-lg w-100" id="sendProgressNoteBtn"
+                                    <button type="button" class="btn btn-primary btn-lg w-100" id="sendProgressNoteBtn"
                                             style="border-radius: 10px; font-weight: 600; padding: 0.75rem;">
                                         <i class="bi bi-floppy-fill me-2"></i>Save Progress Notes
                                     </button>
@@ -6151,15 +6152,18 @@ function loadProgressNotes(patientId) {
                     .then(response => response.json())
                     .then(notesData => {
                         if (notesData.success && notesData.data.length > 0) {
-                            showNotification(`✅ Found ${notesData.data.length} existing progress note${notesData.data.length > 1 ? 's' : ''} for this patient`, 'success');
+                            showNotification(`✅ Found ${notesData.data.length} existing progress note${notesData.data.length > 1 ? 's' : ''} for this patient. You can add new rows below.`, 'success');
                             progressNoteRows = notesData.data.map((note, index) => ({
                                 id: note.id,
                                 date: note.note_date,
                                 progressNote: note.progress_description || '',
-                                oralHygiene: note.treatment_response || '',
-                                conformedPractices: note.next_steps || '',
+                                amountPaid: note.amount_paid || '',
+                                balance: note.balance || '',
+                                conforme: note.conforme || '',
                                 rowId: progressNoteRowCounter++
                             }));
+                            // Add one empty row for new entry
+                            addProgressNoteRow();
                             renderProgressNotesTable();
                         } else {
                             // No existing notes, start fresh
@@ -6198,8 +6202,9 @@ function addProgressNoteRow() {
         id: null,
         date: today,
         progressNote: '',
-        oralHygiene: '',
-        conformedPractices: '',
+        amountPaid: '',
+        balance: '',
+        conforme: '',
         rowId: rowId
     });
 
@@ -6212,32 +6217,51 @@ function renderProgressNotesTable() {
     let html = '';
 
     progressNoteRows.forEach((row, index) => {
+        const isExisting = row.id !== null && row.id !== undefined;
+        const rowClass = isExisting ? 'existing-note-row' : 'new-note-row';
+        const readonlyAttr = isExisting ? 'readonly' : '';
+        const disabledAttr = isExisting ? 'disabled' : '';
+        const bgColor = isExisting ? 'background-color: #f8f9fa;' : '';
+        
         html += `
-            <tr data-row-id="${row.rowId}">
+            <tr data-row-id="${row.rowId}" data-note-id="${row.id || ''}" class="${rowClass}" style="${bgColor}">
                 <td>
-                    <input type="date" class="form-control" value="${row.date}"
-                           onchange="updateProgressNoteRow(${row.rowId}, 'date', this.value)">
+                    <input type="date" class="form-control form-control-sm" value="${row.date || ''}"
+                           onchange="updateProgressNoteRow(${row.rowId}, 'date', this.value)"
+                           ${readonlyAttr} style="${bgColor}">
                 </td>
                 <td>
-                    <textarea class="form-control" rows="2"
+                    <textarea class="form-control form-control-sm" rows="2"
                               onchange="updateProgressNoteRow(${row.rowId}, 'progressNote', this.value)"
-                              placeholder="Treatment progress...">${row.progressNote}</textarea>
+                              placeholder="Treatment progress..." ${readonlyAttr} style="${bgColor}">${row.progressNote || ''}</textarea>
                 </td>
                 <td>
-                    <textarea class="form-control" rows="2"
-                              onchange="updateProgressNoteRow(${row.rowId}, 'oralHygiene', this.value)"
-                              placeholder="Hygiene assessment...">${row.oralHygiene}</textarea>
+                    <input type="number" class="form-control form-control-sm" step="0.01" min="0"
+                           value="${row.amountPaid || ''}"
+                           onchange="updateProgressNoteRow(${row.rowId}, 'amountPaid', this.value)"
+                           placeholder="0.00" ${readonlyAttr} style="${bgColor}">
                 </td>
                 <td>
-                    <textarea class="form-control" rows="2"
-                              onchange="updateProgressNoteRow(${row.rowId}, 'conformedPractices', this.value)"
-                              placeholder="Recommended practices...">${row.conformedPractices}</textarea>
+                    <input type="number" class="form-control form-control-sm" step="0.01" min="0"
+                           value="${row.balance || ''}"
+                           onchange="updateProgressNoteRow(${row.rowId}, 'balance', this.value)"
+                           placeholder="0.00" ${readonlyAttr} style="${bgColor}">
+                </td>
+                <td>
+                    <input type="text" class="form-control form-control-sm"
+                           value="${row.conforme || ''}"
+                           onchange="updateProgressNoteRow(${row.rowId}, 'conforme', this.value)"
+                           placeholder="Conforme..." ${readonlyAttr} style="${bgColor}">
                 </td>
                 <td class="text-center">
-                    <button type="button" class="btn btn-danger btn-sm"
-                            onclick="deleteProgressNoteRow(${row.rowId})">
-                        <i class="bi bi-trash"></i>
-                    </button>
+                    ${isExisting ? `
+                        <span class="badge bg-secondary" title="Existing note - cannot be deleted">Existing</span>
+                    ` : `
+                        <button type="button" class="btn btn-danger btn-sm"
+                                onclick="deleteProgressNoteRow(${row.rowId})" title="Delete row">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    `}
                 </td>
             </tr>
         `;
@@ -6256,6 +6280,13 @@ function updateProgressNoteRow(rowId, field, value) {
 
 // Delete progress note row
 function deleteProgressNoteRow(rowId) {
+    const row = progressNoteRows.find(r => r.rowId === rowId);
+    if (row && row.id) {
+        // Cannot delete existing notes from here
+        showNotification('Cannot delete existing progress notes. They are read-only.', 'warning');
+        return;
+    }
+    
     if (confirm('Are you sure you want to delete this row?')) {
         progressNoteRows = progressNoteRows.filter(r => r.rowId !== rowId);
         renderProgressNotesTable();
@@ -6351,20 +6382,23 @@ function initializeProgressNotesSearch() {
                 return;
             }
 
-            // Validate that at least one row has data
-            const hasData = progressNoteRows.some(row =>
-                row.progressNote || row.oralHygiene || row.conformedPractices
+            // Filter out existing notes (those with id) - only send new rows
+            const newRows = progressNoteRows.filter(row => !row.id);
+            
+            // Validate that at least one new row has data
+            const hasData = newRows.some(row =>
+                row.progressNote || row.amountPaid || row.balance || row.conforme
             );
 
             if (!hasData) {
-                showNotification('Please add at least one progress note entry', 'warning');
+                showNotification('Please add at least one new progress note entry', 'warning');
                 return;
             }
 
-            // Prepare the data to send
+            // Prepare the data to send - only new rows (without id)
             const progressNotesData = {
                 patient_id: selectedProgressNotePatient.id,
-                notes: progressNoteRows,
+                notes: newRows,
                 send_to_patient: true
             };
 

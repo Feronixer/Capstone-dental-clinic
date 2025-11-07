@@ -450,17 +450,33 @@ body.admin-body .navigation-bar-container {
 body.admin-body main {
     overflow-y: auto !important;
     overflow-x: hidden !important;
-    width: 100%;
+    width: calc(100vw - 80px) !important;
+    max-width: calc(100vw - 80px) !important;
     flex: 1;
+    transition: width 0.3s ease, max-width 0.3s ease !important;
 }
 
-/* Lock navigation sidebar width */
+/* Adjust main content when sidebar is hovered */
+body.admin-body:has(.navigation-bar-container:hover) main {
+    width: calc(100vw - 260px) !important;
+    max-width: calc(100vw - 260px) !important;
+}
+
+/* Collapsible navigation sidebar - default collapsed */
 body.admin-body .navigation-bar-container {
+    width: 80px !important;
+    min-width: 80px !important;
+    max-width: 80px !important;
+    flex-shrink: 0 !important;
+    flex-grow: 0 !important;
+    transition: width 0.3s ease, min-width 0.3s ease, max-width 0.3s ease !important;
+}
+
+/* Expanded state on hover */
+body.admin-body .navigation-bar-container:hover {
     width: 260px !important;
     min-width: 260px !important;
     max-width: 260px !important;
-    flex-shrink: 0 !important;
-    flex-grow: 0 !important;
 }
 
 .container-fluid {

@@ -193,7 +193,7 @@
 
 [data-theme="dark"] #progress-notes-section .patient-search-input {
     background: var(--dm-input-bg) !important;
-    border-color: #17a2b8 !important;
+    border-color: #0d6efd !important;
     color: #ffffff !important;
 }
 
@@ -202,11 +202,11 @@
 }
 
 [data-theme="dark"] #progress-notes-section .bi-search {
-    color: #17a2b8 !important;
+    color: #0d6efd !important;
 }
 
 [data-theme="dark"] #progressNotesTableContainer .card-header {
-    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%) !important;
     color: white !important;
 }
 
@@ -218,7 +218,7 @@
 
 [data-theme="dark"] #addProgressNoteRowBtn:hover {
     background: var(--dm-bg-tertiary) !important;
-    border-color: #17a2b8 !important;
+    border-color: #0d6efd !important;
     color: #ffffff !important;
 }
 
@@ -265,22 +265,22 @@
 }
 
 [data-theme="dark"] #progress-notes-section .card {
-    border-color: #17a2b8 !important;
+    border-color: #0d6efd !important;
 }
 
-[data-theme="dark"] #progress-notes-section .card-header.text-info {
+[data-theme="dark"] #progress-notes-section .card-header.text-primary {
     background: var(--dm-card-bg) !important;
-    border-bottom-color: #17a2b8 !important;
+    border-bottom-color: #0d6efd !important;
     color: #ffffff !important;
 }
 
-[data-theme="dark"] #progress-notes-section .card-header.text-info h6 {
+[data-theme="dark"] #progress-notes-section .card-header.text-primary h6 {
     color: #ffffff !important;
 }
 
 [data-theme="dark"] #progress-notes-section .alert-info {
     background: linear-gradient(135deg, var(--dm-bg-secondary) 0%, var(--dm-card-bg) 100%) !important;
-    border-color: #17a2b8 !important;
+    border-color: #0d6efd !important;
     color: #ffffff !important;
 }
 
@@ -292,8 +292,8 @@
 [data-theme="dark"] #selectedPatientInfoAlert,
 [data-theme="dark"] #selectedHistoryPatientInfoAlert,
 [data-theme="dark"] #selectedProgressNotePatientAlert {
-    background: linear-gradient(135deg, rgba(23, 162, 184, 0.2) 0%, rgba(19, 132, 150, 0.15) 100%) !important;
-    border-color: #17a2b8 !important;
+    background: linear-gradient(135deg, rgba(13, 110, 253, 0.2) 0%, rgba(10, 88, 202, 0.15) 100%) !important;
+    border-color: #0d6efd !important;
     color: #ffffff !important;
 }
 

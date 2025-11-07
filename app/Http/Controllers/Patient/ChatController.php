@@ -120,5 +120,23 @@ class ChatController extends Controller
             'user_id' => Auth::id(),
         ]);
     }
+
+    /**
+     * Get unread messages count for patient
+     */
+    public function getUnreadCount()
+    {
+        $patientId = Auth::id();
+        
+        $count = ChatConversation::where('patient_id', $patientId)
+            ->where('status', '!=', 'closed')
+            ->whereHas('messages', function($q) {
+                $q->whereIn('sender_type', ['admin', 'staff'])
+                  ->where('is_read', false);
+            })
+            ->count();
+
+        return response()->json(['count' => $count]);
+    }
 }
 

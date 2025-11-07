@@ -44,9 +44,9 @@ class DashboardController extends Controller
         // Get total appointments count (all time)
         $totalAppointments = Appointment::where('status', '!=', 'blocked')->count();
 
-        // Get staff members count (role_id = 1 for admin, 2 for staff)
+        // Get staff members count (role_id = 2 for staff only, excluding admins)
         $staffMembers = User::whereHas('info', function($query) {
-            $query->whereIn('role_id', [1, 2]);
+            $query->where('role_id', 2);
         })->count();
 
         // Get today's appointments with details (only active appointments)

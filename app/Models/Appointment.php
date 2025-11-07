@@ -21,7 +21,11 @@ class Appointment extends Model
         'patient_feedback',
         'rated_at',
         'rescheduled_at',
-        'original_datetime'
+        'original_datetime',
+        'reminder_24h_sent',
+        'reminder_3h_sent',
+        'reminder_24h_sent_at',
+        'reminder_3h_sent_at'
     ];
 
     protected $casts = [
@@ -32,7 +36,11 @@ class Appointment extends Model
         'rating' => 'integer',
         'rated_at' => 'datetime',
         'rescheduled_at' => 'datetime',
-        'original_datetime' => 'datetime'
+        'original_datetime' => 'datetime',
+        'reminder_24h_sent' => 'boolean',
+        'reminder_3h_sent' => 'boolean',
+        'reminder_24h_sent_at' => 'datetime',
+        'reminder_3h_sent_at' => 'datetime'
     ];
 
     public function patient(): BelongsTo

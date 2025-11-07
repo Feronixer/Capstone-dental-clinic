@@ -59,29 +59,63 @@ class PatientRecord extends Controller
      */
     public function show($id)
     {
-        $userId = Auth::id();
+        try {
+            $userId = Auth::id();
 
-        // Get the record and ensure it belongs to the authenticated patient
-        $record = PatientRecordModel::where('id', $id)
-            ->where('user_id', $userId)
-            ->where('sent_to_patient', true)
-            ->with([
-                'user.info',
-                'appointment.service',
-                'patientHistories' => function($query) {
-                    $query->where('sent_to_patient', true)
-                          ->orderBy('visit_date', 'desc');
-                },
-                'progressNotes' => function($query) {
-                    $query->orderBy('note_date', 'desc');
-                }
-            ])
-            ->firstOrFail();
+            // Get the record and ensure it belongs to the authenticated patient
+            $record = PatientRecordModel::where('id', $id)
+                ->where('user_id', $userId)
+                ->where('sent_to_patient', true)
+                ->with([
+                    'user.info',
+                    'appointment.service',
+                    'patientHistories' => function($query) {
+                        $query->where('sent_to_patient', true)
+                              ->orderBy('visit_date', 'desc');
+                    },
+                    'progressNotes' => function($query) {
+                        $query->with('createdBy.info')->orderBy('note_date', 'asc');
+                    }
+                ])
+                ->firstOrFail();
 
-        return response()->json([
-            'success' => true,
-            'record' => $record
-        ]);
+            // Ensure progressNotes are loaded and accessible
+            $record->load('progressNotes');
+            
+            // Convert to array to ensure relationships are included
+            $recordArray = $record->toArray();
+            
+            // Explicitly include progressNotes if they exist
+            if ($record->progressNotes) {
+                $recordArray['progressNotes'] = $record->progressNotes->toArray();
+            }
+            
+            // Log for debugging
+            \Log::info('Loading patient record', [
+                'record_id' => $record->id,
+                'progress_notes_count' => $record->progressNotes->count(),
+                'progress_notes_loaded' => $record->progressNotes->count() > 0
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'record' => $recordArray,
+                'progress_notes_count' => $record->progressNotes->count() // Debug info
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Record not found or access denied.'
+            ], 404);
+        } catch (\Exception $e) {
+            \Log::error('Error loading patient record: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Error loading record: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -212,5 +246,27 @@ class PatientRecord extends Controller
             ->firstOrFail();
 
         return view('patient.pdf.progress-note', compact('note'));
+    }
+
+    /**
+     * Download all progress notes for a patient record as consolidated PDF
+     */
+    public function downloadAllProgressNotes($recordId)
+    {
+        $userId = Auth::id();
+
+        // Get the record and ensure it belongs to the authenticated patient
+        $record = PatientRecordModel::where('id', $recordId)
+            ->where('user_id', $userId)
+            ->where('sent_to_patient', true)
+            ->with([
+                'user.info',
+                'progressNotes' => function($query) {
+                    $query->with('createdBy.info')->orderBy('note_date', 'asc');
+                }
+            ])
+            ->firstOrFail();
+
+        return view('patient.pdf.progress-notes-all', compact('record'));
     }
 }

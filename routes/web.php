@@ -175,6 +175,7 @@ Route::middleware(['auth:admin'])->group(function(): void{
     Route::get('/admin/chat/conversations/{id}/messages', [App\Http\Controllers\Admin\ChatController::class, 'getMessages'])->name('admin-chat.messages');
     Route::post('/admin/chat/conversations/{id}/send', [App\Http\Controllers\Admin\ChatController::class, 'sendMessage'])->name('admin-chat.send');
     Route::put('/admin/chat/conversations/{id}/status', [App\Http\Controllers\Admin\ChatController::class, 'updateStatus'])->name('admin-chat.update-status');
+    Route::delete('/admin/chat/conversations/{id}', [App\Http\Controllers\Admin\ChatController::class, 'deleteConversation'])->name('admin-chat.delete');
     Route::get('/admin/chat/unread-count', [App\Http\Controllers\Admin\ChatController::class, 'getUnreadCount'])->name('admin-chat.unread-count');
 
     // Admin Logout Route
@@ -339,6 +340,7 @@ Route::middleware(['auth:web'])->group(function(): void{
     Route::get('/patient/home', [PatientDashboardController::class, 'index'])->name('patient-home');
     Route::get('/patient/calendar', [CalendarController::class, 'index'])->name('patient-calendar');
     Route::get('/patient/calendar/server-time', [CalendarController::class, 'getServerTime'])->name('patient-calendar.server-time');
+    Route::get('/patient/calendar/poll', [CalendarController::class, 'poll'])->name('patient-calendar.poll');
     Route::post('/patient/calendar/submit-request', [CalendarController::class, 'submitRequest'])->name('patient-calendar.submit-request');
     Route::get('/patient/profile', [PatientProfileController::class, 'index'])->name('patient-profile');
     Route::get('/patient/record', [PatientRecord::class, 'index'])->name('patient-record');
@@ -350,6 +352,7 @@ Route::middleware(['auth:web'])->group(function(): void{
     Route::get('/patient/history/{id}/download', [PatientRecord::class, 'downloadHistory'])->name('patient-history.download');
     Route::get('/patient/progress-note/{id}', [PatientRecord::class, 'showProgressNote'])->name('patient-progress-note.show');
     Route::get('/patient/progress-note/{id}/download', [PatientRecord::class, 'downloadProgressNote'])->name('patient-progress-note.download');
+    Route::get('/patient/record/{recordId}/progress-notes/download', [PatientRecord::class, 'downloadAllProgressNotes'])->name('patient-progress-notes-all.download');
     Route::get('/patient/announcement', [AnnouncementController::class, 'index'])->name('patient-announcement');
     Route::get('/patient/about', function() {
         $chatbotSetting = App\Models\ChatbotSetting::first() ?? App\Models\ChatbotSetting::create([
@@ -372,6 +375,7 @@ Route::middleware(['auth:web'])->group(function(): void{
     // Patient Notification Routes
     Route::get('/patient/notifications', [App\Http\Controllers\Patient\NotificationController::class, 'index'])->name('patient-notifications');
     Route::get('/patient/notifications/recent', [App\Http\Controllers\Patient\NotificationController::class, 'getRecent'])->name('patient-notifications.recent');
+    Route::get('/patient/notifications/poll', [App\Http\Controllers\Patient\NotificationController::class, 'poll'])->name('patient-notifications.poll');
     Route::get('/patient/notifications/{id}', [App\Http\Controllers\Patient\NotificationController::class, 'show'])->name('patient-notifications.show');
     Route::get('/patient/notifications/unread-count', [App\Http\Controllers\Patient\NotificationController::class, 'getUnreadCount'])->name('patient-notifications.unread-count');
     Route::post('/patient/notifications/{id}/read', [App\Http\Controllers\Patient\NotificationController::class, 'markAsRead'])->name('patient-notifications.mark-read');
@@ -391,6 +395,7 @@ Route::middleware(['auth:web'])->group(function(): void{
     Route::get('/patient/chat/conversation', [App\Http\Controllers\Patient\ChatController::class, 'getConversation'])->name('patient-chat.conversation');
     Route::get('/patient/chat/messages', [App\Http\Controllers\Patient\ChatController::class, 'getMessages'])->name('patient-chat.messages');
     Route::post('/patient/chat/send', [App\Http\Controllers\Patient\ChatController::class, 'sendMessage'])->name('patient-chat.send');
+    Route::get('/patient/chat/unread-count', [App\Http\Controllers\Patient\ChatController::class, 'getUnreadCount'])->name('patient-chat.unread-count');
 
     // Patient Logout Route
     Route::post('/logout', [AuthController::class,'logout'])->name('logout');

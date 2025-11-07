@@ -82,6 +82,51 @@ class NotificationController extends Controller
     }
 
     /**
+     * Poll for new notifications since last check
+     */
+    public function poll(Request $request): JsonResponse
+    {
+        $lastCheck = $request->input('last_check');
+        
+        $query = Notification::where('user_id', auth()->id());
+        
+        if ($lastCheck) {
+            $query->where('created_at', '>', $lastCheck);
+        } else {
+            // If no last_check, return last 5 notifications
+            $query->orderBy('created_at', 'desc')->limit(5);
+        }
+        
+        $newNotifications = $query->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function($notification) {
+                return [
+                    'id' => $notification->id,
+                    'type' => $notification->type,
+                    'title' => $notification->title,
+                    'message' => $notification->message,
+                    'icon_class' => $notification->icon_class,
+                    'icon_color' => $notification->icon_color,
+                    'is_read' => $notification->is_read,
+                    'time_ago' => $notification->time_ago,
+                    'created_at' => $notification->created_at->toISOString(),
+                    'data' => $notification->data,
+                ];
+            });
+
+        $unreadCount = Notification::where('user_id', auth()->id())
+            ->unread()
+            ->count();
+
+        return response()->json([
+            'notifications' => $newNotifications,
+            'unread_count' => $unreadCount,
+            'has_new' => $newNotifications->count() > 0,
+            'timestamp' => now()->toISOString(),
+        ]);
+    }
+
+    /**
      * Get notification details
      */
     public function show($id): JsonResponse

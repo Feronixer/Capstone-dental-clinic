@@ -660,15 +660,15 @@ header {
 }
 
 :root {
-    --nav-expanded-width: 260px;
-    --nav-collapsed-width: 80px;
+    --nav-expanded-width: 220px;
+    --nav-collapsed-width: 64px;
 }
 
 .navigation-bar-container {
     background-color: var(--navigation-bar-color);
-    width: var(--nav-collapsed-width);
-    min-width: var(--nav-collapsed-width);
-    max-width: var(--nav-collapsed-width);
+    width: var(--nav-expanded-width);
+    min-width: var(--nav-expanded-width);
+    max-width: var(--nav-expanded-width);
     display: flex;
     flex-direction: column;
     box-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
@@ -677,6 +677,14 @@ header {
     transition: width 0.3s ease, min-width 0.3s ease, max-width 0.3s ease;
 }
 
+/* When mouse leaves, sidebar stays expanded (default state) */
+.navigation-bar-container:not(:hover):not(:focus-within) {
+    width: var(--nav-expanded-width);
+    min-width: var(--nav-expanded-width);
+    max-width: var(--nav-expanded-width);
+}
+
+/* When mouse hovers, sidebar stays expanded */
 .navigation-bar-container:hover,
 .navigation-bar-container:focus-within {
     width: var(--nav-expanded-width);
@@ -1099,7 +1107,7 @@ footer {
     overflow-x: hidden;
     flex: 1;
     min-width: 0;
-    transition: padding 0.3s ease;
+    transition: all 0.3s ease;
 }
 
 /* Custom */

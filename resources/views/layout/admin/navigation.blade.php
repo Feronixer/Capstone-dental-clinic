@@ -1,4 +1,9 @@
-<aside class="navigation-bar-container">
+<aside class="navigation-bar-container" id="sidebar">
+    <!-- Toggle Button -->
+    <button class="sidebar-toggle-btn" id="sidebarToggle" aria-label="Toggle sidebar">
+        <i class="bi bi-chevron-left"></i>
+    </button>
+    
     <!-- User Profile Section -->
     <div class="user-profile-section">
         <a href="{{ route('admin-profile') }}" class="user-profile-link">
@@ -117,6 +122,7 @@
                     <a href="{{ route('admin-chat') }}" class="nav-item-link">
                         <div class="nav-icon-wrapper">
                             <i class="bi bi-chat-dots"></i>
+                            <span class="notification-badge-nav chat-unread-badge" id="admin-chat-badge" style="display: none;">0</span>
                         </div>
                         <span class="nav-item-text">Live Chat</span>
                         @if(request()->routeIs('admin-chat'))
@@ -233,34 +239,240 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Sidebar hover is handled by CSS - no JavaScript needed
+    
+    // Chat unread count polling
+    let chatUnreadInterval = null;
+    
+    async function updateChatUnreadCount() {
+        try {
+            const response = await fetch('{{ route("admin-chat.unread-count") }}');
+            const data = await response.json();
+            const badge = document.getElementById('admin-chat-badge');
+            
+            if (badge) {
+                if (data.count > 0) {
+                    badge.textContent = data.count > 99 ? '99+' : data.count;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching chat unread count:', error);
+        }
+    }
+    
+    // Start polling for chat unread count
+    if (document.getElementById('admin-chat-badge')) {
+        updateChatUnreadCount(); // Initial load
+        chatUnreadInterval = setInterval(updateChatUnreadCount, 10000); // Update every 10 seconds
+    }
 });
 </script>
 
 <style>
+    .navigation-bar-container {
+        position: relative;
+        transition: width 0.3s ease;
+    }
+
+    /* Sidebar Toggle Button - Hidden when using hover */
+    .sidebar-toggle-btn {
+        display: none;
+    }
+
+    /* Collapsed State - Default collapsed */
+    .navigation-bar-container {
+        width: 80px !important;
+        min-width: 80px !important;
+        max-width: 80px !important;
+    }
+
+    /* Expanded State on Hover */
+    .navigation-bar-container:hover {
+        width: 260px !important;
+        min-width: 260px !important;
+        max-width: 260px !important;
+    }
+
+    /* Default collapsed state - hide text */
+    .navigation-bar-container .user-profile-info,
+    .navigation-bar-container .nav-item-text,
+    .navigation-bar-container .nav-section-label span {
+        opacity: 0;
+        max-width: 0;
+        overflow: hidden;
+        margin: 0;
+        padding: 0;
+        transition: opacity 0.3s ease, max-width 0.3s ease, margin 0.3s ease, padding 0.3s ease;
+    }
+
+    .navigation-bar-container .user-profile-link,
+    .navigation-bar-container .nav-item-link {
+        justify-content: center;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+        transition: padding 0.3s ease, justify-content 0.3s ease;
+    }
+
+    .navigation-bar-container .nav-section-label {
+        justify-content: center;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+        transition: padding 0.3s ease, justify-content 0.3s ease;
+    }
+
+    .navigation-bar-container .nav-section-label i {
+        margin: 0;
+        transition: margin 0.3s ease;
+    }
+
+    /* Expanded state on hover - show text */
+    .navigation-bar-container:hover .user-profile-info,
+    .navigation-bar-container:hover .nav-item-text,
+    .navigation-bar-container:hover .nav-section-label span {
+        opacity: 1;
+        max-width: 200px;
+        margin: initial;
+        padding: initial;
+    }
+
+    .navigation-bar-container:hover .user-profile-link,
+    .navigation-bar-container:hover .nav-item-link {
+        justify-content: flex-start;
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+
+    .navigation-bar-container:hover .nav-section-label {
+        justify-content: flex-start;
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+
+    .navigation-bar-container:hover .nav-section-label i {
+        margin-right: 0.5rem;
+    }
+
+    /* Dark Mode Toggle Button */
+    [data-theme="dark"] .sidebar-toggle-btn {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        border-color: var(--dm-bg-secondary, #1e293b);
+    }
+
+    [data-theme="dark"] .sidebar-toggle-btn:hover {
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    }
+
+    .nav-item-text,
+    .user-profile-info,
+    .nav-section-label,
+    .nav-section-label span {
+        transition: opacity 0.3s ease, max-width 0.3s ease, max-height 0.3s ease, margin 0.3s ease, padding 0.3s ease;
+    }
+
+    .nav-item-link,
+    .nav-logout-btn,
+    .user-profile-link {
+        transition: padding 0.3s ease, margin 0.3s ease, justify-content 0.3s ease, gap 0.3s ease;
+    }
+
     /* User Profile Section - Compact */
     .user-profile-section {
         padding: 0.75rem;
         flex-shrink: 0;
+        width: 100%;
+        min-width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
     }
 
     .user-profile-link {
-        padding: 0.5rem;
-        gap: 0.625rem;
+        display: flex;
+        align-items: center;
+        padding: 0.45rem 0.5rem;
+        gap: 0.55rem;
+        text-decoration: none;
+        color: white;
+        border-radius: 8px;
+        transition: background-color 0.3s ease;
+        width: 100%;
+        min-width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .user-profile-link:hover {
+        background: rgba(255, 255, 255, 0.1);
+        text-decoration: none;
+        color: white;
+    }
+
+    .user-profile-avatar {
+        flex-shrink: 0;
+        width: 40px;
+        min-width: 40px;
+        max-width: 40px;
+        height: 40px;
+        min-height: 40px;
+        max-height: 40px;
+        box-sizing: border-box;
     }
 
     .user-initials-avatar {
         width: 40px !important;
+        min-width: 40px !important;
+        max-width: 40px !important;
         height: 40px !important;
+        min-height: 40px !important;
+        max-height: 40px !important;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
         font-size: 0.95rem !important;
+        box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+        box-sizing: border-box;
+    }
+
+    .user-profile-info {
+        flex: 1;
+        min-width: 0;
+        width: auto;
+        max-width: calc(100% - 50px);
+        box-sizing: border-box;
     }
 
     .user-profile-name {
         font-size: 0.875rem !important;
+        font-weight: 600 !important;
+        color: white;
         margin-bottom: 0.1rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        line-height: 1.2 !important;
     }
 
     .user-profile-role {
         font-size: 0.7rem !important;
+        font-weight: 400 !important;
+        color: rgba(255, 255, 255, 0.7);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        line-height: 1.2 !important;
     }
 
     /* Enhanced Navigation Styles - Compact No-Scroll Version */
@@ -285,14 +497,17 @@ document.addEventListener('DOMContentLoaded', function() {
     .nav-section-label {
         display: flex;
         align-items: center;
-        gap: 0.375rem;
-        padding: 0.375rem 1rem;
+        gap: 0.35rem;
+        padding: 0.35rem 0.75rem;
         font-size: 0.65rem;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.05em;
         color: rgba(255, 255, 255, 0.6);
         margin-bottom: 0.125rem;
+        width: 100%;
+        box-sizing: border-box;
+        max-height: 40px;
     }
 
     .nav-section-label i {
@@ -318,40 +533,53 @@ document.addEventListener('DOMContentLoaded', function() {
     .nav-logout-btn {
         display: flex;
         align-items: center;
-        gap: 0.625rem;
-        padding: 0.5rem 0.875rem;
-        margin: 0 0.5rem;
+        gap: 0.55rem;
+        padding: 0.45rem 0.75rem;
+        margin: 0 0.45rem;
         border-radius: 8px;
         text-decoration: none;
         color: rgba(255, 255, 255, 0.85);
         font-weight: 500;
         font-size: 0.8rem;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: background-color 0.3s ease, color 0.3s ease;
         position: relative;
         border: none;
         background: transparent;
-        width: calc(100% - 1rem);
+        width: calc(100% - 0.9rem);
+        min-width: calc(100% - 0.9rem);
+        max-width: calc(100% - 0.9rem);
+        height: auto;
+        min-height: 40px;
+        max-height: 40px;
         text-align: left;
         cursor: pointer;
+        box-sizing: border-box;
     }
 
     .nav-icon-wrapper {
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 28px;
-        height: 28px;
+        width: 24px;
+        min-width: 24px;
+        max-width: 24px;
+        height: 24px;
+        min-height: 24px;
+        max-height: 24px;
         border-radius: 6px;
         background: rgba(255, 255, 255, 0.08);
-        transition: all 0.3s ease;
+        transition: background-color 0.3s ease;
         position: relative;
         flex-shrink: 0;
+        box-sizing: border-box;
     }
 
     .nav-icon-wrapper i {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         color: rgba(255, 255, 255, 0.8);
-        transition: all 0.3s ease;
+        transition: color 0.3s ease;
+        display: inline-block;
+        line-height: 1;
     }
 
     .nav-item-text {
@@ -363,7 +591,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     .nav-active-indicator {
         position: absolute;
-        right: 0.625rem;
+        right: 0.5rem;
         width: 3px;
         height: 50%;
         background: linear-gradient(180deg, #60a5fa 0%, #3b82f6 100%);
@@ -372,27 +600,24 @@ document.addEventListener('DOMContentLoaded', function() {
         transition: all 0.3s ease;
     }
 
-    /* Hover States */
+    /* Hover States - NO MOVEMENT */
     .nav-item-link:hover,
     .nav-logout-btn:hover {
         background: rgba(255, 255, 255, 0.12);
         color: white;
-        transform: translateX(3px);
     }
 
     .nav-item-link:hover .nav-icon-wrapper,
     .nav-logout-btn:hover .nav-icon-wrapper {
         background: rgba(255, 255, 255, 0.15);
-        transform: scale(1.05);
     }
 
     .nav-item-link:hover .nav-icon-wrapper i,
     .nav-logout-btn:hover .nav-icon-wrapper i {
         color: white;
-        transform: scale(1.1);
     }
 
-    /* Active States */
+    /* Active States - NO MOVEMENT */
     .nav-menu-list li.active .nav-item-link,
     .nav-menu-list li.active .nav-logout-btn {
         background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.15) 100%);
@@ -400,16 +625,21 @@ document.addEventListener('DOMContentLoaded', function() {
         border-left: 3px solid #60a5fa;
         font-weight: 600;
         box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        transform: none !important;
+        scale: 1 !important;
     }
 
     .nav-menu-list li.active .nav-icon-wrapper {
         background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
         box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        transform: none !important;
+        scale: 1 !important;
     }
 
     .nav-menu-list li.active .nav-icon-wrapper i {
         color: white;
-        transform: scale(1.1);
+        transform: none !important;
+        scale: 1 !important;
     }
 
     /* Notification Badge */
@@ -431,6 +661,22 @@ document.addEventListener('DOMContentLoaded', function() {
         border: 2px solid var(--navigation-bar-color, #1a202c);
         box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
         z-index: 10;
+        animation: badgePulse 2s ease-in-out infinite;
+    }
+
+    .chat-unread-badge {
+        animation: badgePulse 2s ease-in-out infinite;
+    }
+
+    @keyframes badgePulse {
+        0%, 100% {
+            transform: scale(1);
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+        }
+        50% {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.6);
+        }
     }
 
     /* Logout Button Special Styling */
@@ -460,23 +706,129 @@ document.addEventListener('DOMContentLoaded', function() {
         color: rgba(255, 255, 255, 0.85) !important;
     }
 
+    .navigation-bar-container:not(:hover):not(:focus-within) .user-profile-section {
+        padding: 0.75rem 0.25rem;
+    }
+
+    .navigation-bar-container:not(:hover):not(:focus-within) .user-profile-link {
+        justify-content: center;
+        padding: 0.45rem 0;
+    }
+
+    .navigation-bar-container:not(:hover):not(:focus-within) .user-profile-info {
+        opacity: 0;
+        max-width: 0;
+        pointer-events: none;
+        margin: 0;
+    }
+
+    .navigation-bar-container:not(:hover):not(:focus-within) .nav-section-label {
+        opacity: 0;
+        max-width: 0;
+        max-height: 0;
+        padding: 0;
+        margin: 0;
+        overflow: hidden;
+    }
+
+    .navigation-bar-container:not(:hover):not(:focus-within) .nav-section-label span,
+    .navigation-bar-container:not(:hover):not(:focus-within) .nav-section-label i {
+        opacity: 0;
+    }
+
+    .navigation-bar-container:not(:hover):not(:focus-within) .nav-item-link,
+    .navigation-bar-container:not(:hover):not(:focus-within) .nav-logout-btn {
+        justify-content: center;
+        gap: 0;
+        padding: 0.45rem 0;
+        margin: 0;
+        text-align: center;
+    }
+
+    .navigation-bar-container:not(:hover):not(:focus-within) .nav-item-text {
+        opacity: 0;
+        max-width: 0;
+        pointer-events: none;
+    }
+
+    .navigation-bar-container:not(:hover):not(:focus-within) .nav-active-indicator {
+        opacity: 0;
+    }
+
+    .navigation-bar-container:hover .nav-item-text,
+    .navigation-bar-container:focus-within .nav-item-text,
+    .navigation-bar-container:hover .user-profile-info,
+    .navigation-bar-container:focus-within .user-profile-info,
+    .navigation-bar-container:hover .nav-section-label,
+    .navigation-bar-container:focus-within .nav-section-label,
+    .navigation-bar-container:hover .nav-section-label span,
+    .navigation-bar-container:focus-within .nav-section-label span,
+    .navigation-bar-container:hover .nav-section-label i,
+    .navigation-bar-container:focus-within .nav-section-label i {
+        opacity: 1;
+        max-width: 100%;
+        max-height: 40px;
+    }
+
+    .navigation-bar-container:hover .nav-item-link,
+    .navigation-bar-container:focus-within .nav-item-link,
+    .navigation-bar-container:hover .nav-logout-btn,
+    .navigation-bar-container:focus-within .nav-logout-btn {
+        justify-content: flex-start;
+        gap: 0.55rem;
+        padding: 0.45rem 0.75rem;
+        margin: 0 0.45rem;
+        text-align: left;
+    }
+
+    .navigation-bar-container:hover .user-profile-link,
+    .navigation-bar-container:focus-within .user-profile-link {
+        justify-content: flex-start;
+        padding: 0.45rem 0.5rem;
+    }
+
+    .navigation-bar-container:hover .nav-active-indicator,
+    .navigation-bar-container:focus-within .nav-active-indicator {
+        opacity: 1;
+    }
+
     /* Responsive Design */
     @media (max-width: 768px) {
         .navigation-bar-container {
-            width: 220px !important;
-            min-width: 220px !important;
-            max-width: 220px !important;
+            width: var(--nav-expanded-width) !important;
+            min-width: var(--nav-expanded-width) !important;
+            max-width: var(--nav-expanded-width) !important;
+        }
+
+        .navigation-bar-container:not(:hover):not(:focus-within) .nav-section-label,
+        .navigation-bar-container:not(:hover):not(:focus-within) .nav-section-label span,
+        .navigation-bar-container:not(:hover):not(:focus-within) .nav-section-label i,
+        .navigation-bar-container:not(:hover):not(:focus-within) .nav-item-text,
+        .navigation-bar-container:not(:hover):not(:focus-within) .user-profile-info {
+            opacity: 1;
+            max-width: 100%;
+            max-height: none;
+        }
+
+        .navigation-bar-container:not(:hover):not(:focus-within) .nav-item-link,
+        .navigation-bar-container:not(:hover):not(:focus-within) .nav-logout-btn,
+        .navigation-bar-container:not(:hover):not(:focus-within) .user-profile-link {
+            justify-content: flex-start;
+            gap: 0.55rem;
+            padding: 0.45rem 0.75rem;
+            margin: 0 0.45rem;
+            text-align: left;
         }
 
         .nav-item-link,
         .nav-logout-btn {
-            padding: 0.5rem 0.75rem;
+            padding: 0.45rem 0.75rem;
             font-size: 0.75rem;
         }
 
         .nav-icon-wrapper {
-            width: 26px;
-            height: 26px;
+            width: 24px;
+            height: 24px;
         }
 
         .nav-icon-wrapper i {
@@ -484,7 +836,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         .nav-section-label {
-            padding: 0.375rem 0.75rem;
+            padding: 0.35rem 0.75rem;
             font-size: 0.6rem;
         }
 

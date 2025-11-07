@@ -985,9 +985,17 @@ class PostProceduralController extends Controller
         $isNew = !$request->id;
         $oldNote = $request->id ? ProgressNote::find($request->id)?->toArray() : null;
 
+        $user = Auth::user();
+        $noteData = $request->all();
+        if (!$request->id) {
+            // Only set created_by for new notes
+            $noteData['created_by_user_id'] = $user->id;
+            $noteData['created_by_role'] = $user->role_id == 1 ? 'admin' : 'staff';
+        }
+
         $note = ProgressNote::updateOrCreate(
             ['id' => $request->id],
-            $request->all()
+            $noteData
         );
 
         // Log activity
@@ -1028,6 +1036,9 @@ class PostProceduralController extends Controller
                 'note_date' => 'required|date',
                 'progress_description' => 'required|string',
                 'treatment_response' => 'nullable|string',
+                'amount_paid' => 'nullable|numeric|min:0',
+                'balance' => 'nullable|numeric|min:0',
+                'conforme' => 'nullable|string|max:255',
                 'next_steps' => 'nullable|string',
                 'other_notes' => 'nullable|string'
             ]);
@@ -1134,8 +1145,9 @@ class PostProceduralController extends Controller
                 'notes' => 'required|array|min:1',
                 'notes.*.date' => 'required|date',
                 'notes.*.progressNote' => 'nullable|string',
-                'notes.*.oralHygiene' => 'nullable|string',
-                'notes.*.conformedPractices' => 'nullable|string',
+                'notes.*.amountPaid' => 'nullable|numeric|min:0',
+                'notes.*.balance' => 'nullable|numeric|min:0',
+                'notes.*.conforme' => 'nullable|string|max:255',
                 'other_notes' => 'nullable|string',
                 'send_to_patient' => 'boolean'
             ]);
@@ -1164,38 +1176,50 @@ class PostProceduralController extends Controller
                 ]);
             }
 
+            // Get existing notes count before adding new ones
+            $existingNotesCount = ProgressNote::where('patient_record_id', $patientRecord->id)->count();
+
             // Save each progress note
             $savedNotes = [];
             foreach ($request->input('notes') as $noteData) {
                 // Skip empty rows
-                if (empty($noteData['progressNote']) && empty($noteData['oralHygiene']) && empty($noteData['conformedPractices'])) {
+                if (empty($noteData['progressNote']) && 
+                    empty($noteData['amountPaid']) && empty($noteData['balance']) && empty($noteData['conforme'])) {
                     continue;
                 }
 
+                $user = Auth::user();
                 $note = ProgressNote::create([
                     'patient_record_id' => $patientRecord->id,
                     'note_date' => $noteData['date'],
                     'progress_description' => $noteData['progressNote'] ?? null,
-                    'treatment_response' => $noteData['oralHygiene'] ?? null,
-                    'next_steps' => $noteData['conformedPractices'] ?? null,
+                    'amount_paid' => isset($noteData['amountPaid']) && $noteData['amountPaid'] !== '' ? $noteData['amountPaid'] : null,
+                    'balance' => isset($noteData['balance']) && $noteData['balance'] !== '' ? $noteData['balance'] : null,
+                    'conforme' => $noteData['conforme'] ?? null,
+                    'created_by_user_id' => $user->id,
+                    'created_by_role' => $user->role_id == 1 ? 'admin' : 'staff',
                     'status' => 'ongoing'
                 ]);
 
                 $savedNotes[] = $note;
             }
 
-            // Don't append progress note other_notes to patient record
-            // Just mark the patient record as sent
-            $patientRecord->update([
-                'sent_to_patient' => true,
-                'sent_at' => now()
-            ]);
+            // Only update sent_to_patient if not already set, or if new notes were added
+            if (!$patientRecord->sent_to_patient || count($savedNotes) > 0) {
+                $patientRecord->update([
+                    'sent_to_patient' => true,
+                    'sent_at' => now()
+                ]);
+            }
 
-            // Send notification to patient
-            try {
-                NotificationService::recordUpdated($patientId, 'progress notes');
-            } catch (\Exception $e) {
-                \Log::error('Failed to send progress notes notification:', ['error' => $e->getMessage()]);
+            // Only send notification if NEW notes were added (not just updating existing ones)
+            $newNotesCount = ProgressNote::where('patient_record_id', $patientRecord->id)->count();
+            if ($newNotesCount > $existingNotesCount && count($savedNotes) > 0) {
+                try {
+                    NotificationService::recordUpdated($patientId, 'progress notes');
+                } catch (\Exception $e) {
+                    \Log::error('Failed to send progress notes notification:', ['error' => $e->getMessage()]);
+                }
             }
 
             \Log::info('Progress notes saved successfully by staff', [

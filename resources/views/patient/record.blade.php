@@ -754,6 +754,131 @@
     color: var(--dm-text-primary, #f1f5f9) !important;
 }
 
+/* Progress Notes Table Dark Mode */
+[data-theme="dark"] .progress-notes-table-container {
+    background: var(--dm-card-bg, #1e293b) !important;
+}
+
+[data-theme="dark"] .progress-notes-table {
+    background: var(--dm-card-bg, #1e293b) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .progress-notes-thead {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .progress-notes-thead th {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+[data-theme="dark"] .progress-notes-tbody {
+    background: var(--dm-card-bg, #1e293b) !important;
+}
+
+[data-theme="dark"] .progress-notes-row {
+    background: var(--dm-card-bg, #1e293b) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] .progress-notes-row:nth-child(even) {
+    background: var(--dm-bg-secondary, #1e293b) !important;
+}
+
+[data-theme="dark"] .progress-notes-row:nth-child(odd) {
+    background: var(--dm-card-bg, #1e293b) !important;
+}
+
+[data-theme="dark"] .progress-notes-row:hover {
+    background: var(--dm-bg-tertiary, #334155) !important;
+    box-shadow: 0 2px 4px rgba(96, 165, 250, 0.15) !important;
+}
+
+[data-theme="dark"] .progress-notes-cell {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+    background: inherit !important;
+}
+
+[data-theme="dark"] .preview-header {
+    border-bottom-color: #60a5fa !important;
+}
+
+[data-theme="dark"] .preview-header h2 {
+    color: #60a5fa !important;
+}
+
+[data-theme="dark"] .preview-header .text-muted {
+    color: var(--dm-text-muted, #94a3b8) !important;
+}
+
+[data-theme="dark"] .progress-notes-info {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .progress-notes-info .text-muted {
+    color: var(--dm-text-muted, #94a3b8) !important;
+}
+
+[data-theme="dark"] .progress-notes-info strong {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+/* Override inline styles for dark mode */
+[data-theme="dark"] .progress-notes-table-container table {
+    background: var(--dm-card-bg, #1e293b) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] .progress-notes-table-container table thead {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+}
+
+[data-theme="dark"] .progress-notes-table-container table thead th {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+[data-theme="dark"] .progress-notes-table-container table tbody {
+    background: var(--dm-card-bg, #1e293b) !important;
+}
+
+[data-theme="dark"] .progress-notes-table-container table tbody tr {
+    background: var(--dm-card-bg, #1e293b) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] .progress-notes-table-container table tbody tr:nth-child(even) {
+    background: var(--dm-bg-secondary, #1e293b) !important;
+}
+
+[data-theme="dark"] .progress-notes-table-container table tbody tr:nth-child(odd) {
+    background: var(--dm-card-bg, #1e293b) !important;
+}
+
+[data-theme="dark"] .progress-notes-table-container table tbody tr:hover {
+    background: var(--dm-bg-tertiary, #334155) !important;
+}
+
+[data-theme="dark"] .progress-notes-table-container table tbody td {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+    background: inherit !important;
+}
+
+[data-theme="dark"] .progress-notes-title {
+    color: #60a5fa !important;
+}
+
+[data-theme="dark"] div[style*="border-bottom: 2px solid #0d6efd"] {
+    border-bottom-color: #60a5fa !important;
+}
+
 /* Checkbox Items Dark Mode */
 [data-theme="dark"] .checkbox-item {
     color: var(--dm-text-primary, #f1f5f9) !important;
@@ -900,26 +1025,24 @@
                         @endforeach
                     @endif
 
-                    <!-- Progress Notes for this record -->
+                    <!-- Progress Notes for this record (Consolidated) -->
                     @if($record->progressNotes && $record->progressNotes->count() > 0)
-                        @foreach($record->progressNotes as $note)
                         <tr>
                             <td class="form-name">
-                                Progress Note - {{ \Carbon\Carbon::parse($note->note_date)->format('M d, Y') }}
+                                Progress Notes ({{ $record->progressNotes->count() }} {{ $record->progressNotes->count() == 1 ? 'entry' : 'entries' }})
                             </td>
-                            <td class="form-date">{{ \Carbon\Carbon::parse($note->created_at)->format('m/d/Y') }}</td>
+                            <td class="form-date">{{ \Carbon\Carbon::parse($record->progressNotes->max('created_at'))->format('m/d/Y') }}</td>
                             <td>
                                 <div class="action-buttons">
-                                    <button class="btn-view" onclick="viewProgressNote({{ $note->id }})" title="View Progress Note">
+                                    <button class="btn-view" onclick="viewAllProgressNotes({{ $record->id }})" title="View All Progress Notes">
                                         <i class="bi bi-eye"></i>
                                     </button>
-                                    <button class="btn-download" onclick="downloadProgressNote({{ $note->id }})" title="Download Progress Note">
+                                    <button class="btn-download" onclick="downloadAllProgressNotes({{ $record->id }})" title="Download All Progress Notes">
                                         <i class="bi bi-download"></i>
                                     </button>
                                 </div>
                             </td>
                         </tr>
-                        @endforeach
                     @endif
                     @empty
                     <tr>
@@ -1329,6 +1452,168 @@ function downloadProgressNote(noteId) {
     } else {
         showNotification('Please allow pop-ups to view the printable progress note.', 'warning');
     }
+}
+
+// Download all progress notes for a record
+function downloadAllProgressNotes(recordId) {
+    const printWindow = window.open(`/patient/record/${recordId}/progress-notes/download`, '_blank');
+
+    if (printWindow) {
+        showNotification('Opening consolidated progress notes view. Use your browser\'s print function to save as PDF.', 'info');
+    } else {
+        showNotification('Please allow pop-ups to view the printable progress notes.', 'warning');
+    }
+}
+
+// View all progress notes for a record
+async function viewAllProgressNotes(recordId) {
+    const previewPanel = document.getElementById('recordPreviewPanel');
+
+    // Show loading state
+    previewPanel.innerHTML = `
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status" style="width: 2rem; height: 2rem;">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2 text-muted" style="font-size: 0.875rem;">Loading progress notes...</p>
+        </div>
+    `;
+
+    try {
+        const response = await fetch(`/patient/record/${recordId}`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Progress notes response:', data);
+        console.log('Progress notes count:', data.progress_notes_count);
+        console.log('Record progressNotes:', data.record?.progressNotes);
+
+        if (data.success && data.record) {
+            // Check if progressNotes exists (even if empty array)
+            // Handle both array and collection formats
+            const progressNotes = data.record.progressNotes || data.record.progress_notes || [];
+            const notesArray = Array.isArray(progressNotes) ? progressNotes : (progressNotes.data || []);
+            
+            console.log('Processed progress notes:', notesArray);
+            console.log('Notes array length:', notesArray.length);
+            
+            if (notesArray && notesArray.length > 0) {
+                renderAllProgressNotes(notesArray, data.record);
+            } else if (data.progress_notes_count > 0) {
+                // If count says there are notes but array is empty, try to reload
+                console.warn('Progress notes count indicates notes exist but array is empty');
+                showNotification('Progress notes found but unable to load. Please try again.', 'warning');
+                previewPanel.innerHTML = `
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Progress notes found (${data.progress_notes_count}) but unable to load. Please try refreshing the page.
+                    </div>
+                `;
+            } else {
+                // Progress notes not loaded or doesn't exist
+                showNotification('No progress notes found for this record', 'info');
+                previewPanel.innerHTML = `
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        No progress notes found for this record.
+                    </div>
+                `;
+            }
+        } else {
+            const errorMsg = data.message || 'Failed to load progress notes';
+            console.error('Error response:', data);
+            showNotification(errorMsg, 'error');
+            previewPanel.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    ${errorMsg}
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading progress notes:', error);
+        showNotification('Error loading progress notes: ' + error.message, 'error');
+        previewPanel.innerHTML = `
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                Error loading progress notes: ${error.message}
+            </div>
+        `;
+    }
+}
+
+// Render all progress notes in preview panel
+function renderAllProgressNotes(notes, record) {
+    const patientName = record.user && record.user.info 
+        ? `${record.user.info.first_name} ${record.user.info.last_name}`
+        : record.user?.username || 'Patient';
+
+    // Handle empty array
+    if (!notes || notes.length === 0) {
+        previewPanel.innerHTML = `
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                No progress notes found for this record.
+            </div>
+        `;
+        return;
+    }
+
+    let tableRows = '';
+    notes.forEach((note, index) => {
+        const noteDate = note.note_date ? new Date(note.note_date).toLocaleDateString() : 'N/A';
+        const amountPaid = note.amount_paid ? parseFloat(note.amount_paid).toFixed(2) : '-';
+        const balance = note.balance ? parseFloat(note.balance).toFixed(2) : '-';
+        
+        tableRows += `
+            <tr class="progress-notes-row">
+                <td class="progress-notes-cell" style="text-align: center; padding: 0.5rem;">${index + 1}</td>
+                <td class="progress-notes-cell" style="padding: 0.5rem;">${noteDate}</td>
+                <td class="progress-notes-cell" style="padding: 0.5rem;">${note.progress_description || '-'}</td>
+                <td class="progress-notes-cell" style="text-align: right; padding: 0.5rem;">${amountPaid !== '-' ? '₱' + amountPaid : '-'}</td>
+                <td class="progress-notes-cell" style="text-align: right; padding: 0.5rem;">${balance !== '-' ? '₱' + balance : '-'}</td>
+                <td class="progress-notes-cell" style="padding: 0.5rem;">${note.conforme || '-'}</td>
+            </tr>
+        `;
+    });
+
+    const content = `
+        <div class="preview-header mb-3 d-flex justify-content-between align-items-center" style="border-bottom: 2px solid #0d6efd; padding-bottom: 0.75rem;">
+            <h2 class="form-preview-title mb-0 progress-notes-title" style="color: #0d6efd; font-weight: 700;">
+                <i class="bi bi-journal-text me-2"></i>Progress Notes
+            </h2>
+        </div>
+        <div class="mb-3 progress-notes-info">
+            <p class="text-muted mb-0"><strong>Patient:</strong> ${patientName}</p>
+            <p class="text-muted mb-0"><strong>Total Entries:</strong> ${notes.length}</p>
+        </div>
+        <div class="table-responsive progress-notes-table-container" style="max-height: 500px; overflow-y: auto;">
+            <table class="table table-bordered table-sm progress-notes-table" style="font-size: 0.875rem;">
+                <thead class="progress-notes-thead" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); color: white; position: sticky; top: 0; z-index: 10;">
+                    <tr>
+                        <th style="text-align: center; padding: 0.5rem; width: 5%;">#</th>
+                        <th style="padding: 0.5rem; width: 12%;">DATE</th>
+                        <th style="padding: 0.5rem; width: 30%;">PROGRESS NOTES</th>
+                        <th style="text-align: right; padding: 0.5rem; width: 15%;">AMOUNT PAID</th>
+                        <th style="text-align: right; padding: 0.5rem; width: 15%;">BALANCE</th>
+                        <th style="padding: 0.5rem; width: 23%;">CONFORME</th>
+                    </tr>
+                </thead>
+                <tbody class="progress-notes-tbody">
+                    ${tableRows}
+                </tbody>
+            </table>
+        </div>
+    `;
+
+    const previewPanel = document.getElementById('recordPreviewPanel');
+    previewPanel.innerHTML = content;
+
+    // Scroll preview panel to top
+    previewPanel.scrollTop = 0;
 }
 
 // View progress note in preview panel

@@ -11,13 +11,20 @@ class ProgressNote extends Model
         'note_date',
         'progress_description',
         'treatment_response',
+        'amount_paid',
+        'balance',
+        'conforme',
+        'created_by_user_id',
+        'created_by_role',
         'next_steps',
         'status',
         'other_notes'
     ];
 
     protected $casts = [
-        'note_date' => 'date:Y-m-d'
+        'note_date' => 'date:Y-m-d',
+        'amount_paid' => 'decimal:2',
+        'balance' => 'decimal:2'
     ];
 
     // Expose computed attributes in JSON
@@ -29,6 +36,11 @@ class ProgressNote extends Model
     public function patientRecord()
     {
         return $this->belongsTo(PatientRecord::class);
+    }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by_user_id');
     }
 
     // Convenience: get the owning user's id via patient record

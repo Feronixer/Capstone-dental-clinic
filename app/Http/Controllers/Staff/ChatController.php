@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Staff;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\ChatConversation;
 use App\Models\ChatMessage;
 use Illuminate\Http\Request;
@@ -128,7 +129,7 @@ class ChatController extends Controller
         ]);
 
         $staffId = Auth::id();
-        $conversation = ChatConversation::findOrFail($conversationId);
+        $conversation = ChatConversation::with('patient.info')->findOrFail($conversationId);
 
         // Assign staff to conversation if not already assigned
         if (!$conversation->staff_id) {
@@ -147,6 +148,33 @@ class ChatController extends Controller
         $conversation->update([
             'last_message_at' => now(),
         ]);
+
+        // Get patient name for activity log
+        $patientName = $conversation->patient->info 
+            ? $conversation->patient->info->first_name . ' ' . $conversation->patient->info->last_name 
+            : $conversation->patient->username;
+
+        // Truncate message for description (max 100 chars)
+        $messagePreview = strlen($request->message) > 100 
+            ? substr($request->message, 0, 100) . '...' 
+            : $request->message;
+
+        // Log activity - Staff replied to patient in live chat
+        ActivityLog::log(
+            'replied',
+            'live_chat',
+            'Replied to patient ' . $patientName . ' in live chat: "' . $messagePreview . '"',
+            $conversation->id,
+            'ChatConversation',
+            null,
+            [
+                'conversation_id' => $conversation->id,
+                'patient_id' => $conversation->patient_id,
+                'patient_name' => $patientName,
+                'message_id' => $message->id,
+                'message_preview' => $messagePreview,
+            ]
+        );
 
         return response()->json([
             'success' => true,
