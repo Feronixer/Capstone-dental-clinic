@@ -49,10 +49,12 @@
                                 </label>
                                 <select id="filterModule" class="form-select modern-select">
                                     <option value="">All Modules</option>
+                                    <option value="auth" {{ request('module') == 'auth' ? 'selected' : '' }}>Authentication</option>
                                     <option value="appointment" {{ request('module') == 'appointment' ? 'selected' : '' }}>Appointment</option>
                                     <option value="patient_record" {{ request('module') == 'patient_record' ? 'selected' : '' }}>Patient Record</option>
                                     <option value="patient_history" {{ request('module') == 'patient_history' ? 'selected' : '' }}>Patient History</option>
                                     <option value="progress_note" {{ request('module') == 'progress_note' ? 'selected' : '' }}>Progress Note</option>
+                                    <option value="blocked_time" {{ request('module') == 'blocked_time' ? 'selected' : '' }}>Blocked Time</option>
                                     <optgroup label="Content Management">
                                         <option value="announcement" {{ request('module') == 'announcement' ? 'selected' : '' }}>Announcement</option>
                                         <option value="ticker" {{ request('module') == 'ticker' ? 'selected' : '' }}>Ticker Notification</option>
@@ -68,10 +70,13 @@
                                 </label>
                                 <select id="filterAction" class="form-select modern-select">
                                     <option value="">All Actions</option>
+                                    <option value="login" {{ request('action') == 'login' ? 'selected' : '' }}>Login</option>
+                                    <option value="logout" {{ request('action') == 'logout' ? 'selected' : '' }}>Logout</option>
                                     <option value="created" {{ request('action') == 'created' ? 'selected' : '' }}>Created</option>
                                     <option value="updated" {{ request('action') == 'updated' ? 'selected' : '' }}>Updated</option>
                                     <option value="deleted" {{ request('action') == 'deleted' ? 'selected' : '' }}>Deleted</option>
                                     <option value="viewed" {{ request('action') == 'viewed' ? 'selected' : '' }}>Viewed</option>
+                                    <option value="cleared" {{ request('action') == 'cleared' ? 'selected' : '' }}>Cleared</option>
                                 </select>
                             </div>
 

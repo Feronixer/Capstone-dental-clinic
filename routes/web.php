@@ -147,6 +147,7 @@ Route::middleware(['auth:admin'])->group(function(): void{
     Route::delete('/admin/toothtalk/faq/{id}', [ToothTalkController::class,'destroyFaq'])->name('admin-toothtalk.faq.delete');
 
     Route::get('/admin/notifications', [AdminNotificationController::class,'index'])->name('admin-notification');
+    Route::get('/admin/notifications/appointments-for-date', [AdminNotificationController::class,'getAppointmentsForDate'])->name('admin-notification.appointments-for-date');
     Route::post('/admin/notifications/approve/{id}', [AdminNotificationController::class,'approveRequest'])->name('admin-notification.approve');
     Route::post('/admin/notifications/deny/{id}', [AdminNotificationController::class,'denyRequest'])->name('admin-notification.deny');
     Route::get('/admin/profile', [ProfileController::class,'index'])->name('admin-profile');
@@ -221,7 +222,7 @@ Route::middleware(['auth:admin'])->group(function(): void{
 });
 
 // Staff Routes - Only accessible by staff guard (role_id = 2)
-Route::middleware(['auth:staff'])->group(function(): void{
+Route::middleware(['auth:staff', \App\Http\Middleware\LogStaffActivity::class])->group(function(): void{
     // Staff Patient Record Access Routes (Staff Only)
     Route::get('/staff/patient-records', [PatientRecordAccessController::class,'index'])->name('staff-patient-records');
     Route::get('/staff/patient-records/search', [PatientRecordAccessController::class,'searchPatients'])->name('staff-patient-records.search');
@@ -307,6 +308,7 @@ Route::middleware(['auth:staff'])->group(function(): void{
 
     // Staff Notification Routes
     Route::get('/staff/notifications', [App\Http\Controllers\Staff\NotificationController::class,'index'])->name('staff-notification');
+    Route::get('/staff/notifications/appointments-for-date', [App\Http\Controllers\Staff\NotificationController::class,'getAppointmentsForDate'])->name('staff-notification.appointments-for-date');
     Route::post('/staff/notifications/approve/{id}', [App\Http\Controllers\Staff\NotificationController::class,'approveRequest'])->name('staff-notification.approve');
     Route::post('/staff/notifications/deny/{id}', [App\Http\Controllers\Staff\NotificationController::class,'denyRequest'])->name('staff-notification.deny');
 

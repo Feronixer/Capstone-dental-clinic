@@ -231,7 +231,7 @@ document.getElementById('confirmViewEmailBtn')?.addEventListener('click', async 
         }
         bootstrap.Modal.getInstance(document.getElementById('viewEmailModal')).hide();
     } catch (err) {
-        errorBox.textContent = 'Something went wrong. Please try again.';
+        errorBox.textContent = 'Please enter your password to view the email.';
         errorBox.style.display = 'block';
     }
 });

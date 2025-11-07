@@ -7,6 +7,7 @@ use App\Models\Announcement;
 use App\Models\AnnouncementArchive;
 use App\Models\Service;
 use App\Models\MailTemplate;
+use App\Models\Event;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -691,6 +692,161 @@ class ContentManagementController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to send bulk emails: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Store a new event
+     */
+    public function storeEvent(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'event_date' => 'required|date',
+            'event_time' => 'nullable|date_format:H:i',
+            'location' => 'nullable|string|max:255',
+            'event_type' => 'nullable|string|max:255',
+            'is_active' => 'nullable|boolean',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $event = new Event();
+            $event->title = $request->input('title');
+            $event->description = $request->input('description');
+            $event->event_date = $request->input('event_date');
+            $event->event_time = $request->filled('event_time') ? $request->input('event_time') : null;
+            $event->location = $request->input('location') ?: null;
+            $event->event_type = $request->input('event_type') ?: null;
+            $event->is_active = $request->has('is_active') ? $request->input('is_active') : true;
+
+            // Handle image upload
+            if ($request->hasFile('image')) {
+                $path = $request->file('image')->store('events', 'public');
+                $event->image_path = $path;
+            }
+
+            $event->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Event created successfully',
+                'data' => $event
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error creating event: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error creating event: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Update an event
+     */
+    public function updateEvent(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'event_date' => 'required|date',
+            'event_time' => 'nullable|date_format:H:i',
+            'location' => 'nullable|string|max:255',
+            'event_type' => 'nullable|string|max:255',
+            'is_active' => 'nullable|boolean',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $event = Event::findOrFail($id);
+            $event->title = $request->input('title');
+            $event->description = $request->input('description');
+            $event->event_date = $request->input('event_date');
+            $event->event_time = $request->filled('event_time') ? $request->input('event_time') : null;
+            $event->location = $request->input('location') ?: null;
+            $event->event_type = $request->input('event_type') ?: null;
+            $event->is_active = $request->has('is_active') ? $request->input('is_active') : true;
+
+            // Handle image upload
+            if ($request->hasFile('image')) {
+                // Delete old image
+                if ($event->image_path && Storage::disk('public')->exists($event->image_path)) {
+                    Storage::disk('public')->delete($event->image_path);
+                }
+
+                $path = $request->file('image')->store('events', 'public');
+                $event->image_path = $path;
+            }
+
+            $event->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Event updated successfully',
+                'data' => $event
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error updating event: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating event: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete an event
+     */
+    public function destroyEvent($id)
+    {
+        try {
+            $event = Event::findOrFail($id);
+
+            // Delete the image file if it exists
+            if ($event->image_path && Storage::disk('public')->exists($event->image_path)) {
+                Storage::disk('public')->delete($event->image_path);
+            }
+
+            // Delete the event
+            $event->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Event deleted successfully'
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error deleting event: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error deleting event: ' . $e->getMessage()
             ], 500);
         }
     }

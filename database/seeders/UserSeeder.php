@@ -40,12 +40,12 @@ class UserSeeder extends Seeder
             'updated_at'  => Carbon::now(),
         ]);
         // Create some specific test patients
-        User::factory()->patient()->count(10)->create();
+        // User::factory()->patient()->count(10)->create();
 
         // Create some staff members
-        User::factory()->staff()->count(5)->create();
+        // User::factory()->staff()->count(5)->create();
 
         // Create random users (mix of staff and patients)
-        User::factory()->count(50)->create();
+        // User::factory()->count(50)->create();
     }
 }

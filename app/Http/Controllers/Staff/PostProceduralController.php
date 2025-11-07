@@ -314,6 +314,20 @@ class PostProceduralController extends Controller
                 }
             }
 
+            // Disallow creating post-procedural record if appointment is not confirmed/completed
+            if (!empty($data['appointment_id'])) {
+                $appointment = Appointment::find($data['appointment_id']);
+                if ($appointment) {
+                    $status = strtolower((string) $appointment->status);
+                    if (!in_array($status, ['confirmed', 'completed'])) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Post-procedural records can only be created for Confirmed or Completed appointments.'
+                        ], 422);
+                    }
+                }
+            }
+
             // Generate patient number if not exists
             if (empty($data['patient_number']) && empty($data['id'])) {
                 // Creating new record - generate patient number

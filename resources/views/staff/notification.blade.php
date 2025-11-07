@@ -76,6 +76,11 @@
     color: #1e40af;
 }
 
+.request-type-badge.book {
+    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+    color: #166534;
+}
+
 .request-time {
     font-size: 0.85rem;
     color: #64748b;
@@ -471,6 +476,12 @@
     border: 1px solid rgba(59, 130, 246, 0.3) !important;
 }
 
+[data-theme="dark"] .request-type-badge.book {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(22, 163, 74, 0.2) 100%) !important;
+    color: #4ade80 !important;
+    border: 1px solid rgba(34, 197, 94, 0.3) !important;
+}
+
 [data-theme="dark"] .request-type-badge i {
     color: inherit !important;
 }
@@ -678,6 +689,90 @@
 [data-theme="dark"] .btn-close-white:hover {
     opacity: 1 !important;
 }
+
+/* Time Slot Picker Styles */
+.time-slots-picker {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 0.5rem;
+    padding: 0.75rem;
+}
+
+.time-slot-btn {
+    padding: 0.5rem 0.75rem;
+    border: 2px solid #dee2e6;
+    border-radius: 0.375rem;
+    background: white;
+    color: #495057;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.time-slot-btn:hover {
+    border-color: #667eea;
+    background: #f0f4ff;
+    color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+}
+
+.time-slot-btn.selected {
+    border-color: #667eea;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.time-slot-btn:disabled,
+.time-slot-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #e9ecef;
+    border-color: #dee2e6;
+    color: #6c757d;
+}
+
+.time-slot-btn:disabled:hover,
+.time-slot-btn.disabled:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: #dee2e6;
+    background: #e9ecef;
+    color: #6c757d;
+}
+
+[data-theme="dark"] .time-slots-picker {
+    background: var(--dm-card-bg) !important;
+    border-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .time-slot-btn {
+    background: var(--dm-card-bg) !important;
+    border-color: var(--dm-border-color) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .time-slot-btn:hover {
+    border-color: #667eea !important;
+    background: rgba(102, 126, 234, 0.1) !important;
+    color: #667eea !important;
+}
+
+[data-theme="dark"] .time-slot-btn.selected {
+    border-color: #667eea !important;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .time-slot-btn:disabled,
+[data-theme="dark"] .time-slot-btn.disabled {
+    background: var(--dm-bg-secondary) !important;
+    border-color: var(--dm-border-color) !important;
+    color: var(--dm-text-muted) !important;
+}
 </style>
 
 <div class="notifications-container">
@@ -700,8 +795,8 @@
                 <div class="request-card" data-request-id="{{ $request->id }}">
                     <div class="request-header">
                         <span class="request-type-badge {{ $request->request_type }}">
-                            <i class="bi {{ $request->isWalkIn() ? 'bi-lightning-charge-fill' : 'bi-arrow-repeat' }}"></i>
-                            {{ $request->isWalkIn() ? 'Emergency Walk-in' : 'Reschedule Request' }}
+                            <i class="bi {{ $request->isBooking() ? 'bi-calendar-plus-fill' : ($request->isWalkIn() ? 'bi-lightning-charge-fill' : 'bi-arrow-repeat') }}"></i>
+                            {{ $request->isBooking() ? 'Regular Booking' : ($request->isWalkIn() ? 'Emergency Walk-in' : 'Reschedule Request') }}
                         </span>
                         <div class="request-time">
                             <i class="bi bi-clock"></i>
@@ -730,6 +825,7 @@
                                 {{ $request->requested_datetime->format('F j, Y') }}
                             </div>
                         </div>
+                        @if(!$request->isBooking())
                         <div class="detail-box">
                             <div class="detail-label">
                                 <i class="bi bi-clock"></i> Requested Time
@@ -738,6 +834,7 @@
                                 {{ $request->requested_datetime->format('g:i A') }}
                             </div>
                         </div>
+                        @endif
                         @if($request->service || $request->other_concern)
                         <div class="detail-box">
                             <div class="detail-label">
@@ -754,18 +851,20 @@
                         @endif
                     </div>
 
+                    @if(!$request->isBooking())
                     <div class="request-reason">
                         <div class="request-reason-label">
                             <i class="bi bi-chat-left-text"></i> Reason for Request
                         </div>
                         <p class="request-reason-text">{{ $request->reason }}</p>
                     </div>
+                    @endif
 
                     <div class="request-actions">
                         <button class="btn-deny" onclick="showDenyModal({{ $request->id }})">
                             <i class="bi bi-x-circle"></i> Deny
                         </button>
-                        <button class="btn-approve" onclick="showApproveModal({{ $request->id }}, '{{ $request->service ? $request->service->service_name : $request->other_concern }}', {{ $request->duration_minutes }}, {{ $request->service_id ? 'true' : 'false' }}, '{{ $request->request_type }}')">
+                        <button class="btn-approve" onclick="showApproveModal({{ $request->id }}, '{{ $request->service ? $request->service->service_name : $request->other_concern }}', {{ $request->duration_minutes }}, {{ $request->service_id ? 'true' : 'false' }}, '{{ $request->request_type }}', '{{ $request->requested_datetime ? $request->requested_datetime->format('Y-m-d') : '' }}')">
                             <i class="bi bi-check-circle"></i> Approve
                         </button>
                     </div>
@@ -793,6 +892,34 @@
                 <h5 class="text-center mb-3" style="color: #1e293b; font-weight: 700;">Confirm Appointment Approval</h5>
                 <p class="text-center text-muted mb-4" id="approveModalServiceName">Service: -</p>
 
+                <!-- Date Field (for booking requests only) -->
+                <div class="mb-3" id="appointmentDateGroup" style="display: none;">
+                    <label for="appointmentDate" class="form-label fw-bold">
+                        <i class="bi bi-calendar-event me-2"></i>Appointment Date
+                    </label>
+                    <input type="date" class="form-control" id="appointmentDate" required>
+                    <small class="form-text text-muted mt-2">
+                        <i class="bi bi-info-circle me-1"></i>Select the appointment date. Clinic hours are 11:00 AM to 6:00 PM.
+                    </small>
+                </div>
+
+                <!-- Time Field (for booking requests only) -->
+                <div class="mb-3" id="appointmentTimeGroup" style="display: none;">
+                    <label class="form-label fw-bold">
+                        <i class="bi bi-clock me-2"></i>Appointment Time
+                    </label>
+                    <div class="time-slots-picker" id="timeSlotsPicker" style="max-height: 200px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 0.375rem; padding: 0.75rem; background: #f8f9fa;">
+                        <!-- Time slots will be generated dynamically -->
+                        <div class="text-muted text-center" style="padding: 10px;">
+                            <small>Please select a date first</small>
+                        </div>
+                    </div>
+                    <input type="hidden" id="appointmentTime" required>
+                    <small class="form-text text-muted mt-2" id="timeHelper">
+                        <i class="bi bi-info-circle me-1"></i>Select the appointment time. Clinic hours are 11:00 AM to 6:00 PM.
+                    </small>
+                </div>
+
                 <!-- Duration Field -->
                 <div class="mb-3">
                     <label for="appointmentDuration" class="form-label fw-bold">
@@ -804,8 +931,9 @@
                     </small>
                 </div>
 
-                <!-- Hidden field to track request type -->
+                <!-- Hidden fields to track request type and date -->
                 <input type="hidden" id="approveRequestType" value="">
+                <input type="hidden" id="approveRequestDate" value="">
 
                 <div class="alert alert-info mb-0" role="alert" style="border-left: 4px solid #3b82f6;">
                     <i class="bi bi-info-circle me-2"></i>
@@ -876,19 +1004,292 @@
 let currentRequestId = null;
 let currentRequestDuration = 30;
 
-function showApproveModal(requestId, serviceName, duration, hasService, requestType) {
+// Generate time slots for booking requests
+function generateTimeSlotsForBooking(durationMinutes, selectedDate) {
+    const timeSlotsPicker = document.getElementById('timeSlotsPicker');
+    const timeInput = document.getElementById('appointmentTime');
+    
+    if (!timeSlotsPicker || !selectedDate) {
+        if (timeSlotsPicker) {
+            timeSlotsPicker.innerHTML = '<div class="text-muted text-center" style="padding: 10px;"><small>Please select a date</small></div>';
+        }
+        return;
+    }
+
+    // Clean and validate the date format (YYYY-MM-DD)
+    let cleanDate = selectedDate.trim();
+    // Remove any extra characters after the date (like :1)
+    if (cleanDate.includes(':')) {
+        cleanDate = cleanDate.split(':')[0];
+    }
+    // Validate date format
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(cleanDate)) {
+        if (timeSlotsPicker) {
+            timeSlotsPicker.innerHTML = '<div class="text-muted text-center" style="padding: 10px;"><small>Invalid date format. Please select a valid date.</small></div>';
+        }
+        return;
+    }
+
+    timeSlotsPicker.innerHTML = '<div class="text-muted text-center" style="padding: 10px;"><small>Loading available time slots...</small></div>';
+
+    if (!durationMinutes) {
+        durationMinutes = 30; // Default duration
+    }
+
+    // Fetch appointments and blocked times for the selected date
+    fetch(`/staff/notifications/appointments-for-date?date=${cleanDate}`, {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (!data.success) {
+            timeSlotsPicker.innerHTML = '<div class="text-muted text-center" style="padding: 10px;"><small>Error loading time slots</small></div>';
+            return;
+        }
+
+        const appointments = data.appointments || [];
+        const blockedTimes = data.blockedTimes || [];
+
+        timeSlotsPicker.innerHTML = '';
+
+        const [year, month, day] = cleanDate.split('-').map(Number);
+        const clinicOpenHour = 11; // 11:00 AM
+        const clinicCloseHour = 18; // 6:00 PM
+
+        // Helper function to parse datetime strings as LOCAL time (same as admin appointment view)
+        function parseLocalDateTime(datetimeStr) {
+            if (!datetimeStr || typeof datetimeStr !== 'string') {
+                return null;
+            }
+            try {
+                const parts = datetimeStr.split(' ');
+                if (parts.length !== 2) {
+                    return null;
+                }
+                const [datePart, timePart] = parts;
+                const [y, m, d] = datePart.split('-').map(Number);
+                const [hours, minutes, seconds] = timePart.split(':').map(Number);
+                if (isNaN(y) || isNaN(m) || isNaN(d) || isNaN(hours) || isNaN(minutes)) {
+                    return null;
+                }
+                return new Date(y, m - 1, d, hours, minutes, seconds || 0);
+            } catch (error) {
+                return null;
+            }
+        }
+
+        // Convert blocked times to format compatible with appointments
+        const allCalendarItems = [
+            ...appointments.map(apt => ({ ...apt, status: apt.status || 'pending' })),
+            ...blockedTimes.map(bt => ({ 
+                ...bt, 
+                status: 'blocked',
+                start_datetime: bt.start_datetime,
+                end_datetime: bt.end_datetime
+            }))
+        ];
+
+        // Parse selected date
+        const selectedDateObj = new Date(year, month - 1, day);
+
+        // Find blocked times on the selected date
+        const blockedTimesOnDate = allCalendarItems.filter(item => {
+            const itemDate = parseLocalDateTime(item.start_datetime);
+            return item.status === 'blocked' && itemDate && itemDate.toDateString() === selectedDateObj.toDateString();
+        });
+
+        // Find booked appointments on the selected date (exclude cancelled and blocked)
+        const bookedOnDate = allCalendarItems.filter(item => {
+            const itemDate = parseLocalDateTime(item.start_datetime);
+            if (!itemDate) return false;
+            const statusLower = (item.status || 'pending').toLowerCase();
+            return itemDate.toDateString() === selectedDateObj.toDateString() && 
+                   statusLower !== 'cancelled' && 
+                   item.status !== 'blocked';
+        });
+
+        // Generate time slots in 15-minute increments (same logic as admin appointment view)
+        let slotIndex = 1;
+        for (let hour = clinicOpenHour; hour < clinicCloseHour; hour++) {
+            for (let minute = 0; minute < 60; minute += 15) {
+                const start = new Date(year, month - 1, day, hour, minute, 0);
+                const end = new Date(start.getTime() + durationMinutes * 60000);
+
+                // Skip if end exceeds 18:00 (same as admin appointment view)
+                if (end.getHours() > clinicCloseHour || (end.getHours() === clinicCloseHour && end.getMinutes() > 0)) {
+                    continue;
+                }
+
+                // Check if this time slot conflicts with any blocked time
+                const isBlocked = blockedTimesOnDate.some(blockedTime => {
+                    const blockedStart = parseLocalDateTime(blockedTime.start_datetime);
+                    const blockedEnd = parseLocalDateTime(blockedTime.end_datetime);
+                    if (!blockedStart || !blockedEnd) return false;
+                    return (start < blockedEnd && end > blockedStart);
+                });
+
+                // Check overlap with booked appointments
+                const isBooked = bookedOnDate.some(apt => {
+                    const aptStart = parseLocalDateTime(apt.start_datetime);
+                    const aptEnd = parseLocalDateTime(apt.end_datetime);
+                    if (!aptStart || !aptEnd) return false;
+                    return (start < aptEnd && end > aptStart);
+                });
+
+                const isConflicting = isBlocked || isBooked;
+
+                // Format time for display (e.g., "11:00 AM")
+                const timeLabel = start.toLocaleTimeString('en-US', { 
+                    hour: 'numeric', 
+                    minute: '2-digit',
+                    hour12: true 
+                });
+
+                // Format time for input value (HH:MM)
+                const timeValue = `${String(start.getHours()).padStart(2, '0')}:${String(start.getMinutes()).padStart(2, '0')}`;
+
+                // Create time slot button
+                const slotBtn = document.createElement('button');
+                slotBtn.type = 'button';
+                slotBtn.className = 'time-slot-btn' + (isConflicting ? ' disabled' : '');
+                slotBtn.textContent = timeLabel;
+                slotBtn.dataset.time = timeValue;
+                slotBtn.dataset.display = timeLabel;
+                
+                if (isConflicting) {
+                    slotBtn.disabled = true;
+                    slotBtn.title = isBlocked ? 'This time slot is blocked' : 'This time slot is already booked';
+                }
+
+                // Add click handler (only for non-conflicting slots)
+                if (!isConflicting) {
+                    slotBtn.addEventListener('click', function() {
+                        // Remove selected class from all buttons
+                        document.querySelectorAll('.time-slot-btn').forEach(btn => {
+                            btn.classList.remove('selected');
+                        });
+                        
+                        // Add selected class to clicked button
+                        this.classList.add('selected');
+                        
+                        // Set the hidden input value
+                        timeInput.value = timeValue;
+                    });
+                }
+
+                timeSlotsPicker.appendChild(slotBtn);
+                slotIndex++;
+            }
+        }
+
+        // If no slots generated, show message
+        if (slotIndex === 1) {
+            timeSlotsPicker.innerHTML = '<div class="text-muted text-center" style="padding: 10px;"><small>No available time slots for this duration</small></div>';
+        }
+    })
+    .catch(error => {
+        console.error('Error fetching appointments:', error);
+        timeSlotsPicker.innerHTML = '<div class="text-muted text-center" style="padding: 10px;"><small>Error loading time slots. Please try again.</small></div>';
+    });
+}
+
+function showApproveModal(requestId, serviceName, duration, hasService, requestType, requestDate) {
     currentRequestId = requestId;
     currentRequestDuration = duration;
 
     document.getElementById('approveModalServiceName').textContent = 'Service: ' + serviceName;
     document.getElementById('appointmentDuration').value = duration;
     document.getElementById('approveRequestType').value = requestType;
+    document.getElementById('approveRequestDate').value = requestDate || '';
 
     const durationInput = document.getElementById('appointmentDuration');
     const helperText = document.getElementById('durationHelper');
+    const dateGroup = document.getElementById('appointmentDateGroup');
+    const dateInput = document.getElementById('appointmentDate');
+    const timeGroup = document.getElementById('appointmentTimeGroup');
+    const timeInput = document.getElementById('appointmentTime');
+
+    // For booking requests, show date and time picker and make duration read-only (unless "Other" service)
+    if (requestType === 'book') {
+        // Show date and time picker
+        dateGroup.style.display = 'block';
+        timeGroup.style.display = 'block';
+        dateInput.required = true;
+        timeInput.required = true;
+        
+        // Set the date input value (use requested date if available, otherwise today)
+        if (requestDate && requestDate.trim()) {
+            // Clean the date (remove any extra characters)
+            let cleanDate = requestDate.trim();
+            if (cleanDate.includes(':')) {
+                cleanDate = cleanDate.split(':')[0];
+            }
+            // Validate and set date
+            const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+            if (dateRegex.test(cleanDate)) {
+                dateInput.value = cleanDate;
+                // Generate time slots for the date
+                generateTimeSlotsForBooking(duration, cleanDate);
+            } else {
+                // Set minimum date to today
+                const today = new Date().toISOString().split('T')[0];
+                dateInput.min = today;
+            }
+        } else {
+            // Set minimum date to today
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.min = today;
+        }
+        
+        // Add event listener for date change
+        dateInput.addEventListener('change', function() {
+            const selectedDate = this.value;
+            if (selectedDate) {
+                generateTimeSlotsForBooking(duration, selectedDate);
+            } else {
+                const timeSlotsPicker = document.getElementById('timeSlotsPicker');
+                if (timeSlotsPicker) {
+                    timeSlotsPicker.innerHTML = '<div class="text-muted text-center" style="padding: 10px;"><small>Please select a date</small></div>';
+                }
+            }
+        });
+
+        // Make duration read-only unless it's "Other" service
+        if (hasService) {
+            durationInput.readOnly = true;
+            durationInput.disabled = true;
+            durationInput.classList.add('bg-light');
+            durationInput.style.cursor = 'not-allowed';
+            durationInput.style.opacity = '0.7';
+            helperText.innerHTML = '<strong>Note:</strong> Duration is based on the service from content management and cannot be changed.';
+            helperText.classList.remove('text-warning');
+            helperText.classList.add('text-info');
+        } else {
+            // For "Other" service, allow duration editing
+            durationInput.readOnly = false;
+            durationInput.disabled = false;
+            durationInput.classList.remove('bg-light');
+            durationInput.style.cursor = '';
+            durationInput.style.opacity = '';
+            helperText.innerHTML = '<strong>Note:</strong> This is an "Other" service. Please set an appropriate duration.';
+            helperText.classList.add('text-warning');
+        }
+    } else if (requestType === 'reschedule') {
+        // Hide time picker for reschedule
+        timeGroup.style.display = 'none';
+        timeInput.required = false;
 
     // For reschedule requests, disable duration editing
-    if (requestType === 'reschedule') {
         durationInput.readOnly = true;
         durationInput.disabled = true;
         durationInput.classList.add('bg-light');
@@ -898,6 +1299,10 @@ function showApproveModal(requestId, serviceName, duration, hasService, requestT
         helperText.classList.remove('text-warning');
         helperText.classList.add('text-info');
     } else {
+        // Hide time picker for walk-in
+        timeGroup.style.display = 'none';
+        timeInput.required = false;
+
         // For walk-in requests, allow duration editing
         durationInput.readOnly = false;
         durationInput.disabled = false;
@@ -923,19 +1328,39 @@ function showApproveModal(requestId, serviceName, duration, hasService, requestT
 document.getElementById('confirmApproveBtn').addEventListener('click', function() {
     const requestType = document.getElementById('approveRequestType').value;
     const duration = parseInt(document.getElementById('appointmentDuration').value);
+    const time = document.getElementById('appointmentTime').value;
+    let date = document.getElementById('approveRequestDate').value;
+    
+    // For booking requests, get date from the date input field
+    if (requestType === 'book') {
+        const dateInput = document.getElementById('appointmentDate');
+        if (dateInput) {
+            date = dateInput.value;
+        }
+    }
 
+    // For booking requests, validate time
+    if (requestType === 'book') {
+        if (!time || time.trim() === '') {
+            alert('Please select an appointment time');
+            return;
+        }
+        if (!duration || duration < 15 || duration > 480) {
+            alert('Please enter a valid duration between 15 and 480 minutes');
+            return;
+        }
+    } else if (requestType === 'walk-in') {
     // Only validate duration for walk-in requests
-    if (requestType === 'walk-in') {
         if (!duration || duration < 15 || duration > 480) {
             alert('Please enter a valid duration between 15 and 480 minutes');
             return;
         }
     }
 
-    approveRequest(currentRequestId, duration, requestType);
+    approveRequest(currentRequestId, duration, requestType, time, date);
 });
 
-function approveRequest(requestId, duration, requestType) {
+function approveRequest(requestId, duration, requestType, time, date) {
     const card = document.querySelector(`[data-request-id="${requestId}"]`);
     const btn = document.getElementById('confirmApproveBtn');
     const originalText = btn.innerHTML;
@@ -943,8 +1368,15 @@ function approveRequest(requestId, duration, requestType) {
     btn.disabled = true;
     btn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Processing...';
 
-    // Only send duration for walk-in requests
-    const payload = requestType === 'walk-in' ? { duration_minutes: duration } : {};
+    // Build payload based on request type
+    const payload = {};
+    if (requestType === 'walk-in') {
+        payload.duration_minutes = duration;
+    } else if (requestType === 'book') {
+        payload.duration_minutes = duration;
+        payload.appointment_time = time;
+        payload.appointment_date = date;
+    }
 
     fetch(`/staff/notifications/approve/${requestId}`, {
         method: 'POST',

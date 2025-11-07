@@ -27,6 +27,66 @@ class NotificationController extends Controller
     }
 
     /**
+     * Get appointments and blocked times for a specific date
+     */
+    public function getAppointmentsForDate(Request $request)
+    {
+        try {
+            $request->validate([
+                'date' => 'required|date'
+            ]);
+
+            $date = Carbon::parse($request->date, 'Asia/Manila');
+            $startOfDay = $date->copy()->startOfDay();
+            $endOfDay = $date->copy()->endOfDay();
+
+        // Get appointments for the date (exclude cancelled)
+        $appointments = Appointment::whereBetween('start_datetime', [$startOfDay, $endOfDay])
+            ->where('status', '!=', 'Cancelled')
+            ->get()
+            ->map(function($appointment) {
+                return [
+                    'id' => $appointment->id,
+                    'start_datetime' => $appointment->start_datetime->format('Y-m-d H:i:s'),
+                    'end_datetime' => $appointment->end_datetime->format('Y-m-d H:i:s'),
+                    'status' => $appointment->status,
+                ];
+            });
+
+        // Get blocked times for the date
+        $blockedTimes = \App\Models\BlockedTime::where(function($query) use ($startOfDay, $endOfDay) {
+            $query->whereBetween('start_datetime', [$startOfDay, $endOfDay])
+                  ->orWhereBetween('end_datetime', [$startOfDay, $endOfDay])
+                  ->orWhere(function($q) use ($startOfDay, $endOfDay) {
+                      $q->where('start_datetime', '<=', $startOfDay)
+                        ->where('end_datetime', '>=', $endOfDay);
+                  });
+        })
+        ->where('end_datetime', '>=', Carbon::now('Asia/Manila'))
+        ->get()
+        ->map(function($blockedTime) {
+            return [
+                'id' => $blockedTime->id,
+                'start_datetime' => $blockedTime->start_datetime->format('Y-m-d H:i:s'),
+                'end_datetime' => $blockedTime->end_datetime->format('Y-m-d H:i:s'),
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'appointments' => $appointments,
+            'blocked_times' => $blockedTimes
+        ]);
+        } catch (\Exception $e) {
+            \Log::error('Error in getAppointmentsForDate: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error loading appointments: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Approve appointment request
      */
     public function approveRequest(Request $request, $id)
@@ -43,8 +103,15 @@ class NotificationController extends Controller
 
             // For reschedule requests, use the duration from the request (based on original appointment)
             // For walk-in requests, validate and use the provided duration
+            // For booking requests, validate time and duration
             if ($appointmentRequest->isWalkIn()) {
                 $request->validate([
+                    'duration_minutes' => 'nullable|integer|min:15|max:480'
+                ]);
+            } elseif ($appointmentRequest->isBooking()) {
+                $request->validate([
+                    'appointment_time' => 'required|date_format:H:i',
+                    'appointment_date' => 'required|date',
                     'duration_minutes' => 'nullable|integer|min:15|max:480'
                 ]);
             }
@@ -101,6 +168,16 @@ class NotificationController extends Controller
                     $serviceId = null; // Set service_id to null for "Other" concerns
                 }
 
+                // For booking requests, use the selected time and date
+                if ($appointmentRequest->isBooking()) {
+                    $selectedDate = $request->input('appointment_date');
+                    $selectedTime = $request->input('appointment_time');
+                    $appointmentDateTime = Carbon::parse($selectedDate . ' ' . $selectedTime, 'Asia/Manila');
+                    
+                    // Update the requested_datetime with the selected time
+                    $appointmentRequest->requested_datetime = $appointmentDateTime;
+                }
+
                 // Determine duration based on request type
                 if ($appointmentRequest->isWalkIn()) {
                     // For walk-in requests, use the duration from request if provided, otherwise use the appointment request's duration
@@ -114,6 +191,20 @@ class NotificationController extends Controller
                     }
                     // Fallback to 30 minutes
                     $durationMinutes = $durationMinutes ?? 30;
+                } elseif ($appointmentRequest->isBooking()) {
+                    // For booking requests, use service default duration (unless "Other" service)
+                    if ($serviceId) {
+                        // Predefined service - use service default duration, cannot be changed
+                        $service = \App\Models\Service::find($serviceId);
+                        if ($service) {
+                            $durationMinutes = $service->default_duration_minutes;
+                        } else {
+                            $durationMinutes = $appointmentRequest->duration_minutes ?? 30;
+                        }
+                    } else {
+                        // "Other" service - allow duration to be set
+                        $durationMinutes = $request->input('duration_minutes', $appointmentRequest->duration_minutes ?? 30);
+                    }
                 } else {
                     // For reschedule requests, always use the duration from the appointment request (from original appointment)
                     $durationMinutes = $appointmentRequest->duration_minutes;
@@ -141,6 +232,44 @@ class NotificationController extends Controller
                         'success' => false,
                         'message' => 'Appointment end time exceeds clinic closing time (6:00 PM). Please adjust the appointment time or duration.',
                         'errors' => ['requested_datetime' => ['Appointment end time exceeds clinic closing time (6:00 PM)']]
+                    ], 422);
+                }
+
+                // Check for conflicts with existing appointments (exclude cancelled)
+                $conflictingAppointment = Appointment::where(function($query) use ($appointmentRequest, $endDateTime) {
+                    $query->where('start_datetime', '<', $endDateTime)
+                          ->where('end_datetime', '>', $appointmentRequest->requested_datetime)
+                          ->where('status', '!=', 'Cancelled');
+                })->first();
+
+                if ($conflictingAppointment) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'This time slot conflicts with an existing appointment. Please select a different time.',
+                        'errors' => ['appointment_time' => ['This time slot conflicts with an existing appointment']]
+                    ], 422);
+                }
+
+                // Check for conflicts with blocked times
+                $blockedTime = \App\Models\BlockedTime::where(function($query) use ($appointmentRequest, $endDateTime) {
+                    $query->where('start_datetime', '<', $endDateTime)
+                          ->where('end_datetime', '>', $appointmentRequest->requested_datetime);
+                })
+                ->where('end_datetime', '>=', Carbon::now('Asia/Manila'))
+                ->first();
+
+                if ($blockedTime) {
+                    $isFullDayClosure = $blockedTime->start_datetime->format('H:i') === '00:00' &&
+                                        $blockedTime->end_datetime->format('H:i') === '23:59';
+
+                    $message = $isFullDayClosure
+                        ? 'The clinic is closed on this date. Please select a different date.'
+                        : 'This time slot is blocked. Please select a different time.';
+
+                    return response()->json([
+                        'success' => false,
+                        'message' => $message,
+                        'errors' => ['appointment_time' => [$message]]
                     ], 422);
                 }
 
@@ -197,12 +326,19 @@ class NotificationController extends Controller
                 $formattedDate = $appointment->start_datetime->format('F j, Y');
                 $formattedTime = $appointment->start_datetime->format('g:i A');
 
+                // Determine request type label for notification
+                $requestTypeLabel = 'reschedule';
+                if ($appointmentRequest->isBooking()) {
+                    $requestTypeLabel = 'booking';
+                } elseif ($appointmentRequest->isWalkIn()) {
+                    $requestTypeLabel = 'emergency walk-in';
+                }
+
                 Notification::create([
                     'user_id' => $appointmentRequest->patient_id,
                     'type' => Notification::TYPE_APPOINTMENT_CONFIRMED,
                     'title' => 'Appointment Request Approved',
-                    'message' => "Your " . ($appointmentRequest->isWalkIn() ? 'walk-in' : 'reschedule') .
-                               " request for {$formattedDate} at {$formattedTime} has been approved!",
+                    'message' => "Your {$requestTypeLabel} request for {$formattedDate} at {$formattedTime} has been approved!",
                     'data' => [
                         'appointment_id' => $appointment->id,
                         'appointment_date' => $formattedDate,
@@ -290,12 +426,21 @@ class NotificationController extends Controller
             $formattedDate = $appointmentRequest->requested_datetime->format('F j, Y');
             $formattedTime = $appointmentRequest->requested_datetime->format('g:i A');
 
+            // Determine request type label for notification
+            $requestTypeLabel = 'reschedule';
+            if ($appointmentRequest->isBooking()) {
+                $requestTypeLabel = 'booking';
+            } elseif ($appointmentRequest->isWalkIn()) {
+                $requestTypeLabel = 'emergency walk-in';
+            }
+
             Notification::create([
                 'user_id' => $appointmentRequest->patient_id,
                 'type' => Notification::TYPE_APPOINTMENT_CANCELLED,
                 'title' => 'Appointment Request Denied',
-                'message' => "Your " . ($appointmentRequest->isWalkIn() ? 'walk-in' : 'reschedule') .
-                           " request for {$formattedDate} at {$formattedTime} has been denied. Reason: {$reason}",
+                'message' => "Your {$requestTypeLabel} request for {$formattedDate}" . 
+                           ($appointmentRequest->isBooking() ? '' : " at {$formattedTime}") .
+                           " has been denied. Reason: {$reason}",
                 'data' => [
                     'request_id' => $appointmentRequest->id,
                     'requested_date' => $formattedDate,

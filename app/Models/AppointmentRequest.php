@@ -78,6 +78,11 @@ class AppointmentRequest extends Model
         return $this->request_type === 'reschedule';
     }
 
+    public function isBooking(): bool
+    {
+        return $this->request_type === 'book';
+    }
+
     // Scopes
     public function scopePending($query)
     {

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Staff;
 use App\Http\Controllers\Controller;
 use App\Models\BlockedTime;
 use App\Models\Appointment;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -88,6 +89,27 @@ class BlockedTimeController extends Controller
             ]);
 
             \Log::info('Blocked time created successfully:', ['id' => $blockedTime->id]);
+
+            // Activity log
+            try {
+                $isClinicClosed = $startDateTime->format('H:i') === '00:00' && $endDateTime->format('H:i') === '23:59';
+                ActivityLog::log(
+                    'created',
+                    'blocked_time',
+                    $isClinicClosed ? 'Added clinic closed day' : 'Created blocked time',
+                    $blockedTime->id,
+                    'BlockedTime',
+                    null,
+                    [
+                        'title' => $blockedTime->title,
+                        'start' => (string) $blockedTime->start_datetime,
+                        'end' => (string) $blockedTime->end_datetime,
+                        'minutes' => $blockedTime->duration_minutes
+                    ]
+                );
+            } catch (\Exception $e) {
+                \Log::warning('ActivityLog failed (blocked-time create): ' . $e->getMessage());
+            }
 
             return response()->json([
                 'success' => true,
@@ -175,6 +197,26 @@ class BlockedTimeController extends Controller
 
             \Log::info('Blocked time updated successfully:', ['id' => $blockedTime->id]);
 
+            // Activity log
+            try {
+                ActivityLog::log(
+                    'updated',
+                    'blocked_time',
+                    'Updated blocked time',
+                    $blockedTime->id,
+                    'BlockedTime',
+                    null,
+                    [
+                        'title' => $blockedTime->title,
+                        'start' => (string) $startDateTime,
+                        'end' => (string) $endDateTime,
+                        'minutes' => $durationMinutes
+                    ]
+                );
+            } catch (\Exception $e) {
+                \Log::warning('ActivityLog failed (blocked-time update): ' . $e->getMessage());
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Blocked time updated successfully',
@@ -203,6 +245,20 @@ class BlockedTimeController extends Controller
 
             $blockedTime->delete();
             \Log::info('Blocked time deleted successfully');
+
+            try {
+                ActivityLog::log(
+                    'deleted',
+                    'blocked_time',
+                    'Deleted blocked time',
+                    $id,
+                    'BlockedTime',
+                    ['id' => $id],
+                    null
+                );
+            } catch (\Exception $e) {
+                \Log::warning('ActivityLog failed (blocked-time delete): ' . $e->getMessage());
+            }
 
             return response()->json([
                 'success' => true,
@@ -290,6 +346,19 @@ class BlockedTimeController extends Controller
                 ->delete();
 
             \Log::info("Cleared {$deletedCount} future clinic closed day(s)");
+            try {
+                ActivityLog::log(
+                    'cleared',
+                    'blocked_time',
+                    "Cleared {$deletedCount} future clinic closed day(s)",
+                    null,
+                    'BlockedTime',
+                    null,
+                    ['deleted_count' => $deletedCount, 'type' => 'clinic_closed']
+                );
+            } catch (\Exception $e) {
+                \Log::warning('ActivityLog failed (clear clinic closed): ' . $e->getMessage());
+            }
 
             return response()->json([
                 'success' => true,
@@ -322,6 +391,19 @@ class BlockedTimeController extends Controller
                 ->delete();
 
             \Log::info("Cleared {$deletedCount} future block off time(s)");
+            try {
+                ActivityLog::log(
+                    'cleared',
+                    'blocked_time',
+                    "Cleared {$deletedCount} future block off time(s)",
+                    null,
+                    'BlockedTime',
+                    null,
+                    ['deleted_count' => $deletedCount, 'type' => 'block_off_time']
+                );
+            } catch (\Exception $e) {
+                \Log::warning('ActivityLog failed (clear block off time): ' . $e->getMessage());
+            }
 
             return response()->json([
                 'success' => true,

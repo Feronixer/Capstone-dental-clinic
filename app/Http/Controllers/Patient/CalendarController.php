@@ -28,6 +28,13 @@ class CalendarController extends Controller
         $blockedTimes = $this->getBlockedTimes();
         $services = $this->getServices();
 
+        // Debug: Log appointment counts
+        \Log::info('CalendarController@index - Appointment counts', [
+            'patient_appointments' => count($appointments),
+            'all_appointments' => count($allAppointments),
+            'patient_id' => $patientId
+        ]);
+
         return view("patient.calendar", compact(
             'appointments', 'upcomingAppointments', 'pendingRequests',
             'appointmentHistory', 'services', 'allAppointments', 'blockedTimes'
@@ -114,13 +121,67 @@ class CalendarController extends Controller
 
     private function getAllAppointmentsForConflicts(): array
     {
-        return Appointment::where('start_datetime', '>=', Carbon::now()->startOfDay())
+        $patientId = auth()->id();
+        
+        // Get appointments from past month to future months for calendar display
+        // This allows patients to see booked time slots in the calendar view
+        $startDate = Carbon::now()->subMonth()->startOfDay();
+        $endDate = Carbon::now()->addMonths(6)->endOfDay();
+        
+        // Get ALL appointments (not filtered by patient_id) for calendar display
+        $allAppointments = Appointment::whereBetween('start_datetime', [$startDate, $endDate])
             ->where('status', '!=', 'Cancelled')
-            ->get()
-            ->map(fn($apt) => [
-                'start_datetime' => $apt->start_datetime->format('Y-m-d H:i:s'),
-                'end_datetime' => $apt->end_datetime->format('Y-m-d H:i:s'),
-            ])
+            ->with(['service', 'patient.info'])
+            ->orderBy('start_datetime', 'asc')
+            ->get();
+        
+        // Debug: Log appointment counts
+        \Log::info('getAllAppointmentsForConflicts - Raw appointments', [
+            'total_appointments' => $allAppointments->count(),
+            'patient_id' => $patientId,
+            'date_range' => [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')]
+        ]);
+        
+        return $allAppointments->map(function($apt) use ($patientId) {
+                $data = [
+                    'id' => $apt->id,
+                    'patient_id' => $apt->patient_id,
+                    'service_id' => $apt->service_id,
+                    'duration_minutes' => $apt->duration_minutes,
+                    'status' => $apt->status ?? 'Pending',
+                    'notes' => $apt->notes,
+                    'reason_for_visit' => $apt->reason_for_visit,
+                    'is_new_patient' => $apt->is_new_patient,
+                    'rescheduled_at' => $apt->rescheduled_at?->format('Y-m-d H:i:s'),
+                    'original_datetime' => $apt->original_datetime?->format('Y-m-d H:i:s'),
+                    'start_datetime' => $apt->start_datetime->format('Y-m-d H:i:s'),
+                    'end_datetime' => $apt->end_datetime->format('Y-m-d H:i:s'),
+                    'created_at' => $apt->created_at->format('Y-m-d H:i:s'),
+                    'updated_at' => $apt->updated_at->format('Y-m-d H:i:s'),
+                    'is_own_appointment' => $apt->patient_id == $patientId, // Mark if it's the patient's own appointment
+                ];
+
+                if ($apt->relationLoaded('service') && $apt->service) {
+                    $data['service'] = [
+                        'id' => $apt->service->id,
+                        'service_name' => $apt->service->service_name,
+                        'default_duration_minutes' => $apt->service->default_duration_minutes,
+                    ];
+                } else {
+                    $data['service'] = null;
+                }
+
+                // Include patient name for other patients' appointments (for display only)
+                if ($apt->patient_id != $patientId && $apt->relationLoaded('patient') && $apt->patient) {
+                    if ($apt->patient->relationLoaded('info') && $apt->patient->info) {
+                        $data['patient_name'] = trim($apt->patient->info->first_name . ' ' . $apt->patient->info->last_name);
+                    } else {
+                        $data['patient_name'] = $apt->patient->name ?? 'Other Patient';
+                    }
+                }
+
+                return $data;
+            })
             ->values()
             ->toArray();
     }
@@ -178,16 +239,23 @@ class CalendarController extends Controller
             \Log::info('Patient appointment request:', $request->all());
 
             $validated = $request->validate([
-                'type' => 'required|in:emergency,reschedule',
+                'type' => 'required|in:emergency,reschedule,book',
                 'reason' => 'required|string',
                 'date' => 'required|date|after_or_equal:today',
-                'time' => 'required',
+                'time' => 'required_if:type,emergency,reschedule',
                 'service_id' => 'nullable|exists:services,id',
                 'other_concern' => 'nullable|string|max:255',
                 'existing_appointment_id' => 'nullable|exists:appointments,id'
             ]);
 
-            $requestedDateTime = Carbon::parse($request->date . ' ' . $request->time, 'Asia/Manila');
+            // For booking type, use a default time (will be assigned by admin/staff)
+            // For emergency/reschedule, use the provided time
+            if ($request->type === 'book') {
+                // Use a placeholder time - admin/staff will assign the actual time
+                $requestedDateTime = Carbon::parse($request->date . ' 11:00:00', 'Asia/Manila');
+            } else {
+                $requestedDateTime = Carbon::parse($request->date . ' ' . $request->time, 'Asia/Manila');
+            }
 
             // Validate date is not in past
             if ($error = $this->validateRequestDateTime($requestedDateTime)) {
@@ -221,36 +289,45 @@ class CalendarController extends Controller
                 }
             }
 
-            // Validate clinic hours: 11:00 AM to 6:00 PM only
-            $appointmentTime = $requestedDateTime->copy()->setTime($requestedDateTime->hour, $requestedDateTime->minute, 0);
-            $clinicOpen = Carbon::parse($requestedDateTime->toDateString() . ' 11:00:00', 'Asia/Manila');
-            $clinicClose = Carbon::parse($requestedDateTime->toDateString() . ' 18:00:00', 'Asia/Manila');
-            
-            if ($appointmentTime->lt($clinicOpen) || $appointmentTime->gte($clinicClose)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Appointments can only be scheduled between 11:00 AM and 6:00 PM. The clinic is closed outside these hours.',
-                    'errors' => ['requested_datetime' => ['Appointments can only be scheduled between 11:00 AM and 6:00 PM']]
-                ], 422);
-            }
+            // For booking type, skip time validation (time will be assigned by admin/staff)
+            // For emergency/reschedule, validate clinic hours
+            if ($request->type !== 'book') {
+                // Validate clinic hours: 11:00 AM to 6:00 PM only
+                $appointmentTime = $requestedDateTime->copy()->setTime($requestedDateTime->hour, $requestedDateTime->minute, 0);
+                $clinicOpen = Carbon::parse($requestedDateTime->toDateString() . ' 11:00:00', 'Asia/Manila');
+                $clinicClose = Carbon::parse($requestedDateTime->toDateString() . ' 18:00:00', 'Asia/Manila');
+                
+                if ($appointmentTime->lt($clinicOpen) || $appointmentTime->gte($clinicClose)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Appointments can only be scheduled between 11:00 AM and 6:00 PM. The clinic is closed outside these hours.',
+                        'errors' => ['requested_datetime' => ['Appointments can only be scheduled between 11:00 AM and 6:00 PM']]
+                    ], 422);
+                }
 
-            // Determine service and duration
-            [$serviceId, $otherConcern, $durationMinutes] = $this->determineServiceAndDuration($request);
+                // Determine service and duration
+                [$serviceId, $otherConcern, $durationMinutes] = $this->determineServiceAndDuration($request);
 
-            // Check for conflicts
-            if ($error = $this->checkTimeConflicts($requestedDateTime, $durationMinutes)) {
-                return $error;
-            }
+                // Check for conflicts
+                if ($error = $this->checkTimeConflicts($requestedDateTime, $durationMinutes)) {
+                    return $error;
+                }
 
-            $requestedEndDateTime = $requestedDateTime->copy()->addMinutes($durationMinutes);
-            
-            // Validate that appointment end time doesn't exceed clinic closing time (6:00 PM)
-            if ($requestedEndDateTime->gt($clinicClose)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Appointment end time exceeds clinic closing time (6:00 PM). Please adjust the appointment time or select a shorter service.',
-                    'errors' => ['requested_datetime' => ['Appointment end time exceeds clinic closing time (6:00 PM)']]
-                ], 422);
+                $requestedEndDateTime = $requestedDateTime->copy()->addMinutes($durationMinutes);
+                
+                // Validate that appointment end time doesn't exceed clinic closing time (6:00 PM)
+                if ($requestedEndDateTime->gt($clinicClose)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Appointment end time exceeds clinic closing time (6:00 PM). Please adjust the appointment time or select a shorter service.',
+                        'errors' => ['requested_datetime' => ['Appointment end time exceeds clinic closing time (6:00 PM)']]
+                    ], 422);
+                }
+            } else {
+                // For booking type, determine service and duration but skip time validation
+                [$serviceId, $otherConcern, $durationMinutes] = $this->determineServiceAndDuration($request);
+                // Use placeholder end time (will be updated when admin/staff assigns time)
+                $requestedEndDateTime = $requestedDateTime->copy()->addMinutes($durationMinutes ?? 30);
             }
 
             // Create appointment request
@@ -259,9 +336,15 @@ class CalendarController extends Controller
             // Send notifications
             $this->sendNotificationToStaff($appointmentRequest, $request, $requestedDateTime);
 
+            // Customize success message based on request type
+            $successMessage = 'Your request has been submitted. You will be notified once it is reviewed.';
+            if ($request->type === 'book') {
+                $successMessage = 'Your appointment booking request has been submitted. Admin or staff will review your request and assign an appointment time. You will be notified once your appointment is scheduled.';
+            }
+
             return response()->json([
                 'success' => true,
-                'message' => 'Your request has been submitted. You will be notified once it is reviewed.'
+                'message' => $successMessage
             ]);
 
         } catch (\Exception $e) {
@@ -389,12 +472,20 @@ class CalendarController extends Controller
 
     private function createAppointmentRequest(Request $request, $serviceId, $otherConcern, $durationMinutes, Carbon $requestedDateTime, Carbon $requestedEndDateTime)
     {
+            // Determine request type
+            $requestType = 'walk-in';
+            if ($request->type === 'reschedule') {
+                $requestType = 'reschedule';
+            } else if ($request->type === 'book') {
+                $requestType = 'book'; // Use 'book' for booking requests
+            }
+
             \Log::info('Creating AppointmentRequest with:', [
                 'patient_id' => auth()->id(),
                 'service_id' => $serviceId,
                 'other_concern' => $otherConcern,
                 'existing_appointment_id' => $request->existing_appointment_id,
-                'request_type' => $request->type === 'emergency' ? 'walk-in' : 'reschedule',
+                'request_type' => $requestType,
                 'duration_minutes' => $durationMinutes,
                 'reason' => $request->reason
             ]);
@@ -404,7 +495,7 @@ class CalendarController extends Controller
                 'service_id' => $serviceId,
                 'other_concern' => $otherConcern,
                 'existing_appointment_id' => $request->existing_appointment_id,
-                'request_type' => $request->type === 'emergency' ? 'walk-in' : 'reschedule',
+                'request_type' => $requestType,
                 'requested_datetime' => $requestedDateTime,
                 'requested_end_datetime' => $requestedEndDateTime,
                 'duration_minutes' => $durationMinutes,
@@ -436,14 +527,27 @@ class CalendarController extends Controller
             $query->whereIn('role_id', [1, 2]);
             })->get();
 
+            // Determine notification title and message based on request type
+            $title = 'New Appointment Request';
+            $message = '';
+            
+            if ($request->type === 'emergency') {
+                $title = 'New Walk-in Request';
+                $message = "{$patientName} has requested a walk-in appointment for {$serviceName} on {$formattedDate} at {$formattedTime}.";
+            } else if ($request->type === 'reschedule') {
+                $title = 'New Reschedule Request';
+                $message = "{$patientName} has requested to reschedule an appointment for {$serviceName} on {$formattedDate} at {$formattedTime}.";
+            } else if ($request->type === 'book') {
+                $title = 'New Appointment Booking Request';
+                $message = "{$patientName} has requested to book an appointment for {$serviceName} on {$formattedDate}. Please assign an appointment time.";
+            }
+
             foreach ($adminStaff as $staff) {
                 Notification::create([
                     'user_id' => $staff->id,
                     'type' => 'appointment_request',
-                    'title' => $request->type === 'emergency' ? 'New Walk-in Request' : 'New Reschedule Request',
-                    'message' => "{$patientName} has requested a " .
-                                ($request->type === 'emergency' ? 'walk-in appointment' : 'reschedule') .
-                                " for {$serviceName} on {$formattedDate} at {$formattedTime}.",
+                    'title' => $title,
+                    'message' => $message,
                     'icon' => 'bi-calendar-plus',
                     'data' => json_encode([
                         'request_id' => $appointmentRequest->id,

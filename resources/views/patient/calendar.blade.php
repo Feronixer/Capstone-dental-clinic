@@ -145,6 +145,9 @@
                     <button class="appointment-action-btn emergency-btn" data-bs-toggle="modal" data-bs-target="#appointmentRequestModal" onclick="openAppointmentModal('emergency')">
                         <i class="bi bi-lightning-charge-fill"></i> Emergency
                     </button>
+                    <button class="appointment-action-btn book-now-btn" data-bs-toggle="modal" data-bs-target="#appointmentRequestModal" onclick="openAppointmentModal('book')">
+                        <i class="bi bi-calendar-plus-fill"></i> Book Now
+                    </button>
                     <button class="appointment-action-btn reschedule-btn" data-bs-toggle="modal" data-bs-target="#appointmentRequestModal" onclick="openAppointmentModal('reschedule')">
                         <i class="bi bi-arrow-repeat"></i> Reschedule
                     </button>
@@ -348,7 +351,81 @@
             </div>
         </form>
                     </div>
+
+                    <!-- Book Now Appointment Form -->
+                    <div id="bookFormSection" class="appointment-form-section" style="display: none;">
+                        <form id="bookForm" class="appointment-form">
+                            <!-- Service Selection -->
+                            <div class="form-group" id="bookServiceSelectionGroup">
+                                <label for="bookServiceSelect" class="form-label">
+                    <i class="bi bi-heart-pulse-fill me-2"></i>Select Service:
+                </label>
+                                <select id="bookServiceSelect" name="service_id" class="form-select" required>
+                    <option value="">-- Select a service --</option>
+                    @foreach($services as $service)
+                        <option value="{{ $service->id }}" data-duration="{{ $service->default_duration_minutes }}">{{ $service->service_name }}</option>
+                    @endforeach
+                    <option value="other" data-duration="30">Other</option>
+                </select>
                 </div>
+
+            <!-- Other Concern Input (only visible when "Other" is selected) -->
+                            <div class="form-group" id="bookOtherConcernGroup" style="display: none;">
+                                <label for="bookOtherConcern" class="form-label">
+                    <i class="bi bi-pencil-square me-2"></i>Service Name:
+                </label>
+                                <input type="text" id="bookOtherConcern" name="other_concern" class="form-input" placeholder="Enter the dental service you need...">
+            </div>
+
+                            <div class="form-group">
+                                <label for="bookDate" class="form-label">
+                                    <i class="bi bi-calendar-event me-2"></i>Preferred Date:
+                                </label>
+                                <div class="input-with-icon">
+                                    <input type="date" id="bookDate" name="date" class="form-input" min="{{ date('Y-m-d') }}" required>
+                                    <i class="bi bi-calendar3"></i>
+                                </div>
+                                <small class="form-text text-muted mt-2">
+                                    <i class="bi bi-info-circle me-1"></i>Admin or staff will assign the appointment time after reviewing your request.
+                                </small>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn-submit">
+                                    <i class="bi bi-check-circle me-2"></i>Book Appointment
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; overflow: hidden;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; padding: 1.5rem;">
+                <h5 class="modal-title text-white" id="successModalLabel" style="font-weight: 700;">
+                    <i class="bi bi-check-circle-fill me-2"></i>Success
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 2rem; text-align: center;">
+                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                    <i class="bi bi-check-circle-fill" style="font-size: 3rem; color: #10b981;"></i>
+                </div>
+                <h5 style="color: #1e293b; font-weight: 700; margin-bottom: 1rem;">Request Submitted Successfully!</h5>
+                <p id="successModalMessage" style="color: #64748b; margin-bottom: 0; line-height: 1.6;">
+                    Your appointment booking request has been submitted. Admin or staff will review your request and assign an appointment time. You will be notified once your appointment is scheduled.
+                </p>
+            </div>
+            <div class="modal-footer" style="border: none; padding: 1.5rem; background: #f8f9fa; justify-content: center;">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" style="padding: 0.75rem 2rem; border-radius: 8px; font-weight: 600; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
+                    <i class="bi bi-check-circle me-2"></i>OK
+                </button>
             </div>
         </div>
     </div>
@@ -951,6 +1028,20 @@
     cursor: not-allowed;
 }
 
+.event-item.booked {
+    background: #e0f2fe;
+    border-left: 2px solid #0ea5e9;
+    color: #0c4a6e;
+    cursor: default;
+    opacity: 1;
+}
+
+.event-item.booked:hover {
+    transform: none;
+    box-shadow: none;
+    opacity: 1;
+}
+
 .event-time {
     font-weight: 600;
     color: #1e293b;
@@ -1280,6 +1371,26 @@
     font-size: 1rem !important;
     filter: drop-shadow(0 2px 4px rgba(255, 255, 255, 0.3));
     animation: pulse 2s infinite;
+}
+
+/* Book Now Button - Green Gradient */
+.appointment-action-btn.book-now-btn {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+    color: white !important;
+    box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4) !important;
+    border: 2px solid #16a34a !important;
+}
+
+.appointment-action-btn.book-now-btn:hover {
+    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%) !important;
+    box-shadow: 0 6px 20px rgba(34, 197, 94, 0.6) !important;
+    transform: translateY(-2px) scale(1.02) !important;
+    border-color: #15803d !important;
+}
+
+.appointment-action-btn.book-now-btn i {
+    font-size: 1rem !important;
+    filter: drop-shadow(0 2px 4px rgba(255, 255, 255, 0.3));
 }
 
 /* Reschedule Button - Light Blue with Darker Hover (Light Mode Only) */
@@ -2030,6 +2141,20 @@
     box-shadow: none;
 }
 
+.week-appointment.booked {
+    background: #e0f2fe;
+    border-left: 2px solid #0ea5e9;
+    color: #0c4a6e;
+    cursor: default;
+    opacity: 1;
+}
+
+.week-appointment.booked:hover {
+    transform: none;
+    box-shadow: none;
+    opacity: 1;
+}
+
 .week-apt-time {
     font-size: 0.65rem;
     font-weight: 600;
@@ -2207,6 +2332,20 @@
     box-shadow: 0 2px 6px rgba(0,0,0,0.08);
 }
 
+.day-appointment.booked {
+    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+    border-left: 3px solid #0ea5e9;
+    color: #0c4a6e;
+    cursor: default;
+    opacity: 1;
+}
+
+.day-appointment.booked:hover {
+    transform: none;
+    box-shadow: none;
+    opacity: 1;
+}
+
 .day-apt-header {
     display: flex;
     justify-content: space-between;
@@ -2260,6 +2399,11 @@
 .day-apt-badge.blocked {
     background: #e5e7eb;
     color: #374151;
+}
+
+.day-apt-badge.booked {
+    background: #e0f2fe;
+    color: #0c4a6e;
 }
 
 .day-apt-title {
@@ -2685,6 +2829,19 @@
     border-left-color: #4b5563 !important;
 }
 
+[data-theme="dark"] .event-item.booked {
+    background: rgba(14, 165, 233, 0.2) !important;
+    border-left-color: #0ea5e9 !important;
+    color: #bae6fd !important;
+    cursor: default !important;
+}
+
+[data-theme="dark"] .event-item.booked:hover {
+    background: rgba(14, 165, 233, 0.25) !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
 [data-theme="dark"] .event-time,
 [data-theme="dark"] .event-title {
     color: white !important;
@@ -2924,6 +3081,19 @@
     box-shadow: none !important;
 }
 
+[data-theme="dark"] .week-appointment.booked {
+    background: rgba(14, 165, 233, 0.2) !important;
+    border-left-color: #0ea5e9 !important;
+    color: #bae6fd !important;
+    cursor: default !important;
+}
+
+[data-theme="dark"] .week-appointment.booked:hover {
+    background: rgba(14, 165, 233, 0.25) !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
 [data-theme="dark"] .week-apt-time,
 [data-theme="dark"] .week-apt-title {
     color: var(--dm-text-primary, #f1f5f9) !important;
@@ -2997,9 +3167,27 @@
     box-shadow: 0 2px 6px rgba(0,0,0,0.08) !important;
 }
 
+[data-theme="dark"] .day-appointment.booked {
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.2) 0%, rgba(14, 165, 233, 0.15) 100%) !important;
+    border-left-color: #0ea5e9 !important;
+    color: #bae6fd !important;
+    cursor: default !important;
+}
+
+[data-theme="dark"] .day-appointment.booked:hover {
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.25) 0%, rgba(14, 165, 233, 0.2) 100%) !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
 [data-theme="dark"] .day-apt-badge.blocked {
     background: rgba(107, 114, 128, 0.3) !important;
     color: var(--dm-text-muted, #94a3b8) !important;
+}
+
+[data-theme="dark"] .day-apt-badge.booked {
+    background: rgba(14, 165, 233, 0.3) !important;
+    color: #bae6fd !important;
 }
 
 [data-theme="dark"] .day-apt-time,
@@ -3207,6 +3395,25 @@
     color: #fca5a5 !important;
 }
 
+/* Success Modal Dark Mode */
+[data-theme="dark"] #successModal .modal-content {
+    background: var(--dm-card-bg) !important;
+    border-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] #successModal .modal-body h5 {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] #successModal .modal-body p {
+    color: var(--dm-text-muted) !important;
+}
+
+[data-theme="dark"] #successModal .modal-footer {
+    background: var(--dm-bg-secondary) !important;
+    border-color: var(--dm-border-color) !important;
+}
+
 /* Time Availability Messages */
 [data-theme="dark"] #timeAvailabilityMessage {
     border-color: var(--dm-border-color, #334155) !important;
@@ -3223,14 +3430,16 @@ function openAppointmentModal(type) {
     // Set appointment type
     appointmentType = type;
 
-    // Hide both forms
+    // Hide all forms
     const emergencyFormSection = document.getElementById('emergencyFormSection');
     const rescheduleFormSection = document.getElementById('rescheduleFormSection');
+    const bookFormSection = document.getElementById('bookFormSection');
 
         if (type === 'emergency') {
-        // Show emergency form, hide reschedule form
+        // Show emergency form, hide others
         if (emergencyFormSection) emergencyFormSection.style.display = 'block';
         if (rescheduleFormSection) rescheduleFormSection.style.display = 'none';
+        if (bookFormSection) bookFormSection.style.display = 'none';
 
         // Update modal title
         const modalTitle = document.getElementById('appointmentRequestModalLabel');
@@ -3238,17 +3447,133 @@ function openAppointmentModal(type) {
             modalTitle.innerHTML = '<i class="bi bi-lightning-charge-fill me-2"></i>Emergency Appointment';
         }
     } else if (type === 'reschedule') {
-        // Show reschedule form, hide emergency form
+        // Show reschedule form, hide others
         if (emergencyFormSection) emergencyFormSection.style.display = 'none';
         if (rescheduleFormSection) rescheduleFormSection.style.display = 'block';
+        if (bookFormSection) bookFormSection.style.display = 'none';
 
         // Update modal title
         const modalTitle = document.getElementById('appointmentRequestModalLabel');
         if (modalTitle) {
             modalTitle.innerHTML = '<i class="bi bi-arrow-repeat me-2"></i>Request Reschedule';
         }
+    } else if (type === 'book') {
+        // Show book form, hide others
+        if (emergencyFormSection) emergencyFormSection.style.display = 'none';
+        if (rescheduleFormSection) rescheduleFormSection.style.display = 'none';
+        if (bookFormSection) bookFormSection.style.display = 'block';
+
+        // Update modal title
+        const modalTitle = document.getElementById('appointmentRequestModalLabel');
+        if (modalTitle) {
+            modalTitle.innerHTML = '<i class="bi bi-calendar-plus me-2"></i>Book Appointment';
+        }
     }
 }
+
+// Handle Book Service Selection (show/hide "Other" field)
+document.addEventListener('DOMContentLoaded', function() {
+    const bookServiceSelect = document.getElementById('bookServiceSelect');
+    const bookOtherConcernGroup = document.getElementById('bookOtherConcernGroup');
+    
+    if (bookServiceSelect && bookOtherConcernGroup) {
+        bookServiceSelect.addEventListener('change', function() {
+            if (this.value === 'other') {
+                bookOtherConcernGroup.style.display = 'block';
+                document.getElementById('bookOtherConcern').required = true;
+            } else {
+                bookOtherConcernGroup.style.display = 'none';
+                document.getElementById('bookOtherConcern').required = false;
+                document.getElementById('bookOtherConcern').value = '';
+            }
+        });
+    }
+
+    // Handle Book Form Submission
+    const bookForm = document.getElementById('bookForm');
+    if (bookForm) {
+        bookForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const submitButton = this.querySelector('.btn-submit');
+            const originalText = submitButton.innerHTML;
+
+            // Disable button and show loading
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Booking...';
+
+            const formData = {
+                type: 'book', // Use 'book' type for regular appointment booking
+                reason: 'Regular appointment booking',
+                date: document.getElementById('bookDate').value,
+                _token: '{{ csrf_token() }}'
+            };
+
+            // Include service information
+            const serviceSelect = document.getElementById('bookServiceSelect');
+            const otherConcern = document.getElementById('bookOtherConcern');
+            
+            if (serviceSelect && serviceSelect.value) {
+                if (serviceSelect.value === 'other') {
+                    if (otherConcern && otherConcern.value.trim()) {
+                        formData.other_concern = otherConcern.value.trim();
+                    } else {
+                        alert('Please enter the service name.');
+                        submitButton.disabled = false;
+                        submitButton.innerHTML = originalText;
+                        return;
+                    }
+                } else {
+                    formData.service_id = serviceSelect.value;
+                }
+            }
+
+            // Submit the form
+            fetch('/patient/calendar/submit-request', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': formData._token,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Close appointment request modal
+                    const requestModal = bootstrap.Modal.getInstance(document.getElementById('appointmentRequestModal'));
+                    if (requestModal) requestModal.hide();
+                    
+                    // Reset form
+                    bookForm.reset();
+                    if (bookOtherConcernGroup) bookOtherConcernGroup.style.display = 'none';
+                    
+                    // Show success modal
+                    const successMessage = data.message || 'Appointment request submitted successfully!';
+                    document.getElementById('successModalMessage').textContent = successMessage;
+                    const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+                    successModal.show();
+                    
+                    // Reload page when success modal is closed
+                    document.getElementById('successModal').addEventListener('hidden.bs.modal', function() {
+                        window.location.reload();
+                    }, { once: true });
+                } else {
+                    alert(data.message || 'Failed to submit appointment request. Please try again.');
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = originalText;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalText;
+            });
+        });
+    }
+});
 
 // Tab Switching Function
 function switchTab(tabName) {
@@ -3511,32 +3836,11 @@ document.getElementById('emergencyForm').addEventListener('submit', function(e) 
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Show success message
-            // Close the modal
+            // Close appointment request modal
             const appointmentModal = bootstrap.Modal.getInstance(document.getElementById('appointmentRequestModal'));
             if (appointmentModal) {
                 appointmentModal.hide();
             }
-
-            // Show success message at the top of the page
-            const alert = document.createElement('div');
-            alert.className = 'alert alert-success alert-dismissible fade show';
-            alert.style.position = 'fixed';
-            alert.style.top = '80px';
-            alert.style.left = '50%';
-            alert.style.transform = 'translateX(-50%)';
-            alert.style.zIndex = '9999';
-            alert.style.minWidth = '300px';
-            alert.style.maxWidth = '600px';
-            alert.innerHTML = `
-                <i class="bi bi-check-circle me-2"></i>
-                <strong>Success!</strong> ${data.message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            `;
-            document.body.appendChild(alert);
-
-            // Scroll to top to see the message
-            window.scrollTo({ top: 0, behavior: 'smooth' });
 
             // Reset form
             this.reset();
@@ -3564,8 +3868,16 @@ document.getElementById('emergencyForm').addEventListener('submit', function(e) 
                 cancelBtn.style.display = 'none';
             }
 
-            // Auto-dismiss after 5 seconds
-            setTimeout(() => alert.remove(), 5000);
+            // Show success modal
+            const successMessage = data.message || 'Your request has been submitted successfully!';
+            document.getElementById('successModalMessage').textContent = successMessage;
+            const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+            successModal.show();
+            
+            // Reload page when success modal is closed
+            document.getElementById('successModal').addEventListener('hidden.bs.modal', function() {
+                window.location.reload();
+            }, { once: true });
         } else {
             // Check if error is due to blocked/closed time
             if (data.message && (data.message.includes('closed') || data.message.includes('blocked'))) {
@@ -3771,31 +4083,11 @@ document.getElementById('rescheduleForm').addEventListener('submit', function(e)
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Close the modal
+            // Close appointment request modal
             const appointmentModal = bootstrap.Modal.getInstance(document.getElementById('appointmentRequestModal'));
             if (appointmentModal) {
                 appointmentModal.hide();
             }
-
-            // Show success message at the top of the page
-            const alert = document.createElement('div');
-            alert.className = 'alert alert-success alert-dismissible fade show';
-            alert.style.position = 'fixed';
-            alert.style.top = '80px';
-            alert.style.left = '50%';
-            alert.style.transform = 'translateX(-50%)';
-            alert.style.zIndex = '9999';
-            alert.style.minWidth = '300px';
-            alert.style.maxWidth = '600px';
-            alert.innerHTML = `
-                <i class="bi bi-check-circle me-2"></i>
-                <strong>Success!</strong> ${data.message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            `;
-            document.body.appendChild(alert);
-
-            // Scroll to top to see the message
-            window.scrollTo({ top: 0, behavior: 'smooth' });
 
             // Reset form
             this.reset();
@@ -3806,8 +4098,16 @@ document.getElementById('rescheduleForm').addEventListener('submit', function(e)
             if (rescheduleAppointmentSelect) rescheduleAppointmentSelect.value = '';
             if (rescheduleSelectedAppointmentInfo) rescheduleSelectedAppointmentInfo.style.display = 'none';
 
-            // Auto-dismiss after 5 seconds
-            setTimeout(() => alert.remove(), 5000);
+            // Show success modal
+            const successMessage = data.message || 'Your reschedule request has been submitted successfully!';
+            document.getElementById('successModalMessage').textContent = successMessage;
+            const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+            successModal.show();
+            
+            // Reload page when success modal is closed
+            document.getElementById('successModal').addEventListener('hidden.bs.modal', function() {
+                window.location.reload();
+            }, { once: true });
         } else {
             // Check if error is due to blocked/closed time
             if (data.message && (data.message.includes('closed') || data.message.includes('blocked'))) {
@@ -4116,20 +4416,46 @@ var appointmentsData = @json($appointments ?? []);
 var allAppointmentsData = @json($allAppointments ?? []);
 var blockedTimesData = @json($blockedTimes ?? []);
 
+// Set current patient ID for filtering
+window.currentPatientId = {{ auth()->id() }};
+
+// Debug: Log raw data from server BEFORE processing
+console.log('=== BLADE TEMPLATE: Raw Data from Server ===');
+console.log('Raw appointmentsData type:', typeof appointmentsData, 'length:', Array.isArray(appointmentsData) ? appointmentsData.length : Object.keys(appointmentsData || {}).length);
+console.log('Raw allAppointmentsData type:', typeof allAppointmentsData, 'length:', Array.isArray(allAppointmentsData) ? allAppointmentsData.length : Object.keys(allAppointmentsData || {}).length);
+console.log('Server-side count - appointments:', {{ count($appointments ?? []) }}, 'allAppointments:', {{ count($allAppointments ?? []) }});
+
 // Ensure arrays are properly formatted (convert objects to arrays if needed)
 window.patientAppointments = Array.isArray(appointmentsData) ? appointmentsData : Object.values(appointmentsData || []);
 window.allAppointments = Array.isArray(allAppointmentsData) ? allAppointmentsData : Object.values(allAppointmentsData || []);
 window.blockedTimes = Array.isArray(blockedTimesData) ? blockedTimesData : Object.values(blockedTimesData || []);
 
-// Debug: Verify data is loaded
-console.log('Blade template: Appointments data set', {
-    patientAppointments: window.patientAppointments ? window.patientAppointments.length : 0,
-    allAppointments: window.allAppointments ? window.allAppointments.length : 0,
-    blockedTimes: window.blockedTimes ? window.blockedTimes.length : 0,
-    rawAppointmentsCount: {{ count($appointments ?? []) }}
-});
+// Debug: Verify data is loaded AFTER processing
+console.log('=== BLADE TEMPLATE: Processed Data ===');
+console.log('window.patientAppointments:', window.patientAppointments ? window.patientAppointments.length : 0, 'appointments');
+console.log('window.allAppointments:', window.allAppointments ? window.allAppointments.length : 0, 'appointments');
+console.log('window.blockedTimes:', window.blockedTimes ? window.blockedTimes.length : 0, 'blocked times');
+
 if (window.patientAppointments && window.patientAppointments.length > 0) {
-    console.log('First 3 appointments:', window.patientAppointments.slice(0, 3));
+    console.log('First 3 patient appointments:', window.patientAppointments.slice(0, 3));
+}
+if (window.allAppointments && window.allAppointments.length > 0) {
+    console.log('First 5 all appointments:', window.allAppointments.slice(0, 5).map(function(a) {
+        return {
+            id: a.id,
+            patient_id: a.patient_id,
+            is_own_appointment: a.is_own_appointment,
+            patient_name: a.patient_name,
+            service: a.service ? a.service.service_name : null,
+            start_datetime: a.start_datetime
+        };
+    }));
+    console.log('All appointment dates from allAppointments:', window.allAppointments.map(function(a) {
+        return a.start_datetime ? a.start_datetime.split(' ')[0] : 'no date';
+    }));
+} else {
+    console.error('⚠️ CRITICAL: window.allAppointments is empty or undefined!');
+    console.error('This means other patients appointments will NOT be displayed!');
 }
 
 // Server time synchronization - CRITICAL for fault tolerance

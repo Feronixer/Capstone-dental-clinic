@@ -1117,8 +1117,50 @@ document.addEventListener('DOMContentLoaded', function() {
         notes: bt.notes
     }));
 
-    // Merge for display purposes
-    let allCalendarItems = [...appointments, ...blockedTimes];
+    // Filter out appointments that overlap with blocked times
+    const filteredAppointments = appointments.filter(apt => {
+        if (!apt.start_datetime || !apt.end_datetime) return true;
+        
+        const aptStart = parseLocalDateTime(apt.start_datetime);
+        const aptEnd = parseLocalDateTime(apt.end_datetime);
+        if (!aptStart || !aptEnd) return true;
+
+        // Check if appointment overlaps with any blocked time
+        const overlaps = blockedTimes.some(bt => {
+            if (!bt.start_datetime || !bt.end_datetime) return false;
+            
+            const btStart = parseLocalDateTime(bt.start_datetime);
+            const btEnd = parseLocalDateTime(bt.end_datetime);
+            if (!btStart || !btEnd) return false;
+
+            // Check if it's a full-day closure (starts at 00:00 and ends at 23:59 or later)
+            const isFullDayClosure = btStart.getHours() === 0 && btStart.getMinutes() === 0 &&
+                                     (btEnd.getHours() === 23 && btEnd.getMinutes() >= 59);
+
+            // If full-day closure, check if appointment is on the same date
+            if (isFullDayClosure) {
+                const sameDate = aptStart.toDateString() === btStart.toDateString();
+                if (sameDate) {
+                    console.log('Filtering appointment on clinic closed day:', apt.start_datetime, 'Blocked:', bt.start_datetime);
+                }
+                return sameDate;
+            }
+
+            // For partial blocks, check for overlap: appointment starts before blocked ends AND appointment ends after blocked starts
+            const hasOverlap = aptStart < btEnd && aptEnd > btStart;
+            if (hasOverlap) {
+                console.log('Filtering overlapping appointment:', apt.start_datetime, 'Blocked:', bt.start_datetime);
+            }
+            return hasOverlap;
+        });
+
+        return !overlaps;
+    });
+
+    console.log('Filtered appointments:', filteredAppointments.length, 'out of', appointments.length);
+
+    // Merge for display purposes (only non-overlapping appointments)
+    let allCalendarItems = [...filteredAppointments, ...blockedTimes];
 
     // Initialize calendar view button
     setActiveButton(currentView);
@@ -1638,14 +1680,21 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Custom time toggle
-    document.getElementById('custom_time').addEventListener('change', function() {
-        const customInputs = document.getElementById('custom-time-inputs');
-        if (this.checked) {
-            customInputs.style.display = 'block';
-        } else {
-            customInputs.style.display = 'none';
+    (function(){
+        const customTimeToggle = document.getElementById('custom_time');
+        if (customTimeToggle) {
+            customTimeToggle.addEventListener('change', function() {
+                const customInputs = document.getElementById('custom-time-inputs');
+                if (customInputs) {
+                    if (this.checked) {
+                        customInputs.style.display = 'block';
+                    } else {
+                        customInputs.style.display = 'none';
+                    }
+                }
+            });
         }
-    });
+    })();
 
     // Service selection handler
     document.getElementById('service_name').addEventListener('change', function() {
@@ -1700,12 +1749,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         let slotIndex = 1;
         for (let hour = clinicOpenHour; hour < clinicCloseHour; hour++) {
-            for (let minute = 0; minute < 60; minute += durationMinutes) {
+            for (let minute = 0; minute < 60; minute += 15) {
                 const start = new Date(year, month - 1, day, hour, minute, 0);
                 const end = new Date(start.getTime() + durationMinutes * 60000);
 
                 if (end.getHours() > clinicCloseHour || (end.getHours() === clinicCloseHour && end.getMinutes() > 0)) {
-                    break;
+                    continue;
                 }
 
                 const val = `${String(start.getHours()).padStart(2,'0')}:${String(start.getMinutes()).padStart(2,'0')}-${String(end.getHours()).padStart(2,'0')}:${String(end.getMinutes()).padStart(2,'0')}`;
@@ -2192,6 +2241,16 @@ document.addEventListener('DOMContentLoaded', function() {
                         aptElement.textContent = `${timeString}-${endTimeString} ${blockTitle}`;
                         aptElement.title = `Blocked Time: ${apt.notes || 'No reason provided'}`;
                     }
+                    
+                    // Add click handler for blocked times - show blocked time details
+                    aptElement.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        if (apt.id) {
+                            editAppointment(apt.id);
+                        } else {
+                            console.error('Blocked time has no ID:', apt);
+                        }
+                    });
                 } else {
                 // Get patient name from the loaded relationship
                 let patientName = 'Unknown Patient';
@@ -2217,9 +2276,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     aptElement.classList.remove('confirmed', 'pending');
                     aptElement.classList.add('cancelled');
                 }
+                
+                // Add click handler for appointments - show appointment details
+                aptElement.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (apt.id) {
+                        editAppointment(apt.id);
+                    } else {
+                        console.error('Appointment has no ID:', apt);
+                    }
+                });
                 }
-
-                aptElement.addEventListener('click', () => editAppointment(apt.id));
                 timeContent.appendChild(aptElement);
             });
 
@@ -2290,6 +2357,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     aptElement.textContent = `${timeString}-${endTimeString} ${blockTitle}`;
                     aptElement.title = `Blocked Time: ${apt.notes || 'No reason provided'}`;
                 }
+                
+                // Add click handler for blocked times - show blocked time details
+                aptElement.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (apt.id) {
+                        editAppointment(apt.id);
+                    } else {
+                        console.error('Blocked time has no ID:', apt);
+                    }
+                });
             } else {
             // Get patient name from the loaded relationship
             let patientName = 'Unknown Patient';
@@ -2315,9 +2392,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 aptElement.classList.remove('confirmed', 'pending');
                 aptElement.classList.add('cancelled');
             }
+            
+            // Add click handler for appointments - show appointment details
+            aptElement.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (apt.id) {
+                    editAppointment(apt.id);
+                } else {
+                    console.error('Appointment has no ID:', apt);
+                }
+            });
             }
-
-            aptElement.addEventListener('click', () => editAppointment(apt.id));
             dayElement.appendChild(aptElement);
         });
     }
@@ -2497,15 +2582,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
                         // Show conflict modal after a short delay
                         setTimeout(() => {
-                            new bootstrap.Modal(document.getElementById('appointmentConflictModal')).show();
-
-                            // When conflict modal is closed, reopen appointment modal
-                            document.getElementById('appointmentConflictModal').addEventListener('hidden.bs.modal', function onHidden() {
-                                if (appointmentModal) {
-                                    appointmentModal.show();
-                                }
-                                document.getElementById('appointmentConflictModal').removeEventListener('hidden.bs.modal', onHidden);
-                            }, { once: true });
+                            const conflictEl = document.getElementById('appointmentConflictModal');
+                            if (conflictEl) {
+                                new bootstrap.Modal(conflictEl).show();
+                                conflictEl.addEventListener('hidden.bs.modal', function onHidden() {
+                                    if (appointmentModal) {
+                                        appointmentModal.show();
+                                    }
+                                    conflictEl.removeEventListener('hidden.bs.modal', onHidden);
+                                }, { once: true });
+                            }
                         }, 300);
                     } else {
                     showFieldError('time-slots-list', `This time slot conflicts with an existing ${conflictType}`);
@@ -2692,15 +2778,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     // Show conflict modal after a short delay
                     setTimeout(() => {
-                        new bootstrap.Modal(document.getElementById('appointmentConflictModal')).show();
-
-                        // When conflict modal is closed, reopen appointment modal
-                        document.getElementById('appointmentConflictModal').addEventListener('hidden.bs.modal', function onHidden() {
-                            if (appointmentModal) {
-                                appointmentModal.show();
-                            }
-                            document.getElementById('appointmentConflictModal').removeEventListener('hidden.bs.modal', onHidden);
-                        }, { once: true });
+                        const conflictEl = document.getElementById('appointmentConflictModal');
+                        if (conflictEl) {
+                            new bootstrap.Modal(conflictEl).show();
+                            conflictEl.addEventListener('hidden.bs.modal', function onHidden() {
+                                if (appointmentModal) {
+                                    appointmentModal.show();
+                                }
+                                conflictEl.removeEventListener('hidden.bs.modal', onHidden);
+                            }, { once: true });
+                        }
                     }, 300);
                 } else {
                 showValidationMessage(errorMessage, 'error');
@@ -3617,14 +3704,33 @@ document.addEventListener('DOMContentLoaded', function() {
     function editAppointment(id) {
         console.log('Edit appointment called with ID:', id);
         console.log('Available calendar items:', allCalendarItems);
+        console.log('Blocked times:', blockedTimes);
 
-        // Find item (appointment or blocked time)
-        const item = allCalendarItems.find(apt => apt.id == id);
+        // Find item (appointment or blocked time) in allCalendarItems first
+        let item = allCalendarItems.find(apt => apt.id == id);
+        
+        // If not found, check if it's a blocked time in the original blockedTimes array
+        if (!item) {
+            const blockedTime = blockedTimes.find(bt => bt.id == id);
+            if (blockedTime) {
+                // Convert to format compatible with allCalendarItems
+                item = {
+                    ...blockedTime,
+                    status: 'blocked',
+                    reason_for_visit: blockedTime.title,
+                    notes: blockedTime.notes
+                };
+            }
+        }
+        
         console.log('Found item:', item);
 
         if (item) {
-            // Check if this is a blocked time
-            if (item.status === 'blocked') {
+            // Check if this is a blocked time (check both status and if it's in blockedTimes)
+            const isBlockedTime = item.status === 'blocked' || blockedTimes.some(bt => bt.id == id);
+            
+            if (isBlockedTime) {
+                console.log('Item is a blocked time, showing blocked time details');
                 showBlockTimeDetails(item);
             } else {
                 // For regular appointments, fetch fresh data from server to ensure service is loaded

@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
+use App\Models\ActivityLog;
 
 class StaffAuthController extends Controller
 {
@@ -72,6 +73,20 @@ class StaffAuthController extends Controller
 
             // Log successful staff login
             \Log::info("Staff member '{$user->username}' logged in successfully");
+            try {
+                ActivityLog::log(
+                    'login',
+                    'auth',
+                    "Staff '{$user->username}' logged in",
+                    $user->id,
+                    'User',
+                    null,
+                    ['guard' => 'staff'],
+                    $user->id // Pass user_id explicitly to ensure it's set
+                );
+            } catch (\Exception $e) {
+                \Log::warning('ActivityLog failed (staff login): ' . $e->getMessage());
+            }
 
             return redirect()->route('staff-dashboard')->with('success', 'Welcome back, Staff!');
         }
@@ -286,7 +301,10 @@ class StaffAuthController extends Controller
      */
     public function logout(Request $request): RedirectResponse
     {
-        $username = Auth::guard('staff')->user()->username ?? 'Unknown';
+        // CRITICAL: Get user info BEFORE logging out
+        $user = Auth::guard('staff')->user();
+        $userId = $user ? $user->id : null;
+        $username = $user ? $user->username : 'Unknown';
 
         // Logout from all guards to ensure complete session cleanup
         Auth::guard('web')->logout();
@@ -297,6 +315,23 @@ class StaffAuthController extends Controller
         $request->session()->regenerateToken();
 
         \Log::info("Staff member '$username' logged out");
+        try {
+            // Log with the captured user_id before logout
+            if ($userId) {
+                ActivityLog::log(
+                    'logout',
+                    'auth',
+                    "Staff '{$username}' logged out",
+                    $userId,
+                    'User',
+                    null,
+                    ['guard' => 'staff'],
+                    $userId // Pass user_id explicitly
+                );
+            }
+        } catch (\Exception $e) {
+            \Log::warning('ActivityLog failed (staff logout): ' . $e->getMessage());
+        }
 
         // Set session flag to notify other tabs via localStorage
         $request->session()->put('staff_logout_flag', time());
