@@ -2315,7 +2315,7 @@ function loadPendingFeedbackCount() {
     <div class="chatbot-body">
         <div id="chatbot-messages" class="chatbot-messages" aria-live="polite"></div>
         <div class="chips" id="chatbot-chips"></div>
-        <div class="chatbot-input">
+        <div class="chatbot-input" style="display:none;">
             <input id="chatbot-input" type="text" placeholder="Type your message to staff..." autocomplete="off" />
             <button id="chatbot-send" class="send-btn" aria-label="Send message">
                 <i class="bi bi-send-fill"></i>

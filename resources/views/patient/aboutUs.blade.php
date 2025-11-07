@@ -804,4 +804,6 @@
     </div>
 </div>
 
+@include('patient.components.chatbot')
+
 @endsection

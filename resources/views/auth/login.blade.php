@@ -76,20 +76,7 @@
                         <i class="bi bi-key me-1"></i>Forgot Password?
                     </a>
                 </div>
-                <hr class="my-4">
-                <div class="row g-2">
-                    <div class="col-6">
-                        <a href="{{ route('admin.login') }}" class="btn btn-outline-primary w-100">
-                            <i class="bi bi-shield-fill-check me-1"></i>Admin
-                        </a>
-                    </div>
-                    <div class="col-6">
-                        <a href="{{ route('staff.login') }}" class="btn btn-outline-secondary w-100">
-                            <i class="bi bi-shield-lock me-1"></i>Staff
-                        </a>
-                    </div>
-                </div>
-                <div class="text-center mt-3">
+                <div class="text-center mt-5 pt-2">
                     <a href="/" class="text-muted">
                         <i class="bi bi-arrow-left me-1"></i>Back to Homepage
                     </a>

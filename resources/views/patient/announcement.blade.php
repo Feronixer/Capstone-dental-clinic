@@ -1162,4 +1162,6 @@ document.addEventListener('keydown', function(e) {
 }
 </style>
 
+@include('patient.components.chatbot')
+
 @endsection

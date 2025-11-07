@@ -25,6 +25,8 @@
     color: #ffffff;
     font-size: 0.9rem;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    position: relative;
+    z-index: 1000;
 }
 
 .announcement-ticker {

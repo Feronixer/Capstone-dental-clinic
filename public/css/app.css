@@ -564,8 +564,8 @@
 }
 
 html {
-    overflow-y: scroll !important;
-    width: 100vw !important;
+    overflow-y: auto !important;
+    width: 100% !important;
     overflow-x: hidden !important;
 }
 
@@ -659,15 +659,29 @@ header {
     width: 150px;
 }
 
+:root {
+    --nav-expanded-width: 260px;
+    --nav-collapsed-width: 80px;
+}
+
 .navigation-bar-container {
     background-color: var(--navigation-bar-color);
-    width: 260px;
-    min-width: 260px;
-    max-width: 260px;
+    width: var(--nav-collapsed-width);
+    min-width: var(--nav-collapsed-width);
+    max-width: var(--nav-collapsed-width);
     display: flex;
     flex-direction: column;
     box-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
     flex-shrink: 0;
+    overflow: hidden;
+    transition: width 0.3s ease, min-width 0.3s ease, max-width 0.3s ease;
+}
+
+.navigation-bar-container:hover,
+.navigation-bar-container:focus-within {
+    width: var(--nav-expanded-width);
+    min-width: var(--nav-expanded-width);
+    max-width: var(--nav-expanded-width);
 }
 
 .navigation-bar-container .logo {
@@ -1083,8 +1097,9 @@ footer {
 .admin-body main {
     overflow-y: auto;
     overflow-x: hidden;
-    width: calc(100vw - 260px);
-    max-width: calc(100vw - 260px);
+    flex: 1;
+    min-width: 0;
+    transition: padding 0.3s ease;
 }
 
 /* Custom */

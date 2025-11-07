@@ -317,20 +317,57 @@
 <div class="modal fade" id="deleteAppointmentModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-trash me-2 text-danger"></i>Delete Appointment</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="bi bi-shield-lock me-2"></i>Confirm Deletion</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                Are you sure you want to delete this appointment? This action cannot be undone.
+                <div class="alert alert-warning mb-3">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>Warning:</strong> This action cannot be undone. The appointment will be permanently deleted.
+                </div>
+                <p class="mb-3">To confirm deletion, please enter your password:</p>
+                <div class="mb-3">
+                    <label for="deletePassword" class="form-label fw-medium">
+                        <i class="bi bi-key me-1"></i>Password
+                    </label>
+                    <input type="password" class="form-control" id="deletePassword" placeholder="Enter your password" autocomplete="current-password">
+                    <div class="invalid-feedback" id="passwordError"></div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" id="confirmDeleteAppointmentBtn">Delete</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteAppointmentBtn">
+                    <i class="bi bi-trash me-1"></i>Delete Appointment
+                </button>
             </div>
         </div>
     </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="deleteSuccessModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="bi bi-check-circle me-2"></i>Success</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-3">
+                    <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
+                </div>
+                <h5 class="mb-2">Appointment Deleted Successfully</h5>
+                <p class="text-muted mb-0">The appointment has been permanently deleted from the system.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-bs-dismiss="modal" onclick="window.location.reload();">
+                    <i class="bi bi-check me-1"></i>OK
+                </button>
+            </div>
+        </div>
     </div>
+</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -461,15 +498,54 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     // Delete appointment
     let selectedAppointmentId = null;
+
+    const deleteModalEl = document.getElementById('deleteAppointmentModal');
+    const successModalEl = document.getElementById('deleteSuccessModal');
+
+    const deleteModal = bootstrap.Modal.getOrCreateInstance(deleteModalEl);
+    const successModal = bootstrap.Modal.getOrCreateInstance(successModalEl);
+
     document.querySelectorAll('.delete-appointment').forEach(btn => {
         btn.addEventListener('click', function() {
             selectedAppointmentId = this.getAttribute('data-appointment-id');
-            new bootstrap.Modal(document.getElementById('deleteAppointmentModal')).show();
+            // Reset password field and error
+            document.getElementById('deletePassword').value = '';
+            document.getElementById('deletePassword').classList.remove('is-invalid');
+            document.getElementById('passwordError').textContent = '';
+            deleteModal.show();
         });
+    });
+
+    // Handle password input Enter key
+    document.getElementById('deletePassword').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            document.getElementById('confirmDeleteAppointmentBtn').click();
+        }
     });
 
     document.getElementById('confirmDeleteAppointmentBtn').addEventListener('click', function() {
         if (!selectedAppointmentId) return;
+        
+        const password = document.getElementById('deletePassword').value.trim();
+        const passwordInput = document.getElementById('deletePassword');
+        const passwordError = document.getElementById('passwordError');
+        
+        // Validate password is provided
+        if (!password) {
+            passwordInput.classList.add('is-invalid');
+            passwordError.textContent = 'Please enter your password to confirm deletion.';
+            return;
+        }
+        
+        // Remove any previous error
+        passwordInput.classList.remove('is-invalid');
+        passwordError.textContent = '';
+        
+        // Disable button and show loading state on button
+        this.disabled = true;
+        this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Deleting...';
+
+        // Send delete request with password
         fetch(`/admin/appointment/${selectedAppointmentId}/delete`, {
             method: 'POST',
             headers: {
@@ -477,23 +553,48 @@ document.addEventListener('DOMContentLoaded', function() {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ force: true })
+            body: JSON.stringify({ 
+                force: true,
+                password: password
+            })
         })
         .then(async (res) => {
+            const data = await res.json().catch(() => ({}));
+
             if (!res.ok) {
-                const data = await res.json().catch(() => ({}));
-                throw new Error(data.message || 'Failed to delete appointment');
+                const error = new Error(data.message || 'Failed to delete appointment. Please try again.');
+                error.status = res.status;
+                throw error;
             }
-            return res.json().catch(() => ({}));
+
+            return data;
         })
         .then(() => {
-            // Hide modal and refresh page to reflect deletion
-            bootstrap.Modal.getInstance(document.getElementById('deleteAppointmentModal')).hide();
-            window.location.reload();
+            // Restore button state
+            const confirmBtn = document.getElementById('confirmDeleteAppointmentBtn');
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = '<i class="bi bi-trash me-1"></i>Delete Appointment';
+
+            // Close delete modal and show success modal
+            deleteModal.hide();
+            successModal.show();
+            successModalEl.addEventListener('hidden.bs.modal', function handler() {
+                successModalEl.removeEventListener('hidden.bs.modal', handler);
+                window.location.reload();
+            }, { once: true });
         })
         .catch(err => {
-            bootstrap.Modal.getInstance(document.getElementById('deleteAppointmentModal')).hide();
-            alert(err.message || 'Failed to delete appointment');
+            console.error('Error deleting appointment:', err);
+            const message = err.status === 403 ? 'Incorrect password.' : (err.message || 'Failed to delete appointment. Please try again.');
+
+            const confirmBtn = document.getElementById('confirmDeleteAppointmentBtn');
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = '<i class="bi bi-trash me-1"></i>Delete Appointment';
+
+            passwordInput.classList.add('is-invalid');
+            passwordError.textContent = message;
+
+            deleteModal.show();
         });
     });
 });
@@ -1281,6 +1382,143 @@ function initializeSorting() {
     color: var(--dm-text-muted, #64748b);
     background: var(--dm-card-bg, #1e293b);
     border-color: var(--dm-border-color, #334155);
+}
+
+/* Delete Modal Styles */
+#deleteAppointmentModal .modal-header {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    border: none;
+}
+
+#deleteAppointmentModal .modal-header .modal-title {
+    color: white;
+    font-weight: 700;
+}
+
+#deleteAppointmentModal .alert-warning {
+    border-left: 4px solid #f59e0b;
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+}
+
+#deleteAppointmentModal .form-label {
+    color: #1e293b;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+#deleteAppointmentModal .form-control {
+    border-radius: 8px;
+    border: 1.5px solid #e0e0e0;
+    padding: 0.625rem 0.875rem;
+    transition: all 0.3s ease;
+}
+
+#deleteAppointmentModal .form-control:focus {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+    outline: none;
+}
+
+#deleteAppointmentModal .form-control.is-invalid {
+    border-color: #dc2626;
+}
+
+#deleteAppointmentModal .invalid-feedback {
+    display: block;
+    color: #dc2626;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+#deleteAppointmentModal .btn-danger {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    border: none;
+    font-weight: 600;
+    padding: 0.625rem 1.5rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+#deleteAppointmentModal .btn-danger:hover:not(:disabled) {
+    background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+#deleteAppointmentModal .btn-danger:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Success Modal Styles */
+#deleteSuccessModal .modal-header {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border: none;
+}
+
+#deleteSuccessModal .modal-header .modal-title {
+    color: white;
+    font-weight: 700;
+}
+
+#deleteSuccessModal .btn-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border: none;
+    font-weight: 600;
+    padding: 0.625rem 1.5rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+#deleteSuccessModal .btn-success:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+/* Dark Mode for Modals */
+[data-theme="dark"] #deleteAppointmentModal .modal-content {
+    background: var(--dm-card-bg, #1e293b);
+    border-color: var(--dm-border-color, #334155);
+}
+
+[data-theme="dark"] #deleteAppointmentModal .alert-warning {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.1) 100%);
+    border-left-color: #f59e0b;
+    color: var(--dm-text-primary, #f1f5f9);
+}
+
+[data-theme="dark"] #deleteAppointmentModal .form-label {
+    color: var(--dm-text-primary, #f1f5f9);
+}
+
+[data-theme="dark"] #deleteAppointmentModal .form-control {
+    background: var(--dm-input-bg, #0f172a);
+    border-color: var(--dm-border-color, #475569);
+    color: var(--dm-text-primary, #f1f5f9);
+}
+
+[data-theme="dark"] #deleteAppointmentModal .form-control:focus {
+    background: var(--dm-bg-tertiary, #334155);
+    border-color: #dc2626;
+    color: var(--dm-text-primary, #f1f5f9);
+}
+
+[data-theme="dark"] #deleteAppointmentModal .form-control::placeholder {
+    color: var(--dm-text-muted, #64748b);
+}
+
+[data-theme="dark"] #deleteSuccessModal .modal-content {
+    background: var(--dm-card-bg, #1e293b);
+    border-color: var(--dm-border-color, #334155);
+}
+
+[data-theme="dark"] #deleteSuccessModal .modal-body h5 {
+    color: var(--dm-text-primary, #f1f5f9);
+}
+
+[data-theme="dark"] #deleteSuccessModal .modal-body p {
+    color: var(--dm-text-muted, #94a3b8);
 }
 
 </style>

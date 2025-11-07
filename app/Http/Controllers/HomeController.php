@@ -41,7 +41,15 @@ class HomeController extends Controller
         // Fetch past events (archive)
         $pastEvents = Event::active()->past()->take(3)->get();
 
-        return view("announcement", compact('announcement', 'upcomingEvents', 'pastEvents'));
+        // Fetch chatbot settings and FAQs
+        $chatbotSetting = ChatbotSetting::first() ?? ChatbotSetting::create([
+            'enabled' => true,
+            'welcome_message' => '',
+            'quick_intents' => [],
+        ]);
+        $chatbotFaqs = ChatbotFaq::where('is_active', true)->orderBy('order')->get(['question', 'answer']);
+
+        return view("announcement", compact('announcement', 'upcomingEvents', 'pastEvents', 'chatbotSetting', 'chatbotFaqs'));
     }
 
 }

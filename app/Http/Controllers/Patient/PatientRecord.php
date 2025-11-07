@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\PatientRecord as PatientRecordModel;
 use App\Models\PatientHistory;
 use App\Models\ProgressNote;
+use App\Models\ChatbotSetting;
+use App\Models\ChatbotFaq;
 
 class PatientRecord extends Controller
 {
@@ -35,7 +37,21 @@ class PatientRecord extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view("patient.record", compact('records'));
+        $chatbotSetting = ChatbotSetting::first() ?? ChatbotSetting::create([
+            'enabled' => true,
+            'welcome_message' => 'Hi! I\'m the ToothTalk Assistant. How can I help you today?',
+            'quick_intents' => [
+                ['label' => 'Clinic Hours', 'value' => 'What are your clinic hours?'],
+                ['label' => 'Book Appointment', 'value' => 'How do I book an appointment?'],
+                ['label' => 'Services', 'value' => 'What dental services do you offer?'],
+            ],
+        ]);
+
+        $chatbotFaqs = ChatbotFaq::where('is_active', true)
+            ->orderBy('order')
+            ->get(['question', 'answer']);
+
+        return view("patient.record", compact('records', 'chatbotSetting', 'chatbotFaqs'));
     }
 
     /**

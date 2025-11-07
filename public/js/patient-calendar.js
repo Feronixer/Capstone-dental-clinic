@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Calendar state variables (accessible to all functions)
     let currentDate = new Date();
     let currentView = 'month';
+    let isInitialRender = true;
 
     // Wait for data to be ready before initializing
     function tryInit() {
@@ -74,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Start initialization
     tryInit();
 
-    // Main Calendar Rendering
+    // Main Calendar Rendering with smooth transition
     function renderCalendar() {
         // Ensure data is available (check allAppointments first, then patientAppointments)
         if ((!window.allAppointments || !Array.isArray(window.allAppointments)) && 
@@ -89,30 +90,54 @@ document.addEventListener('DOMContentLoaded', function() {
         const month = currentDate.getMonth();
         const year = currentDate.getFullYear();
 
-        // Update period display based on view
-        if (currentView === 'month') {
-            periodDisplay.textContent = new Date(year, month).toLocaleDateString('en-US', {
-                month: 'long',
-                year: 'numeric'
-            });
-            renderMonthView(content, year, month);
-        } else if (currentView === 'week') {
-            const startOfWeek = new Date(currentDate);
-            startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
-            const endOfWeek = new Date(startOfWeek);
-            endOfWeek.setDate(startOfWeek.getDate() + 6);
-
-            periodDisplay.textContent = `${startOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
-            renderWeekView(content);
-        } else {
-            periodDisplay.textContent = currentDate.toLocaleDateString('en-US', {
-                weekday: 'long',
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric'
-            });
-            renderDayView(content);
+        // Store current height to prevent shrinking (only if not initial render)
+        if (!isInitialRender) {
+            const currentHeight = content.offsetHeight;
+            if (currentHeight > 0) {
+                content.style.minHeight = currentHeight + 'px';
+            }
+            // Add updating class for subtle opacity change
+            content.classList.add('updating');
         }
+
+        // Use requestAnimationFrame for smooth update
+        requestAnimationFrame(() => {
+            // Update period display based on view
+            if (currentView === 'month') {
+                periodDisplay.textContent = new Date(year, month).toLocaleDateString('en-US', {
+                    month: 'long',
+                    year: 'numeric'
+                });
+                renderMonthView(content, year, month);
+            } else if (currentView === 'week') {
+                const startOfWeek = new Date(currentDate);
+                startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
+                const endOfWeek = new Date(startOfWeek);
+                endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+                periodDisplay.textContent = `${startOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+                renderWeekView(content);
+            } else {
+                periodDisplay.textContent = currentDate.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric'
+                });
+                renderDayView(content);
+            }
+
+            // Remove updating class and min-height after render
+            requestAnimationFrame(() => {
+                content.classList.remove('updating');
+                content.style.minHeight = '';
+            });
+
+            // Mark as not initial render after first render
+            if (isInitialRender) {
+                isInitialRender = false;
+            }
+        });
     }
 
     function renderMonthView(container, year, month) {

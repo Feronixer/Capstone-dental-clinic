@@ -241,7 +241,7 @@
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     position: sticky;
     top: 0;
-    z-index: 9999;
+    z-index: 1000;
 }
 
 .header-container {
@@ -634,6 +634,7 @@
     border-radius: 12px;
     box-shadow: 0 10px 40px rgba(0,0,0,0.2);
     border: none;
+    z-index: 1001;
 }
 
 .profile-dropdown .form-check-input {
@@ -794,7 +795,7 @@
     transition: all 0.3s;
     align-items: center;
     justify-content: center;
-    z-index: 10002;
+    z-index: 1001;
     position: relative;
     pointer-events: auto;
     -webkit-tap-highlight-color: transparent;
@@ -813,7 +814,7 @@
     right: 15px;
     background: rgba(255,255,255,0.25);
     box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-    z-index: 10003;
+    z-index: 1041;
 }
 
 /* Burger icon (hamburger -> X) */
@@ -863,7 +864,7 @@
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.25s ease, visibility 0.25s ease;
-    z-index: 10000;
+    z-index: 1039;
 }
 
 .mobile-menu-backdrop.active {
@@ -881,7 +882,7 @@
     height: 100vh;
     background: white;
     box-shadow: -4px 0 30px rgba(0,0,0,0.2);
-    z-index: 10001;
+    z-index: 1040;
     transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     overflow-y: auto;
     display: flex;

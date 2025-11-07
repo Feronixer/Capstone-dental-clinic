@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Announcement;
 use App\Models\AnnouncementArchive;
 use App\Models\Event;
+use App\Models\ChatbotSetting;
+use App\Models\ChatbotFaq;
 use Illuminate\Http\Request;
 
 class AnnouncementController extends Controller
@@ -28,7 +30,14 @@ class AnnouncementController extends Controller
         $archivedAnnouncements = AnnouncementArchive::orderBy('archived_at', 'desc')
             ->get();
 
-        return view("patient.announcement", compact('announcement', 'upcomingEvents', 'pastEvents', 'archivedAnnouncements'));
+        $chatbotSetting = ChatbotSetting::first() ?? ChatbotSetting::create([
+            'enabled' => true,
+            'welcome_message' => '',
+            'quick_intents' => [],
+        ]);
+        $chatbotFaqs = ChatbotFaq::where('is_active', true)->orderBy('order')->get(['question', 'answer']);
+
+        return view('patient.announcement', compact('announcement', 'upcomingEvents', 'pastEvents', 'archivedAnnouncements', 'chatbotSetting', 'chatbotFaqs'));
     }
 
     /**

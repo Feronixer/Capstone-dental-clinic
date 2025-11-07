@@ -10,6 +10,8 @@ use App\Models\AppointmentRequest;
 use App\Models\Service;
 use App\Models\User;
 use App\Models\Notification;
+use App\Models\ChatbotSetting;
+use App\Models\ChatbotFaq;
 use Carbon\Carbon;
 
 class CalendarController extends Controller
@@ -35,10 +37,24 @@ class CalendarController extends Controller
             'patient_id' => $patientId
         ]);
 
-        return view("patient.calendar", compact(
-            'appointments', 'upcomingAppointments', 'pendingRequests',
-            'appointmentHistory', 'services', 'allAppointments', 'blockedTimes'
-        ));
+        $chatbotSetting = ChatbotSetting::first() ?? ChatbotSetting::create([
+            'enabled' => true,
+            'welcome_message' => '',
+            'quick_intents' => [],
+        ]);
+        $chatbotFaqs = ChatbotFaq::where('is_active', true)->orderBy('order')->get(['question', 'answer']);
+
+        return view('patient.calendar', [
+            'appointments' => $appointments,
+            'upcomingAppointments' => $upcomingAppointments,
+            'pendingRequests' => $pendingRequests,
+            'appointmentHistory' => $appointmentHistory,
+            'services' => $services,
+            'allAppointments' => $allAppointments,
+            'blockedTimes' => $blockedTimes,
+            'chatbotSetting' => $chatbotSetting,
+            'chatbotFaqs' => $chatbotFaqs,
+        ]);
     }
 
     private function getPatientAppointments(int $patientId): array
@@ -82,15 +98,21 @@ class CalendarController extends Controller
 
     private function getUpcomingAppointments()
     {
+        // Get all regular appointments (excluding cancelled) from past 30 days to future
+        // This includes: Pending, Confirmed, Completed, and Missed appointments
+        $thirtyDaysAgo = Carbon::now()->subDays(30);
+        
         return Appointment::where('patient_id', auth()->id())
-            ->where('start_datetime', '>=', Carbon::now())
+            ->where('start_datetime', '>=', $thirtyDaysAgo)
             ->where(function($query) {
+                // Include all statuses except Cancelled (show all regular appointments)
+                // This handles null status and all other statuses except Cancelled
                 $query->whereNull('status')
-                      ->orWhereIn('status', ['Pending', 'Confirmed']);
+                      ->orWhereNotIn('status', ['Cancelled']);
             })
             ->with(['service'])
             ->orderBy('start_datetime', 'asc')
-            ->limit(5)
+            ->limit(15)
             ->get();
     }
 

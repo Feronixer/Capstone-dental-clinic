@@ -2,6 +2,35 @@
 @section('content')
 <link rel="stylesheet" href="{{ asset('css/patient-calendar.css') }}">
 
+<style>
+/* Fix z-index for modals to appear above header */
+.modal {
+    z-index: 1050 !important;
+}
+
+.modal-backdrop {
+    z-index: 1040 !important;
+}
+
+/* Ensure dropdown menus in header are below modals */
+.dropdown-menu {
+    z-index: 1001 !important;
+}
+
+/* Mobile menu should be below modals */
+.mobile-menu-backdrop {
+    z-index: 1039 !important;
+}
+
+.mobile-menu-overlay {
+    z-index: 1040 !important;
+}
+
+.mobile-menu-toggle.fixed-open {
+    z-index: 1041 !important;
+}
+</style>
+
 <div class="calendar-container">
     <!-- Main Content -->
     <div class="calendar-layout">
@@ -38,11 +67,13 @@
                             </div>
                             <div class="upcoming-info">
                                 <div class="upcoming-title">{{ $appointment->service ? $appointment->service->service_name : $appointment->reason_for_visit }}</div>
-                                <div class="upcoming-time">
-                                    <i class="bi bi-clock me-1"></i>{{ $appointment->start_datetime->format('g:i A') }}
+                                <div class="upcoming-meta">
+                                    <div class="upcoming-time">
+                                        <i class="bi bi-clock me-1"></i>{{ $appointment->start_datetime->format('g:i A') }}
+                                    </div>
+                                    <span class="status-badge {{ strtolower($appointment->status) }}">{{ $appointment->status }}</span>
                                 </div>
                             </div>
-                            <span class="status-badge {{ strtolower($appointment->status) }}">{{ $appointment->status }}</span>
                         </div>
                     @empty
                                 <div class="text-center text-muted py-3 empty-state">
@@ -102,8 +133,11 @@
                             </div>
                             <div class="history-info">
                                 <div class="history-title {{ strtolower($appointment->status) === 'cancelled' ? 'text-decoration-line-through' : '' }}">{{ $appointment->service ? $appointment->service->service_name : $appointment->reason_for_visit }}</div>
-                                <div class="history-time">
-                                    <i class="bi bi-clock me-1"></i>{{ $appointment->start_datetime->format('g:i A') }}
+                                <div class="history-meta">
+                                    <div class="history-time">
+                                        <i class="bi bi-clock me-1"></i>{{ $appointment->start_datetime->format('g:i A') }}
+                                    </div>
+                                    <span class="status-badge history {{ strtolower($appointment->status) }}">{{ $appointment->status }}</span>
                                 </div>
                                 @if(strtolower($appointment->status) === 'cancelled' && $appointment->notes)
                                     <div class="history-notes text-muted small mt-1">
@@ -111,7 +145,6 @@
                                     </div>
                                 @endif
                             </div>
-                            <span class="status-badge history {{ strtolower($appointment->status) }}">{{ $appointment->status }}</span>
                         </div>
                     @empty
                                 <div class="text-center text-muted py-3 empty-state">
@@ -125,6 +158,8 @@
             </div>
 
     </aside>
+
+    <div class="calendar-resizer" id="calendarResizer" role="separator" aria-label="Resize appointment panels" aria-orientation="vertical" tabindex="0"></div>
 
         <!-- Main Calendar -->
         <main class="calendar-main">
@@ -142,11 +177,11 @@
                 </div>
 
                 <div class="calendar-nav">
-                    <button class="appointment-action-btn emergency-btn" data-bs-toggle="modal" data-bs-target="#appointmentRequestModal" onclick="openAppointmentModal('emergency')">
-                        <i class="bi bi-lightning-charge-fill"></i> Emergency
-                    </button>
                     <button class="appointment-action-btn book-now-btn" data-bs-toggle="modal" data-bs-target="#appointmentRequestModal" onclick="openAppointmentModal('book')">
                         <i class="bi bi-calendar-plus-fill"></i> Book Now
+                    </button>
+                    <button class="appointment-action-btn emergency-btn" data-bs-toggle="modal" data-bs-target="#appointmentRequestModal" onclick="openAppointmentModal('emergency')">
+                        <i class="bi bi-lightning-charge-fill"></i> Emergency
                     </button>
                     <button class="appointment-action-btn reschedule-btn" data-bs-toggle="modal" data-bs-target="#appointmentRequestModal" onclick="openAppointmentModal('reschedule')">
                         <i class="bi bi-arrow-repeat"></i> Reschedule
@@ -207,6 +242,17 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
                 <div class="modal-body">
+@php
+    $clinicTimeSlots = [];
+    $startTime = strtotime('11:00');
+    $endTime = strtotime('18:00');
+    for ($time = $startTime; $time <= $endTime; $time += 15 * 60) {
+        $clinicTimeSlots[] = [
+            'value' => date('H:i', $time),
+            'label' => date('g:i A', $time),
+        ];
+    }
+@endphp
                     <!-- Emergency Appointment Form -->
                     <div id="emergencyFormSection" class="appointment-form-section" style="display: none;">
                         <form id="emergencyForm" class="appointment-form">
@@ -241,12 +287,36 @@
 
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label for="emergencyDate" class="form-label">
+                                    <label class="form-label">
                                         <i class="bi bi-calendar-event me-2"></i>Select Date:
                                     </label>
-                                    <div class="input-with-icon">
-                                        <input type="date" id="emergencyDate" name="date" class="form-input" required>
-                                        <i class="bi bi-calendar3"></i>
+                                    <div class="custom-date-picker-container">
+                                        <div class="custom-calendar-widget" id="emergencyCalendarWidget">
+                                            <div class="custom-calendar-header">
+                                                <span class="custom-calendar-title">Date</span>
+                                                <div class="custom-calendar-nav">
+                                                    <button type="button" class="custom-calendar-nav-btn" id="emergencyPrevMonth">
+                                                        <i class="bi bi-chevron-left"></i>
+                                                    </button>
+                                                    <span class="custom-calendar-month-year" id="emergencyMonthYear">November 2025</span>
+                                                    <button type="button" class="custom-calendar-nav-btn" id="emergencyNextMonth">
+                                                        <i class="bi bi-chevron-right"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="custom-calendar-days-header">
+                                                <span>S</span>
+                                                <span>M</span>
+                                                <span>T</span>
+                                                <span>W</span>
+                                                <span>Th</span>
+                                                <span>F</span>
+                                                <span>S</span>
+                                            </div>
+                                            <div class="custom-calendar-grid" id="emergencyCalendarGrid"></div>
+                                            <div class="custom-calendar-instruction">Click on a date to select it</div>
+                                        </div>
+                                        <input type="hidden" id="emergencyDate" name="date" required>
                                     </div>
                                 </div>
 
@@ -254,10 +324,21 @@
                                     <label for="emergencyTime" class="form-label">
                                         <i class="bi bi-clock-history me-2"></i>Select Time:
                                     </label>
-                                    <div class="input-with-icon">
-                                        <input type="time" id="emergencyTime" name="time" class="form-input" required>
-                                        <i class="bi bi-clock"></i>
+                                    <div class="time-slot-picker">
+                                        <div class="time-slot-header">
+                                            <span class="time-slot-icon">
+                                                <i class="bi bi-clock-history"></i>
+                                            </span>
+                                            <span class="time-slot-selected" id="emergencyTimeSelected">No time selected</span>
+                                        </div>
+                                        <input type="hidden" id="emergencyTime" name="time" required>
+                                        <div class="time-slot-grid" id="emergencyTimeSlots">
+                                            @foreach($clinicTimeSlots as $slot)
+                                                <button type="button" class="time-slot-btn" data-value="{{ $slot['value'] }}">{{ $slot['label'] }}</button>
+                                            @endforeach
+                                        </div>
                                     </div>
+                                    <small class="time-slot-help">Clinic hours: 11:00 AM – 6:00 PM</small>
                                 </div>
                             </div>
 
@@ -324,12 +405,36 @@
 
             <div class="form-row">
                 <div class="form-group">
-                                    <label for="rescheduleDate" class="form-label">
+                                    <label class="form-label">
                         <i class="bi bi-calendar-event me-2"></i>Select Date:
                     </label>
-                    <div class="input-with-icon">
-                                        <input type="date" id="rescheduleDate" name="date" class="form-input" required>
-                        <i class="bi bi-calendar3"></i>
+                    <div class="custom-date-picker-container">
+                        <div class="custom-calendar-widget" id="rescheduleCalendarWidget">
+                            <div class="custom-calendar-header">
+                                <span class="custom-calendar-title">Date</span>
+                                <div class="custom-calendar-nav">
+                                    <button type="button" class="custom-calendar-nav-btn" id="reschedulePrevMonth">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </button>
+                                    <span class="custom-calendar-month-year" id="rescheduleMonthYear">November 2025</span>
+                                    <button type="button" class="custom-calendar-nav-btn" id="rescheduleNextMonth">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="custom-calendar-days-header">
+                                <span>S</span>
+                                <span>M</span>
+                                <span>T</span>
+                                <span>W</span>
+                                <span>Th</span>
+                                <span>F</span>
+                                <span>S</span>
+                            </div>
+                            <div class="custom-calendar-grid" id="rescheduleCalendarGrid"></div>
+                            <div class="custom-calendar-instruction">Click on a date to select it</div>
+                        </div>
+                        <input type="hidden" id="rescheduleDate" name="date" required>
                     </div>
                 </div>
 
@@ -337,10 +442,21 @@
                                     <label for="rescheduleTime" class="form-label">
                         <i class="bi bi-clock-history me-2"></i>Select Time:
                     </label>
-                    <div class="input-with-icon">
-                                        <input type="time" id="rescheduleTime" name="time" class="form-input" required>
-                        <i class="bi bi-clock"></i>
+                    <div class="time-slot-picker">
+                                        <div class="time-slot-header">
+                                            <span class="time-slot-icon">
+                                                <i class="bi bi-clock-history"></i>
+                                            </span>
+                                            <span class="time-slot-selected" id="rescheduleTimeSelected">No time selected</span>
+                                        </div>
+                                        <input type="hidden" id="rescheduleTime" name="time" required>
+                                        <div class="time-slot-grid" id="rescheduleTimeSlots">
+                                            @foreach($clinicTimeSlots as $slot)
+                                                <button type="button" class="time-slot-btn" data-value="{{ $slot['value'] }}">{{ $slot['label'] }}</button>
+                                            @endforeach
+                                        </div>
                     </div>
+                    <small class="time-slot-help">Tap a slot to request a new time</small>
                 </div>
             </div>
 
@@ -378,12 +494,36 @@
             </div>
 
                             <div class="form-group">
-                                <label for="bookDate" class="form-label">
+                                <label class="form-label">
                                     <i class="bi bi-calendar-event me-2"></i>Preferred Date:
                                 </label>
-                                <div class="input-with-icon">
-                                    <input type="date" id="bookDate" name="date" class="form-input" min="{{ date('Y-m-d') }}" required>
-                                    <i class="bi bi-calendar3"></i>
+                                <div class="custom-date-picker-container">
+                                    <div class="custom-calendar-widget" id="bookCalendarWidget">
+                                        <div class="custom-calendar-header">
+                                            <span class="custom-calendar-title">Date</span>
+                                            <div class="custom-calendar-nav">
+                                                <button type="button" class="custom-calendar-nav-btn" id="bookPrevMonth">
+                                                    <i class="bi bi-chevron-left"></i>
+                                                </button>
+                                                <span class="custom-calendar-month-year" id="bookMonthYear">November 2025</span>
+                                                <button type="button" class="custom-calendar-nav-btn" id="bookNextMonth">
+                                                    <i class="bi bi-chevron-right"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="custom-calendar-days-header">
+                                            <span>S</span>
+                                            <span>M</span>
+                                            <span>T</span>
+                                            <span>W</span>
+                                            <span>Th</span>
+                                            <span>F</span>
+                                            <span>S</span>
+                                        </div>
+                                        <div class="custom-calendar-grid" id="bookCalendarGrid"></div>
+                                        <div class="custom-calendar-instruction">Click on a date to select it</div>
+                                    </div>
+                                    <input type="hidden" id="bookDate" name="date" required>
                                 </div>
                                 <small class="form-text text-muted mt-2">
                                     <i class="bi bi-info-circle me-1"></i>Admin or staff will assign the appointment time after reviewing your request.
@@ -392,7 +532,7 @@
 
                             <div class="form-actions">
                                 <button type="submit" class="btn-submit">
-                                    <i class="bi bi-check-circle me-2"></i>Book Appointment
+                                    <i class="bi bi-check-circle me-2"></i>Book this Date
                                 </button>
                             </div>
                         </form>
@@ -489,10 +629,56 @@
 
 /* Optimized Layout - Better Space Usage */
 .calendar-layout {
-    display: grid;
-    grid-template-columns: 240px 1fr;
+    display: flex;
     gap: 0.875rem;
     align-items: stretch;
+    --calendar-sidebar-width: 260px;
+    --calendar-sidebar-min: 220px;
+    --calendar-sidebar-max: 480px;
+}
+
+.calendar-layout.is-resizing {
+    cursor: col-resize;
+    user-select: none;
+}
+
+.calendar-sidebar {
+    flex: 0 0 var(--calendar-sidebar-width);
+    min-width: var(--calendar-sidebar-min);
+    max-width: var(--calendar-sidebar-max);
+    transition: flex-basis 0.1s ease;
+}
+
+.calendar-resizer {
+    flex: 0 0 10px;
+    position: relative;
+    cursor: col-resize;
+    border-radius: 999px;
+    display: block;
+}
+
+.calendar-resizer::before {
+    content: '';
+    position: absolute;
+    top: 12px;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(33, 150, 243, 0.4), rgba(25, 118, 210, 0.4));
+    transition: background 0.2s ease, width 0.2s ease;
+}
+
+.calendar-resizer:hover::before,
+.calendar-layout.is-resizing .calendar-resizer::before {
+    background: linear-gradient(135deg, rgba(33, 150, 243, 0.8), rgba(25, 118, 210, 0.8));
+    width: 6px;
+}
+
+.calendar-main {
+    flex: 1 1 auto;
+    min-width: 0;
 }
 
 /* Enhanced Sidebar Cards - More Compact */
@@ -679,6 +865,9 @@
 .tab-content .history-list {
     flex: 1;
     min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 0.45rem;
 }
 
 @keyframes fadeIn {
@@ -694,7 +883,7 @@
 
 /* Custom Scrollbar for Tab Content */
 .tab-content-wrapper::-webkit-scrollbar {
-    width: 5px;
+    width: 6px;
 }
 
 .tab-content-wrapper::-webkit-scrollbar-track {
@@ -892,7 +1081,15 @@
 }
 
 .calendar-content {
-    min-height: 400px;
+    min-height: 500px;
+    transition: opacity 0.2s ease;
+    position: relative;
+    opacity: 1;
+}
+
+.calendar-content.updating {
+    opacity: 0.5;
+    pointer-events: none;
 }
 
 /* Calendar Grid - More Compact */
@@ -1081,11 +1278,13 @@
 .upcoming-title {
     font-weight: 600;
     color: #1e293b;
-    margin-bottom: 0.2rem;
-    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+    line-height: 1.25;
+    white-space: normal;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    text-overflow: clip;
+    word-break: break-word;
 }
 
 .upcoming-time {
@@ -1097,11 +1296,13 @@
 .history-title {
     font-weight: 600;
     color: #1e293b;
-    margin-bottom: 0.2rem;
-    font-size: 0.8rem;
+    margin-bottom: 0.25rem;
+    font-size: 0.85rem;
+    line-height: 1.25;
+    white-space: normal;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    text-overflow: clip;
+    word-break: break-word;
 }
 
 .history-time {
@@ -1119,7 +1320,10 @@
 }
 
 .pending-request-service {
-    font-size: 0.85rem;
+    font-size: 0.9rem;
+    line-height: 1.25;
+    white-space: normal;
+    word-break: break-word;
 }
 
 .pending-request-datetime {
@@ -1241,19 +1445,28 @@
 
 @media (max-width: 1024px) {
     .calendar-layout {
-        grid-template-columns: 1fr;
+        flex-direction: column;
     }
 
     .calendar-sidebar {
         position: static;
         max-height: none;
+        flex: none;
+        width: 100%;
+        min-width: 0;
+        max-width: none;
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
         gap: 0.75rem;
     }
 
     .calendar-main {
         order: -1;
+        width: 100%;
+    }
+
+    .calendar-resizer {
+        display: none;
     }
 }
 
@@ -1395,17 +1608,17 @@
 
 /* Reschedule Button - Light Blue with Darker Hover (Light Mode Only) */
 .appointment-action-btn.reschedule-btn {
-    background: linear-gradient(135deg, #E9FAFC 0%, #D0F4F8 100%) !important;
-    color: #4DD3E0 !important;
-    border: 2px solid #4DD3E0 !important;
+    background: linear-gradient(135deg, #4DD3E0 0%, #38B3C0 100%) !important; /* use hover color as default */
+    color: white !important;
+    border: 2px solid #38B3C0 !important;
     box-shadow: none !important;
     text-shadow: none !important;
     animation: none !important;
 }
 
 .appointment-action-btn.reschedule-btn:hover {
-    background: linear-gradient(135deg, #4DD3E0 0%, #38B3C0 100%) !important;
-    border-color: #38B3C0 !important;
+    background: linear-gradient(135deg, #38B3C0 0%, #2EA3B1 100%) !important; /* slightly darker on hover */
+    border-color: #2EA3B1 !important;
     color: white !important;
     box-shadow: none !important;
     transform: translateY(-2px) scale(1.02) !important;
@@ -1413,7 +1626,7 @@
 }
 
 .appointment-action-btn.reschedule-btn i {
-    color: #4DD3E0 !important;
+    color: white !important; /* icon visible on white bg */
     filter: none !important;
     transition: all 0.3s ease !important;
 }
@@ -1772,7 +1985,24 @@
     background: #f8f9fa;
 }
 
+.input-with-icon select {
+    width: 100%;
+    padding: 0.75rem 2.75rem 0.75rem 0.875rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    transition: all 0.3s;
+    background: #f8f9fa;
+    appearance: none;
+    cursor: pointer;
+}
+
 .input-with-icon input:hover {
+    border-color: #cbd5e1;
+    background: white;
+}
+
+.input-with-icon select:hover {
     border-color: #cbd5e1;
     background: white;
 }
@@ -1795,8 +2025,177 @@
     box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
 }
 
+.input-with-icon select:focus {
+    outline: none;
+    border-color: #2196F3;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+}
+
 .input-with-icon input:focus + i {
     color: #2196F3;
+}
+
+.input-with-icon select:focus + i {
+    color: #2196F3;
+}
+
+.time-slot-picker {
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    position: relative;
+}
+
+.time-slot-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.time-slot-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, rgba(33, 150, 243, 0.15) 0%, rgba(25, 118, 210, 0.08) 100%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #2196F3;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.time-slot-selected {
+    font-weight: 600;
+    color: #64748b;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.time-slot-selected.has-value {
+    color: #1e293b;
+}
+
+.time-slot-grid {
+    display: grid;
+    gap: 0.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+    max-height: 220px;
+    overflow-y: auto;
+    padding-right: 0.25rem;
+}
+
+.time-slot-btn {
+    border: 1px solid #dbeafe;
+    background: white;
+    border-radius: 10px;
+    padding: 0.55rem 0.35rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #1e293b;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.time-slot-btn:hover {
+    background: linear-gradient(135deg, rgba(33, 150, 243, 0.12) 0%, rgba(25, 118, 210, 0.05) 100%);
+    border-color: #2196F3;
+    color: #0f172a;
+    transform: translateY(-1px);
+}
+
+.time-slot-btn:focus {
+    outline: none;
+    border-color: #2196F3;
+    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.25);
+}
+
+.time-slot-btn.selected {
+    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+    border-color: transparent;
+    color: white;
+    box-shadow: 0 6px 18px rgba(33, 150, 243, 0.35);
+    transform: translateY(-1px);
+}
+
+.time-slot-btn.disabled,
+.time-slot-btn.disabled:hover {
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+    color: #94a3b8;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+.time-slot-btn.disabled.selected {
+    background: #f1f5f9;
+    color: #94a3b8;
+    box-shadow: none;
+}
+
+.time-slot-grid::-webkit-scrollbar {
+    width: 6px;
+}
+
+.time-slot-grid::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+}
+
+.time-slot-grid::-webkit-scrollbar-thumb {
+    background: #2196F3;
+    border-radius: 3px;
+}
+
+.time-slot-grid::-webkit-scrollbar-thumb:hover {
+    background: #1976D2;
+}
+
+.time-slot-help {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    color: #94a3b8;
+}
+
+@media (max-width: 768px) {
+    .time-slot-grid {
+        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+        max-height: 200px;
+    }
+
+    .time-slot-btn {
+        font-size: 0.8rem;
+        padding: 0.45rem 0.3rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .time-slot-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.4rem;
+    }
+
+    .time-slot-btn {
+        font-size: 0.8rem;
+        padding: 0.45rem 0.25rem;
+    }
 }
 
 .form-actions {
@@ -2593,6 +2992,16 @@
     box-shadow: 0 6px 16px rgba(0,0,0,0.15);
 }
 
+/* Compact width specifically for Book Appointment modal */
+#appointmentRequestModal .modal-dialog.compact-book {
+    max-width: 520px;
+    width: min(520px, calc(100vw - 24px));
+}
+
+#appointmentRequestModal .modal-dialog.compact-book .modal-body {
+    padding: 1rem 1.25rem;
+}
+
 .modern-modal .modal-footer .btn:active {
     transform: translateY(0);
 }
@@ -2956,6 +3365,66 @@
 
 [data-theme="dark"] .input-with-icon input:focus + i {
     color: #3b82f6 !important;
+}
+
+[data-theme="dark"] .time-slot-picker {
+    background: linear-gradient(135deg, var(--dm-bg-secondary, #1e293b) 0%, var(--dm-bg-primary, #0f172a) 100%) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.4) !important;
+}
+
+[data-theme="dark"] .time-slot-icon {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.1) 100%) !important;
+    color: #60a5fa !important;
+}
+
+[data-theme="dark"] .time-slot-selected {
+    color: var(--dm-text-muted, #94a3b8) !important;
+}
+
+[data-theme="dark"] .time-slot-selected.has-value {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .time-slot-btn {
+    background: var(--dm-card-bg, #1e293b) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.35) !important;
+}
+
+[data-theme="dark"] .time-slot-btn:hover {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.18) 0%, rgba(37, 99, 235, 0.12) 100%) !important;
+    border-color: #3b82f6 !important;
+}
+
+[data-theme="dark"] .time-slot-btn.selected {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    box-shadow: 0 8px 22px rgba(59, 130, 246, 0.45) !important;
+}
+
+[data-theme="dark"] .time-slot-btn.disabled,
+[data-theme="dark"] .time-slot-btn.disabled:hover {
+    background: rgba(15, 23, 42, 0.6) !important;
+    border-color: rgba(148, 163, 184, 0.3) !important;
+    color: rgba(148, 163, 184, 0.6) !important;
+    box-shadow: none !important;
+}
+
+[data-theme="dark"] .time-slot-grid::-webkit-scrollbar-track {
+    background: var(--dm-bg-secondary, #1e293b) !important;
+}
+
+[data-theme="dark"] .time-slot-grid::-webkit-scrollbar-thumb {
+    background: #3b82f6 !important;
+}
+
+[data-theme="dark"] .time-slot-grid::-webkit-scrollbar-thumb:hover {
+    background: #2563eb !important;
+}
+
+[data-theme="dark"] .time-slot-help {
+    color: var(--dm-text-muted, #94a3b8) !important;
 }
 
 /* Appointment Info Box Dark Mode */
@@ -3419,8 +3888,309 @@
     border-color: var(--dm-border-color, #334155) !important;
 }
 
+[data-theme="dark"] #emergencyTimeSuggestionMessage,
+[data-theme="dark"] #rescheduleTimeSuggestionMessage,
 [data-theme="dark"] #timeSuggestionMessage {
     border-color: var(--dm-border-color, #334155) !important;
+}
+
+/* ============================================
+   CUSTOM DATE PICKER CALENDAR WIDGET
+   ============================================ */
+
+.custom-date-picker-container {
+    width: 100%;
+    margin-bottom: 0.5rem;
+}
+
+/* Light Mode (Default - White Background) */
+.custom-calendar-widget {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+    width: 100%;
+    max-width: 350px;
+}
+
+.custom-calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.custom-calendar-title {
+    font-weight: 700;
+    font-size: 1rem;
+    color: #1e293b;
+    font-family: sans-serif;
+}
+
+.custom-calendar-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.custom-calendar-month-year {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #1e293b;
+    font-family: sans-serif;
+    min-width: 120px;
+    text-align: center;
+}
+
+.custom-calendar-nav-btn {
+    background: transparent;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+}
+
+.custom-calendar-nav-btn:hover {
+    background: #f1f5f9;
+    color: #2196F3;
+    transform: scale(1.1);
+}
+
+.custom-calendar-nav-btn i {
+    font-size: 0.9rem;
+}
+
+.custom-calendar-days-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.custom-calendar-days-header span {
+    text-align: center;
+    font-weight: 700;
+    font-size: 0.75rem;
+    color: #64748b;
+    font-family: sans-serif;
+    padding: 0.25rem 0;
+}
+
+#bookFormSection .form-select {
+    max-width: 380px;
+    margin: 0 auto;
+}
+
+.custom-calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    margin-bottom: 0.75rem;
+}
+
+.custom-calendar-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    font-family: sans-serif;
+    transition: all 0.2s ease;
+    position: relative;
+    border: 1px solid transparent;
+}
+
+.custom-calendar-day.inactive {
+    color: #cbd5e1;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.custom-calendar-day.active {
+    color: #1e293b;
+}
+
+.custom-calendar-day.active:hover {
+    background: #f1f5f9;
+    border-color: rgba(33, 150, 243, 0.3);
+    color: #2196F3;
+}
+
+.custom-calendar-day.selected {
+    background: #2196F3;
+    border: 2px solid #1976D2;
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.custom-calendar-day.today {
+    border: 1px solid #2196F3;
+    background: rgba(33, 150, 243, 0.1);
+}
+
+.custom-calendar-day.disabled {
+    color: #cbd5e1;
+    cursor: not-allowed;
+    opacity: 0.5;
+    background: #f8fafc;
+}
+
+.custom-calendar-day.disabled:hover {
+    background: #f8fafc;
+}
+
+.custom-calendar-instruction {
+    text-align: center;
+    color: #64748b;
+    font-size: 0.75rem;
+    font-family: sans-serif;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+/* Dark Mode Support */
+[data-theme="dark"] .custom-calendar-widget {
+    background: #1e293b;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .custom-calendar-header {
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .custom-calendar-title {
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .custom-calendar-month-year {
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .custom-calendar-nav-btn {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .custom-calendar-nav-btn:hover {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+}
+
+[data-theme="dark"] .custom-calendar-days-header {
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .custom-calendar-days-header span {
+    color: #94a3b8;
+}
+
+
+[data-theme="dark"] .custom-calendar-day.inactive {
+    color: #64748b;
+    opacity: 0.5;
+}
+
+[data-theme="dark"] .custom-calendar-day.active {
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .custom-calendar-day.active:hover {
+    background: rgba(59, 130, 246, 0.2);
+    border-color: rgba(96, 165, 250, 0.5);
+    color: #60a5fa;
+}
+
+[data-theme="dark"] .custom-calendar-day.selected {
+    background: #3b82f6;
+    border-color: #60a5fa;
+    color: #ffffff;
+}
+
+[data-theme="dark"] .custom-calendar-day.today {
+    border-color: #60a5fa;
+    background: rgba(59, 130, 246, 0.15);
+}
+
+[data-theme="dark"] .custom-calendar-day.disabled {
+    color: #475569;
+    background: rgba(15, 23, 42, 0.5);
+    opacity: 0.5;
+}
+
+[data-theme="dark"] .custom-calendar-day.disabled:hover {
+    background: rgba(15, 23, 42, 0.5);
+}
+
+[data-theme="dark"] .custom-calendar-instruction {
+    color: #94a3b8;
+    border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 768px) {
+    .custom-calendar-widget {
+        max-width: 100%;
+    }
+    
+    .custom-calendar-day {
+        font-size: 0.75rem;
+    }
+    
+    .custom-calendar-month-year {
+        font-size: 0.8rem;
+        min-width: 100px;
+    }
+}
+
+/* ==============================
+   Book Appointment modal spacing and alignment
+   ============================== */
+#bookFormSection .appointment-form {
+    padding: 0.85rem;
+    max-width: 420px;
+    margin: 0 auto;
+}
+#bookFormSection .form-group { margin-bottom: 0.75rem; }
+#bookFormSection .form-label { margin-bottom: 0.35rem; }
+#bookFormSection .custom-date-picker-container { display: flex; justify-content: center; }
+#bookFormSection .custom-calendar-widget { width: 100%; max-width: 380px; margin: 0 auto; }
+#bookFormSection .form-actions { justify-content: center; }
+#bookFormSection .btn-submit {
+    min-width: 200px;
+    padding: 0.7rem 1.6rem;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    border: none;
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.25);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    letter-spacing: 0.2px;
+    transition: all 0.25s ease;
+}
+#bookFormSection .btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(37, 99, 235, 0.35);
+}
+#bookFormSection .btn-submit:active {
+    transform: translateY(0);
+}
+#bookFormSection .btn-submit i {
+    font-size: 1rem;
 }
 </style>
 
@@ -3434,6 +4204,11 @@ function openAppointmentModal(type) {
     const emergencyFormSection = document.getElementById('emergencyFormSection');
     const rescheduleFormSection = document.getElementById('rescheduleFormSection');
     const bookFormSection = document.getElementById('bookFormSection');
+    const modalDialog = document.querySelector('#appointmentRequestModal .modal-dialog');
+
+    if (modalDialog) {
+        modalDialog.classList.remove('compact-book');
+    }
 
         if (type === 'emergency') {
         // Show emergency form, hide others
@@ -3446,6 +4221,9 @@ function openAppointmentModal(type) {
         if (modalTitle) {
             modalTitle.innerHTML = '<i class="bi bi-lightning-charge-fill me-2"></i>Emergency Appointment';
         }
+
+        refreshTimeSlotAvailability('emergency');
+        updateSelectedTimeLabel('emergencyTime', 'emergencyTimeSelected');
     } else if (type === 'reschedule') {
         // Show reschedule form, hide others
         if (emergencyFormSection) emergencyFormSection.style.display = 'none';
@@ -3457,11 +4235,18 @@ function openAppointmentModal(type) {
         if (modalTitle) {
             modalTitle.innerHTML = '<i class="bi bi-arrow-repeat me-2"></i>Request Reschedule';
         }
+
+        refreshTimeSlotAvailability('reschedule');
+        updateSelectedTimeLabel('rescheduleTime', 'rescheduleTimeSelected');
     } else if (type === 'book') {
         // Show book form, hide others
         if (emergencyFormSection) emergencyFormSection.style.display = 'none';
         if (rescheduleFormSection) rescheduleFormSection.style.display = 'none';
         if (bookFormSection) bookFormSection.style.display = 'block';
+
+        if (modalDialog) {
+            modalDialog.classList.add('compact-book');
+        }
 
         // Update modal title
         const modalTitle = document.getElementById('appointmentRequestModalLabel');
@@ -3469,6 +4254,8 @@ function openAppointmentModal(type) {
             modalTitle.innerHTML = '<i class="bi bi-calendar-plus me-2"></i>Book Appointment';
         }
     }
+
+    updateTimeAvailability();
 }
 
 // Handle Book Service Selection (show/hide "Other" field)
@@ -3704,6 +4491,291 @@ function getRequestDuration() {
     return duration;
 }
 
+function formatTimeLabel(value) {
+    if (!value || typeof value !== 'string') return '';
+    const [hourStr, minuteStr] = value.split(':');
+    const hours = Number(hourStr);
+    const minutes = Number(minuteStr);
+    if (Number.isNaN(hours) || Number.isNaN(minutes)) return value;
+    const date = new Date();
+    date.setHours(hours, minutes, 0, 0);
+    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+}
+
+function updateSelectedTimeLabel(inputId, displayId) {
+    const input = document.getElementById(inputId);
+    const display = document.getElementById(displayId);
+    if (!input || !display) return;
+
+    if (input.value) {
+        display.textContent = formatTimeLabel(input.value);
+        display.classList.add('has-value');
+    } else {
+        display.textContent = 'No time selected';
+        display.classList.remove('has-value');
+    }
+}
+
+function refreshTimeSlotAvailability(pickerType) {
+    let dateInput, timeInput, grid;
+
+    if (pickerType === 'emergency') {
+        dateInput = document.getElementById('emergencyDate');
+        timeInput = document.getElementById('emergencyTime');
+        grid = document.getElementById('emergencyTimeSlots');
+    } else if (pickerType === 'reschedule') {
+        dateInput = document.getElementById('rescheduleDate');
+        timeInput = document.getElementById('rescheduleTime');
+        grid = document.getElementById('rescheduleTimeSlots');
+    }
+
+    if (!grid) return;
+
+    const buttons = Array.from(grid.querySelectorAll('.time-slot-btn'));
+    const selectedValue = timeInput ? timeInput.value : '';
+    let clearedSelection = false;
+
+    if (!dateInput || !dateInput.value) {
+        buttons.forEach(btn => {
+            btn.disabled = true;
+            btn.classList.add('disabled');
+            btn.classList.remove('selected');
+        });
+        if (timeInput && timeInput.value) {
+            timeInput.value = '';
+            clearedSelection = true;
+        }
+    } else {
+        const dateObj = new Date(dateInput.value + 'T00:00:00');
+        buttons.forEach(btn => {
+            const slotValue = btn.dataset.value;
+            const available = isTimeSlotAvailable(dateObj, slotValue);
+            btn.disabled = !available;
+            btn.classList.toggle('disabled', !available);
+            if (!available) {
+                btn.classList.remove('selected');
+                if (selectedValue === slotValue) {
+                    clearedSelection = true;
+                }
+            } else if (selectedValue === slotValue) {
+                btn.classList.add('selected');
+            }
+        });
+        if (clearedSelection && timeInput) {
+            timeInput.value = '';
+        }
+    }
+
+    if (clearedSelection && timeInput) {
+        timeInput.dispatchEvent(new Event('change', { bubbles: true }));
+    } else if (timeInput) {
+        updateSelectedTimeLabel(timeInput.id, pickerType === 'emergency' ? 'emergencyTimeSelected' : 'rescheduleTimeSelected');
+    }
+}
+
+// GLOBAL: Determine if a time slot is available given current selections
+function isTimeSlotAvailable(selectedDate, selectedTime) {
+    if (!selectedDate || !selectedTime) return true;
+
+    const [hours, minutes] = selectedTime.split(':').map(Number);
+
+    // Enforce clinic hours (11:00 AM - 6:00 PM) with 15-minute increments
+    if (
+        Number.isNaN(hours) ||
+        Number.isNaN(minutes) ||
+        hours < 11 ||
+        hours > 18 ||
+        (hours === 18 && minutes > 0) ||
+        minutes % 15 !== 0
+    ) {
+        return false;
+    }
+
+    // Use server time (fault tolerant) to block past selections
+    const requestedStart = new Date(selectedDate);
+    requestedStart.setHours(hours, minutes, 0);
+
+    const serverNow = getServerTime();
+    if (requestedStart < serverNow) {
+        return false;
+    }
+
+    // Compute end by selected service/appointment duration
+    const duration = getRequestDuration();
+    const requestedEnd = new Date(requestedStart.getTime() + duration * 60000);
+
+    // Check against all appointments
+    for (const appointment of (window.allAppointments || [])) {
+        const aptStart = parseLocalDateTime(appointment.start_datetime);
+        const aptEnd = parseLocalDateTime(appointment.end_datetime);
+        if (!aptStart || !aptEnd) continue;
+        if (aptStart.toDateString() !== requestedStart.toDateString()) continue;
+        if (requestedStart < aptEnd && requestedEnd > aptStart) {
+            return false;
+        }
+    }
+
+    // Check against blocked times
+    for (const blockedTime of (window.blockedTimes || [])) {
+        const blockStart = parseLocalDateTime(blockedTime.start_datetime);
+        const blockEnd = parseLocalDateTime(blockedTime.end_datetime);
+        if (!blockStart || !blockEnd) continue;
+        if (blockStart.toDateString() !== requestedStart.toDateString()) continue;
+        if (requestedStart < blockEnd && requestedEnd > blockStart) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+// GLOBAL: Show availability message and enable/disable submit
+function updateTimeAvailability() {
+    function getActiveFormInputs() {
+        const emergencyFormSection = document.getElementById('emergencyFormSection');
+        const rescheduleFormSection = document.getElementById('rescheduleFormSection');
+        let dateInput, timeInput;
+        if (emergencyFormSection && emergencyFormSection.style.display !== 'none') {
+            dateInput = document.getElementById('emergencyDate');
+            timeInput = document.getElementById('emergencyTime');
+        } else if (rescheduleFormSection && rescheduleFormSection.style.display !== 'none') {
+            dateInput = document.getElementById('rescheduleDate');
+            timeInput = document.getElementById('rescheduleTime');
+        }
+        return { dateInput, timeInput };
+    }
+
+    const { dateInput, timeInput } = getActiveFormInputs();
+    if (!dateInput || !timeInput) return;
+
+    const selectedDate = dateInput.value;
+    const selectedTime = timeInput.value;
+    const messageId = `${timeInput.id}AvailabilityMessage`;
+    let messageDiv = document.getElementById(messageId);
+    if (messageDiv) messageDiv.remove();
+
+    const form = timeInput.form || timeInput.closest('form');
+    const submitBtn = form ? form.querySelector('.btn-submit') : null;
+
+    const disableSubmit = () => {
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.style.opacity = '0.5';
+            submitBtn.style.cursor = 'not-allowed';
+        }
+    };
+    const enableSubmit = () => {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
+            submitBtn.style.cursor = 'pointer';
+        }
+    };
+
+    if (!selectedDate || !selectedTime) {
+        disableSubmit();
+        return;
+    }
+
+    const dateObj = new Date(selectedDate + 'T00:00:00');
+    const available = isTimeSlotAvailable(dateObj, selectedTime);
+    const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+
+    messageDiv = document.createElement('div');
+    messageDiv.id = messageId;
+    messageDiv.style.marginTop = '0.5rem';
+    messageDiv.style.padding = '0.75rem';
+    messageDiv.style.borderRadius = '8px';
+    messageDiv.style.fontSize = '0.9rem';
+    messageDiv.style.fontWeight = '600';
+    messageDiv.style.display = 'flex';
+    messageDiv.style.alignItems = 'center';
+    messageDiv.style.gap = '0.5rem';
+
+    if (available) {
+        if (isDarkMode) {
+            messageDiv.style.background = 'linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.1) 100%)';
+            messageDiv.style.color = '#86efac';
+            messageDiv.style.border = '2px solid #10b981';
+        } else {
+            messageDiv.style.background = 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)';
+            messageDiv.style.color = '#065f46';
+            messageDiv.style.border = '2px solid #10b981';
+        }
+        messageDiv.innerHTML = '<i class="bi bi-check-circle-fill"></i> This time slot is available!';
+        enableSubmit();
+    } else {
+        if (isDarkMode) {
+            messageDiv.style.background = 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.1) 100%)';
+            messageDiv.style.color = '#fca5a5';
+            messageDiv.style.border = '2px solid #ef4444';
+        } else {
+            messageDiv.style.background = 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)';
+            messageDiv.style.color = '#991b1b';
+            messageDiv.style.border = '2px solid #ef4444';
+        }
+        messageDiv.innerHTML = '<i class="bi bi-x-circle-fill"></i> This time slot is not available. Please select a different time.';
+        disableSubmit();
+    }
+
+    const timeFormGroup = timeInput.closest('.form-group');
+    if (timeFormGroup) timeFormGroup.appendChild(messageDiv);
+}
+
+function initializeTimeSlotPicker(gridId, inputId, displayId, pickerType) {
+    const grid = document.getElementById(gridId);
+    const hiddenInput = document.getElementById(inputId);
+    if (!grid || !hiddenInput) return;
+
+    grid.addEventListener('click', function(event) {
+        const button = event.target.closest('.time-slot-btn');
+        if (!button || button.disabled || button.classList.contains('disabled')) return;
+
+        grid.querySelectorAll('.time-slot-btn').forEach(btn => btn.classList.remove('selected'));
+        button.classList.add('selected');
+        hiddenInput.value = button.dataset.value || '';
+        hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
+        updateSelectedTimeLabel(inputId, displayId);
+    });
+
+    hiddenInput.addEventListener('change', function() {
+        if (!hiddenInput.value) {
+            grid.querySelectorAll('.time-slot-btn').forEach(btn => btn.classList.remove('selected'));
+        } else {
+            grid.querySelectorAll('.time-slot-btn').forEach(btn => {
+                btn.classList.toggle('selected', btn.dataset.value === hiddenInput.value);
+            });
+        }
+        updateSelectedTimeLabel(inputId, displayId);
+    });
+
+    updateSelectedTimeLabel(inputId, displayId);
+    refreshTimeSlotAvailability(pickerType);
+}
+
+function clearTimeSlotSelection(gridId, inputId, displayId) {
+    const grid = document.getElementById(gridId);
+    const hiddenInput = document.getElementById(inputId);
+    const display = document.getElementById(displayId);
+
+    if (grid) {
+        grid.querySelectorAll('.time-slot-btn').forEach(btn => {
+            btn.classList.remove('selected');
+        });
+    }
+
+    if (hiddenInput) {
+        hiddenInput.value = '';
+        hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    if (display) {
+        display.textContent = 'No time selected';
+        display.classList.remove('has-value');
+    }
+}
+
+
 // Form submission handler
 // Handle Emergency Form Submission
 document.getElementById('emergencyForm').addEventListener('submit', function(e) {
@@ -3855,6 +4927,10 @@ document.getElementById('emergencyForm').addEventListener('submit', function(e) 
                 emergencyOtherConcern.value = '';
                 emergencyOtherConcern.required = false;
             }
+
+            clearTimeSlotSelection('emergencyTimeSlots', 'emergencyTime', 'emergencyTimeSelected');
+            refreshTimeSlotAvailability('emergency');
+            updateTimeAvailability();
 
             // Clear dataset values
             this.dataset.originalAppointmentId = '';
@@ -4097,6 +5173,10 @@ document.getElementById('rescheduleForm').addEventListener('submit', function(e)
             const rescheduleSelectedAppointmentInfo = document.getElementById('rescheduleSelectedAppointmentInfo');
             if (rescheduleAppointmentSelect) rescheduleAppointmentSelect.value = '';
             if (rescheduleSelectedAppointmentInfo) rescheduleSelectedAppointmentInfo.style.display = 'none';
+
+            clearTimeSlotSelection('rescheduleTimeSlots', 'rescheduleTime', 'rescheduleTimeSelected');
+            refreshTimeSlotAvailability('reschedule');
+            updateTimeAvailability();
 
             // Show success modal
             const successMessage = data.message || 'Your reschedule request has been submitted successfully!';
@@ -4645,267 +5725,71 @@ document.addEventListener('DOMContentLoaded', function() {
         // getRequestDuration is now defined globally above
         // parseLocalDateTime is now defined globally above
 
-        // Function to check if a time conflicts with existing appointments or blocked times
-        function isTimeSlotAvailable(selectedDate, selectedTime) {
-            if (!selectedDate || !selectedTime) return true;
-
-            // CRITICAL: Use server time to validate past dates (fault tolerant)
-            const [hours, minutes] = selectedTime.split(':').map(Number);
-            const requestedStart = new Date(selectedDate);
-            requestedStart.setHours(hours, minutes, 0);
-
-            // Check if the requested time is in the past (using server time)
-            const serverNow = getServerTime();
-            if (requestedStart < serverNow) {
-                return false; // Time is in the past
-            }
-
-            // Get the duration based on the selected service or appointment
-            const duration = getRequestDuration();
-            const requestedEnd = new Date(requestedStart.getTime() + duration * 60000);
-
-            // Check all appointments
-            for (const appointment of window.allAppointments) {
-                const aptStart = parseLocalDateTime(appointment.start_datetime);
-                const aptEnd = parseLocalDateTime(appointment.end_datetime);
-                if (!aptStart || !aptEnd) continue;
-
-                // Check if on the same date
-                if (aptStart.toDateString() !== requestedStart.toDateString()) continue;
-
-                // Check for overlap
-                if (requestedStart < aptEnd && requestedEnd > aptStart) {
-                    return false; // Conflict found
-                }
-            }
-
-            // Check blocked times
-            for (const blockedTime of window.blockedTimes) {
-                const blockStart = parseLocalDateTime(blockedTime.start_datetime);
-                const blockEnd = parseLocalDateTime(blockedTime.end_datetime);
-                if (!blockStart || !blockEnd) continue;
-
-                // Check if on the same date
-                if (blockStart.toDateString() !== requestedStart.toDateString()) continue;
-
-                // Check for overlap
-                if (requestedStart < blockEnd && requestedEnd > blockStart) {
-                    return false; // Conflict found
-                }
-            }
-
-            return true; // No conflicts
-        }
+        // isTimeSlotAvailable moved to global scope above
 
         // Function to show available/unavailable message
-        function updateTimeAvailability() {
-            const { dateInput, timeInput } = getActiveFormInputs();
-            if (!dateInput || !timeInput) return;
-
-            const selectedDate = dateInput.value;
-            const selectedTime = timeInput.value;
-
-            // Remove any existing availability message
-            let messageDiv = document.getElementById('timeAvailabilityMessage');
-            if (messageDiv) {
-                messageDiv.remove();
-            }
-
-            if (selectedDate && selectedTime) {
-                const dateObj = new Date(selectedDate + 'T00:00:00');
-                const available = isTimeSlotAvailable(dateObj, selectedTime);
-
-                // Check if dark mode is active
-                const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
-
-                // Create message div
-                messageDiv = document.createElement('div');
-                messageDiv.id = 'timeAvailabilityMessage';
-                messageDiv.style.marginTop = '0.5rem';
-                messageDiv.style.padding = '0.75rem';
-                messageDiv.style.borderRadius = '8px';
-                messageDiv.style.fontSize = '0.9rem';
-                messageDiv.style.fontWeight = '600';
-                messageDiv.style.display = 'flex';
-                messageDiv.style.alignItems = 'center';
-                messageDiv.style.gap = '0.5rem';
-
-                if (available) {
-                    if (isDarkMode) {
-                        messageDiv.style.background = 'linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.1) 100%)';
-                        messageDiv.style.color = '#86efac';
-                        messageDiv.style.border = '2px solid #10b981';
-                    } else {
-                        messageDiv.style.background = 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)';
-                        messageDiv.style.color = '#065f46';
-                        messageDiv.style.border = '2px solid #10b981';
-                    }
-                    messageDiv.innerHTML = '<i class="bi bi-check-circle-fill"></i> This time slot is available!';
-                } else {
-                    if (isDarkMode) {
-                        messageDiv.style.background = 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.1) 100%)';
-                        messageDiv.style.color = '#fca5a5';
-                        messageDiv.style.border = '2px solid #ef4444';
-                    } else {
-                        messageDiv.style.background = 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)';
-                        messageDiv.style.color = '#991b1b';
-                        messageDiv.style.border = '2px solid #ef4444';
-                    }
-                    messageDiv.innerHTML = '<i class="bi bi-x-circle-fill"></i> This time slot is not available. Please select a different time.';
-
-                    // Disable the submit button
-                    const submitBtn = document.querySelector('.btn-submit');
-                    if (submitBtn) {
-                        submitBtn.disabled = true;
-                        submitBtn.style.opacity = '0.5';
-                        submitBtn.style.cursor = 'not-allowed';
-                    }
-                }
-
-                // Insert message after the time input group
-                const timeFormGroup = timeInput.closest('.form-group');
-                if (timeFormGroup) {
-                    timeFormGroup.appendChild(messageDiv);
-                }
-
-                // Enable submit button if available
-                if (available) {
-                    const submitBtn = document.querySelector('.btn-submit');
-                    if (submitBtn) {
-                        submitBtn.disabled = false;
-                        submitBtn.style.opacity = '1';
-                        submitBtn.style.cursor = 'pointer';
-                    }
-                }
-            }
-        }
+        // updateTimeAvailability moved to global scope above
 
         // Add event listeners for emergency form
         const emergencyDateInput = document.getElementById('emergencyDate');
         const emergencyTimeInput = document.getElementById('emergencyTime');
-        if (emergencyDateInput && emergencyTimeInput) {
-            emergencyDateInput.addEventListener('change', updateTimeAvailability);
+        if (emergencyTimeInput) {
             emergencyTimeInput.addEventListener('change', updateTimeAvailability);
-            emergencyTimeInput.addEventListener('input', updateTimeAvailability);
         }
 
         // Add event listeners for reschedule form
         const rescheduleDateInput = document.getElementById('rescheduleDate');
         const rescheduleTimeInput = document.getElementById('rescheduleTime');
-        if (rescheduleDateInput && rescheduleTimeInput) {
-            rescheduleDateInput.addEventListener('change', updateTimeAvailability);
+        if (rescheduleTimeInput) {
             rescheduleTimeInput.addEventListener('change', updateTimeAvailability);
-            rescheduleTimeInput.addEventListener('input', updateTimeAvailability);
         }
 
         // Add listener for emergency service selection changes to re-check availability
         const emergencyServiceSelect = document.getElementById('emergencyServiceSelect');
         if (emergencyServiceSelect) {
-            emergencyServiceSelect.addEventListener('change', updateTimeAvailability);
+            emergencyServiceSelect.addEventListener('change', function() {
+                refreshTimeSlotAvailability('emergency');
+                updateTimeAvailability();
+            });
         }
 
         // Add listener for reschedule appointment selection changes to re-check availability
         const rescheduleAppointmentSelect = document.getElementById('rescheduleAppointmentSelect');
         if (rescheduleAppointmentSelect) {
-            rescheduleAppointmentSelect.addEventListener('change', updateTimeAvailability);
+            rescheduleAppointmentSelect.addEventListener('change', function() {
+                refreshTimeSlotAvailability('reschedule');
+                updateTimeAvailability();
+            });
         }
 
         // Show suggested available times when date is selected (emergency)
         if (emergencyDateInput) {
             emergencyDateInput.addEventListener('change', function() {
-            const selectedDate = this.value;
-            if (!selectedDate) return;
-
-            // Find available time slots for this date
-            const dateObj = new Date(selectedDate + 'T00:00:00');
-            const availableSlots = [];
-            const businessHours = [
-                '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
-                '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00'
-            ];
-
-            for (const time of businessHours) {
-                if (isTimeSlotAvailable(dateObj, time)) {
-                    availableSlots.push(time);
-                }
-            }
-
-            // Show suggestion message
-            let suggestionDiv = document.getElementById('timeSuggestionMessage');
-            if (suggestionDiv) {
-                suggestionDiv.remove();
-            }
-
-            // Check if dark mode is active
-            const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
-
-            if (availableSlots.length > 0) {
-                suggestionDiv = document.createElement('div');
-                suggestionDiv.id = 'timeSuggestionMessage';
-                suggestionDiv.style.marginTop = '0.5rem';
-                suggestionDiv.style.padding = '0.75rem';
-                suggestionDiv.style.borderRadius = '8px';
-                suggestionDiv.style.fontSize = '0.85rem';
-
-                if (isDarkMode) {
-                    suggestionDiv.style.background = 'linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.1) 100%)';
-                    suggestionDiv.style.color = '#93c5fd';
-                    suggestionDiv.style.border = '2px solid #3b82f6';
-                } else {
-                    suggestionDiv.style.background = 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)';
-                    suggestionDiv.style.color = '#1e40af';
-                    suggestionDiv.style.border = '2px solid #3b82f6';
-                }
-
-                suggestionDiv.innerHTML = `<i class="bi bi-info-circle-fill"></i> <strong>${availableSlots.length}</strong> time slots available on this date. Select a time to check availability.`;
-
-                    const dateFormGroup = this.closest('.form-group');
-                if (dateFormGroup) {
-                    dateFormGroup.appendChild(suggestionDiv);
-                }
-            } else {
-                suggestionDiv = document.createElement('div');
-                suggestionDiv.id = 'timeSuggestionMessage';
-                suggestionDiv.style.marginTop = '0.5rem';
-                suggestionDiv.style.padding = '0.75rem';
-                suggestionDiv.style.borderRadius = '8px';
-                suggestionDiv.style.fontSize = '0.85rem';
-
-                if (isDarkMode) {
-                    suggestionDiv.style.background = 'linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.1) 100%)';
-                    suggestionDiv.style.color = '#fde68a';
-                    suggestionDiv.style.border = '2px solid #f59e0b';
-                } else {
-                    suggestionDiv.style.background = 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)';
-                    suggestionDiv.style.color = '#92400e';
-                    suggestionDiv.style.border = '2px solid #f59e0b';
-                }
-
-                suggestionDiv.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> No available time slots on this date. Please select a different date.';
-
-                    const dateFormGroup = this.closest('.form-group');
-                if (dateFormGroup) {
-                    dateFormGroup.appendChild(suggestionDiv);
-                }
-            }
-        });
-    }
-
-        // Show suggested available times when date is selected (reschedule)
-        if (rescheduleDateInput) {
-            rescheduleDateInput.addEventListener('change', function() {
-                const { dateInput } = getActiveFormInputs();
-                if (!dateInput || dateInput !== this) return;
+                refreshTimeSlotAvailability('emergency');
+                updateTimeAvailability();
 
                 const selectedDate = this.value;
-                if (!selectedDate) return;
+                const suggestionId = 'emergencyTimeSuggestionMessage';
+                let suggestionDiv = document.getElementById(suggestionId);
+                if (suggestionDiv) {
+                    suggestionDiv.remove();
+                }
 
-                // Find available time slots for this date
+                if (!selectedDate) {
+                    return;
+                }
+
                 const dateObj = new Date(selectedDate + 'T00:00:00');
                 const availableSlots = [];
                 const businessHours = [
-                    '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
-                    '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00'
+                    '11:00', '11:15', '11:30', '11:45',
+                    '12:00', '12:15', '12:30', '12:45',
+                    '13:00', '13:15', '13:30', '13:45',
+                    '14:00', '14:15', '14:30', '14:45',
+                    '15:00', '15:15', '15:30', '15:45',
+                    '16:00', '16:15', '16:30', '16:45',
+                    '17:00', '17:15', '17:30', '17:45',
+                    '18:00'
                 ];
 
                 for (const time of businessHours) {
@@ -4914,23 +5798,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
 
-                // Show suggestion message
-                let suggestionDiv = document.getElementById('timeSuggestionMessage');
-                if (suggestionDiv) {
-                    suggestionDiv.remove();
-                }
-
-                // Check if dark mode is active
                 const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+                suggestionDiv = document.createElement('div');
+                suggestionDiv.id = suggestionId;
+                suggestionDiv.style.marginTop = '0.5rem';
+                suggestionDiv.style.padding = '0.75rem';
+                suggestionDiv.style.borderRadius = '8px';
+                suggestionDiv.style.fontSize = '0.85rem';
 
                 if (availableSlots.length > 0) {
-                    suggestionDiv = document.createElement('div');
-                    suggestionDiv.id = 'timeSuggestionMessage';
-                    suggestionDiv.style.marginTop = '0.5rem';
-                    suggestionDiv.style.padding = '0.75rem';
-                    suggestionDiv.style.borderRadius = '8px';
-                    suggestionDiv.style.fontSize = '0.85rem';
-
                     if (isDarkMode) {
                         suggestionDiv.style.background = 'linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.1) 100%)';
                         suggestionDiv.style.color = '#93c5fd';
@@ -4940,21 +5816,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         suggestionDiv.style.color = '#1e40af';
                         suggestionDiv.style.border = '2px solid #3b82f6';
                     }
-
-                    suggestionDiv.innerHTML = `<i class="bi bi-info-circle-fill"></i> <strong>${availableSlots.length}</strong> time slots available on this date. Select a time to check availability.`;
-
-                    const dateFormGroup = this.closest('.form-group');
-                    if (dateFormGroup) {
-                        dateFormGroup.appendChild(suggestionDiv);
-                    }
+                    suggestionDiv.innerHTML = `<i class="bi bi-info-circle-fill"></i> <strong>${availableSlots.length}</strong> time slots available. Tap a slot to select.`;
                 } else {
-                    suggestionDiv = document.createElement('div');
-                    suggestionDiv.id = 'timeSuggestionMessage';
-                    suggestionDiv.style.marginTop = '0.5rem';
-                    suggestionDiv.style.padding = '0.75rem';
-                    suggestionDiv.style.borderRadius = '8px';
-                    suggestionDiv.style.fontSize = '0.85rem';
-
                     if (isDarkMode) {
                         suggestionDiv.style.background = 'linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.1) 100%)';
                         suggestionDiv.style.color = '#fde68a';
@@ -4964,18 +5827,438 @@ document.addEventListener('DOMContentLoaded', function() {
                         suggestionDiv.style.color = '#92400e';
                         suggestionDiv.style.border = '2px solid #f59e0b';
                     }
+                    suggestionDiv.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> No available time slots on this date. Please choose a different date.';
+                }
 
-                    suggestionDiv.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> No available time slots on this date. Please select a different date.';
-
-                    const dateFormGroup = this.closest('.form-group');
-                    if (dateFormGroup) {
-                        dateFormGroup.appendChild(suggestionDiv);
-                    }
+                const dateFormGroup = this.closest('.form-group');
+                if (dateFormGroup) {
+                    dateFormGroup.appendChild(suggestionDiv);
                 }
             });
         }
 
+        // Show suggested available times when date is selected (reschedule)
+        if (rescheduleDateInput) {
+            rescheduleDateInput.addEventListener('change', function() {
+                refreshTimeSlotAvailability('reschedule');
+                updateTimeAvailability();
+
+                const selectedDate = this.value;
+                const suggestionId = 'rescheduleTimeSuggestionMessage';
+                let suggestionDiv = document.getElementById(suggestionId);
+                if (suggestionDiv) {
+                    suggestionDiv.remove();
+                }
+
+                if (!selectedDate) {
+                    return;
+                }
+
+                const dateObj = new Date(selectedDate + 'T00:00:00');
+                const availableSlots = [];
+                const businessHours = [
+                    '11:00', '11:15', '11:30', '11:45',
+                    '12:00', '12:15', '12:30', '12:45',
+                    '13:00', '13:15', '13:30', '13:45',
+                    '14:00', '14:15', '14:30', '14:45',
+                    '15:00', '15:15', '15:30', '15:45',
+                    '16:00', '16:15', '16:30', '16:45',
+                    '17:00', '17:15', '17:30', '17:45',
+                    '18:00'
+                ];
+
+                for (const time of businessHours) {
+                    if (isTimeSlotAvailable(dateObj, time)) {
+                        availableSlots.push(time);
+                    }
+                }
+
+                const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+                suggestionDiv = document.createElement('div');
+                suggestionDiv.id = suggestionId;
+                suggestionDiv.style.marginTop = '0.5rem';
+                suggestionDiv.style.padding = '0.75rem';
+                suggestionDiv.style.borderRadius = '8px';
+                suggestionDiv.style.fontSize = '0.85rem';
+
+                if (availableSlots.length > 0) {
+                    if (isDarkMode) {
+                        suggestionDiv.style.background = 'linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.1) 100%)';
+                        suggestionDiv.style.color = '#93c5fd';
+                        suggestionDiv.style.border = '2px solid #3b82f6';
+                    } else {
+                        suggestionDiv.style.background = 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)';
+                        suggestionDiv.style.color = '#1e40af';
+                        suggestionDiv.style.border = '2px solid #3b82f6';
+                    }
+                    suggestionDiv.innerHTML = `<i class="bi bi-info-circle-fill"></i> <strong>${availableSlots.length}</strong> time slots available. Choose one to request.`;
+                } else {
+                    if (isDarkMode) {
+                        suggestionDiv.style.background = 'linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.1) 100%)';
+                        suggestionDiv.style.color = '#fde68a';
+                        suggestionDiv.style.border = '2px solid #f59e0b';
+                    } else {
+                        suggestionDiv.style.background = 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)';
+                        suggestionDiv.style.color = '#92400e';
+                        suggestionDiv.style.border = '2px solid #f59e0b';
+                    }
+                    suggestionDiv.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> No available time slots on this date. Please select a different date.';
+                }
+
+                const dateFormGroup = this.closest('.form-group');
+                if (dateFormGroup) {
+                    dateFormGroup.appendChild(suggestionDiv);
+                }
+            });
+        }
+
+        initializeTimeSlotPicker('emergencyTimeSlots', 'emergencyTime', 'emergencyTimeSelected', 'emergency');
+        initializeTimeSlotPicker('rescheduleTimeSlots', 'rescheduleTime', 'rescheduleTimeSelected', 'reschedule');
+        updateTimeAvailability();
+});
+
+// ============================================
+// CUSTOM DATE PICKER CALENDAR WIDGET
+// ============================================
+
+// Calendar widget class
+class CustomDatePicker {
+    constructor(containerId, inputId, monthYearId, prevBtnId, nextBtnId, minDate = null) {
+        this.container = document.getElementById(containerId);
+        this.input = document.getElementById(inputId);
+        this.monthYearElement = document.getElementById(monthYearId);
+        this.prevBtn = document.getElementById(prevBtnId);
+        this.nextBtn = document.getElementById(nextBtnId);
+        this.minDate = minDate;
+        this.currentDate = new Date();
+        this.selectedDate = null;
+        
+        if (this.minDate) {
+            const min = new Date(this.minDate);
+            if (min > this.currentDate) {
+                this.currentDate = new Date(min);
+            }
+        }
+        
+        this.init();
+    }
+    
+    init() {
+        this.render();
+        this.attachEvents();
+    }
+    
+    attachEvents() {
+        if (this.prevBtn) {
+            this.prevBtn.addEventListener('click', () => this.navigateMonth(-1));
+        }
+        if (this.nextBtn) {
+            this.nextBtn.addEventListener('click', () => this.navigateMonth(1));
+        }
+    }
+    
+    navigateMonth(direction) {
+        this.currentDate.setMonth(this.currentDate.getMonth() + direction);
+        this.render();
+    }
+    
+    formatDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+    
+    isDateDisabled(date) {
+        if (this.minDate) {
+            const min = new Date(this.minDate);
+            min.setHours(0, 0, 0, 0);
+            const checkDate = new Date(date);
+            checkDate.setHours(0, 0, 0, 0);
+            if (checkDate < min) {
+                return true;
+            }
+        }
+        
+        // Check if date is in the past
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const checkDate = new Date(date);
+        checkDate.setHours(0, 0, 0, 0);
+        if (checkDate < today) {
+            return true;
+        }
+        
+        return false;
+    }
+    
+    selectDate(date) {
+        if (this.isDateDisabled(date)) {
+            return;
+        }
+        
+        this.selectedDate = new Date(date);
+        this.input.value = this.formatDate(this.selectedDate);
+        this.render();
+        
+        // Trigger change event for form validation
+        this.input.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    
+    render() {
+        if (!this.container) return;
+        
+        const year = this.currentDate.getFullYear();
+        const month = this.currentDate.getMonth();
+        
+        // Update month/year display
+        if (this.monthYearElement) {
+            this.monthYearElement.textContent = new Date(year, month).toLocaleDateString('en-US', {
+                month: 'long',
+                year: 'numeric'
+            });
+        }
+        
+        // Get first day of month and number of days
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const daysInPrevMonth = new Date(year, month, 0).getDate();
+        
+        // Clear grid
+        this.container.innerHTML = '';
+        
+        // Add days from previous month
+        for (let i = firstDay - 1; i >= 0; i--) {
+            const day = daysInPrevMonth - i;
+            const date = new Date(year, month - 1, day);
+            const dayElement = this.createDayElement(date, true, false);
+            this.container.appendChild(dayElement);
+        }
+        
+        // Add days from current month
+        for (let day = 1; day <= daysInMonth; day++) {
+            const date = new Date(year, month, day);
+            const isDisabled = this.isDateDisabled(date);
+            const isSelected = this.selectedDate && 
+                date.getDate() === this.selectedDate.getDate() &&
+                date.getMonth() === this.selectedDate.getMonth() &&
+                date.getFullYear() === this.selectedDate.getFullYear();
+            const isToday = date.toDateString() === new Date().toDateString();
+            
+            const dayElement = this.createDayElement(date, false, isDisabled, isSelected, isToday);
+            this.container.appendChild(dayElement);
+        }
+        
+        // Fill remaining cells to complete the grid (next month days)
+        const totalCells = this.container.children.length;
+        const remainingCells = 42 - totalCells; // 6 rows * 7 days
+        for (let day = 1; day <= remainingCells; day++) {
+            const date = new Date(year, month + 1, day);
+            const dayElement = this.createDayElement(date, true, false);
+            this.container.appendChild(dayElement);
+        }
+    }
+    
+    createDayElement(date, isInactive, isDisabled, isSelected = false, isToday = false) {
+        const dayElement = document.createElement('div');
+        dayElement.className = 'custom-calendar-day';
+        dayElement.textContent = date.getDate();
+        
+        if (isInactive) {
+            dayElement.classList.add('inactive');
+        } else if (isDisabled) {
+            dayElement.classList.add('disabled');
+        } else {
+            dayElement.classList.add('active');
+            if (!isDisabled) {
+                dayElement.addEventListener('click', () => this.selectDate(date));
+            }
+        }
+        
+        if (isSelected) {
+            dayElement.classList.add('selected');
+        }
+        
+        if (isToday && !isInactive) {
+            dayElement.classList.add('today');
+        }
+        
+        return dayElement;
+    }
+}
+
+// Store calendar instances globally
+let emergencyCalendar = null;
+let rescheduleCalendar = null;
+let bookCalendar = null;
+
+// Initialize calendars when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Initialize Emergency Calendar
+    if (document.getElementById('emergencyCalendarGrid')) {
+        emergencyCalendar = new CustomDatePicker(
+            'emergencyCalendarGrid',
+            'emergencyDate',
+            'emergencyMonthYear',
+            'emergencyPrevMonth',
+            'emergencyNextMonth',
+            today
+        );
+    }
+    
+    // Initialize Reschedule Calendar
+    if (document.getElementById('rescheduleCalendarGrid')) {
+        rescheduleCalendar = new CustomDatePicker(
+            'rescheduleCalendarGrid',
+            'rescheduleDate',
+            'rescheduleMonthYear',
+            'reschedulePrevMonth',
+            'rescheduleNextMonth',
+            today
+        );
+    }
+    
+    // Initialize Book Calendar
+    if (document.getElementById('bookCalendarGrid')) {
+        bookCalendar = new CustomDatePicker(
+            'bookCalendarGrid',
+            'bookDate',
+            'bookMonthYear',
+            'bookPrevMonth',
+            'bookNextMonth',
+            today
+        );
+    }
+    
+    // Re-render calendars when modal is shown
+    const appointmentModal = document.getElementById('appointmentRequestModal');
+    if (appointmentModal) {
+        appointmentModal.addEventListener('shown.bs.modal', function() {
+            if (emergencyCalendar) emergencyCalendar.render();
+            if (rescheduleCalendar) rescheduleCalendar.render();
+            if (bookCalendar) bookCalendar.render();
+        });
+    }
+    
+    // Trigger date change events for existing validation
+    const emergencyDateInput = document.getElementById('emergencyDate');
+    const rescheduleDateInput = document.getElementById('rescheduleDate');
+    const bookDateInput = document.getElementById('bookDate');
+    
+    if (emergencyDateInput) {
+        emergencyDateInput.addEventListener('change', function() {
+            // Trigger existing validation if available
+            if (typeof updateTimeAvailability === 'function') {
+                updateTimeAvailability();
+            }
+        });
+    }
+    
+    if (rescheduleDateInput) {
+        rescheduleDateInput.addEventListener('change', function() {
+            // Trigger existing validation if available
+            if (typeof updateTimeAvailability === 'function') {
+                updateTimeAvailability();
+            }
+        });
+    }
+    
+    if (bookDateInput) {
+        bookDateInput.addEventListener('change', function() {
+            // Book form doesn't need time validation
+        });
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const layout = document.querySelector('.calendar-layout');
+    const sidebar = document.querySelector('.calendar-sidebar');
+    const resizer = document.getElementById('calendarResizer');
+
+    if (!layout || !sidebar || !resizer) return;
+
+    const storageKey = 'patientCalendarSidebarWidth';
+    const minWidth = 220;
+    const getMaxWidth = () => Math.min(480, window.innerWidth - 360);
+
+    const clampWidth = (width) => Math.max(minWidth, Math.min(getMaxWidth(), width));
+    const applyWidth = (width) => {
+        layout.style.setProperty('--calendar-sidebar-width', `${width}px`);
+    };
+
+    const restoreWidth = () => {
+        const saved = Number(localStorage.getItem(storageKey));
+        if (saved && window.innerWidth > 1024) {
+            applyWidth(clampWidth(saved));
+        } else if (window.innerWidth <= 1024) {
+            layout.style.removeProperty('--calendar-sidebar-width');
+        }
+    };
+
+    restoreWidth();
+
+    let pointerId = null;
+    let startX = 0;
+    let startWidth = 0;
+    let resizing = false;
+
+    const handlePointerMove = (event) => {
+        if (!resizing) return;
+        const delta = event.clientX - startX;
+        const newWidth = clampWidth(startWidth + delta);
+        applyWidth(newWidth);
+        localStorage.setItem(storageKey, String(newWidth));
+    };
+
+    const stopResize = (event) => {
+        if (!resizing) return;
+        resizing = false;
+        layout.classList.remove('is-resizing');
+        document.body.style.cursor = '';
+        if (pointerId !== null) {
+            try {
+                resizer.releasePointerCapture(pointerId);
+            } catch (e) {}
+        }
+        resizer.removeEventListener('pointermove', handlePointerMove);
+        resizer.removeEventListener('pointerup', stopResize);
+        resizer.removeEventListener('pointercancel', stopResize);
+        pointerId = null;
+    };
+
+    resizer.addEventListener('pointerdown', function(event) {
+        if (window.innerWidth <= 1024) return;
+        event.preventDefault();
+        pointerId = event.pointerId;
+        startX = event.clientX;
+        startWidth = sidebar.getBoundingClientRect().width;
+        resizing = true;
+        layout.classList.add('is-resizing');
+        document.body.style.cursor = 'col-resize';
+        try {
+            resizer.setPointerCapture(pointerId);
+        } catch (e) {}
+        resizer.addEventListener('pointermove', handlePointerMove);
+        resizer.addEventListener('pointerup', stopResize);
+        resizer.addEventListener('pointercancel', stopResize);
+    });
+
+    resizer.addEventListener('dblclick', function() {
+        layout.style.removeProperty('--calendar-sidebar-width');
+        localStorage.removeItem(storageKey);
+    });
+
+    window.addEventListener('resize', function() {
+        if (window.innerWidth <= 1024) {
+            layout.style.removeProperty('--calendar-sidebar-width');
+        } else {
+            restoreWidth();
+        }
+    });
 });
 </script>
 <script src="{{ asset('js/patient-calendar.js') }}"></script>
+@include('patient.components.chatbot')
 @endsection

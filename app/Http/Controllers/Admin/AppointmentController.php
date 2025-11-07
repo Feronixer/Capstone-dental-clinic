@@ -12,6 +12,8 @@ use Illuminate\Http\JsonResponse;
 use Carbon\Carbon;
 use App\Services\MailService;
 use App\Services\NotificationService;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 // use Maatwebsite\Excel\Facades\Excel; // Removed - using CSV export instead
 
 class AppointmentController extends Controller
@@ -642,32 +644,58 @@ class AppointmentController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id)
     {
-        // Only allow admins (role_id === 1) to cancel appointments
-        if (auth()->user()->role_id !== 1) {
-            \Log::warning('Unauthorized cancel attempt by staff user', [
-                'user_id' => auth()->id(),
+        // Only allow admins (role_id === 1) to delete appointments
+        $adminUser = Auth::guard('admin')->user();
+
+        if (!$adminUser || $adminUser->role_id !== 1) {
+            \Log::warning('Unauthorized delete attempt by staff user', [
+                'user_id' => $adminUser?->id,
                 'appointment_id' => $id
             ]);
 
-            if (request()->ajax() || request()->wantsJson()) {
+            if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Unauthorized. Only administrators can cancel appointments.'
+                    'message' => 'Unauthorized. Only administrators can delete appointments.'
                 ], 403);
             }
 
-            return redirect()->route('admin-appointment')->with('error', 'Unauthorized. Only administrators can cancel appointments.');
+            return redirect()->route('admin-appointment')->with('error', 'Unauthorized. Only administrators can delete appointments.');
         }
 
         try {
-            // If request explicitly asks to force delete, bypass cancellation rules
-            if (request()->boolean('force')) {
+            // Validate password if force delete is requested
+            if ($request->boolean('force')) {
+                // Require password confirmation for deletion
+                $request->validate([
+                    'password' => 'required|string'
+                ]);
+
+                // Verify password
+                $admin = Auth::guard('admin')->user();
+
+                if (!$admin || !Hash::check($request->password, $admin->password)) {
+                    if ($request->ajax() || $request->wantsJson()) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Incorrect password.'
+                        ], 403);
+                    }
+
+                    return redirect()->back()->withErrors(['password' => 'Incorrect password.']);
+                }
+
                 $appointment = Appointment::findOrFail($id);
                 $appointment->delete();
 
-                if (request()->ajax() || request()->wantsJson()) {
+                \Log::info('Appointment force deleted:', [
+                    'appointment_id' => $id,
+                    'deleted_by' => Auth::guard('admin')->id()
+                ]);
+
+                if ($request->ajax() || $request->wantsJson()) {
                     return response()->json(['success' => true, 'message' => 'Appointment deleted successfully']);
                 }
 
@@ -678,7 +706,7 @@ class AppointmentController extends Controller
 
             // Check if appointment is already cancelled
             if ($appointment->status === 'Cancelled') {
-                if (request()->ajax() || request()->wantsJson()) {
+                if ($request->ajax() || $request->wantsJson()) {
                     return response()->json(['success' => false, 'message' => 'Appointment is already cancelled.']);
                 }
                 return redirect()->route('admin-appointment')->with('error', 'Appointment is already cancelled.');
@@ -686,7 +714,7 @@ class AppointmentController extends Controller
 
             // Prevent cancelling rescheduled appointments
             if (!is_null($appointment->rescheduled_at)) {
-                if (request()->ajax() || request()->wantsJson()) {
+                if ($request->ajax() || $request->wantsJson()) {
                     return response()->json(['success' => false, 'message' => 'Cannot cancel rescheduled appointments. The original appointment was already cancelled when it was rescheduled.']);
                 }
                 return redirect()->route('admin-appointment')->with('error', 'Cannot cancel rescheduled appointments. The original appointment was already cancelled when it was rescheduled.');
@@ -694,7 +722,7 @@ class AppointmentController extends Controller
 
             // Prevent cancelling confirmed appointments
             if ($appointment->status === 'Confirmed') {
-                if (request()->ajax() || request()->wantsJson()) {
+                if ($request->ajax() || $request->wantsJson()) {
                     return response()->json(['success' => false, 'message' => 'Cannot cancel confirmed appointments.']);
                 }
                 return redirect()->route('admin-appointment')->with('error', 'Cannot cancel confirmed appointments.');
@@ -727,7 +755,7 @@ class AppointmentController extends Controller
 
             \Log::info('Appointment cancelled successfully', ['appointment_id' => $appointment->id, 'old_status' => $oldStatus]);
 
-            if (request()->ajax() || request()->wantsJson()) {
+            if ($request->ajax() || $request->wantsJson()) {
                 return response()->json(['success' => true, 'message' => 'Appointment cancelled successfully']);
             }
 
@@ -735,7 +763,7 @@ class AppointmentController extends Controller
         } catch (\Exception $e) {
             \Log::error('Error cancelling appointment:', ['error' => $e->getMessage()]);
 
-            if (request()->ajax() || request()->wantsJson()) {
+            if ($request->ajax() || $request->wantsJson()) {
                 return response()->json(['success' => false, 'message' => 'Error cancelling appointment: ' . $e->getMessage()], 500);
             }
 
@@ -869,7 +897,7 @@ class AppointmentController extends Controller
                 'appointment_id' => $id,
                 'old_status' => $oldStatus,
                 'new_status' => $validated['status'],
-                'updated_by' => auth()->id()
+                'updated_by' => Auth::guard('admin')->id()
             ]);
 
             return response()->json([

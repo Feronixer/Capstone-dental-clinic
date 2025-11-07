@@ -1,514 +1,5 @@
-@extends('layout.guest.app')
-@section('content')
-
+@if(!empty($chatbotSetting) && $chatbotSetting->enabled)
 <style>
-.about-page {
-    background: white;
-    padding: 3rem 2rem;
-    min-height: 80vh;
-}
-
-.about-container {
-    max-width: 1400px;
-    margin: 0 auto;
-}
-
-.about-header {
-    margin-bottom: 3rem;
-}
-
-.about-main-title {
-    font-size: 3.5rem;
-    font-weight: 900;
-    background: linear-gradient(135deg, #3b82f6 0%, #14b8a6 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 0.5rem;
-    letter-spacing: -1px;
-}
-
-.about-clinic-title {
-    font-size: 2rem;
-    font-weight: 900;
-    color: #001f3f;
-    margin-bottom: 2rem;
-}
-
-.about-content-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 3rem;
-    align-items: start;
-}
-
-.about-text-section {
-    padding-right: 2rem;
-}
-
-.about-description {
-    font-size: 1.05rem;
-    line-height: 1.9;
-    color: #5a5a5a;
-    text-align: justify;
-}
-
-.about-image-section {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-    border-radius: 12px;
-    padding: 3rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 400px;
-    position: relative;
-    overflow: hidden;
-}
-
-.dentist-card {
-    text-align: center;
-    color: white;
-    z-index: 2;
-}
-
-.dentist-icon {
-    width: 120px;
-    height: 120px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 1.5rem;
-    backdrop-filter: blur(10px);
-}
-
-.dentist-icon i {
-    font-size: 4rem;
-    color: white;
-}
-
-.dentist-name {
-    font-size: 1.8rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-}
-
-.dentist-role {
-    font-size: 1.2rem;
-    opacity: 0.95;
-}
-
-.about-image-section::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-    animation: float 8s ease-in-out infinite;
-}
-
-@keyframes float {
-    0%, 100% {
-        transform: translate(0, 0) rotate(0deg);
-    }
-    50% {
-        transform: translate(-20px, -20px) rotate(5deg);
-    }
-}
-
-/* Location Section */
-.location-section {
-    margin-top: 4rem;
-    padding-top: 3rem;
-    border-top: 2px solid #e0e0e0;
-}
-
-.location-title {
-    font-size: 2.5rem;
-    font-weight: 900;
-    color: #1a1a1a;
-    text-align: center;
-    margin-bottom: 1.5rem;
-}
-
-.location-address {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-    font-size: 1.1rem;
-    color: #5a5a5a;
-    margin-bottom: 2rem;
-}
-
-.location-address i {
-    font-size: 1.5rem;
-    color: #3b82f6;
-}
-
-.map-container {
-    width: 100%;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-    border-radius: 12px;
-    overflow: hidden;
-}
-
-.map-container iframe {
-    display: block;
-}
-
-/* Features Highlight Section */
-.features-section {
-    margin-top: 1.75rem;
-}
-
-.features-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.875rem;
-    margin-top: 1rem;
-}
-
-.feature-card {
-    background: white;
-    border-radius: 8px;
-    padding: 0.875rem;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    border: none;
-}
-
-.feature-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
-}
-
-.feature-icon-wrapper {
-    width: 40px;
-    height: 40px;
-    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 0.625rem;
-    box-shadow: 0 1px 4px rgba(59, 130, 246, 0.15);
-}
-
-.feature-icon-wrapper i {
-    font-size: 1.25rem;
-    color: white;
-}
-
-.feature-title {
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: #1e293b;
-    margin-bottom: 0.375rem;
-    line-height: 1.2;
-}
-
-.feature-description {
-    font-size: 0.8rem;
-    line-height: 1.5;
-    color: #64748b;
-}
-
-/* Development Team Section */
-.team-section {
-    margin-top: 4rem;
-    padding-top: 3rem;
-    border-top: 2px solid #e0e0e0;
-    background: linear-gradient(to bottom, #f0f9ff 0%, #e0f2fe 100%);
-    padding: 4rem 2rem;
-    border-radius: 16px;
-}
-
-.team-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: linear-gradient(135deg, #bfdbfe 0%, #93c5fd 100%);
-    color: #1e40af;
-    padding: 0.5rem 1.25rem;
-    border-radius: 50px;
-    font-size: 0.875rem;
-    font-weight: 600;
-    margin: 0 auto 1.5rem;
-    display: flex;
-    justify-content: center;
-    width: fit-content;
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
-}
-
-.team-badge i {
-    font-size: 1rem;
-}
-
-.team-title {
-    font-size: 2.75rem;
-    font-weight: 900;
-    color: #1a1a1a;
-    text-align: center;
-    margin-bottom: 1rem;
-    letter-spacing: -0.5px;
-}
-
-.team-subtitle {
-    font-size: 1.1rem;
-    color: #64748b;
-    text-align: center;
-    margin-bottom: 3rem;
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
-    line-height: 1.6;
-}
-
-.team-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 2rem;
-    max-width: 1400px;
-    margin: 0 auto;
-}
-
-.team-card {
-    background: white;
-    border-radius: 12px;
-    padding: 2rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    border-top: 4px solid #3b82f6;
-    position: relative;
-    overflow: hidden;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-}
-
-.team-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
-}
-
-.team-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2);
-}
-
-.team-image-wrapper {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 1.5rem;
-}
-
-.team-image {
-    width: 140px;
-    height: 140px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 4px solid #dbeafe;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.team-card:hover .team-image {
-    transform: scale(1.05);
-    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.25);
-}
-
-.team-name {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #1e293b;
-    margin-bottom: 0.5rem;
-    text-align: center;
-}
-
-.team-role {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #3b82f6;
-    margin-bottom: 1rem;
-    text-align: center;
-}
-
-.team-separator {
-    height: 1px;
-    background: linear-gradient(90deg, transparent 0%, #e2e8f0 50%, transparent 100%);
-    margin: 1rem 0;
-}
-
-.team-description {
-    font-size: 0.95rem;
-    line-height: 1.7;
-    color: #64748b;
-    text-align: center;
-    flex-grow: 1;
-}
-
-@media (max-width: 992px) {
-    .about-content-grid {
-        grid-template-columns: 1fr;
-        gap: 2rem;
-    }
-
-    .about-text-section {
-        padding-right: 0;
-    }
-
-    .about-main-title {
-        font-size: 2.5rem;
-    }
-
-    .about-clinic-title {
-        font-size: 1.5rem;
-    }
-
-    .about-image-section {
-        min-height: 300px;
-    }
-
-    .location-title {
-        font-size: 2rem;
-    }
-
-    .location-address {
-        font-size: 1rem;
-    }
-
-    .map-container iframe {
-        height: 350px;
-    }
-
-    .features-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.75rem;
-    }
-
-    .feature-card {
-        padding: 0.75rem;
-    }
-
-    .feature-icon-wrapper {
-        width: 36px;
-        height: 36px;
-        margin-bottom: 0.5rem;
-    }
-
-    .feature-icon-wrapper i {
-        font-size: 1.1rem;
-    }
-
-    .feature-title {
-        font-size: 0.875rem;
-    }
-
-    .feature-description {
-        font-size: 0.75rem;
-    }
-}
-
-@media (max-width: 768px) {
-    .about-page {
-        padding: 2rem 1rem;
-    }
-
-    .about-main-title {
-        font-size: 2rem;
-    }
-
-    .about-clinic-title {
-        font-size: 1.3rem;
-    }
-
-    .about-description {
-        font-size: 1rem;
-        text-align: left;
-    }
-
-    .dentist-name {
-        font-size: 1.5rem;
-    }
-
-    .dentist-role {
-        font-size: 1rem;
-    }
-
-    .location-section {
-        margin-top: 2rem;
-        padding-top: 2rem;
-    }
-
-    .location-title {
-        font-size: 1.75rem;
-    }
-
-    .location-address {
-        font-size: 0.95rem;
-        flex-direction: column;
-        text-align: center;
-    }
-
-    .map-container iframe {
-        height: 300px;
-    }
-
-    .features-grid {
-        grid-template-columns: 1fr;
-        gap: 0.625rem;
-    }
-
-    .feature-card {
-        padding: 0.625rem;
-    }
-
-    .feature-icon-wrapper {
-        width: 32px;
-        height: 32px;
-        margin-bottom: 0.5rem;
-    }
-
-    .feature-icon-wrapper i {
-        font-size: 1rem;
-    }
-
-    .feature-title {
-        font-size: 0.8rem;
-    }
-
-    .feature-description {
-        font-size: 0.7rem;
-    }
-
-    .team-title {
-        font-size: 2.25rem;
-    }
-
-    .team-subtitle {
-        font-size: 1rem;
-    }
-
-    .team-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1.5rem;
-    }
-
-    .team-section {
-        padding: 3rem 1.5rem;
-    }
-}
-
-/* Chatbot */
     .chatbot-toggle-btn {
         position: fixed;
         right: 24px;
@@ -517,11 +8,11 @@
         height: 60px;
         border-radius: 50%;
         background: #2196F3;
-        color: white;
+        color: #fff;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 10px 30px rgba(33,150,243,0.4);
+        box-shadow: 0 10px 30px rgba(33, 150, 243, 0.4);
         cursor: pointer;
         z-index: 1000;
         transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
@@ -530,7 +21,7 @@
 
     .chatbot-toggle-btn:hover {
         transform: translateY(-2px) scale(1.05);
-        box-shadow: 0 14px 36px rgba(33,150,243,0.45);
+        box-shadow: 0 14px 36px rgba(33, 150, 243, 0.45);
         background: #1976D2;
     }
 
@@ -631,10 +122,6 @@
         display: block;
     }
 
-    .message.bot .section-header:first-child {
-        margin-top: 0;
-    }
-
     .message.user {
         background: #2196F3;
         color: #fff;
@@ -691,6 +178,7 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        transition: background 0.2s ease, transform 0.2s ease;
     }
 
     .send-btn:hover { background: #1976D2; }
@@ -714,23 +202,17 @@
         animation: typing 1.4s infinite;
     }
 
-    .typing-indicator span:nth-child(2) {
-        animation-delay: 0.2s;
-    }
-
-    .typing-indicator span:nth-child(3) {
-        animation-delay: 0.4s;
-    }
+    .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
 
     @keyframes typing {
-        0%, 60%, 100% {
-            transform: translateY(0);
-            opacity: 0.5;
-        }
-        30% {
-            transform: translateY(-10px);
-            opacity: 1;
-        }
+        0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+        30% { transform: translateY(-10px); opacity: 1; }
+    }
+
+    @media (max-width: 480px) {
+        .chatbot-widget { right: 16px; left: 16px; width: auto; }
+        .chatbot-messages { height: 240px; }
     }
 
     .chatbot-tabs {
@@ -773,162 +255,85 @@
         border-color: #1976D2;
     }
 
-    @media (max-width: 480px) {
-        .chatbot-widget { right: 16px; left: 16px; width: auto; }
-        .chatbot-messages { height: 240px; }
+    [data-theme="dark"] .chatbot-widget {
+        background: var(--dm-card-bg, #1e293b);
+        color: var(--dm-text-primary, #f1f5f9);
+        box-shadow: 0 20px 60px rgba(0,0,0,0.35);
     }
 
-@media (max-width: 768px) {
-    .team-grid {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
+    [data-theme="dark"] .message.bot {
+        background: rgba(33, 150, 243, 0.08);
+        border-color: rgba(33, 150, 243, 0.25);
+        color: var(--dm-text-primary, #f1f5f9);
     }
-}
+
+    [data-theme="dark"] .message.user {
+        background: #3b82f6;
+    }
+
+    [data-theme="dark"] .chips .chip {
+        background: rgba(59, 130, 246, 0.15);
+        color: #93c5fd;
+        border-color: rgba(59, 130, 246, 0.25);
+    }
+
+    [data-theme="dark"] .chatbot-tab {
+        background: rgba(148, 163, 184, 0.12);
+        border-color: rgba(148, 163, 184, 0.2);
+        color: var(--dm-text-muted, #94a3b8);
+    }
+
+    [data-theme="dark"] .chatbot-tab:hover {
+        background: rgba(59, 130, 246, 0.2);
+        border-color: rgba(59, 130, 246, 0.3);
+        color: #bfdbfe;
+    }
+
+    [data-theme="dark"] .chatbot-tab.active {
+        background: #2563eb;
+        border-color: #2563eb;
+        color: #fff;
+    }
+
+    [data-theme="dark"] .chatbot-input input[type="text"] {
+        background: rgba(15, 23, 42, 0.4);
+        border-color: rgba(148, 163, 184, 0.3);
+        color: #e2e8f0;
+    }
+
+    [data-theme="dark"] .chatbot-input input[type="text"]:focus {
+        border-color: rgba(96, 165, 250, 0.45);
+        box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+    }
+
+    [data-theme="dark"] .typing-indicator {
+        background: rgba(59, 130, 246, 0.08);
+    }
+
+    [data-theme="dark"] .chatbot-body { background: var(--dm-card-bg, #1e293b); }
+
+    [data-theme="dark"] .chatbot-messages { border-bottom-color: rgba(148, 163, 184, 0.2); }
+
+    [data-theme="dark"] .chatbot-tabs { border-top-color: rgba(148, 163, 184, 0.2); }
+
+    [data-theme="dark"] .chip:hover { background: rgba(59, 130, 246, 0.25); }
+
+    [data-theme="dark"] .chatbot-toggle-btn { box-shadow: 0 10px 30px rgba(33, 150, 243, 0.35); }
+
+    /* Adjust position when scroll-to-top button present */
+    .scroll-to-top-btn + #chatbot-toggle.chatbot-toggle-btn {
+        bottom: 90px;
+    }
+
+    .scroll-to-top-btn + #chatbot-toggle.chatbot-toggle-btn + .chatbot-widget {
+        bottom: 158px;
+    }
 </style>
 
-<div class="about-page">
-    <div class="about-container">
-        <div class="about-header">
-            <h1 class="about-main-title">ABOUT US</h1>
-            <h2 class="about-clinic-title">JVALERA DENTAL CLINIC</h2>
-        </div>
-
-        <div class="about-content-grid">
-            <div class="about-text-section">
-                <p class="about-description">
-                    We believe in creating smiles that last a lifetime. Located in the heart of Gen. T. De Leon Valenzuela City, our clinic is a place where your comfort and well-being are our top priorities. Our friendly and skilled team takes the time to understand your individual needs and concerns, offering gentle and effective dental care tailored just for you. We're more than just a dental clinic; we're your partners in achieving optimal oral health and a confident smile.
-                </p>
-
-                <!-- Features Highlight Section -->
-                <div class="features-section">
-                    <div class="features-grid">
-                        <div class="feature-card">
-                            <div class="feature-icon-wrapper">
-                                <i class="bi bi-people-fill"></i>
-                            </div>
-                            <h3 class="feature-title">Expert Dental Team</h3>
-                            <p class="feature-description">Our skilled professionals are dedicated to providing the highest quality dental care.</p>
-                        </div>
-
-                        <div class="feature-card">
-                            <div class="feature-icon-wrapper">
-                                <i class="bi bi-cpu-fill"></i>
-                            </div>
-                            <h3 class="feature-title">Advanced Technology</h3>
-                            <p class="feature-description">We utilize the latest dental technology for precise diagnoses and effective treatments.</p>
-                        </div>
-
-                        <div class="feature-card">
-                            <div class="feature-icon-wrapper">
-                                <i class="bi bi-heart-pulse-fill"></i>
-                            </div>
-                            <h3 class="feature-title">Patient-Centered Care</h3>
-                            <p class="feature-description">Your comfort and satisfaction are at the heart of everything we do.</p>
-                        </div>
-
-                        <div class="feature-card">
-                            <div class="feature-icon-wrapper">
-                                <i class="bi bi-shield-fill"></i>
-                            </div>
-                            <h3 class="feature-title">Sterile Environment</h3>
-                            <p class="feature-description">We maintain the highest standards of cleanliness and safety for all our patients.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="about-image-section">
-                <div class="dentist-card">
-                    <div class="dentist-icon">
-                        <i class="bi bi-person-circle"></i>
-                    </div>
-                    <h3 class="dentist-name">Dr. JValera</h3>
-                    <p class="dentist-role">Lead Dentist</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Our Location Section -->
-        <div class="location-section">
-            <h2 class="location-title">Our Location</h2>
-            <div class="location-address">
-                <i class="bi bi-geo-alt-fill"></i>
-                <span>Policarpio St. Gen. T. de Leon Valenzuela City, Valenzuela, Philippines</span>
-            </div>
-            <div class="map-container">
-                <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3857.234!2d120.9831!3d14.7045!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397b36e1e1e1e1e%3A0x1e1e1e1e1e1e1e1e!2sPolicarpio%20St%2C%20Valenzuela%2C%20Metro%20Manila!5e0!3m2!1sen!2sph!4v1234567890123!5m2!1sen!2sph"
-                    width="100%"
-                    height="450"
-                    style="border:0; border-radius: 12px;"
-                    allowfullscreen=""
-                    loading="lazy"
-                    referrerpolicy="no-referrer-when-downgrade">
-                </iframe>
-            </div>
-        </div>
-
-        <!-- Meet Our Development Team Section -->
-        <div class="team-section">
-            <div class="team-badge">
-                <i class="bi bi-people-fill"></i>
-                <span>Development Team</span>
-            </div>
-            <h2 class="team-title">Meet Our Development Team</h2>
-            <p class="team-subtitle">The talented individuals behind the development of this dental clinic management system.</p>
-
-            <div class="team-grid">
-                <div class="team-card">
-                    <div class="team-image-wrapper">
-                        <img src="{{ asset('images/dev1.png') }}" alt="Josh Andrei D. Castillo" class="team-image">
-                    </div>
-                    <h3 class="team-name">Josh Andrei D. Castillo</h3>
-                    <p class="team-role">Project Manager/Coordinator</p>
-                    <div class="team-separator"></div>
-                    <p class="team-description">Responsible for the overall implementation, execution, and coordination of the group. Ensures that the project is on track and that the team is working towards the same goals.</p>
-                </div>
-
-                <div class="team-card">
-                    <div class="team-image-wrapper">
-                        <img src="{{ asset('images/dev2.png') }}" alt="Angel Cuadernal" class="team-image">
-                    </div>
-                    <h3 class="team-name">Angel Cuadernal</h3>
-                    <p class="team-role">Technical Lead</p>
-                    <div class="team-separator"></div>
-                    <p class="team-description">Responsible in managing group in the aspect of software development, data analysis, and meeting other technical deliverables. Ensures that the system is developed in a way that is efficient and effective.</p>
-                </div>
-
-                <div class="team-card">
-                    <div class="team-image-wrapper">
-                        <img src="{{ asset('images/dev3.png') }}" alt="John Roy D. Lalantacon" class="team-image">
-                    </div>
-                    <h3 class="team-name">John Roy D. Lalantacon</h3>
-                    <p class="team-role">Design Lead</p>
-                    <div class="team-separator"></div>
-                    <p class="team-description">Responsible in front-end development and the visual or creative aspect of the project. Ensures that projects visual design is visually appealing, easy to use, and aligns with the target audience.</p>
-                </div>
-
-                <div class="team-card">
-                    <div class="team-image-wrapper">
-                        <img src="{{ asset('images/dev4.png') }}" alt="Aleck Joy G. Carpio" class="team-image">
-                    </div>
-                    <h3 class="team-name">Aleck Joy G. Carpio</h3>
-                    <p class="team-role">Communication and Documentation Lead</p>
-                    <div class="team-separator"></div>
-                    <p class="team-description">Responsible in maintaining project documentation and other important records. Coordinating with technical and research advisers. Ensure Manuscript is aligned with the actual output to be developed.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-@if(!empty($chatbotSetting) && $chatbotSetting->enabled)
-<!-- Chatbot Toggle Button -->
 <div id="chatbot-toggle" class="chatbot-toggle-btn" aria-label="Open chat" title="Chat with us">
     <img src="{{ asset('images/chatbot-logo_3.png') }}" alt="ToothTalk Assistant">
 </div>
 
-<!-- Chatbot Widget -->
 <div id="chatbot" class="chatbot-widget" role="dialog" aria-modal="false" aria-labelledby="chatbotTitle">
     <div class="chatbot-header">
         <div class="chatbot-title">
@@ -972,6 +377,10 @@
         const tabFaqs = document.getElementById('tab-faqs');
         const titleEl = document.getElementById('chatbotTitle');
 
+        if (!toggleBtn || !widget) {
+            return;
+        }
+
         let currentMode = 'faqs';
         let conversationId = null;
         let pollingInterval = null;
@@ -993,7 +402,7 @@
             div.className = 'message ' + (sender === 'user' ? 'user' : 'bot');
 
             if (sender === 'bot') {
-                let lines = text.split('\n');
+                let lines = String(text).split('\n');
                 let formattedHTML = '';
                 for (let i = 0; i < lines.length; i++) {
                     let line = lines[i].trim();
@@ -1009,7 +418,7 @@
                         }
                     }
                 }
-                div.innerHTML = formattedHTML;
+                div.innerHTML = formattedHTML || text;
             } else {
                 div.textContent = text;
             }
@@ -1115,12 +524,12 @@
 
         async function sendUserMessage(text) {
             if (!text.trim()) return;
-            
+
             if (currentMode === 'live-chat' && conversationId) {
                 await sendLiveMessage(text.trim());
                 return;
             }
-            
+
             if (currentMode === 'faqs') {
                 addMessage(text.trim(), 'user');
                 showTypingIndicator();
@@ -1176,7 +585,7 @@
         async function openChat() {
             widget.classList.add('open');
             widget.setAttribute('aria-hidden', 'false');
-            
+
             if (!messagesEl.dataset.checked) {
                 if (currentMode === 'faqs') {
                     chipsEl.style.display = 'flex';
@@ -1275,7 +684,7 @@
             if (!conversationId) return;
             addMessage(text, 'user');
             inputEl.value = '';
-            
+
             try {
                 const response = await fetch('{{ route("patient-chat.send") }}', {
                     method: 'POST',
@@ -1307,9 +716,9 @@
             currentMode = mode;
             tabLiveChat.classList.toggle('active', mode === 'live-chat');
             tabFaqs.classList.toggle('active', mode === 'faqs');
-            
+
             const inputContainer = document.querySelector('.chatbot-input');
-            
+
             if (mode === 'live-chat') {
                 titleEl.textContent = 'Live Chat - Staff';
                 inputEl.placeholder = 'Type your message to staff...';
@@ -1320,6 +729,8 @@
                 checkAuth().then(isAuth => {
                     if (isAuth) {
                         messagesEl.innerHTML = '';
+                        inputEl.disabled = false;
+                        sendBtn.disabled = false;
                         if (!conversationId) {
                             initializeLiveChat();
                         } else {
@@ -1362,32 +773,47 @@
                     hideTypingIndicator();
                     addMessage(@json($chatbotSetting->welcome_message ?: 'Welcome! How can I help today?'), 'bot');
                     renderChips();
-                    faqInitialized = true;
-                }, 800);
+                }, 600);
             }
         }
 
         toggleBtn.addEventListener('click', () => {
-            if (widget.classList.contains('open')) closeChat(); else openChat();
-        });
-        closeBtn.addEventListener('click', closeChat);
-        tabLiveChat.addEventListener('click', () => switchTab('live-chat'));
-        tabFaqs.addEventListener('click', () => switchTab('faqs'));
-        sendBtn.addEventListener('click', () => {
-            const v = inputEl.value; 
-            inputEl.value = ''; 
-            sendUserMessage(v);
-        });
-        inputEl.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') { 
-                const v = inputEl.value; 
-                inputEl.value = ''; 
-                sendUserMessage(v); 
+            if (widget.classList.contains('open')) {
+                closeChat();
+            } else {
+                openChat();
             }
         });
+
+        closeBtn.addEventListener('click', closeChat);
+
+        sendBtn.addEventListener('click', () => {
+            if (currentMode === 'faqs') {
+                sendFaqMessage(inputEl.value);
+                inputEl.value = '';
+            } else {
+                sendUserMessage(inputEl.value);
+                inputEl.value = '';
+            }
+        });
+
+        inputEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (currentMode === 'faqs') {
+                    sendFaqMessage(inputEl.value);
+                } else {
+                    sendUserMessage(inputEl.value);
+                }
+                inputEl.value = '';
+            }
+        });
+
+        tabLiveChat?.addEventListener('click', () => switchTab('live-chat'));
+        tabFaqs?.addEventListener('click', () => switchTab('faqs'));
+
+        widget.setAttribute('aria-hidden', 'true');
     })();
 </script>
 @endif
-
-@endsection
 

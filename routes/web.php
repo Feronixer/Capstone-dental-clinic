@@ -29,7 +29,16 @@ use Illuminate\Support\Facades\Route;
 
 Route::get("/", [HomeController::class,"showHomePage"])->name("home");
 Route::get('/about-us', function() {
-    return view('about-us');
+    $chatbotSetting = App\Models\ChatbotSetting::first() ?? App\Models\ChatbotSetting::create([
+        'enabled' => true,
+        'welcome_message' => '',
+        'quick_intents' => [],
+    ]);
+    $chatbotFaqs = App\Models\ChatbotFaq::where('is_active', true)
+        ->orderBy('order')
+        ->get(['question', 'answer']);
+
+    return view('about-us', compact('chatbotSetting', 'chatbotFaqs'));
 })->name('about-us');
 Route::get('/announcements', [HomeController::class,"showAnnouncement"])->name('announcements');
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name(name: 'login');
@@ -343,7 +352,21 @@ Route::middleware(['auth:web'])->group(function(): void{
     Route::get('/patient/progress-note/{id}/download', [PatientRecord::class, 'downloadProgressNote'])->name('patient-progress-note.download');
     Route::get('/patient/announcement', [AnnouncementController::class, 'index'])->name('patient-announcement');
     Route::get('/patient/about', function() {
-        return view('patient.aboutUs');
+        $chatbotSetting = App\Models\ChatbotSetting::first() ?? App\Models\ChatbotSetting::create([
+            'enabled' => true,
+            'welcome_message' => 'Hi! I\'m the ToothTalk Assistant. How can I help you today?',
+            'quick_intents' => [
+                ['label' => 'Clinic Hours', 'value' => 'What are your clinic hours?'],
+                ['label' => 'Book Appointment', 'value' => 'How do I book an appointment?'],
+                ['label' => 'Services', 'value' => 'What dental services do you offer?'],
+            ],
+        ]);
+
+        $chatbotFaqs = App\Models\ChatbotFaq::where('is_active', true)
+            ->orderBy('order')
+            ->get(['question', 'answer']);
+
+        return view('patient.aboutUs', compact('chatbotSetting', 'chatbotFaqs'));
     })->name('patient-about');
 
     // Patient Notification Routes

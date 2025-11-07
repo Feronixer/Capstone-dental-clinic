@@ -56,6 +56,13 @@
             align-items: center;
             padding: 1rem 3rem;
             background: transparent;
+            position: relative;
+            z-index: 20;
+            pointer-events: auto;
+        }
+
+        .navbar * {
+            pointer-events: auto;
         }
 
         .logo {
@@ -149,9 +156,13 @@
             overflow-y: auto; /* allow scrolling within menu */
             padding-bottom: env(safe-area-inset-bottom, 0);
             padding-top: env(safe-area-inset-top, 0);
+            pointer-events: none;
         }
 
-        .mobile-menu-overlay.active { right: 0; }
+        .mobile-menu-overlay.active {
+            right: 0;
+            pointer-events: auto;
+        }
 
         .mobile-menu-header {
             display: flex;
@@ -269,8 +280,13 @@
             visibility: hidden;
             transition: opacity 0.25s ease, visibility 0.25s ease;
             z-index: 10000;
+            pointer-events: none;
         }
-        .mobile-menu-backdrop.active { opacity: 1; visibility: visible; }
+        .mobile-menu-backdrop.active {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
 
         .nav-btn {
             padding: 0.75rem 1.5rem;
@@ -1817,59 +1833,21 @@
             </p>
 
             {{-- Patient Portal --}}
-            @if(!Auth::guard('staff')->check() && !Auth::guard('admin')->check())
-                @auth('web')
-                    {{-- Patient is logged in --}}
-                    <a href="{{ route('patient-dashboard') }}" class="patient-login-btn">
-                        <i class="bi bi-speedometer2"></i>
-                        Go to Dashboard
-                    </a>
-                @else
-                    {{-- Patient is not logged in --}}
-                    <a href="{{ route('login') }}" class="patient-login-btn">
-                        <i class="bi bi-person-circle"></i>
-                        Patient Login
-                    </a>
-                @endauth
-            @endif
+            @auth('web')
+                {{-- Patient is logged in --}}
+                <a href="{{ route('patient-dashboard') }}" class="patient-login-btn">
+                    <i class="bi bi-speedometer2"></i>
+                    Go to Dashboard
+                </a>
+            @else
+                {{-- Patient is not logged in --}}
+                <a href="{{ route('login') }}" class="patient-login-btn">
+                    <i class="bi bi-person-circle"></i>
+                    Patient Login
+                </a>
+            @endauth
 
-            {{-- Staff/Admin Portal --}}
-            @if(!Auth::guard('web')->check())
-                <div class="staff-admin-section">
-                    @if(Auth::guard('staff')->check())
-                        {{-- Staff is logged in - show only staff dashboard --}}
-                        <h3>Welcome back, Staff!</h3>
-                        <div class="login-buttons">
-                            <a href="{{ route('staff-dashboard') }}" class="login-btn staff">
-                                <i class="bi bi-speedometer2"></i>
-                                Go to Dashboard
-                            </a>
-                        </div>
-                    @elseif(Auth::guard('admin')->check())
-                        {{-- Admin is logged in - show only admin dashboard --}}
-                        <h3>Welcome back, Admin!</h3>
-                        <div class="login-buttons">
-                            <a href="{{ route('admin-dashboard') }}" class="login-btn admin">
-                                <i class="bi bi-speedometer2"></i>
-                                Go to Dashboard
-                            </a>
-                        </div>
-                    @else
-                        {{-- No one is logged in - show both login options --}}
-                        <h3>Staff & Admin Access</h3>
-                        <div class="login-buttons">
-                            <a href="{{ route('staff.login') }}" class="login-btn staff">
-                                <i class="bi bi-person-badge-fill"></i>
-                                Staff Login
-                            </a>
-                            <a href="{{ route('admin.login') }}" class="login-btn admin">
-                                <i class="bi bi-shield-fill-check"></i>
-                                Admin Login
-                            </a>
-                        </div>
-                    @endif
-                </div>
-            @endif
+            {{-- Staff/Admin links removed for security --}}
         </div>
 
         <!-- Right Card -->
@@ -2181,7 +2159,7 @@
         <div class="chatbot-body">
             <div id="chatbot-messages" class="chatbot-messages" aria-live="polite"></div>
             <div class="chips" id="chatbot-chips"></div>
-            <div class="chatbot-input">
+            <div class="chatbot-input" style="display:none;">
                 <input id="chatbot-input" type="text" placeholder="Ask about services, hours, pricing..." autocomplete="off" />
                 <button id="chatbot-send" class="send-btn" aria-label="Send message">
                     <i class="bi bi-send-fill"></i>

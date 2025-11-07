@@ -1472,4 +1472,6 @@ document.getElementById('recordSortBy')?.addEventListener('change', function() {
 });
 </script>
 
+@include('patient.components.chatbot')
+
 @endsection
