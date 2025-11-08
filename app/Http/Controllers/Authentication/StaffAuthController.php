@@ -297,6 +297,38 @@ class StaffAuthController extends Controller
     }
 
     /**
+     * Verify password for inactivity unlock
+     */
+    public function verifyInactivityPassword(Request $request)
+    {
+        $request->validate([
+            'password' => ['required', 'string'],
+        ]);
+
+        $user = Auth::guard('staff')->user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not authenticated.'
+            ], 401);
+        }
+
+        // Verify password
+        if (Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Password verified successfully.'
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Incorrect password. Please try again.'
+        ], 422);
+    }
+
+    /**
      * Staff logout
      */
     public function logout(Request $request): RedirectResponse

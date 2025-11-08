@@ -633,27 +633,50 @@ function renderPatientRecords(records) {
         // Update treatment from patient_record if available
         if (record.type === 'patient_record') {
             // Try to get service name from multiple possible paths
-            let serviceName = 'N/A';
-            if (record.data?.appointment?.service?.service_name) {
-                serviceName = record.data.appointment.service.service_name;
-            } else if (record.data?.service?.service_name) {
+            let serviceName = groupedRecords[key].treatment === 'N/A' ? 'N/A' : groupedRecords[key].treatment;
+            
+            // Check appointment service first (most reliable)
+            if (record.data?.appointment) {
+                if (record.data.appointment.service?.service_name) {
+                    serviceName = record.data.appointment.service.service_name;
+                }
+            }
+            
+            // Check direct service relationship
+            if (serviceName === 'N/A' && record.data?.service?.service_name) {
                 serviceName = record.data.service.service_name;
-            } else if (record.data?.treatment_done) {
+            }
+            
+            // Check treatment_done field
+            if (serviceName === 'N/A' && record.data?.treatment_done) {
                 serviceName = record.data.treatment_done;
             }
+            
             groupedRecords[key].treatment = serviceName;
             groupedRecords[key].patient_record = record;
             groupedRecords[key].user_id = record.user_id || record.data?.user_id || groupedRecords[key].user_id;
         } else if (record.type === 'patient_history') {
             groupedRecords[key].patient_history = record;
-            // Get treatment from patient history procedure_performed if available
+            // Get treatment from patient history procedure_performed if available (prioritize this)
             if (record.data?.procedure_performed) {
                 groupedRecords[key].treatment = record.data.procedure_performed;
-            } else if (record.data?.treatment_done) {
+            } else if (record.data?.treatment_done && groupedRecords[key].treatment === 'N/A') {
                 groupedRecords[key].treatment = record.data.treatment_done;
             }
         } else if (record.type === 'progress_note') {
             groupedRecords[key].progress_notes = record;
+        }
+    });
+
+    // Final pass: If treatment is still N/A, try to get it from patient history
+    Object.keys(groupedRecords).forEach(key => {
+        const group = groupedRecords[key];
+        if (group.treatment === 'N/A' && group.patient_history) {
+            if (group.patient_history.data?.procedure_performed) {
+                group.treatment = group.patient_history.data.procedure_performed;
+            } else if (group.patient_history.data?.treatment_done) {
+                group.treatment = group.patient_history.data.treatment_done;
+            }
         }
     });
 

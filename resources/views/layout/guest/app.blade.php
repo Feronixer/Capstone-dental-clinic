@@ -288,7 +288,7 @@
         .footer {
             background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
             color: white;
-            padding: 4rem 3rem 2rem;
+            padding: 2rem 2rem 1rem;
         }
 
         .footer-container {
@@ -300,7 +300,7 @@
             display: grid;
             grid-template-columns: 2fr 1fr 1fr 1fr;
             gap: 3rem;
-            margin-bottom: 3rem;
+            margin-bottom: 1.5rem;
         }
 
         .footer-about h3 {
@@ -435,7 +435,7 @@
 
         .footer-bottom {
             border-top: 1px solid rgba(255, 255, 255, 0.2);
-            padding-top: 2rem;
+            padding-top: 1rem;
             text-align: center;
             color: rgba(255, 255, 255, 0.8);
         }
@@ -474,7 +474,7 @@
             }
 
             .footer {
-                padding: 3rem 1.5rem 1.5rem;
+                padding: 2rem 1.5rem 1rem;
             }
 
             .footer-content {

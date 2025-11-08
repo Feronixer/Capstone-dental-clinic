@@ -14,51 +14,73 @@ class MailService
      */
     public static function sendAppointmentEmail($type, $appointment)
     {
-        // Get mail template
-        $template = MailTemplate::where('type', $type)->first();
-
-        if (!$template) {
-            // Use default template if not found
-            $template = self::getDefaultTemplate($type);
-        }
-
-        // Get patient info
-        $patient = $appointment->patient;
-        if (!$patient || !$patient->email) {
-            \Log::warning("Cannot send email: Patient email not found for appointment {$appointment->id}");
-            return false;
-        }
-
-        $patientInfo = $patient->info;
-        $firstName = $patientInfo->first_name ?? $patient->name;
-
-        // Get service name
-        $serviceName = $appointment->service ? $appointment->service->service_name : 'your appointment';
-
-        // Format datetime
-        $datetime = Carbon::parse($appointment->start_datetime)->format('F d, Y g:i A');
-
-        // Replace placeholders in template content
-        $messageContent = str_replace(
-            ['%firstname%', '%datetime%', '%rescheduledtime%', '%service%'],
-            [$firstName, $datetime, $datetime, $serviceName],
-            $template->content ?? $template
-        );
-
-        // Send email
         try {
-            Mail::to($patient->email)->send(
-                new AppointmentNotification(
-                    $template->subject ?? "Appointment Notification - JValera Dental Clinic",
-                    $messageContent,
-                    $firstName
-                )
+            // Get mail template
+            $templateModel = MailTemplate::where('type', $type)->first();
+            
+            $templateContent = null;
+            $templateSubject = null;
+
+            if ($templateModel) {
+                // Template from database
+                $templateContent = $templateModel->content ?? null;
+                $templateSubject = $templateModel->subject ?? null;
+            }
+
+            // Use default template if not found in database
+            if (!$templateContent) {
+                $templateContent = self::getDefaultTemplate($type);
+            }
+
+            // Use default subject if not found
+            if (!$templateSubject) {
+                $templateSubject = "Appointment Notification - JValera Dental Clinic";
+            }
+
+            // Get patient info
+            $patient = $appointment->patient;
+            if (!$patient || !$patient->email) {
+                \Log::warning("Cannot send email: Patient email not found for appointment {$appointment->id}");
+                return false;
+            }
+
+            $patientInfo = $patient->info;
+            $firstName = $patientInfo->first_name ?? $patient->name ?? 'Patient';
+
+            // Get service name
+            $serviceName = $appointment->service ? $appointment->service->service_name : 'your appointment';
+
+            // Format datetime
+            $datetime = Carbon::parse($appointment->start_datetime)->format('F d, Y g:i A');
+
+            // Replace placeholders in template content
+            $messageContent = str_replace(
+                ['%firstname%', '%datetime%', '%rescheduledtime%', '%service%'],
+                [$firstName, $datetime, $datetime, $serviceName],
+                $templateContent
             );
 
-            \Log::info("Email sent successfully to {$patient->email} for appointment {$appointment->id}");
-            return true;
+            // Send email (synchronously, not queued)
+            try {
+                $mailable = new AppointmentNotification(
+                    $templateSubject,
+                    $messageContent,
+                    $firstName
+                );
+                
+                // Use send() instead of queue() to send immediately
+                Mail::to($patient->email)->send($mailable);
+
+                \Log::info("Email sent successfully to {$patient->email} for appointment {$appointment->id}");
+                return true;
+            } catch (\Exception $e) {
+                \Log::error("Failed to send email to {$patient->email} for appointment {$appointment->id}: " . $e->getMessage());
+                \Log::error("Email error trace: " . $e->getTraceAsString());
+                return false;
+            }
         } catch (\Exception $e) {
-            \Log::error("Failed to send email: " . $e->getMessage());
+            \Log::error("Error in sendAppointmentEmail for appointment {$appointment->id}: " . $e->getMessage());
+            \Log::error("Error trace: " . $e->getTraceAsString());
             return false;
         }
     }

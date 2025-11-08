@@ -217,144 +217,6 @@
     color: #64748b;
 }
 
-/* Development Team Section */
-.team-section {
-    margin-top: 4rem;
-    padding-top: 3rem;
-    border-top: 2px solid #e0e0e0;
-    background: linear-gradient(to bottom, #f0f9ff 0%, #e0f2fe 100%);
-    padding: 4rem 2rem;
-    border-radius: 16px;
-}
-
-.team-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: linear-gradient(135deg, #bfdbfe 0%, #93c5fd 100%);
-    color: #1e40af;
-    padding: 0.5rem 1.25rem;
-    border-radius: 50px;
-    font-size: 0.875rem;
-    font-weight: 600;
-    margin: 0 auto 1.5rem;
-    display: flex;
-    justify-content: center;
-    width: fit-content;
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
-}
-
-.team-badge i {
-    font-size: 1rem;
-}
-
-.team-title {
-    font-size: 2.75rem;
-    font-weight: 900;
-    color: #1a1a1a;
-    text-align: center;
-    margin-bottom: 1rem;
-    letter-spacing: -0.5px;
-}
-
-.team-subtitle {
-    font-size: 1.1rem;
-    color: #64748b;
-    text-align: center;
-    margin-bottom: 3rem;
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
-    line-height: 1.6;
-}
-
-.team-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 2rem;
-    max-width: 1400px;
-    margin: 0 auto;
-}
-
-.team-card {
-    background: white;
-    border-radius: 12px;
-    padding: 2rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    border-top: 4px solid #3b82f6;
-    position: relative;
-    overflow: hidden;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-}
-
-.team-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
-}
-
-.team-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2);
-}
-
-.team-image-wrapper {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 1.5rem;
-}
-
-.team-image {
-    width: 140px;
-    height: 140px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 4px solid #dbeafe;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.team-card:hover .team-image {
-    transform: scale(1.05);
-    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.25);
-}
-
-.team-name {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #1e293b;
-    margin-bottom: 0.5rem;
-    text-align: center;
-}
-
-.team-role {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #3b82f6;
-    margin-bottom: 1rem;
-    text-align: center;
-}
-
-.team-separator {
-    height: 1px;
-    background: linear-gradient(90deg, transparent 0%, #e2e8f0 50%, transparent 100%);
-    margin: 1rem 0;
-}
-
-.team-description {
-    font-size: 0.95rem;
-    line-height: 1.7;
-    color: #64748b;
-    text-align: center;
-    flex-grow: 1;
-}
 
 @media (max-width: 992px) {
     .about-content-grid {
@@ -490,29 +352,6 @@
         font-size: 0.7rem;
     }
 
-    .team-title {
-        font-size: 2.25rem;
-    }
-
-    .team-subtitle {
-        font-size: 1rem;
-    }
-
-    .team-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1.5rem;
-    }
-
-    .team-section {
-        padding: 3rem 1.5rem;
-    }
-}
-
-@media (max-width: 768px) {
-    .team-grid {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
-    }
 }
 
 /* ============================================
@@ -580,64 +419,6 @@
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
 }
 
-/* Development Team Section Dark Mode */
-[data-theme="dark"] .team-section {
-    background: linear-gradient(to bottom, #1e293b 0%, #0f172a 100%) !important;
-    border-top-color: var(--dm-border-color, #334155) !important;
-}
-
-[data-theme="dark"] .team-badge {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
-    color: white !important;
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3) !important;
-}
-
-[data-theme="dark"] .team-title {
-    color: var(--dm-text-primary, #f1f5f9) !important;
-}
-
-[data-theme="dark"] .team-subtitle {
-    color: var(--dm-text-muted, #94a3b8) !important;
-}
-
-[data-theme="dark"] .team-card {
-    background: var(--dm-card-bg, #1e293b) !important;
-    border-top-color: #3b82f6 !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
-}
-
-[data-theme="dark"] .team-card::before {
-    background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%) !important;
-}
-
-[data-theme="dark"] .team-card:hover {
-    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4) !important;
-}
-
-[data-theme="dark"] .team-image {
-    border-color: #3b82f6 !important;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25) !important;
-}
-
-[data-theme="dark"] .team-card:hover .team-image {
-    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35) !important;
-}
-
-[data-theme="dark"] .team-name {
-    color: var(--dm-text-primary, #f1f5f9) !important;
-}
-
-[data-theme="dark"] .team-role {
-    color: #60a5fa !important;
-}
-
-[data-theme="dark"] .team-separator {
-    background: linear-gradient(90deg, transparent 0%, #334155 50%, transparent 100%) !important;
-}
-
-[data-theme="dark"] .team-description {
-    color: var(--dm-text-muted, #94a3b8) !important;
-}
 
 /* Features Section Dark Mode */
 [data-theme="dark"] .features-section {
@@ -750,59 +531,76 @@
             </div>
         </div>
 
-        <!-- Meet Our Development Team Section -->
-        <div class="team-section">
-            <div class="team-badge">
-                <i class="bi bi-people-fill"></i>
-                <span>Development Team</span>
-            </div>
-            <h2 class="team-title">Meet Our Development Team</h2>
-            <p class="team-subtitle">The talented individuals behind the development of this dental clinic management system.</p>
-
-            <div class="team-grid">
-                <div class="team-card">
-                    <div class="team-image-wrapper">
-                        <img src="{{ asset('images/dev1.png') }}" alt="Josh Andrei D. Castillo" class="team-image">
-                    </div>
-                    <h3 class="team-name">Josh Andrei D. Castillo</h3>
-                    <p class="team-role">Project Manager/Coordinator</p>
-                    <div class="team-separator"></div>
-                    <p class="team-description">Responsible for the overall implementation, execution, and coordination of the group. Ensures that the project is on track and that the team is working towards the same goals.</p>
-                </div>
-
-                <div class="team-card">
-                    <div class="team-image-wrapper">
-                        <img src="{{ asset('images/dev2.png') }}" alt="Angel Cuadernal" class="team-image">
-                    </div>
-                    <h3 class="team-name">Angel Cuadernal</h3>
-                    <p class="team-role">Technical Lead</p>
-                    <div class="team-separator"></div>
-                    <p class="team-description">Responsible in managing group in the aspect of software development, data analysis, and meeting other technical deliverables. Ensures that the system is developed in a way that is efficient and effective.</p>
-                </div>
-
-                <div class="team-card">
-                    <div class="team-image-wrapper">
-                        <img src="{{ asset('images/dev3.png') }}" alt="John Roy D. Lalantacon" class="team-image">
-                    </div>
-                    <h3 class="team-name">John Roy D. Lalantacon</h3>
-                    <p class="team-role">Design Lead</p>
-                    <div class="team-separator"></div>
-                    <p class="team-description">Responsible in front-end development and the visual or creative aspect of the project. Ensures that projects visual design is visually appealing, easy to use, and aligns with the target audience.</p>
-                </div>
-
-                <div class="team-card">
-                    <div class="team-image-wrapper">
-                        <img src="{{ asset('images/dev4.png') }}" alt="Aleck Joy G. Carpio" class="team-image">
-                    </div>
-                    <h3 class="team-name">Aleck Joy G. Carpio</h3>
-                    <p class="team-role">Communication and Documentation Lead</p>
-                    <div class="team-separator"></div>
-                    <p class="team-description">Responsible in maintaining project documentation and other important records. Coordinating with technical and research advisers. Ensure Manuscript is aligned with the actual output to be developed.</p>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
+
+<script>
+// Google Maps Dark Mode Handler
+(function() {
+    let mapContainer = null;
+    let observer = null;
+    
+    function applyDarkModeToMap(isDark) {
+        if (!mapContainer) {
+            mapContainer = document.querySelector('.map-container iframe');
+            if (!mapContainer) return;
+        }
+        
+        if (isDark) {
+            mapContainer.style.filter = 'brightness(0.3) contrast(1.4) invert(1) hue-rotate(180deg) saturate(0.5)';
+            mapContainer.style.transition = 'filter 0.5s ease';
+            mapContainer.style.webkitFilter = 'brightness(0.3) contrast(1.4) invert(1) hue-rotate(180deg) saturate(0.5)';
+            mapContainer.style.opacity = '0.85';
+        } else {
+            mapContainer.style.filter = 'none';
+            mapContainer.style.webkitFilter = 'none';
+            mapContainer.style.opacity = '1';
+            mapContainer.style.transition = 'filter 0.5s ease, opacity 0.5s ease';
+        }
+    }
+    
+    function checkTheme() {
+        const theme = document.documentElement.getAttribute('data-theme') || 'light';
+        applyDarkModeToMap(theme === 'dark');
+    }
+    
+    function initMapDarkMode() {
+        mapContainer = document.querySelector('.map-container iframe');
+        if (!mapContainer) {
+            setTimeout(initMapDarkMode, 500);
+            return;
+        }
+        checkTheme();
+        if (observer) { observer.disconnect(); }
+        observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+                    const theme = document.documentElement.getAttribute('data-theme') || 'light';
+                    applyDarkModeToMap(theme === 'dark');
+                }
+            });
+        });
+        observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'darkMode') { checkTheme(); }
+        });
+        const originalToggleDarkMode = window.toggleDarkMode;
+        if (originalToggleDarkMode) {
+            window.toggleDarkMode = function() {
+                originalToggleDarkMode();
+                setTimeout(checkTheme, 100);
+            };
+        }
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initMapDarkMode);
+    } else {
+        initMapDarkMode();
+    }
+    setTimeout(checkTheme, 1000);
+    setTimeout(checkTheme, 2000);
+})();
+</script>
 
 @include('patient.components.chatbot')
 

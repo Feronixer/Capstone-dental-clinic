@@ -78,7 +78,7 @@
 
     .hero-content {
         flex: 1;
-        max-width: 600px;
+        max-width: 100%;
         display: flex;
         flex-direction: column;
         align-items: flex-start;
@@ -100,11 +100,12 @@
     }
 
     .hero-title {
-        font-size: 3.5rem;
+        font-size: 4.5rem;
         font-weight: 800;
         color: #263238;
         line-height: 1.2;
         margin-bottom: 1.5rem;
+        width: 100%;
     }
 
     .hero-title .highlight {
@@ -610,10 +611,20 @@
         color: #0d9488;
     }
 
+    @media (min-width: 1600px) {
+        .hero-title {
+            font-size: 5.5rem;
+        }
+    }
+
     @media (max-width: 1200px) {
         .hero-section {
             padding: 2.5rem 2rem;
             gap: 2rem;
+        }
+
+        .hero-title {
+            font-size: 4rem;
         }
     }
 
@@ -636,7 +647,7 @@
         }
 
         .hero-title { 
-            font-size: 2.4rem; 
+            font-size: 3.2rem; 
         }
 
         .main-card {
@@ -712,7 +723,7 @@
         }
 
         .hero-title {
-            font-size: 2rem;
+            font-size: 2.8rem;
             margin-bottom: 1rem;
         }
 
@@ -801,6 +812,10 @@
             padding: 0.5rem;
         }
 
+        .hero-title {
+            font-size: 2.5rem;
+        }
+
         .card-title {
             position: absolute;
             left: 1rem;
@@ -843,7 +858,7 @@
         }
         
         .hero-title {
-            font-size: 1.6rem;
+            font-size: 2.2rem;
         }
 
         .hero-description {
@@ -2345,6 +2360,11 @@ function loadPendingFeedbackCount() {
         const tabLiveChat = document.getElementById('tab-live-chat');
         const tabFaqs = document.getElementById('tab-faqs');
 
+        if (!toggleBtn || !widget || !messagesEl || !inputEl || !sendBtn) {
+            console.error('Chatbot elements not found');
+            return;
+        }
+
         let conversationId = null;
         let pollingInterval = null;
         let isAuthenticated = true; // Patient is always authenticated on dashboard
@@ -2416,12 +2436,17 @@ function loadPendingFeedbackCount() {
             try {
                 const response = await fetch('{{ route("patient-chat.conversation") }}');
                 const data = await response.json();
-                conversationId = data.conversation_id;
-                titleEl.textContent = 'Live Chat - Staff';
-                await loadMessages();
-                startPolling();
+                if (data.conversation_id) {
+                    conversationId = data.conversation_id;
+                    titleEl.textContent = 'Live Chat - Staff';
+                    await loadMessages();
+                    startPolling();
+                } else {
+                    addMessage('Error initializing chat. Please try again.', 'bot');
+                }
             } catch (error) {
                 console.error('Error loading conversation:', error);
+                addMessage('Error initializing chat. Please try again.', 'bot');
             }
         }
 
@@ -2432,15 +2457,21 @@ function loadPendingFeedbackCount() {
                 const data = await response.json();
                 
                 messagesEl.innerHTML = '';
-                data.messages.forEach(msg => {
-                    const sender = msg.sender_type === 'patient' ? 'user' : msg.sender_type;
-                    addMessage(msg.message, sender, msg.id);
-                    if (!lastMessageId || msg.id > lastMessageId) {
-                        lastMessageId = msg.id;
-                    }
-                });
+                if (data.messages && data.messages.length > 0) {
+                    data.messages.forEach(msg => {
+                        const sender = msg.sender_type === 'patient' ? 'user' : msg.sender_type;
+                        addMessage(msg.message, sender, msg.id);
+                        if (!lastMessageId || msg.id > lastMessageId) {
+                            lastMessageId = msg.id;
+                        }
+                    });
+                } else {
+                    // Show welcome message if no messages exist
+                    addMessage("Hello! 👋 Welcome to our dental clinic chat. Our staff is here to assist you with any questions or concerns. How can we help you today?", 'bot');
+                }
             } catch (error) {
                 console.error('Error loading messages:', error);
+                addMessage("Hello! 👋 Welcome to our dental clinic chat. Our staff is here to assist you with any questions or concerns. How can we help you today?", 'bot');
             }
         }
 
@@ -2549,9 +2580,19 @@ function loadPendingFeedbackCount() {
                 return;
             }
 
-            if (!text.trim() || !conversationId) return;
+            if (!text || !text.trim() || !conversationId) {
+                if (!conversationId) {
+                    addMessage('Please wait for the chat to initialize...', 'bot');
+                }
+                return;
+            }
 
             const messageText = text.trim();
+            // Validate message - don't send empty or only special characters
+            if (!messageText || messageText.length === 0) {
+                return;
+            }
+
             addMessage(messageText, 'user');
             inputEl.value = '';
             inputEl.disabled = true;
@@ -2573,6 +2614,8 @@ function loadPendingFeedbackCount() {
                 const data = await response.json();
                 if (data.success) {
                     lastMessageId = data.message.id;
+                } else {
+                    addMessage('Sorry, there was an error sending your message. Please try again.', 'bot');
                 }
             } catch (error) {
                 console.error('Error sending message:', error);
@@ -2623,9 +2666,14 @@ function loadPendingFeedbackCount() {
                 titleEl.textContent = 'Live Chat - Staff';
                 inputEl.placeholder = 'Type your message to staff...';
                 inputContainer.style.display = 'flex'; // Show input
+                inputEl.disabled = false;
+                sendBtn.disabled = false;
                 chipsEl.style.display = 'none'; // Hide chips
                 if (!conversationId) {
                     loadConversation();
+                } else {
+                    // Reload messages if conversation already exists
+                    loadMessages();
                 }
                 startPolling();
             } else {
@@ -2655,15 +2703,28 @@ function loadPendingFeedbackCount() {
             widget.classList.add('open');
             widget.setAttribute('aria-hidden', 'false');
             
+            const inputContainer = document.querySelector('.chatbot-input');
+            
             if (currentMode === 'live-chat' && !messagesEl.dataset.initialized) {
                 chipsEl.style.display = 'none'; // Hide chips in live chat
+                inputContainer.style.display = 'flex'; // Show input for live chat
+                inputEl.placeholder = 'Type your message to staff...';
+                inputEl.disabled = false;
+                sendBtn.disabled = false;
                 showTypingIndicator();
                 loadConversation().then(() => {
                     hideTypingIndicator();
                     messagesEl.dataset.initialized = '1';
                 });
+            } else if (currentMode === 'live-chat') {
+                // If already initialized, just ensure input is visible
+                inputContainer.style.display = 'flex';
+                inputEl.placeholder = 'Type your message to staff...';
+                inputEl.disabled = false;
+                sendBtn.disabled = false;
             } else if (currentMode === 'faqs' && !faqInitialized) {
                 chipsEl.style.display = 'flex'; // Show chips in FAQs
+                inputContainer.style.display = 'none'; // Hide input for FAQs
                 messagesEl.innerHTML = '';
                 showTypingIndicator();
                 setTimeout(() => {
@@ -2682,20 +2743,25 @@ function loadPendingFeedbackCount() {
             stopPolling();
         }
 
-        toggleBtn.addEventListener('click', () => {
+        toggleBtn?.addEventListener('click', () => {
             if (widget.classList.contains('open')) closeChat(); else openChat();
         });
-        closeBtn.addEventListener('click', closeChat);
-        tabLiveChat.addEventListener('click', () => switchTab('live-chat'));
-        tabFaqs.addEventListener('click', () => switchTab('faqs'));
+        closeBtn?.addEventListener('click', closeChat);
+        tabLiveChat?.addEventListener('click', () => switchTab('live-chat'));
+        tabFaqs?.addEventListener('click', () => switchTab('faqs'));
         sendBtn.addEventListener('click', () => {
             const v = inputEl.value;
-            if (v.trim()) sendMessage(v);
+            if (v && v.trim()) {
+                sendMessage(v);
+            }
         });
         inputEl.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
+                e.preventDefault();
                 const v = inputEl.value;
-                if (v.trim()) sendMessage(v);
+                if (v && v.trim()) {
+                    sendMessage(v);
+                }
             }
         });
 

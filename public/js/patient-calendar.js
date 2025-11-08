@@ -246,6 +246,78 @@ document.addEventListener('DOMContentLoaded', function() {
                     const prioritizedAppointments = patientOwnAppointments.concat(otherAppointments);
                     
                     let appointmentsHtml = '';
+                    
+                    // Count booked appointments (other patients' appointments) separately
+                    let bookedCount = 0;
+                    let ownAppointmentsCount = 0;
+                    
+                    // Group patient's own appointments by status
+                    const ownStatusCounts = {
+                        pending: 0,
+                        confirmed: 0,
+                        completed: 0,
+                        cancelled: 0,
+                        blocked: 0,
+                        missed: 0
+                    };
+                    
+                    prioritizedAppointments.forEach(function(apt) {
+                        try {
+                            // Check if this is the patient's own appointment or another patient's appointment
+                            const isOwnAppointment = apt.is_own_appointment === true || 
+                                                   (window.patientAppointments && window.patientAppointments.some(function(pa) {
+                                                       return pa && pa.id === apt.id;
+                                                   }));
+                            
+                            if (!isOwnAppointment) {
+                                // Count other patients' appointments as "booked"
+                                bookedCount++;
+                            } else {
+                                // Count patient's own appointments by status
+                                ownAppointmentsCount++;
+                                let status = apt.status ? apt.status.toLowerCase() : 'pending';
+                                // Map "missed" to "blocked" for styling consistency
+                                if (status === 'missed') {
+                                    status = 'blocked';
+                                }
+                                
+                                if (ownStatusCounts.hasOwnProperty(status)) {
+                                    ownStatusCounts[status]++;
+                                } else {
+                                    ownStatusCounts.pending++;
+                                }
+                            }
+                        } catch (error) {
+                            console.error('Error counting appointment:', apt, error);
+                        }
+                    });
+                    
+                    // Count blocked times and add to own status counts
+                    if (dayBlockedTimes.length > 0) {
+                        ownStatusCounts.blocked += dayBlockedTimes.length;
+                    }
+                    
+                    // Count badges are hidden - showing actual event items instead
+                    // if (bookedCount > 0) {
+                    //     appointmentsHtml += `
+                    //         <div class="event-count-badge booked" data-status="booked" data-count="${bookedCount}" title="${bookedCount} booked appointment${bookedCount > 1 ? 's' : ''}">
+                    //             <span class="badge-number">${bookedCount}</span>
+                    //         </div>
+                    //     `;
+                    // }
+                    
+                    // Object.keys(ownStatusCounts).forEach(function(status) {
+                    //     const count = ownStatusCounts[status];
+                    //     if (count > 0) {
+                    //         appointmentsHtml += `
+                    //             <div class="event-count-badge ${status}" data-status="${status}" data-count="${count}" title="${count} ${status} appointment${count > 1 ? 's' : ''}">
+                    //                 <span class="badge-number">${count}</span>
+                    //             </div>
+                    //         `;
+                    //     }
+                    // });
+                    
+                    // Show event items - limit visible items and show "X more" if needed
                     const maxVisible = 2; // Show only first 2 appointments
                     const visibleAppointments = prioritizedAppointments.slice(0, maxVisible);
                     const hiddenCount = Math.max(0, prioritizedAppointments.length - maxVisible);
@@ -255,6 +327,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         console.log('Day ' + dateStr + ' has ' + prioritizedAppointments.length + ' appointments (' + patientOwnAppointments.length + ' own, ' + otherAppointments.length + ' others). Showing ' + visibleAppointments.length + ', hiding ' + hiddenCount);
                     }
                     
+                    // Create visible event items
                     visibleAppointments.forEach(function(apt) {
                         try {
                             // Parse datetime string manually to avoid timezone issues
@@ -305,24 +378,32 @@ document.addEventListener('DOMContentLoaded', function() {
                             }
                             
                             // Check if this is the patient's own appointment or another patient's appointment
+                            const currentPatientId = window.currentPatientId;
                             const isOwnAppointment = apt.is_own_appointment === true || 
+                                                   (currentPatientId && apt.patient_id === currentPatientId) ||
                                                    (window.patientAppointments && window.patientAppointments.some(function(pa) {
                                                        return pa && pa.id === apt.id;
                                                    }));
                             
-                            // Get proper title - don't show reschedule request text
+                            // Get proper title and time display based on appointment ownership
                             let title = 'Appointment';
-                            if (apt.service && apt.service.service_name) {
-                                title = apt.service.service_name;
-                            } else if (apt.reason_for_visit && !apt.reason_for_visit.toLowerCase().includes('reschedule')) {
-                                title = apt.reason_for_visit;
-                            }
-                            
-                            // For other patients' appointments, show "Booked Time" with end time (no patient name for privacy)
                             let displayTime = time;
-                            if (!isOwnAppointment && endTimeStr) {
-                                displayTime = `${time} - ${endTimeStr}`;
-                                title = 'Booked Time';
+                            
+                            if (isOwnAppointment) {
+                                // Patient's own appointment: show service name and start time only
+                                if (apt.service && apt.service.service_name) {
+                                    title = apt.service.service_name;
+                                } else if (apt.reason_for_visit && !apt.reason_for_visit.toLowerCase().includes('reschedule')) {
+                                    title = apt.reason_for_visit;
+                                }
+                                // Use start time only for patient's own appointments
+                                displayTime = time;
+                            } else {
+                                // Other patients' appointments: show "Already Booked" with time range
+                                title = 'Already Booked';
+                                if (endTimeStr) {
+                                    displayTime = `${time} - ${endTimeStr}`;
+                                }
                             }
                             
                             let status = apt.status ? apt.status.toLowerCase() : 'pending';
@@ -332,6 +413,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             }
                             
                             // For other patients' appointments, use "booked" status for styling
+                            // For patient's own appointments, keep their actual status (pending, confirmed, etc.)
                             if (!isOwnAppointment) {
                                 status = 'booked';
                             }
@@ -344,6 +426,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             // Add data attribute to mark if it's editable
                             const editableAttr = isOwnAppointment ? '' : 'data-read-only="true"';
 
+                            // Show event items
                             appointmentsHtml += `
                                 <div class="event-item ${status}" data-appointment-id="${apt.id}" ${editableAttr} ${strikethrough}>
                                     <div class="event-time">${displayTime}</div>
@@ -356,17 +439,16 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     });
                     
-                    // Add "X more" indicator if there are 3 or more appointments (hiddenCount > 0 means >= 3)
+                    // Show "X more" indicator if there are hidden appointments
                     if (hiddenCount > 0) {
-                        console.log('Adding "X more" indicator for', dateStr, 'with', hiddenCount, 'hidden appointments');
                         appointmentsHtml += `
                             <div class="event-more-indicator" data-date="${dateStr}">
                                 <span class="more-text">${hiddenCount} more</span>
                             </div>
                         `;
                     }
-
-                    // Add blocked times
+                    
+                    // Blocked times are still shown as event items (not hidden) for visibility
                     dayBlockedTimes.forEach(function(blocked) {
                         const startTime = new Date(blocked.start_datetime);
                         const endTime = new Date(blocked.end_datetime);
@@ -379,7 +461,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                         const notes = blocked.notes || '';
                         if (isFullDayClosure) {
-                            // Full day closure - don't show time
+                            // Full day closure - show as event item (not hidden)
                             appointmentsHtml += `
                                 <div class="event-item blocked" data-blocked-time-id="${blocked.id}">
                                     <div class="event-title">${displayTitle}</div>
@@ -432,6 +514,18 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add styles
         addCalendarStyles();
 
+        // Add click handlers to count badges - show all appointments for that status
+        document.querySelectorAll('.event-count-badge').forEach(function(badge) {
+            badge.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const dayElement = this.closest('.calendar-day');
+                if (dayElement && dayElement.dataset.date) {
+                    // Trigger click on the calendar day to show all appointments
+                    dayElement.click();
+                }
+            });
+        });
+        
         // Add click handlers to appointment items (only for patient's own appointments)
         document.querySelectorAll('.event-item').forEach(function(item) {
             item.addEventListener('click', function(e) {
@@ -1205,7 +1299,12 @@ document.addEventListener('DOMContentLoaded', function() {
             modalTitle.innerHTML = '<i class="bi bi-calendar-check me-2"></i>Appointment Details';
         }
 
-        // Show and configure reschedule button for patient's own appointments
+        // Show footer and reschedule button for patient's own appointments
+        const modalFooter = document.querySelector('#appointmentDetailsModal .modal-footer');
+        if (modalFooter) {
+            modalFooter.style.display = '';
+        }
+        
         const rescheduleBtn = document.getElementById('modalRescheduleBtn');
         if (rescheduleBtn) {
             rescheduleBtn.style.display = 'block'; // Show button for patient's own appointments
@@ -1329,17 +1428,17 @@ document.addEventListener('DOMContentLoaded', function() {
         // Create read-only modal content
         const modalContent = `
             <div class="text-center mb-4">
-                <div class="mx-auto mb-3" style="width: 80px; height: 80px; background: linear-gradient(135deg, #e5e7eb, #d1d5db); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                    <i class="bi bi-calendar-x text-secondary" style="font-size: 2.5rem;"></i>
+                <div class="mx-auto mb-3 booked-slot-icon" style="width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-calendar-x" style="font-size: 2.5rem;"></i>
                 </div>
-                <h5 class="fw-bold text-dark mb-2">Booked Time Slot</h5>
-                <p class="text-muted mb-0">This particular appointment was occupied by another patient.</p>
+                <h5 class="fw-bold mb-2 booked-slot-title">Already Booked Slot</h5>
+                <p class="mb-0 booked-slot-description">This particular appointment was occupied by another patient.</p>
             </div>
 
             <div class="appointment-details-grid">
                 <div class="detail-card">
-                    <div class="detail-icon" style="background: linear-gradient(135deg, #e5e7eb, #d1d5db);">
-                        <i class="bi bi-calendar-event" style="color: #6b7280;"></i>
+                    <div class="detail-icon">
+                        <i class="bi bi-calendar-event"></i>
                     </div>
                     <div class="detail-content">
                         <div class="detail-label">Date</div>
@@ -1348,8 +1447,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
 
                 <div class="detail-card">
-                    <div class="detail-icon" style="background: linear-gradient(135deg, #e5e7eb, #d1d5db);">
-                        <i class="bi bi-clock" style="color: #6b7280;"></i>
+                    <div class="detail-icon">
+                        <i class="bi bi-clock"></i>
                     </div>
                     <div class="detail-content">
                         <div class="detail-label">Time</div>
@@ -1358,8 +1457,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
 
                 <div class="detail-card">
-                    <div class="detail-icon" style="background: linear-gradient(135deg, #e5e7eb, #d1d5db);">
-                        <i class="bi bi-heart-pulse" style="color: #6b7280;"></i>
+                    <div class="detail-icon">
+                        <i class="bi bi-heart-pulse"></i>
                     </div>
                     <div class="detail-content">
                         <div class="detail-label">Service</div>
@@ -1368,8 +1467,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
 
                 <div class="detail-card">
-                    <div class="detail-icon" style="background: linear-gradient(135deg, #e5e7eb, #d1d5db);">
-                        <i class="bi bi-hourglass-split" style="color: #6b7280;"></i>
+                    <div class="detail-icon">
+                        <i class="bi bi-hourglass-split"></i>
                     </div>
                     <div class="detail-content">
                         <div class="detail-label">Duration</div>
@@ -1378,8 +1477,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
 
                 <div class="detail-card full-width">
-                    <div class="detail-icon" style="background: linear-gradient(135deg, #e5e7eb, #d1d5db);">
-                        <i class="bi bi-info-circle" style="color: #6b7280;"></i>
+                    <div class="detail-icon">
+                        <i class="bi bi-info-circle"></i>
                     </div>
                     <div class="detail-content">
                         <div class="detail-label">Status</div>
@@ -1400,13 +1499,19 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update modal title to indicate it's a booked time slot
         const modalTitle = document.querySelector('#appointmentDetailsModal .modal-title');
         if (modalTitle) {
-            modalTitle.innerHTML = '<i class="bi bi-calendar-x me-2"></i>Booked Time Slot';
+            modalTitle.innerHTML = '<i class="bi bi-calendar-x me-2"></i>Already Booked Slot';
         }
 
-        // Hide reschedule button for other patients' appointments
+        // Hide reschedule button and footer for other patients' appointments
         const rescheduleBtn = document.getElementById('modalRescheduleBtn');
         if (rescheduleBtn) {
             rescheduleBtn.style.display = 'none';
+        }
+        
+        // Hide the footer (close button bar) for "Already Booked Slot" modal
+        const modalFooter = document.querySelector('#appointmentDetailsModal .modal-footer');
+        if (modalFooter) {
+            modalFooter.style.display = 'none';
         }
 
         // Show modal using Bootstrap
@@ -1683,10 +1788,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Get proper title
                     let title = apt.service && apt.service.service_name ? apt.service.service_name : (apt.reason_for_visit || 'Appointment');
                     
-                    // For other patients' appointments, show "Booked Time" with end time (no patient name for privacy)
+                    // For other patients' appointments, show "Already Booked" with end time (no patient name for privacy)
                     let displayTime = time;
                     if (!isOwnAppointment) {
-                        title = 'Booked Time';
+                        title = 'Already Booked';
                         if (endTimeStr) {
                             displayTime = `${time} - ${endTimeStr}`;
                         }
@@ -1891,9 +1996,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Get proper title
                     let title = apt.service && apt.service.service_name ? apt.service.service_name : (apt.reason_for_visit || 'Appointment');
                     
-                    // For other patients' appointments, show "Booked Time" (no patient name for privacy)
+                    // For other patients' appointments, show "Already Booked" (no patient name for privacy)
                     if (!isOwnAppointment) {
-                        title = 'Booked Time';
+                        title = 'Already Booked';
                     }
                     
                     let status = apt.status ? apt.status.toLowerCase() : 'pending';
@@ -1921,7 +2026,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <div class="day-apt-time">
                                     <i class="bi bi-clock me-1"></i>${startTime} - ${endTime}
                                 </div>
-                                <span class="day-apt-badge ${status}">${isOwnAppointment ? apt.status : 'Booked'}</span>
+                                <span class="day-apt-badge ${status}">${isOwnAppointment ? apt.status : 'Already Booked'}</span>
                             </div>
                             <div class="day-apt-title">${title}</div>
                             ${notes ? `<div class="day-apt-notes"><i class="bi bi-sticky me-1"></i>${notes}</div>` : ''}

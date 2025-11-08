@@ -83,6 +83,7 @@ Route::post('/staff/reset-password', [StaffAuthController::class, 'resetPassword
 // Admin Routes - Only accessible by admin guard (role_id = 1)
 Route::middleware(['auth:admin'])->group(function(): void{
     //Admin Routes
+    Route::post('/admin/verify-inactivity-password', [AdminAuthController::class, 'verifyInactivityPassword'])->name('admin.verify-inactivity-password');
     Route::get('/admin/dashboard', [AdminDashboardController::class,'index'])->name('admin-dashboard');
 
     Route::get('/admin/account-management', [AccountManagementController::class,'index'])->name('admin-account-management');
@@ -233,6 +234,8 @@ Route::middleware(['auth:admin'])->group(function(): void{
 
 // Staff Routes - Only accessible by staff guard (role_id = 2)
 Route::middleware(['auth:staff', \App\Http\Middleware\LogStaffActivity::class])->group(function(): void{
+    // Staff Password Verification Route
+    Route::post('/staff/verify-inactivity-password', [StaffAuthController::class, 'verifyInactivityPassword'])->name('staff.verify-inactivity-password');
     // Staff Patient Record Access Routes (Staff Only)
     Route::get('/staff/patient-records', [PatientRecordAccessController::class,'index'])->name('staff-patient-records');
     Route::get('/staff/patient-records/search', [PatientRecordAccessController::class,'searchPatients'])->name('staff-patient-records.search');
@@ -353,6 +356,7 @@ Route::middleware(['auth:web'])->group(function(): void{
     Route::get('/patient/progress-note/{id}', [PatientRecord::class, 'showProgressNote'])->name('patient-progress-note.show');
     Route::get('/patient/progress-note/{id}/download', [PatientRecord::class, 'downloadProgressNote'])->name('patient-progress-note.download');
     Route::get('/patient/record/{recordId}/progress-notes/download', [PatientRecord::class, 'downloadAllProgressNotes'])->name('patient-progress-notes-all.download');
+    Route::post('/patient/record/verify-password', [PatientRecord::class, 'verifyPassword'])->name('patient-record.verify-password');
     Route::get('/patient/announcement', [AnnouncementController::class, 'index'])->name('patient-announcement');
     Route::get('/patient/about', function() {
         $chatbotSetting = App\Models\ChatbotSetting::first() ?? App\Models\ChatbotSetting::create([
@@ -371,6 +375,24 @@ Route::middleware(['auth:web'])->group(function(): void{
 
         return view('patient.aboutUs', compact('chatbotSetting', 'chatbotFaqs'));
     })->name('patient-about');
+
+    Route::get('/patient/development-team', function() {
+        $chatbotSetting = App\Models\ChatbotSetting::first() ?? App\Models\ChatbotSetting::create([
+            'enabled' => true,
+            'welcome_message' => 'Hi! I\'m the ToothTalk Assistant. How can I help you today?',
+            'quick_intents' => [
+                ['label' => 'Clinic Hours', 'value' => 'What are your clinic hours?'],
+                ['label' => 'Book Appointment', 'value' => 'How do I book an appointment?'],
+                ['label' => 'Services', 'value' => 'What dental services do you offer?'],
+            ],
+        ]);
+
+        $chatbotFaqs = App\Models\ChatbotFaq::where('is_active', true)
+            ->orderBy('order')
+            ->get(['question', 'answer']);
+
+        return view('patient.developmentTeam', compact('chatbotSetting', 'chatbotFaqs'));
+    })->name('patient-development-team');
 
     // Patient Notification Routes
     Route::get('/patient/notifications', [App\Http\Controllers\Patient\NotificationController::class, 'index'])->name('patient-notifications');

@@ -61,7 +61,7 @@
     background: #ffffff;
     border-radius: 16px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    overflow: hidden;
+    overflow: visible;
     border: 1px solid #e9ecef;
     transition: all 0.3s ease;
 }
@@ -127,6 +127,12 @@
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
+    position: relative;
+    overflow: visible;
+}
+
+.records-table tbody {
+    overflow: visible;
 }
 
 .records-table thead {
@@ -151,6 +157,8 @@
 .records-table tbody tr {
     border-bottom: 1px solid #f1f3f5;
     transition: all 0.2s ease;
+    position: relative;
+    overflow: visible;
 }
 
 .records-table tbody tr:hover {
@@ -171,6 +179,8 @@
     color: #495057;
     font-size: 0.85rem;
     vertical-align: middle;
+    position: relative;
+    overflow: visible;
 }
 
 .form-name {
@@ -188,6 +198,8 @@
     display: flex;
     gap: 0.375rem;
     flex-wrap: nowrap;
+    position: relative;
+    z-index: 1;
 }
 
 .btn-view, .btn-download {
@@ -205,6 +217,7 @@
     height: 36px;
     min-width: 36px;
     position: relative;
+    z-index: 1;
 }
 
 .btn-view {
@@ -247,29 +260,33 @@
 .btn-view:hover::after, .btn-download:hover::after {
     content: attr(title);
     position: absolute;
-    bottom: -2.5rem;
+    top: -2.5rem;
     left: 50%;
     transform: translateX(-50%);
     background: #212529;
     color: #ffffff;
-    padding: 0.375rem 0.625rem;
+    padding: 0.375rem 0.75rem;
     border-radius: 4px;
     font-size: 0.75rem;
     white-space: nowrap;
-    z-index: 1000;
+    z-index: 99999;
     pointer-events: none;
     font-weight: 500;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    min-width: max-content;
+    max-width: none;
+    width: auto;
 }
 
 .btn-view:hover::before, .btn-download:hover::before {
     content: '';
     position: absolute;
-    bottom: -0.375rem;
+    top: -0.375rem;
     left: 50%;
     transform: translateX(-50%);
     border: 4px solid transparent;
-    border-bottom-color: #212529;
-    z-index: 1001;
+    border-top-color: #212529;
+    z-index: 100000;
     pointer-events: none;
 }
 
@@ -285,6 +302,169 @@
     position: sticky;
     top: 1rem;
     transition: all 0.3s ease;
+    position: relative;
+}
+
+/* Preview Mask for Security */
+.preview-mask {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    transition: opacity 0.3s ease;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.preview-mask.hidden {
+    opacity: 0;
+    pointer-events: none;
+    z-index: -1;
+}
+
+.mask-content {
+    text-align: center;
+    padding: 2rem;
+}
+
+.mask-content i {
+    font-size: 3rem;
+    color: #0d6efd;
+    margin-bottom: 1rem;
+}
+
+.mask-content p {
+    font-size: 1rem;
+    color: #495057;
+    font-weight: 500;
+    margin: 0;
+}
+
+/* Locked Button Styles */
+.btn-view.locked, .btn-download.locked {
+    opacity: 0.5;
+    cursor: pointer;
+    pointer-events: auto;
+    position: relative;
+}
+
+/* Password Modal Styles */
+.password-modal {
+    z-index: 10001 !important;
+}
+
+.password-modal .modal-backdrop {
+    z-index: 10000 !important;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.password-modal .modal-content {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    z-index: 10001 !important;
+    position: relative;
+}
+
+.password-modal .modal-header {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    border: none;
+    border-radius: 12px 12px 0 0;
+    padding: 1.25rem 1.5rem;
+}
+
+.password-modal .modal-header .modal-title {
+    color: #ffffff;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.password-modal .modal-header .btn-close {
+    filter: brightness(0) invert(1);
+}
+
+.password-modal .modal-body {
+    padding: 2rem;
+}
+
+.password-modal .form-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.75rem;
+}
+
+.password-modal .form-control {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+}
+
+.password-modal .form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+    outline: none;
+}
+
+.password-modal .modal-footer {
+    border: none;
+    padding: 1.25rem 1.5rem;
+    background: #f8f9fa;
+    border-radius: 0 0 12px 12px;
+}
+
+.password-modal .btn-primary {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    border: none;
+    padding: 0.75rem 2rem;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.password-modal .btn-primary:hover {
+    background: linear-gradient(135deg, #0a58ca 0%, #084298 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+}
+
+.password-modal .btn-secondary {
+    border: 2px solid #6c757d;
+    padding: 0.75rem 2rem;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.password-modal .btn-secondary:hover {
+    background: #6c757d;
+    color: #ffffff;
+    transform: translateY(-2px);
+}
+
+.password-error {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    display: none;
+}
+
+.password-error.show {
+    display: block;
 }
 
 .form-preview-section:hover {
@@ -699,6 +879,21 @@
     box-shadow: 0 6px 24px rgba(37, 99, 235, 0.2) !important;
 }
 
+/* Preview Mask Dark Mode */
+[data-theme="dark"] .preview-mask {
+    background: rgba(30, 41, 59, 0.95) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+[data-theme="dark"] .mask-content i {
+    color: #60a5fa !important;
+}
+
+[data-theme="dark"] .mask-content p {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
 [data-theme="dark"] .form-preview-title {
     color: var(--dm-text-primary, #f1f5f9) !important;
     border-bottom-color: #60a5fa !important;
@@ -889,18 +1084,50 @@
     background: var(--dm-card-bg, #1e293b) !important;
     border-color: var(--dm-border-color, #334155) !important;
     color: var(--dm-text-primary, #f1f5f9) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
 }
 
 [data-theme="dark"] .alert-info {
-    background: rgba(37, 99, 235, 0.15) !important;
+    background: rgba(37, 99, 235, 0.2) !important;
     border-color: #60a5fa !important;
     color: #93c5fd !important;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2) !important;
 }
 
 [data-theme="dark"] .alert-danger {
-    background: rgba(239, 68, 68, 0.15) !important;
+    background: rgba(239, 68, 68, 0.2) !important;
     border-color: #ef4444 !important;
     color: #fca5a5 !important;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2) !important;
+}
+
+[data-theme="dark"] .alert-success {
+    background: rgba(34, 197, 94, 0.2) !important;
+    border-color: #4ade80 !important;
+    color: #86efac !important;
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2) !important;
+}
+
+[data-theme="dark"] .alert-warning {
+    background: rgba(234, 179, 8, 0.2) !important;
+    border-color: #fbbf24 !important;
+    color: #fde047 !important;
+    box-shadow: 0 4px 12px rgba(234, 179, 8, 0.2) !important;
+}
+
+/* Alert Close Button Dark Mode */
+[data-theme="dark"] .alert .btn-close {
+    filter: brightness(0) invert(1) !important;
+    opacity: 0.8 !important;
+}
+
+[data-theme="dark"] .alert .btn-close:hover {
+    opacity: 1 !important;
+}
+
+/* Ensure notifications appear above preview mask */
+.alert.position-fixed {
+    z-index: 10001 !important;
 }
 
 /* Loading Spinner Dark Mode */
@@ -1058,6 +1285,12 @@
 
         <!-- Enhanced Form Preview -->
         <div class="form-preview-section" id="recordPreviewPanel">
+            <div class="preview-mask" id="previewMask">
+                <div class="mask-content">
+                    <i class="bi bi-lock-fill"></i>
+                    <p>Access is needed to view this record</p>
+                </div>
+            </div>
             <div class="empty-preview-state">
                 <i class="bi bi-file-earmark-medical"></i>
                 <p>Select a record to view details</p>
@@ -1067,13 +1300,388 @@
     </div>
 </div>
 
+<!-- Password Verification Modal -->
+<div class="modal fade password-modal" id="passwordModal" tabindex="-1" aria-labelledby="passwordModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="passwordModalLabel">
+                    <i class="bi bi-shield-lock"></i>
+                    Password Requirements
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3 text-muted">Please enter your patient account password to access this record.</p>
+                <form id="passwordForm">
+                    <div class="mb-3">
+                        <label for="passwordInput" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="passwordInput" placeholder="Enter your password" required autofocus>
+                        <div class="password-error" id="passwordError"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="verifyPasswordBtn">
+                    <i class="bi bi-check-circle me-2"></i>Access Forms
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 let currentRecordId = null;
+let isAuthenticated = false;
+let authTimer = null;
+let pendingAction = null; // Store the action to execute after password verification
+const AUTH_DURATION = 15000; // 15 seconds in milliseconds
+
+// Initialize: Lock all buttons on page load
+document.addEventListener('DOMContentLoaded', function() {
+    lockAllButtons();
+    hidePreviewMask(); // Hide mask initially when no record is selected
+    
+    // Password modal event listeners
+    // Verify password button click
+    const verifyBtn = document.getElementById('verifyPasswordBtn');
+    if (verifyBtn) {
+        verifyBtn.addEventListener('click', verifyPassword);
+    }
+    
+    // Enter key in password input
+    const passwordInput = document.getElementById('passwordInput');
+    if (passwordInput) {
+        passwordInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                verifyPassword();
+            }
+        });
+    }
+    
+    // Clear pending action when modal is closed
+    const passwordModal = document.getElementById('passwordModal');
+    if (passwordModal) {
+        passwordModal.addEventListener('hidden.bs.modal', function() {
+            // Only clear if authentication failed (user closed modal without verifying)
+            if (!isAuthenticated) {
+                pendingAction = null;
+            }
+            
+            // Restore mask z-index after modal closes
+            const mask = document.getElementById('previewMask');
+            if (mask && !mask.classList.contains('hidden')) {
+                mask.style.zIndex = '10000';
+            }
+        });
+        
+        // Ensure modal is visible when shown
+        passwordModal.addEventListener('shown.bs.modal', function() {
+            // Lower preview mask z-index when modal is shown
+            const mask = document.getElementById('previewMask');
+            if (mask) {
+                mask.style.zIndex = '9999';
+            }
+            
+            // Focus on password input
+            const passwordInput = document.getElementById('passwordInput');
+            if (passwordInput) {
+                passwordInput.focus();
+            }
+        });
+    }
+    
+    // Expire authentication when user navigates away from the page
+    // Listen for navigation clicks (link clicks that navigate to different page)
+    document.addEventListener('click', function(e) {
+        const target = e.target.closest('a');
+        if (target && target.href) {
+            try {
+                const currentPath = window.location.pathname;
+                const targetUrl = new URL(target.href, window.location.origin);
+                const targetPath = targetUrl.pathname;
+                
+                // If navigating to a different page (not same page, not anchor link), expire authentication
+                if (targetPath !== currentPath && 
+                    !target.href.includes('#') && 
+                    !target.hasAttribute('data-no-expire') &&
+                    targetUrl.origin === window.location.origin) {
+                    // Expire authentication before navigation
+                    expireAuthentication();
+                }
+            } catch (error) {
+                // If URL parsing fails, it might be an external link - expire authentication
+                if (!target.hasAttribute('data-no-expire')) {
+                    expireAuthentication();
+                }
+            }
+        }
+    });
+    
+    // Listen for page visibility change (tab switch, minimize, etc.)
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            // Page is hidden (user switched tabs or minimized window)
+            // Expire authentication for security
+            expireAuthentication();
+        }
+    });
+    
+    // Listen for page unload (navigation to different page or browser close)
+    window.addEventListener('beforeunload', function() {
+        // Expire authentication when leaving the page
+        expireAuthentication();
+    });
+});
+
+// Lock all view and download buttons
+function lockAllButtons() {
+    document.querySelectorAll('.btn-view, .btn-download').forEach(btn => {
+        btn.classList.add('locked');
+    });
+}
+
+// Unlock all view and download buttons
+function unlockAllButtons() {
+    document.querySelectorAll('.btn-view, .btn-download').forEach(btn => {
+        btn.classList.remove('locked');
+    });
+}
+
+// Expire authentication (reset access)
+function expireAuthentication() {
+    isAuthenticated = false;
+    
+    // Clear authentication timer
+    if (authTimer) {
+        clearTimeout(authTimer);
+        authTimer = null;
+    }
+    
+    // Lock all buttons
+    lockAllButtons();
+    
+    // Show preview mask
+    showPreviewMask();
+    
+    // Clear pending action
+    pendingAction = null;
+}
+
+// Show preview mask
+function showPreviewMask() {
+    const mask = document.getElementById('previewMask');
+    const previewPanel = document.getElementById('recordPreviewPanel');
+    
+    if (!mask && previewPanel) {
+        // Create mask if it doesn't exist
+        const maskElement = document.createElement('div');
+        maskElement.id = 'previewMask';
+        maskElement.className = 'preview-mask';
+        maskElement.innerHTML = `
+            <div class="mask-content">
+                <i class="bi bi-lock-fill"></i>
+                <p>Access is needed to view this record</p>
+            </div>
+        `;
+        previewPanel.insertBefore(maskElement, previewPanel.firstChild);
+    }
+    
+    if (mask) {
+        mask.classList.remove('hidden');
+        mask.style.opacity = '1';
+        mask.style.zIndex = '10000';
+        mask.style.pointerEvents = 'auto';
+    }
+}
+
+// Hide preview mask
+function hidePreviewMask() {
+    const mask = document.getElementById('previewMask');
+    if (mask) {
+        mask.classList.add('hidden');
+        mask.style.opacity = '0';
+        mask.style.zIndex = '-1';
+        mask.style.pointerEvents = 'none';
+    }
+}
+
+// Show password modal
+function showPasswordModal(actionCallback) {
+    pendingAction = actionCallback;
+    
+    // Hide preview mask when showing password modal
+    const mask = document.getElementById('previewMask');
+    if (mask) {
+        mask.style.zIndex = '9999'; // Lower z-index so modal appears above
+    }
+    
+    const modal = new bootstrap.Modal(document.getElementById('passwordModal'), {
+        backdrop: true,
+        keyboard: true,
+        focus: true
+    });
+    
+    document.getElementById('passwordInput').value = '';
+    document.getElementById('passwordError').textContent = '';
+    document.getElementById('passwordError').classList.remove('show');
+    
+    // Ensure modal is shown with proper z-index
+    modal.show();
+    
+    // Force modal to be on top after showing
+    setTimeout(() => {
+        const modalElement = document.getElementById('passwordModal');
+        if (modalElement) {
+            modalElement.style.zIndex = '10001';
+        }
+        const backdrop = document.querySelector('.modal-backdrop');
+        if (backdrop) {
+            backdrop.style.zIndex = '10000';
+        }
+    }, 100);
+}
+
+// Verify password
+async function verifyPassword() {
+    const passwordInput = document.getElementById('passwordInput');
+    const passwordError = document.getElementById('passwordError');
+    const verifyBtn = document.getElementById('verifyPasswordBtn');
+    
+    const password = passwordInput.value.trim();
+    
+    if (!password) {
+        passwordError.textContent = 'Please enter your password.';
+        passwordError.classList.add('show');
+        return;
+    }
+    
+    // Disable button during verification
+    verifyBtn.disabled = true;
+    verifyBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verifying...';
+    passwordError.classList.remove('show');
+    
+    try {
+        const response = await fetch('/patient/record/verify-password', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+            },
+            body: JSON.stringify({ password: password })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Password verified successfully
+            isAuthenticated = true;
+            unlockAllButtons();
+            
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('passwordModal'));
+            modal.hide();
+            
+            // Execute pending action if any
+            if (pendingAction) {
+                pendingAction();
+                pendingAction = null;
+            }
+            
+            // Start 15-second timer
+            startAuthTimer();
+            
+            // Show success notification
+            showNotification('Password verified successfully. Access granted for 15 seconds.', 'success');
+        } else {
+            // Password incorrect
+            passwordError.textContent = data.message || 'Incorrect password. Please try again.';
+            passwordError.classList.add('show');
+            passwordInput.focus();
+        }
+    } catch (error) {
+        console.error('Error verifying password:', error);
+        passwordError.textContent = 'An error occurred. Please try again.';
+        passwordError.classList.add('show');
+    } finally {
+        // Re-enable button
+        verifyBtn.disabled = false;
+        verifyBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Access Forms';
+    }
+}
+
+// Start authentication timer (15 seconds)
+function startAuthTimer() {
+    // Clear existing timer
+    if (authTimer) {
+        clearTimeout(authTimer);
+    }
+    
+    // Set new timer
+    authTimer = setTimeout(() => {
+        isAuthenticated = false;
+        lockAllButtons();
+        
+        // Force show mask to cover all content when authentication expires
+        const previewPanel = document.getElementById('recordPreviewPanel');
+        if (previewPanel) {
+            // Always show mask when authentication expires to protect content
+            // Check if there's any content in the preview panel
+            const hasContent = previewPanel.querySelector('.preview-header, .record-detail-view, .progress-notes-table-container, .form-grid, .section-title, .progress-notes-info, .progress-notes-table');
+            
+            // Always show mask if there's content, or if the panel is not empty
+            if (hasContent || previewPanel.innerHTML.trim() !== '') {
+                // Force show mask to cover all content
+                showPreviewMask();
+                
+                // Double-check mask is visible by setting styles directly
+                setTimeout(() => {
+                    const mask = document.getElementById('previewMask');
+                    if (mask) {
+                        mask.classList.remove('hidden');
+                        mask.style.opacity = '1';
+                        mask.style.zIndex = '10000';
+                        mask.style.pointerEvents = 'auto';
+                        mask.style.display = 'flex';
+                    }
+                }, 100);
+            }
+        }
+        
+        // Always try to show mask as a safety measure
+        showPreviewMask();
+        
+        showNotification('Access expired. Please verify your password again.', 'warning');
+    }, AUTH_DURATION);
+}
+
+// Check if authenticated before executing action
+function requireAuth(actionCallback) {
+    if (isAuthenticated) {
+        // Already authenticated, execute action immediately
+        actionCallback();
+    } else {
+        // Not authenticated, show password modal
+        showPasswordModal(actionCallback);
+    }
+}
 
 // View record in preview panel
 async function viewRecord(recordId) {
+    requireAuth(async () => {
+        await executeViewRecord(recordId);
+    });
+}
+
+// Execute view record (called after authentication)
+async function executeViewRecord(recordId) {
     currentRecordId = recordId;
     const previewPanel = document.getElementById('recordPreviewPanel');
+
+    // Show mask initially (blurred)
+    showPreviewMask();
 
     // Show loading state
     previewPanel.innerHTML = `
@@ -1102,6 +1710,8 @@ async function viewRecord(recordId) {
 
         if (data.success) {
             displayRecordInPreview(data.record);
+            // Hide mask after successful load
+            hidePreviewMask();
         } else {
             throw new Error('Invalid response');
         }
@@ -1113,6 +1723,7 @@ async function viewRecord(recordId) {
                 Failed to load record. Please try again.
             </div>
         `;
+        showPreviewMask(); // Keep mask on error
     }
 }
 
@@ -1269,6 +1880,7 @@ function displayRecordInPreview(record) {
 
 // Download record as PDF
 function downloadRecord(recordId) {
+    requireAuth(() => {
     // Open print-friendly view in new window
     const printWindow = window.open(`/patient/record/${recordId}/download`, '_blank');
 
@@ -1277,6 +1889,7 @@ function downloadRecord(recordId) {
     } else {
         showNotification('Please allow pop-ups to view the printable record.', 'warning');
     }
+    });
 }
 
 // Notification function
@@ -1286,7 +1899,7 @@ function showNotification(message, type = 'info') {
 
     const notification = document.createElement('div');
     notification.className = `alert ${alertClass} alert-dismissible fade show position-fixed`;
-    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 10001; min-width: 300px;';
     notification.innerHTML = `
         <i class="bi bi-${icon} me-2"></i>${message}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -1301,7 +1914,17 @@ function showNotification(message, type = 'info') {
 
 // View patient history in preview panel
 async function viewHistory(historyId) {
+    requireAuth(async () => {
+        await executeViewHistory(historyId);
+    });
+}
+
+// Execute view history (called after authentication)
+async function executeViewHistory(historyId) {
     const previewPanel = document.getElementById('recordPreviewPanel');
+
+    // Show mask initially (blurred)
+    showPreviewMask();
 
     // Show loading state
     previewPanel.innerHTML = `
@@ -1319,6 +1942,8 @@ async function viewHistory(historyId) {
 
         if (data.success) {
             renderPatientHistory(data.history);
+            // Hide mask after successful load
+            hidePreviewMask();
         } else {
             showNotification('Failed to load patient history', 'error');
             previewPanel.innerHTML = `
@@ -1327,6 +1952,7 @@ async function viewHistory(historyId) {
                     Failed to load patient history.
                 </div>
             `;
+            showPreviewMask(); // Keep mask on error
         }
     } catch (error) {
         console.error('Error loading history:', error);
@@ -1337,6 +1963,7 @@ async function viewHistory(historyId) {
                 Error loading patient history.
             </div>
         `;
+        showPreviewMask(); // Keep mask on error
     }
 }
 
@@ -1435,6 +2062,7 @@ function renderPatientHistory(history) {
 
 // Download patient history
 function downloadHistory(historyId) {
+    requireAuth(() => {
     const printWindow = window.open(`/patient/history/${historyId}/download`, '_blank');
 
     if (printWindow) {
@@ -1442,6 +2070,7 @@ function downloadHistory(historyId) {
     } else {
         showNotification('Please allow pop-ups to view the printable history.', 'warning');
     }
+    });
 }
 
 function downloadProgressNote(noteId) {
@@ -1456,6 +2085,7 @@ function downloadProgressNote(noteId) {
 
 // Download all progress notes for a record
 function downloadAllProgressNotes(recordId) {
+    requireAuth(() => {
     const printWindow = window.open(`/patient/record/${recordId}/progress-notes/download`, '_blank');
 
     if (printWindow) {
@@ -1463,11 +2093,22 @@ function downloadAllProgressNotes(recordId) {
     } else {
         showNotification('Please allow pop-ups to view the printable progress notes.', 'warning');
     }
+    });
 }
 
 // View all progress notes for a record
 async function viewAllProgressNotes(recordId) {
+    requireAuth(async () => {
+        await executeViewAllProgressNotes(recordId);
+    });
+}
+
+// Execute view all progress notes (called after authentication)
+async function executeViewAllProgressNotes(recordId) {
     const previewPanel = document.getElementById('recordPreviewPanel');
+
+    // Show mask initially (blurred)
+    showPreviewMask();
 
     // Show loading state
     previewPanel.innerHTML = `
@@ -1502,6 +2143,8 @@ async function viewAllProgressNotes(recordId) {
             
             if (notesArray && notesArray.length > 0) {
                 renderAllProgressNotes(notesArray, data.record);
+                // Hide mask after successful load
+                hidePreviewMask();
             } else if (data.progress_notes_count > 0) {
                 // If count says there are notes but array is empty, try to reload
                 console.warn('Progress notes count indicates notes exist but array is empty');
@@ -1521,6 +2164,7 @@ async function viewAllProgressNotes(recordId) {
                         No progress notes found for this record.
                     </div>
                 `;
+                showPreviewMask(); // Keep mask on error
             }
         } else {
             const errorMsg = data.message || 'Failed to load progress notes';
@@ -1532,6 +2176,7 @@ async function viewAllProgressNotes(recordId) {
                     ${errorMsg}
                 </div>
             `;
+            showPreviewMask(); // Keep mask on error
         }
     } catch (error) {
         console.error('Error loading progress notes:', error);
@@ -1542,6 +2187,7 @@ async function viewAllProgressNotes(recordId) {
                 Error loading progress notes: ${error.message}
             </div>
         `;
+        showPreviewMask(); // Keep mask on error
     }
 }
 

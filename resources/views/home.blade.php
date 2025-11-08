@@ -57,7 +57,6 @@
             padding: 1rem 3rem;
             background: transparent;
             position: relative;
-            z-index: 20;
             pointer-events: auto;
         }
 
@@ -103,7 +102,7 @@
             justify-content: center;
             font-size: 1.25rem;
             cursor: pointer;
-            z-index: 10002; /* above drawer */
+            z-index: 10002;
         }
 
         /* When menu is open, pin the toggle above everything */
@@ -153,15 +152,13 @@
             transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             flex-direction: column;
-            overflow-y: auto; /* allow scrolling within menu */
+            overflow-y: auto;
             padding-bottom: env(safe-area-inset-bottom, 0);
             padding-top: env(safe-area-inset-top, 0);
-            pointer-events: none;
         }
 
         .mobile-menu-overlay.active {
             right: 0;
-            pointer-events: auto;
         }
 
         .mobile-menu-header {
@@ -330,7 +327,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 3rem 3rem;
-            gap: 3rem;
+            gap: 10px;
             max-width: 1400px;
             margin: 0 auto;
             margin-bottom: 2rem; /* spacing before next section */
@@ -338,7 +335,7 @@
 
         .hero-content {
             flex: 1;
-            max-width: 600px;
+            max-width: 100%;
             display: flex;
             flex-direction: column;
             align-items: flex-start;
@@ -360,11 +357,12 @@
         }
 
         .hero-title {
-            font-size: 3.5rem;
+            font-size: 4.5rem;
             font-weight: 800;
             color: #263238;
             line-height: 1.2;
             margin-bottom: 1.5rem;
+            width: 100%;
         }
 
         .hero-title .highlight {
@@ -623,6 +621,18 @@
             line-height: 1.4;
         }
 
+        @media (min-width: 1600px) {
+            .hero-title {
+                font-size: 5.5rem;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .hero-title {
+                font-size: 4rem;
+            }
+        }
+
         @media (max-width: 1024px) {
             .hero-section {
                 padding: 2rem;
@@ -641,7 +651,7 @@
                 max-width: 100%;
             }
 
-            .hero-title { font-size: 2.4rem; }
+            .hero-title { font-size: 3.2rem; }
 
             .main-card {
                 min-height: 420px;
@@ -691,7 +701,14 @@
 
             .logo { flex: 1; }
             .nav-links { display: none; }
-            .menu-toggle { display: inline-flex; margin-left: auto; }
+            .menu-toggle {
+                display: inline-flex !important;
+                margin-left: auto;
+                position: relative;
+                pointer-events: auto;
+                -webkit-tap-highlight-color: transparent;
+                user-select: none;
+            }
 
             .hero-section {
                 flex-direction: row; /* keep side-by-side at 768px */
@@ -715,7 +732,7 @@
             }
 
             .hero-title {
-                font-size: 2rem;
+                font-size: 2.8rem;
             }
 
             .patient-login-btn {
@@ -815,6 +832,10 @@
                 padding: 0.5rem;
             }
 
+            .hero-title {
+                font-size: 2.5rem;
+            }
+
             .card-title {
                 position: absolute;
                 left: 1rem;
@@ -842,7 +863,7 @@
         @media (max-width: 576px) {
             .hero-section {
                 padding: 1rem 0.75rem;
-                gap: 5rem;
+                gap: 2rem;
             }
 
             .hero-content {
@@ -854,6 +875,10 @@
                 padding: 0.25rem; 
                 width: 100%;
                 max-width: 100%;
+            }
+            
+            .hero-title {
+                font-size: 2.5rem;
             }
             
             .main-card { 
@@ -1173,7 +1198,7 @@
         .footer {
             background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
             color: white;
-            padding: 4rem 3rem 2rem;
+            padding: 2rem 2rem 1rem;
         }
 
         .footer-container {
@@ -1185,7 +1210,7 @@
             display: grid;
             grid-template-columns: 2fr 1fr 1fr 1fr;
             gap: 3rem;
-            margin-bottom: 3rem;
+            margin-bottom: 1.5rem;
         }
 
         .footer-about h3 {
@@ -1320,7 +1345,7 @@
 
         .footer-bottom {
             border-top: 1px solid rgba(255, 255, 255, 0.2);
-            padding-top: 2rem;
+            padding-top: 1rem;
             text-align: center;
             color: rgba(255, 255, 255, 0.8);
         }
@@ -1338,7 +1363,7 @@
 
         @media (max-width: 768px) {
             .footer {
-                padding: 3rem 1.5rem 1.5rem;
+                padding: 2rem 1.5rem 1rem;
             }
 
             .footer-content {

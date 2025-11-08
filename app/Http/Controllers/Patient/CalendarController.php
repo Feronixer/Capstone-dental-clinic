@@ -98,17 +98,17 @@ class CalendarController extends Controller
 
     private function getUpcomingAppointments()
     {
-        // Get all regular appointments (excluding cancelled) from past 30 days to future
-        // This includes: Pending, Confirmed, Completed, and Missed appointments
-        $thirtyDaysAgo = Carbon::now()->subDays(30);
+        // Get future appointments (from today onwards) that are not cancelled, completed, or missed
+        // This includes: Pending, Confirmed appointments only
+        $today = Carbon::now()->startOfDay();
         
         return Appointment::where('patient_id', auth()->id())
-            ->where('start_datetime', '>=', $thirtyDaysAgo)
+            ->where('start_datetime', '>=', $today)
             ->where(function($query) {
-                // Include all statuses except Cancelled (show all regular appointments)
-                // This handles null status and all other statuses except Cancelled
+                // Include only Pending and Confirmed appointments
+                // Exclude Cancelled, Completed, and Missed appointments
                 $query->whereNull('status')
-                      ->orWhereNotIn('status', ['Cancelled']);
+                      ->orWhereIn('status', ['Pending', 'Confirmed']);
             })
             ->with(['service'])
             ->orderBy('start_datetime', 'asc')

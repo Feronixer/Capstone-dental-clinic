@@ -1028,6 +1028,81 @@
     color: #2196F3;
 }
 
+/* Dark Mode Styles for Mobile Navigation */
+[data-theme="dark"] .mobile-menu-overlay {
+    background: var(--dm-card-bg, #1e293b) !important;
+    box-shadow: -4px 0 30px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-theme="dark"] .mobile-nav-item {
+    border-bottom-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] .mobile-nav-link {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .mobile-nav-link i {
+    color: #60a5fa !important;
+}
+
+[data-theme="dark"] .mobile-nav-link:hover {
+    background: var(--dm-bg-tertiary, #334155) !important;
+}
+
+[data-theme="dark"] .mobile-nav-link.active {
+    background: linear-gradient(to right, rgba(59, 130, 246, 0.2) 0%, var(--dm-bg-tertiary, #334155) 100%) !important;
+    border-left-color: #60a5fa !important;
+    color: #60a5fa !important;
+}
+
+[data-theme="dark"] .mobile-nav-link.active i {
+    color: #60a5fa !important;
+}
+
+[data-theme="dark"] .mobile-user-info-section {
+    background: var(--dm-bg-secondary, #0f172a) !important;
+    border-bottom-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] .mobile-user-info-section h6 {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .mobile-user-info-section small {
+    color: var(--dm-text-muted, #94a3b8) !important;
+}
+
+[data-theme="dark"] .mobile-user-actions-section {
+    background: var(--dm-bg-secondary, #0f172a) !important;
+    border-top-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] .mobile-action-item {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+    border-bottom-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] .mobile-action-item i {
+    color: #60a5fa !important;
+}
+
+[data-theme="dark"] .mobile-action-item:hover {
+    background: var(--dm-bg-tertiary, #334155) !important;
+}
+
+[data-theme="dark"] .mobile-action-logout {
+    color: #f87171 !important;
+}
+
+[data-theme="dark"] .mobile-action-logout i {
+    color: #f87171 !important;
+}
+
+[data-theme="dark"] .mobile-action-logout:hover {
+    background: rgba(239, 68, 68, 0.15) !important;
+}
+
 /* User Info Section at Top */
 .mobile-user-info-section {
     text-align: center;

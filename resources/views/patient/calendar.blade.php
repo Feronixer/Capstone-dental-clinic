@@ -228,7 +228,7 @@
                         </div>
                         <div class="legend-item">
                             <span class="legend-dot booked"></span>
-                            <span class="legend-text">Booked Time</span>
+                            <span class="legend-text">Already Booked</span>
                         </div>
                     </div>
                 </div>
@@ -1132,6 +1132,12 @@
 /* Calendar Grid - More Compact */
 .calendar-grid {
     width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.month-grid {
+    width: 100%;
 }
 
 .calendar-header-row {
@@ -1168,12 +1174,13 @@
 .calendar-day {
     position: relative;
     background: white;
-    min-height: 80px;
+    min-height: 100px;
     padding: 0.5rem;
     cursor: pointer;
     transition: all 0.2s;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
 .calendar-day:hover {
@@ -1200,29 +1207,57 @@
 .day-number {
     font-weight: 600;
     color: #1e293b;
-    margin-bottom: 0.375rem;
     font-size: 0.875rem;
+    position: absolute;
+    top: 0.375rem;
+    left: 0.375rem;
+    z-index: 3;
+    line-height: 1;
+    min-width: 20px;
 }
 
 .day-events {
     display: flex;
     flex-direction: column;
-    gap: 0.2rem;
+    gap: 0.3rem;
     flex: 1;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin-top: 1.75rem;
+    padding-top: 0.25rem;
+    position: relative;
+    z-index: 1;
+    min-height: 0;
+    width: 100%;
+    box-sizing: border-box;
+    align-items: stretch;
+}
+
+.day-events > * {
+    flex-shrink: 0;
 }
 
 .event-item {
     background: #e3f2fd;
     border-left: 2px solid #2196F3;
-    padding: 0.25rem 0.375rem;
+    padding: 0.4rem 0.5rem;
     border-radius: 4px;
     font-size: 0.7rem;
     cursor: pointer;
     transition: all 0.2s;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
+    white-space: normal;
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+    line-height: 1.4;
+    word-wrap: break-word;
+    display: block;
+    margin-bottom: 0;
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 2.5rem;
 }
 
 .event-item:hover {
@@ -1292,17 +1327,26 @@
 .event-time {
     font-weight: 600;
     color: #1e293b;
-    font-size: 0.65rem;
-    margin-bottom: 0.1rem;
+    font-size: 0.7rem;
+    margin-bottom: 0.2rem;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    width: 100%;
 }
 
 .event-title {
     color: #64748b;
     font-size: 0.65rem;
-    line-height: 1.2;
+    line-height: 1.4;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    word-wrap: normal;
+    display: block;
+    width: 100%;
 }
 
 .event-notes {
@@ -1485,6 +1529,32 @@
 }
 
 /* Responsive Adjustments */
+/* Desktop styles - ensure desktop is not affected by mobile */
+@media (min-width: 1201px) {
+    .event-item {
+        padding: 0.4rem 0.5rem !important;
+        font-size: 0.7rem !important;
+        min-height: 2.5rem !important;
+        display: block !important;
+        width: 100% !important;
+    }
+    
+    .event-time {
+        font-size: 0.7rem !important;
+        margin-bottom: 0.2rem !important;
+    }
+    
+    .event-title {
+        font-size: 0.65rem !important;
+    }
+    
+    .calendar-day.fully-booked .event-item.booked {
+        padding: 0.4rem 0.5rem !important;
+        font-size: 0.7rem !important;
+        min-height: 2.5rem !important;
+    }
+}
+
 @media (max-width: 1200px) {
     .calendar-layout {
         grid-template-columns: 240px 1fr;
@@ -1492,8 +1562,19 @@
     }
 
     .calendar-day {
-        min-height: 75px;
-        padding: 0.4rem;
+        min-height: 90px;
+        padding: 0.45rem;
+    }
+    
+    .day-events {
+        margin-top: 1.5rem;
+        gap: 0.25rem;
+    }
+    
+    .event-item {
+        padding: 0.3rem 0.45rem;
+        font-size: 0.65rem;
+        min-height: 2.2rem;
     }
 }
 
@@ -1526,61 +1607,427 @@
 
 @media (max-width: 768px) {
     .calendar-container {
-        padding: 0.75rem;
+        padding: 0.5rem;
     }
 
     .calendar-header {
-        padding: 0.75rem 1rem;
+        padding: 0.75rem 0.75rem;
         margin-bottom: 0.75rem;
     }
 
     .calendar-main,
     .sidebar-card {
+        padding: 0.75rem;
+    }
+    
+    /* Calendar Grid - Better mobile spacing */
+    .calendar-header-row {
+        gap: 2px;
+    }
+    
+    .calendar-week {
+        gap: 2px;
+    }
+    
+    .calendar-body {
+        gap: 2px;
+    }
+    
+    .calendar-day {
+        min-height: 90px;
         padding: 0.5rem;
     }
-
-    .nav-btn {
-        width: 22px;
-        height: 22px;
+    
+    .day-number {
+        font-size: 0.875rem;
+        top: 0.4rem;
+        left: 0.4rem;
+        font-weight: 700;
+    }
+    
+    .day-events {
+        margin-top: 1.75rem;
+        gap: 0.35rem;
+    }
+    
+    .event-item {
+        padding: 0.5rem 0.5rem;
+        font-size: 0.75rem;
+        min-height: 2.5rem;
+        line-height: 1.4;
+    }
+    
+    .event-time {
         font-size: 0.7rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+    
+    .event-title {
+        font-size: 0.7rem;
+        line-height: 1.3;
+    }
+    
+    .fully-booked-indicator {
+        top: 0.4rem;
+        right: 0.4rem;
+        padding: 0.35rem 0.6rem;
+        font-size: 0.65rem;
+        max-width: calc(100% - 3rem);
+    }
+    
+    .calendar-day.fully-booked .day-events {
+        margin-top: 2.75rem;
+        padding-right: 0;
+    }
+    
+    .calendar-day.fully-booked .day-number {
+        max-width: calc(100% - 7rem);
+    }
+    
+    .event-more-indicator {
+        padding: 0.5rem 0.6rem;
+        font-size: 0.7rem;
+        margin-top: 0.5rem;
+        min-height: 44px;
+    }
+
+    /* Navigation buttons - Better touch targets */
+    /* Note: Calendar nav buttons have specific styles below */
+    .nav-btn {
+        min-width: 44px;
+        min-height: 44px;
+        font-size: 0.875rem;
+    }
+    
+    /* Override for calendar navigation buttons */
+    .calendar-nav .nav-btn {
+        width: auto !important;
+        height: auto !important;
+    }
+
+    .btn-today {
+        padding: 0.5rem 1rem;
+        min-height: 44px;
+        font-size: 0.85rem;
     }
 
     .calendar-controls {
         flex-direction: column;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .view-controls {
+        width: 100%;
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+    }
+    
+    .view-btn {
+        flex: 1;
+        padding: 0.6rem 0.75rem;
+        min-height: 44px;
+        font-size: 0.85rem;
+    }
+    
+    .calendar-nav {
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
         gap: 0.75rem;
-        margin-bottom: 0.75rem;
+        margin-left: 0;
+        align-items: stretch;
+    }
+    
+    /* Action buttons - Stack vertically (Book Now, Emergency, Reschedule) */
+    /* Force each action button to take full width, causing them to stack */
+    .calendar-nav .appointment-action-btn {
+        flex: 0 0 100%;
+        width: 100%;
+        min-height: 44px;
+        padding: 0.6rem 1rem !important;
+        font-size: 0.8rem !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .calendar-nav .appointment-action-btn:first-of-type {
+        order: 1;
+    }
+    
+    .calendar-nav .appointment-action-btn:nth-of-type(2) {
+        order: 2;
+    }
+    
+    .calendar-nav .appointment-action-btn:nth-of-type(3) {
+        order: 3;
+    }
+    
+    /* Navigation buttons - Horizontal row (Prev, Today, Next) */
+    /* With gap 0.75rem, account for 2 gaps (1.5rem total) */
+    /* Target prevPeriod button specifically */
+    .calendar-nav #prevPeriod.nav-btn {
+        order: 4 !important;
+        flex: 0 0 calc((100% - 1.5rem) * 0.25) !important;
+        width: calc((100% - 1.5rem) * 0.25) !important;
+        min-width: 44px;
+        min-height: 44px;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem;
+    }
+    
+    .calendar-nav .btn-today {
+        order: 5 !important;
+        flex: 0 0 calc((100% - 1.5rem) * 0.5) !important;
+        width: calc((100% - 1.5rem) * 0.5) !important;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Target nextPeriod button specifically */
+    .calendar-nav #nextPeriod.nav-btn {
+        order: 6 !important;
+        flex: 0 0 calc((100% - 1.5rem) * 0.25) !important;
+        width: calc((100% - 1.5rem) * 0.25) !important;
+        min-width: 44px;
+        min-height: 44px;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem;
+    }
+    
+    /* General nav-btn styles for mobile */
+    .calendar-nav .nav-btn {
+        width: auto !important;
+        height: auto !important;
+        min-width: 44px;
+        min-height: 44px;
+    }
+    
+    .calendar-nav .nav-btn i {
+        font-size: 1rem;
     }
 
     .period-header {
         flex-direction: column;
-        gap: 0.75rem;
-        margin-bottom: 0.75rem;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        position: sticky;
+        top: 0;
+        z-index: 99;
+        background: white;
+        padding: 0.75rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    .period-title {
+        font-size: 1.25rem;
+        text-align: center;
     }
 
     .legend-inline {
         width: 100%;
         flex-wrap: wrap;
-        gap: 0.625rem;
+        gap: 0.5rem;
+        justify-content: center;
     }
-
-    .calendar-day {
-        min-height: 70px;
-        padding: 0.375rem;
-    }
-
-    .calendar-header-cell {
-        padding: 0.5rem 0.375rem;
+    
+    .legend-item {
+        padding: 0.4rem 0.75rem;
         font-size: 0.75rem;
     }
 
+    .calendar-header-cell {
+        padding: 0.6rem 0.4rem;
+        font-size: 0.7rem;
+        font-weight: 700;
+    }
+    
+    .calendar-day.today .day-number {
+        width: 32px;
+        height: 32px;
+        font-size: 0.875rem;
+    }
+    
+    /* Better spacing for calendar grid on mobile */
+    .month-grid {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Sidebar improvements for mobile */
+    .calendar-sidebar {
+        gap: 0.75rem;
+    }
+    
+    .tab-btn {
+        min-height: 44px;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
+    }
+    
+    /* Improve scrollability on mobile */
+    .calendar-day {
+        overflow: visible;
+    }
+    
+    .day-events {
+        overflow-y: auto;
+        overflow-x: hidden;
+        max-height: calc(90px - 2.5rem);
+    }
+}
+
+/* Additional mobile optimizations for very small screens */
+@media (max-width: 480px) {
+    .calendar-container {
+        padding: 0.375rem;
+    }
+    
+    .calendar-main,
+    .sidebar-card {
+        padding: 0.5rem;
+    }
+    
+    .calendar-day {
+        min-height: 85px;
+        padding: 0.4rem;
+    }
+    
     .day-number {
         font-size: 0.8rem;
-        margin-bottom: 0.25rem;
+        top: 0.35rem;
+        left: 0.35rem;
     }
-
+    
     .event-item {
-        padding: 0.2rem 0.3rem;
+        padding: 0.45rem 0.45rem;
+        font-size: 0.7rem;
+        min-height: 2.25rem;
+    }
+    
+    .event-time {
         font-size: 0.65rem;
+    }
+    
+    .event-title {
+        font-size: 0.65rem;
+    }
+    
+    .calendar-header-cell {
+        padding: 0.5rem 0.25rem;
+        font-size: 0.65rem;
+    }
+    
+    .period-title {
+        font-size: 1.1rem;
+    }
+    
+    .view-btn {
+        padding: 0.5rem 0.5rem;
+        font-size: 0.75rem;
+    }
+    
+    .appointment-action-btn {
+        padding: 0.5rem 0.5rem !important;
+        font-size: 0.75rem !important;
+    }
+    
+    /* Ensure buttons stay aligned on very small screens */
+    .calendar-nav {
+        gap: 0.5rem;
+    }
+    
+    /* Action buttons remain full width (stacked vertically) */
+    .calendar-nav .appointment-action-btn {
+        flex: 0 0 100%;
+        width: 100%;
+        padding: 0.5rem 0.75rem !important;
+    }
+    
+    /* Navigation buttons horizontal row */
+    /* With gap 0.5rem, account for 2 gaps (1rem total) */
+    /* Target prevPeriod button specifically */
+    .calendar-nav #prevPeriod.nav-btn {
+        order: 4 !important;
+        flex: 0 0 calc((100% - 1rem) * 0.25) !important;
+        width: calc((100% - 1rem) * 0.25) !important;
+        min-width: 44px;
+        min-height: 44px;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem;
+    }
+    
+    .calendar-nav .btn-today {
+        order: 5 !important;
+        flex: 0 0 calc((100% - 1rem) * 0.5) !important;
+        width: calc((100% - 1rem) * 0.5) !important;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Target nextPeriod button specifically */
+    .calendar-nav #nextPeriod.nav-btn {
+        order: 6 !important;
+        flex: 0 0 calc((100% - 1rem) * 0.25) !important;
+        width: calc((100% - 1rem) * 0.25) !important;
+        min-width: 44px;
+        min-height: 44px;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem;
+    }
+    
+    /* General nav-btn styles for very small screens */
+    .calendar-nav .nav-btn {
+        width: auto !important;
+        height: auto !important;
+        min-width: 44px;
+        min-height: 44px;
+    }
+    
+    .calendar-nav .nav-btn i {
+        font-size: 0.9rem;
+    }
+    
+    .legend-item {
+        padding: 0.35rem 0.6rem;
+        font-size: 0.7rem;
+    }
+    
+    .legend-dot {
+        width: 8px;
+        height: 8px;
+    }
+    
+    .calendar-day.today .day-number {
+        width: 28px;
+        height: 28px;
+        font-size: 0.8rem;
+    }
+    
+    .fully-booked-indicator {
+        font-size: 0.6rem;
+        padding: 0.3rem 0.5rem;
+    }
+    
+    .day-events {
+        max-height: calc(85px - 2.25rem);
     }
 }
 
@@ -2391,7 +2838,7 @@
 .detail-icon {
     width: 48px;
     height: 48px;
-    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+    background: linear-gradient(135deg, #e5e7eb, #d1d5db);
     border-radius: 12px;
     display: flex;
     align-items: center;
@@ -2401,7 +2848,24 @@
 
 .detail-icon i {
     font-size: 1.5rem;
-    color: white;
+    color: #6b7280;
+}
+
+/* Booked Slot Icon and Text Styles */
+.booked-slot-icon {
+    background: linear-gradient(135deg, #e5e7eb, #d1d5db) !important;
+}
+
+.booked-slot-icon i {
+    color: #6b7280 !important;
+}
+
+.booked-slot-title {
+    color: #1e293b;
+}
+
+.booked-slot-description {
+    color: #64748b;
 }
 
 .detail-content {
@@ -2722,7 +3186,6 @@
     grid-template-columns: 90px 1fr;
     gap: 1px;
     background: #e2e8f0;
-    min-height: 0;
 }
 
 .day-time-label {
@@ -2934,42 +3397,76 @@
 /* Responsive adjustments for week and day views */
 @media (max-width: 768px) {
     .week-header, .week-row {
-        grid-template-columns: 70px repeat(7, minmax(90px, 1fr));
+        grid-template-columns: 60px repeat(7, minmax(80px, 1fr));
+        gap: 2px;
+    }
+    
+    .week-header-cell,
+    .week-day-cell {
+        padding: 0.5rem 0.25rem;
+        font-size: 0.7rem;
     }
 
     .day-time-row {
-        grid-template-columns: 80px 1fr;
+        grid-template-columns: 70px 1fr;
+        gap: 2px;
     }
 
     .day-view-title {
-        font-size: clamp(1rem, 1.75vw, 1.25rem);
+        font-size: 1.15rem;
+        text-align: center;
     }
 
     .day-view-header {
-        padding: 0.75rem 1rem;
+        padding: 0.75rem 0.75rem;
         margin-bottom: 0.75rem;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* Ensure day view header stays above period header */
+    .day-view .period-header {
+        z-index: 98;
     }
 
     .day-time-label {
-        padding: 0.5rem 0.375rem;
-        font-size: 0.75rem;
+        padding: 0.5rem 0.4rem;
+        font-size: 0.7rem;
+        font-weight: 600;
     }
 
     .day-time-content {
-        min-height: 40px;
-        padding: 0.4rem;
-    }
-
-    .day-appointment {
+        min-height: 50px;
         padding: 0.5rem;
     }
 
+    .day-appointment {
+        padding: 0.6rem;
+        min-height: 60px;
+        margin-bottom: 0.5rem;
+    }
+
     .day-apt-title {
-        font-size: 0.85rem;
+        font-size: 0.8rem;
+        line-height: 1.3;
     }
 
     .day-apt-time {
-        font-size: 0.75rem;
+        font-size: 0.7rem;
+    }
+    
+    .day-apt-badge {
+        font-size: 0.65rem;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    /* Improve week view scrollability on mobile */
+    .week-view-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
 }
 
@@ -3285,10 +3782,17 @@
 
 [data-theme="dark"] .calendar-day.today .day-number {
     background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    margin-left: auto !important;
+    margin-right: 0 !important;
+    align-self: flex-end !important;
 }
 
 [data-theme="dark"] .day-number {
     color: var(--dm-text-primary, #f1f5f9) !important;
+    align-self: flex-end !important;
+    margin-left: auto !important;
+    margin-right: 0 !important;
+    text-align: right !important;
 }
 
 [data-theme="dark"] .event-item {
@@ -3328,14 +3832,14 @@
 }
 
 [data-theme="dark"] .event-item.booked {
-    background: rgba(147, 51, 234, 0.2) !important;
+    background: rgba(147, 51, 234, 0.5) !important;
     border-left-color: #9333ea !important;
     color: #e9d5ff !important;
     cursor: pointer !important;
 }
 
 [data-theme="dark"] .event-item.booked:hover {
-    background: rgba(147, 51, 234, 0.3) !important;
+    background: rgba(147, 51, 234, 0.6) !important;
     transform: translateX(2px) !important;
     box-shadow: 0 2px 8px rgba(147, 51, 234, 0.4) !important;
 }
@@ -3567,6 +4071,31 @@
     color: var(--dm-text-primary, #f1f5f9) !important;
 }
 
+/* Already Booked Slot Modal Dark Mode */
+[data-theme="dark"] .booked-slot-icon {
+    background: linear-gradient(135deg, rgba(107, 114, 128, 0.3), rgba(75, 85, 99, 0.3)) !important;
+}
+
+[data-theme="dark"] .booked-slot-icon i {
+    color: var(--dm-text-muted, #94a3b8) !important;
+}
+
+[data-theme="dark"] .booked-slot-title {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .booked-slot-description {
+    color: var(--dm-text-muted, #94a3b8) !important;
+}
+
+[data-theme="dark"] #appointmentDetailsModal .modal-body .detail-icon {
+    background: linear-gradient(135deg, rgba(107, 114, 128, 0.2), rgba(75, 85, 99, 0.2)) !important;
+}
+
+[data-theme="dark"] #appointmentDetailsModal .modal-body .detail-icon i {
+    color: var(--dm-text-muted, #94a3b8) !important;
+}
+
 /* Week View Dark Mode */
 [data-theme="dark"] .week-header,
 [data-theme="dark"] .week-body {
@@ -3650,14 +4179,14 @@
 }
 
 [data-theme="dark"] .week-appointment.booked {
-    background: rgba(14, 165, 233, 0.2) !important;
-    border-left-color: #0ea5e9 !important;
-    color: #bae6fd !important;
+    background: rgba(147, 51, 234, 0.5) !important;
+    border-left-color: #9333ea !important;
+    color: #e9d5ff !important;
     cursor: default !important;
 }
 
 [data-theme="dark"] .week-appointment.booked:hover {
-    background: rgba(14, 165, 233, 0.25) !important;
+    background: rgba(147, 51, 234, 0.6) !important;
     transform: none !important;
     box-shadow: none !important;
 }
@@ -3746,14 +4275,14 @@
 }
 
 [data-theme="dark"] .day-appointment.booked {
-    background: linear-gradient(135deg, rgba(147, 51, 234, 0.2) 0%, rgba(147, 51, 234, 0.15) 100%) !important;
+    background: linear-gradient(135deg, rgba(147, 51, 234, 0.5) 0%, rgba(147, 51, 234, 0.4) 100%) !important;
     border-left-color: #9333ea !important;
     color: #e9d5ff !important;
     cursor: pointer !important;
 }
 
 [data-theme="dark"] .day-appointment.booked:hover {
-    background: linear-gradient(135deg, rgba(147, 51, 234, 0.3) 0%, rgba(147, 51, 234, 0.25) 100%) !important;
+    background: linear-gradient(135deg, rgba(147, 51, 234, 0.6) 0%, rgba(147, 51, 234, 0.5) 100%) !important;
     transform: translateX(4px) !important;
     box-shadow: 0 4px 12px rgba(147, 51, 234, 0.3) !important;
 }
@@ -3779,7 +4308,7 @@
 }
 
 [data-theme="dark"] .day-apt-badge.booked {
-    background: rgba(147, 51, 234, 0.3) !important;
+    background: rgba(147, 51, 234, 0.5) !important;
     color: #e9d5ff !important;
 }
 
@@ -6389,7 +6918,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
-<script src="{{ asset('js/patient-calendar.js') }}"></script>
+<script src="{{ asset('js/patient-calendar.js') }}?v={{ time() }}"></script>
 <!-- Day Appointments Modal -->
 <div class="modal fade" id="dayAppointmentsModal" tabindex="-1" aria-labelledby="dayAppointmentsModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -6402,9 +6931,6 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="modal-body">
                 <!-- Content will be dynamically inserted here -->
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -6547,19 +7073,25 @@ document.addEventListener('DOMContentLoaded', function() {
 /* Fully Booked Indicator */
 .fully-booked-indicator {
     position: absolute;
-    top: 0.25rem;
-    right: 0.25rem;
+    top: 0.375rem;
+    right: 0.375rem;
     background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
     color: white;
-    padding: 0.25rem 0.5rem;
+    padding: 0.3rem 0.6rem;
     border-radius: 6px;
     font-size: 0.65rem;
     font-weight: 700;
     display: flex;
     align-items: center;
     gap: 0.25rem;
-    z-index: 10;
+    z-index: 25;
     box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);
+    max-width: calc(100% - 3.5rem);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    pointer-events: auto;
+    line-height: 1;
 }
 
 .calendar-day.fully-booked {
@@ -6574,18 +7106,148 @@ document.addEventListener('DOMContentLoaded', function() {
     border: 1px solid rgba(239, 68, 68, 0.2);
     border-radius: 4px;
     pointer-events: none;
+    z-index: 0;
 }
+
+/* Ensure day number and fully booked indicator don't overlap */
+.calendar-day.fully-booked .day-number {
+    max-width: calc(100% - 8rem);
+    z-index: 3;
+    position: absolute;
+    top: 0.375rem;
+    left: 0.375rem;
+}
+
+/* Ensure event items don't overlap with fully booked indicator */
+.calendar-day.fully-booked .day-events {
+    padding-top: 0;
+    margin-top: 2.5rem;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Ensure first event item has proper spacing when fully booked indicator is present */
+.calendar-day.fully-booked .day-events .event-item:first-child {
+    margin-top: 0;
+}
+
+/* Ensure event items on fully-booked days look the same as other days */
+.calendar-day.fully-booked .event-item {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    display: block;
+    margin-bottom: 0;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow: hidden;
+}
+
+.calendar-day.fully-booked .event-item.booked {
+    background: #f3e8ff;
+    border-left: 2px solid #9333ea;
+    color: #6b21a8;
+    padding: 0.4rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    cursor: pointer;
+    opacity: 1;
+    min-height: 2.5rem;
+    display: block;
+    width: 100%;
+}
+
+/* Ensure "X more" indicator is visible on fully booked days */
+.calendar-day.fully-booked .event-more-indicator {
+    margin-top: 0.5rem;
+    position: relative;
+    z-index: 2;
+    flex-shrink: 0;
+}
+
+/* Event Count Badges */
+.event-count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: white;
+    margin: 0.125rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    z-index: 1;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    flex-shrink: 0;
+}
+
+.event-count-badge:hover {
+    transform: scale(1.1);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+}
+
+.event-count-badge.booked {
+    background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%);
+}
+
+.event-count-badge.pending {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+}
+
+.event-count-badge.confirmed {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.event-count-badge.completed {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.event-count-badge.cancelled {
+    background: linear-gradient(135deg, #92400e 0%, #78350f 100%);
+}
+
+.event-count-badge.blocked {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.event-count-badge.missed {
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+}
+
+.badge-number {
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+/* Ensure event count badges don't overlap with fully booked indicator */
+.calendar-day.fully-booked .event-count-badge {
+    margin-top: 0.5rem;
+    margin-right: 0.25rem;
+    position: relative;
+    z-index: 1;
+}
+
+/* Position event count badges below day number, avoiding fully booked indicator - consolidated with above rule */
 
 /* "X more" Indicator */
 .event-more-indicator {
     background: linear-gradient(135deg, rgba(33, 150, 243, 0.1) 0%, rgba(25, 118, 210, 0.05) 100%);
     border: 1px dashed #2196F3;
     border-radius: 6px;
-    padding: 0.375rem 0.5rem;
-    margin-top: 0.25rem;
+    padding: 0.4rem 0.5rem;
+    margin-top: 0.5rem;
     text-align: center;
     cursor: pointer;
     transition: all 0.2s ease;
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+    font-size: 0.7rem;
 }
 
 .event-more-indicator:hover {
@@ -6651,8 +7313,8 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 [data-theme="dark"] .day-appointment-item.booked {
-    background: rgba(14, 165, 233, 0.15);
-    border-left-color: #0ea5e9;
+    background: rgba(147, 51, 234, 0.5);
+    border-left-color: #9333ea;
 }
 
 [data-theme="dark"] .appointment-time {
@@ -6721,3 +7383,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
 @include('patient.components.chatbot')
 @endsection
+

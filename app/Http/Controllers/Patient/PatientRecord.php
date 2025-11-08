@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Patient;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use App\Models\PatientRecord as PatientRecordModel;
 use App\Models\PatientHistory;
 use App\Models\ProgressNote;
@@ -268,5 +269,37 @@ class PatientRecord extends Controller
             ->firstOrFail();
 
         return view('patient.pdf.progress-notes-all', compact('record'));
+    }
+
+    /**
+     * Verify password for record access
+     */
+    public function verifyPassword(Request $request)
+    {
+        $request->validate([
+            'password' => ['required', 'string'],
+        ]);
+
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not authenticated.'
+            ], 401);
+        }
+
+        // Verify password
+        if (Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Password verified successfully.'
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Incorrect password. Please try again.'
+        ], 422);
     }
 }
