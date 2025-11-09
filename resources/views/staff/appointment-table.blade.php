@@ -17,9 +17,11 @@
                     <a href="{{ route('staff-appointment') }}" class="btn btn-outline-secondary">
                         <i class="bi bi-calendar3 me-1"></i>Calendar View
                     </a>
+                    @if(!$accessControl || $accessControl->can_export_data)
                     <a href="{{ route('staff-appointment.export-excel', request()->all()) }}" class="btn btn-success">
                         <i class="bi bi-file-earmark-excel me-1"></i>Export to Excel
                     </a>
+                    @endif
                 </div>
             </div>
         </div>

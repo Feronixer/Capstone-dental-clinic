@@ -41,6 +41,11 @@ class User extends Authenticatable
         return $this->hasMany(Notification::class)->where('is_read', false);
     }
 
+    public function accessControl()
+    {
+        return $this->hasOne(StaffAccessControl::class, 'staff_id');
+    }
+
     /**
      * The attributes that are mass assignable.
      *

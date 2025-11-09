@@ -12,6 +12,7 @@ use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use App\Services\NotificationService;
 
 class PostProceduralController extends Controller
@@ -22,8 +23,8 @@ class PostProceduralController extends Controller
     public function index()
     {
         // Check if user is staff (role_id 1 or 2)
-        $user = Auth::user();
-        if (!in_array($user->role_id, [1, 2])) {
+        $user = Auth::guard('staff')->user();
+        if (!$user || !in_array($user->role_id, [1, 2])) {
             abort(403, 'Unauthorized access');
         }
 
@@ -31,7 +32,9 @@ class PostProceduralController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(5);
 
-        return view("staff.post-procedural", compact('records'));
+        $accessControl = $user->accessControl ?? null;
+
+        return view("staff.post-procedural", compact('records', 'accessControl'));
     }
 
     /**
@@ -115,11 +118,11 @@ class PostProceduralController extends Controller
                         'name' => $user->info ? $user->info->first_name . ' ' . $user->info->last_name : $user->username,
                         'first_name' => $user->info ? $user->info->first_name : '',
                         'last_name' => $user->info ? $user->info->last_name : '',
-                        'birthdate' => $user->info ? $user->info->birthdate : '',
+                        'birthdate' => $user->info && $user->info->birthdate ? \Carbon\Carbon::parse($user->info->birthdate)->format('Y-m-d') : '',
                         'age' => $user->info && $user->info->birthdate
                             ? \Carbon\Carbon::parse($user->info->birthdate)->age
                             : '',
-                        'sex' => $user->info ? $user->info->sex : '',
+                        'sex' => $user->info ? ($user->info->sex ?? $user->info->gender ?? '') : '',
                         'religion' => $user->info ? $user->info->religion : '',
                         'nationality' => $user->info ? $user->info->nationality : '',
                         'contact_number' => $user->info ? $user->info->contact_number : '',
@@ -173,7 +176,7 @@ class PostProceduralController extends Controller
             'patient_name' => $patientName,
             'username' => $user?->name ?? 'N/A',
             'patient_number' => $history->patientRecord?->patient_number ?? 'N/A',
-            'related_info' => $history->visit_date ? 'Visit: ' . \Carbon\Carbon::parse($history->visit_date)->format('M d, Y') : 'No visit date',
+            'related_info' => 'Medical History Record',
             'sent_to_patient' => $history->sent_to_patient ?? false,
             'created_at' => $history->created_at,
             'data' => $history
@@ -552,7 +555,7 @@ class PostProceduralController extends Controller
     public function getPatientHistory($patientRecordId)
     {
         $histories = PatientHistory::where('patient_record_id', $patientRecordId)
-            ->orderBy('visit_date', 'desc')
+            ->orderBy('created_at', 'desc')
             ->get();
 
         return response()->json([
@@ -573,7 +576,6 @@ class PostProceduralController extends Controller
             $validator = Validator::make($request->all(), [
             'patient_id' => 'required_without:patient_record_id|exists:users,id',
             'patient_record_id' => 'required_without:patient_id|exists:patient_records,id',
-            'visit_date' => 'required|date',
             // Dental History
             'previous_dentist' => 'nullable|string',
             'last_dental_visit' => 'nullable|date',
@@ -609,13 +611,6 @@ class PostProceduralController extends Controller
             'is_pregnant' => 'nullable|string',
             'is_nursing' => 'nullable|string',
             'birth_control' => 'nullable|string',
-            // Procedure Details
-            'procedure_performed' => 'nullable|string',
-            'materials_used' => 'nullable|string',
-            'anesthesia_used' => 'nullable|string',
-            'complications' => 'nullable|string',
-            'post_operative_instructions' => 'nullable|string',
-            'follow_up_notes' => 'nullable|string'
             ]);
 
             if ($validator->fails()) {
@@ -646,11 +641,10 @@ class PostProceduralController extends Controller
         $isNew = !$request->id;
         $oldHistory = $request->id ? PatientHistory::find($request->id)?->toArray() : null;
 
-        $history = PatientHistory::updateOrCreate(
-            ['id' => $request->id], // If id exists, update; otherwise create
-            [
+        $user = Auth::user();
+        $historyData = [
             'patient_record_id' => $patientRecordId,
-            'visit_date' => $request->visit_date,
+            'visit_date' => $request->visit_date ?? $request->last_dental_visit ?? now()->toDateString(),
             // Dental History
             'previous_dentist' => $request->previous_dentist,
             'last_dental_visit' => $request->last_dental_visit,
@@ -686,17 +680,20 @@ class PostProceduralController extends Controller
             'is_pregnant' => $request->is_pregnant,
             'is_nursing' => $request->is_nursing,
             'birth_control' => $request->birth_control,
-            // Procedure Details
-            'procedure_performed' => $request->procedure_performed,
-            'materials_used' => $request->materials_used,
-            'anesthesia_used' => $request->anesthesia_used,
-            'complications' => $request->complications,
-            'post_operative_instructions' => $request->post_operative_instructions,
-            'follow_up_notes' => $request->follow_up_notes,
             // Automatically send to patient
             'sent_to_patient' => true,
             'sent_at' => now()
-        ]
+        ];
+        
+        // Only set created_by for new histories
+        if (!$request->id) {
+            $historyData['created_by_user_id'] = $user->id;
+            $historyData['created_by_role'] = $user->role_id == 1 ? 'admin' : 'staff';
+        }
+
+        $history = PatientHistory::updateOrCreate(
+            ['id' => $request->id], // If id exists, update; otherwise create
+            $historyData
         );
 
         // Also mark the parent patient record as sent
@@ -759,7 +756,7 @@ class PostProceduralController extends Controller
 
             $validator = Validator::make($request->all(), [
                 'patient_record_id' => 'required|exists:patient_records,id',
-                'visit_date' => 'required|date',
+                'visit_date' => 'nullable|date',
                 // Dental History
                 'previous_dentist' => 'nullable|string|max:255',
                 'last_dental_visit' => 'nullable|date',
@@ -795,13 +792,6 @@ class PostProceduralController extends Controller
                 'is_pregnant' => 'nullable|in:yes,no',
                 'is_nursing' => 'nullable|in:yes,no',
                 'birth_control' => 'nullable|in:yes,no',
-                // Procedure details
-                'anesthesia_used' => 'nullable|string',
-                'procedure_performed' => 'nullable|string',
-                'materials_used' => 'nullable|string',
-                'complications' => 'nullable|string',
-                'post_operative_instructions' => 'nullable|string',
-                'follow_up_notes' => 'nullable|string'
             ]);
 
             if ($validator->fails()) {
@@ -812,7 +802,7 @@ class PostProceduralController extends Controller
 
             $patientHistory->update([
                 'patient_record_id' => $request->patient_record_id,
-                'visit_date' => $request->visit_date,
+                'visit_date' => $request->visit_date ?? $request->last_dental_visit ?? now()->toDateString(),
                 // Dental History
                 'previous_dentist' => $request->previous_dentist,
                 'last_dental_visit' => $request->last_dental_visit,
@@ -848,13 +838,6 @@ class PostProceduralController extends Controller
                 'is_pregnant' => $request->is_pregnant,
                 'is_nursing' => $request->is_nursing,
                 'birth_control' => $request->birth_control,
-                // Procedure Details
-                'procedure_performed' => $request->procedure_performed,
-                'materials_used' => $request->materials_used,
-                'anesthesia_used' => $request->anesthesia_used,
-                'complications' => $request->complications,
-                'post_operative_instructions' => $request->post_operative_instructions,
-                'follow_up_notes' => $request->follow_up_notes,
                 // Automatically send to patient
                 'sent_to_patient' => true,
                 'sent_at' => now()
@@ -1247,6 +1230,40 @@ class PostProceduralController extends Controller
                 'message' => 'Error saving progress notes: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Verify staff password for editing patient records
+     */
+    public function verifyPassword(Request $request)
+    {
+        $request->validate([
+            'password' => 'required|string'
+        ]);
+
+        $staff = Auth::guard('staff')->user();
+        if (!$staff || !Hash::check($request->password, $staff->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Incorrect password. Please try again.'
+            ], 403);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password verified successfully.'
+        ]);
+    }
+
+    /**
+     * Download all progress notes for a patient record as PDF
+     */
+    public function downloadProgressNotes($recordId)
+    {
+        $record = PatientRecord::with(['user.info', 'progressNotes.createdBy.info'])
+            ->findOrFail($recordId);
+
+        return view('staff.pdf.progress-notes-all', compact('record'));
     }
 }
 

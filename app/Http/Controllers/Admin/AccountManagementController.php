@@ -62,6 +62,29 @@ class AccountManagementController extends Controller
         ]);
     }
 
+    /**
+     * Verify admin password before allowing access to edit user
+     */
+    public function verifyPassword(Request $request)
+    {
+        $request->validate([
+            'password' => 'required|string'
+        ]);
+
+        $admin = Auth::guard('admin')->user();
+        if (!$admin || !Hash::check($request->password, $admin->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Incorrect password. Please try again.'
+            ], 403);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password verified successfully.'
+        ]);
+    }
+
 
     /**
      * Show the form for creating a new resource.

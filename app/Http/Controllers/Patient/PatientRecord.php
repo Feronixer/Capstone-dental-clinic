@@ -129,11 +129,29 @@ class PatientRecord extends Controller
         // Get the record and ensure it belongs to the authenticated patient
         $record = PatientRecordModel::where('id', $id)
             ->where('user_id', $userId)
-            ->with('user.info')
+            ->with(['user.info', 'appointment.service'])
             ->firstOrFail();
 
+        // Get creator information from ActivityLog
+        $creator = null;
+        $creatorRole = null;
+        $activityLog = \App\Models\ActivityLog::where(function($query) {
+                $query->where('record_type', 'PatientRecord')
+                      ->orWhere('module', 'patient_record');
+            })
+            ->where('record_id', $record->id)
+            ->where('action', 'created')
+            ->with(['user.info', 'user.role'])
+            ->orderBy('created_at', 'asc')
+            ->first();
+        
+        if ($activityLog && $activityLog->user) {
+            $creator = $activityLog->user;
+            $creatorRole = $creator->role ? $creator->role->role : 'Staff';
+        }
+
         // Return a print-friendly view
-        return view('patient.pdf.record', compact('record'));
+        return view('patient.pdf.record', compact('record', 'creator', 'creatorRole'));
     }
 
     /**
@@ -202,10 +220,18 @@ class PatientRecord extends Controller
                 $query->where('user_id', $userId)
                       ->where('sent_to_patient', true);
             })
-            ->with('patientRecord.user')
+            ->with([
+                'patientRecord.user.info', 
+                'patientRecord.appointment.service',
+                'createdBy.info'
+            ])
             ->firstOrFail();
 
-        return view('patient.pdf.history', compact('history'));
+        // Get creator information from the model relationship
+        $creator = $history->createdBy;
+        $creatorRole = $history->created_by_role ?? 'Staff';
+
+        return view('patient.pdf.history', compact('history', 'creator', 'creatorRole'));
     }
 
     /**

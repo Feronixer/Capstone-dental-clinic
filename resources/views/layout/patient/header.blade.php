@@ -171,14 +171,16 @@
                     {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}{{ strtoupper(substr(auth()->user()->name, 1, 1)) }}
                 @endif
             </div>
-            <h6 class="mt-2 mb-0">
-                @if(auth()->user()->info)
-                    {{ trim(auth()->user()->info->first_name . ' ' . auth()->user()->info->last_name) }}
-                @else
-                    {{ auth()->user()->name ?? 'User' }}
-                @endif
-            </h6>
-            <small class="text-muted">{{ auth()->user()->email ?? '' }}</small>
+            <div class="mobile-user-info-text">
+                <h6 class="mb-0">
+                    @if(auth()->user()->info)
+                        {{ trim(auth()->user()->info->first_name . ' ' . auth()->user()->info->last_name) }}
+                    @else
+                        {{ auth()->user()->name ?? 'User' }}
+                    @endif
+                </h6>
+                <small class="text-muted">{{ auth()->user()->email ?? '' }}</small>
+            </div>
         </div>
 
         <!-- Navigation Links -->
@@ -227,6 +229,17 @@
                 <i class="bi bi-bell"></i>
                 <span>Notifications</span>
             </a>
+            <div class="mobile-action-item mobile-action-dark-mode">
+                <div class="d-flex align-items-center justify-content-between w-100">
+                    <div class="d-flex align-items-center">
+                        <i id="mobileDmLabelIcon" class="bi bi-moon-stars"></i>
+                        <span id="mobileDmLabelText">Dark Mode</span>
+                    </div>
+                    <div class="form-check form-switch m-0">
+                        <input class="form-check-input" type="checkbox" id="mobilePatientDarkModeSwitch">
+                    </div>
+                </div>
+            </div>
             <a class="mobile-action-item mobile-action-logout" href="#" id="mobilePatientLogoutBtn">
                 <i class="bi bi-box-arrow-right"></i>
                 <span>Logout</span>
@@ -306,6 +319,9 @@
     display: flex;
     flex-direction: column;
     color: white;
+    align-items: flex-start;
+    justify-content: center;
+    line-height: 1;
 }
 
 .clinic-name {
@@ -314,6 +330,8 @@
     line-height: 1.2;
     color: white;
     transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
 }
 
 .clinic-name-talk {
@@ -809,12 +827,33 @@
 
 /* When menu is open, pin the toggle above everything */
 .mobile-menu-toggle.fixed-open {
-    position: fixed;
-    top: 25px;
-    right: 15px;
-    background: rgba(255,255,255,0.25);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-    z-index: 1041;
+    position: fixed !important;
+    /* Align with mobile menu header: header height 64px, padding 14px, button height 40px */
+    /* Perfect center: (64 - 40) / 2 = 12px */
+    top: 12px !important;
+    right: 16px !important;
+    background: rgba(255,255,255,0.25) !important;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15) !important;
+    z-index: 1041 !important;
+    pointer-events: auto !important;
+}
+
+@media (max-width: 576px) {
+    .mobile-menu-toggle.fixed-open {
+        /* Align with mobile menu header: header height 60px, button height 36px */
+        /* Perfect center: (60 - 36) / 2 = 12px */
+        top: 12px !important;
+        right: 14px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .mobile-menu-toggle.fixed-open {
+        /* Align with mobile menu header: header height 56px, button height 32px */
+        /* Perfect center: (56 - 32) / 2 = 12px */
+        top: 12px !important;
+        right: 12px !important;
+    }
 }
 
 /* Burger icon (hamburger -> X) */
@@ -864,7 +903,7 @@
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.25s ease, visibility 0.25s ease;
-    z-index: 1039;
+    z-index: 1037;
 }
 
 .mobile-menu-backdrop.active {
@@ -882,9 +921,10 @@
     height: 100vh;
     background: white;
     box-shadow: -4px 0 30px rgba(0,0,0,0.2);
-    z-index: 1040;
+    z-index: 1038 !important;
     transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     overflow-y: auto;
+    overflow-x: hidden;
     display: flex;
     flex-direction: column;
 }
@@ -897,27 +937,32 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1.5rem 1rem;
+    padding: 14px 16px;
     background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
     color: white;
-    min-height: 90px;
-    height: 90px;
+    min-height: 64px;
+    height: 64px;
+    max-height: 64px;
     box-sizing: border-box;
     position: relative;
+    flex-shrink: 0;
 }
 
 .mobile-menu-header .header-logo {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 12px;
     flex-shrink: 0;
     margin: 0;
     padding: 0;
+    max-width: calc(100% - 50px);
 }
 
 .mobile-menu-header .logo-img {
-    width: 50px;
-    height: 50px;
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
     object-fit: contain;
     flex-shrink: 0;
     display: block;
@@ -931,16 +976,20 @@
     flex-shrink: 0;
     margin: 0;
     padding: 0;
+    overflow: hidden;
 }
 
 .mobile-menu-header .clinic-name {
-    font-size: 1.5rem;
+    font-size: 20px;
     line-height: 1.2;
     display: flex;
     align-items: center;
     margin: 0;
     padding: 0;
     vertical-align: middle;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .mobile-menu-close {
@@ -971,6 +1020,10 @@
 
 .mobile-nav {
     padding: 0;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 0;
 }
 
 .mobile-nav-menu {
@@ -990,26 +1043,37 @@
 .mobile-nav-link {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    padding: 1.1rem 1.5rem;
+    gap: 14px;
+    padding: 12px 18px;
     color: #37474f;
     text-decoration: none;
     transition: all 0.25s ease;
-    font-size: 0.95rem;
+    font-size: 14px;
     position: relative;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .mobile-nav-link i {
-    font-size: 1.4rem;
+    font-size: 18px;
     color: #2196F3;
-    width: 24px;
+    width: 22px;
+    min-width: 22px;
     text-align: center;
     transition: transform 0.25s ease;
+    flex-shrink: 0;
+}
+
+.mobile-nav-link span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .mobile-nav-link:hover {
     background: #f5f8fa;
-    padding-left: 1.75rem;
+    padding-left: 24px;
 }
 
 .mobile-nav-link:hover i {
@@ -1021,7 +1085,7 @@
     border-left: 4px solid #2196F3;
     font-weight: 600;
     color: #2196F3;
-    padding-left: calc(1.5rem - 4px);
+    padding-left: 16px;
 }
 
 .mobile-nav-link.active i {
@@ -1103,60 +1167,158 @@
     background: rgba(239, 68, 68, 0.15) !important;
 }
 
+[data-theme="dark"] .mobile-action-dark-mode {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+    border-bottom-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] .mobile-action-dark-mode i {
+    color: #60a5fa !important;
+}
+
+[data-theme="dark"] .mobile-action-dark-mode:hover {
+    background: var(--dm-bg-tertiary, #334155) !important;
+}
+
 /* User Info Section at Top */
 .mobile-user-info-section {
-    text-align: center;
-    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
     background: #fafbfc;
     border-bottom: 2px solid #e8e8e8;
+    flex-shrink: 0;
+    text-align: left;
+}
+
+.mobile-user-info-section .profile-avatar-lg {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+    text-transform: uppercase;
+    border-radius: 50%;
+    border: 3px solid #2196F3;
+    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.mobile-user-info-text {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
 }
 
 .mobile-user-info-section h6 {
     color: #263238;
     font-weight: 600;
-    font-size: 1rem;
+    font-size: 15px;
+    margin: 0 0 2px 0;
+    padding: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+    text-align: left;
 }
 
 .mobile-user-info-section small {
     color: #78909c;
-    font-size: 0.85rem;
+    font-size: 12px;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+    text-align: left;
 }
 
 /* User Actions Section at Bottom */
 .mobile-user-actions-section {
-    padding: 1rem 0;
+    padding: 8px 0;
     background: #fafbfc;
     border-top: 2px solid #e8e8e8;
     margin-top: auto;
     margin-bottom: 0;
+    flex-shrink: 0;
 }
 
 .mobile-action-item {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    padding: 1rem 1.5rem;
+    gap: 14px;
+    padding: 11px 18px;
     color: #37474f;
     text-decoration: none;
     transition: all 0.25s ease;
-    font-size: 0.95rem;
+    font-size: 14px;
     border-bottom: 1px solid #e8e8e8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .mobile-action-item:last-child {
     border-bottom: none;
 }
 
-.mobile-action-item i {
-    font-size: 1.3rem;
+.mobile-action-dark-mode {
+    cursor: pointer;
+    padding: 11px 18px;
+}
+
+.mobile-action-dark-mode:hover {
+    background: #f5f8fa;
+    padding-left: 24px;
+}
+
+.mobile-action-dark-mode i {
+    font-size: 20px;
     color: #2196F3;
     width: 24px;
+    min-width: 24px;
     text-align: center;
+    flex-shrink: 0;
+}
+
+.mobile-action-dark-mode .form-check-input {
+    cursor: pointer;
+    width: 48px;
+    height: 24px;
+}
+
+.mobile-action-dark-mode .form-check-input:focus {
+    box-shadow: none;
+    border-color: #2196F3;
+}
+
+.mobile-action-item i {
+    font-size: 18px;
+    color: #2196F3;
+    width: 22px;
+    min-width: 22px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.mobile-action-item span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .mobile-action-item:hover {
     background: #f5f8fa;
-    padding-left: 1.75rem;
+    padding-left: 24px;
 }
 
 .mobile-action-logout {
@@ -1173,7 +1335,9 @@
 
 @media (max-width: 992px) {
     .header-container {
-        padding: 0.75rem 1rem;
+        padding: 10px 14px;
+        min-height: 56px;
+        align-items: center;
     }
 
     .header-nav {
@@ -1187,12 +1351,51 @@
         margin-left: auto;
     }
 
+    .header-logo {
+        gap: 10px;
+        align-items: center;
+    }
+
+    .logo-img {
+        width: 48px;
+        height: 48px;
+        min-width: 48px;
+        min-height: 48px;
+    }
+
+    .logo-text {
+        display: flex;
+        align-items: center;
+        line-height: 1;
+    }
+
+    .clinic-name {
+        font-size: 1.4rem;
+        line-height: 1.2;
+        display: flex;
+        align-items: center;
+    }
+
     .mobile-menu-toggle {
         display: flex !important;
         align-items: center;
         justify-content: center;
         visibility: visible !important;
         opacity: 1 !important;
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+        min-height: 40px;
+        align-self: center;
+    }
+
+    .burger-icon {
+        width: 20px;
+        height: 14px;
+    }
+
+    .burger-icon .bar {
+        height: 2px;
     }
 
     .user-info {
@@ -1200,8 +1403,7 @@
     }
 
     .user-profile-btn {
-        padding: 0.5rem;
-        gap: 0;
+        display: none !important;
     }
 
     .user-profile-btn .bi-chevron-down {
@@ -1209,63 +1411,181 @@
     }
 
     .profile-avatar {
-        width: 36px;
-        height: 36px;
-        min-width: 36px;
-        min-height: 36px;
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+        min-height: 32px;
     }
 
     .header-actions {
         gap: 0.5rem;
     }
+    
+    /* Hide notifications button on mobile - it's in hamburger menu */
+    .header-actions .dropdown:first-child {
+        display: none;
+    }
+
+    .icon-btn {
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+        min-height: 32px;
+        font-size: 0.95rem;
+    }
 }
 
 @media (max-width: 576px) {
+    .header-container {
+        padding: 8px 12px;
+        min-height: 52px;
+        align-items: center;
+    }
+
+    .header-logo {
+        align-items: center;
+    }
+
+    .logo-img {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    .logo-text {
+        align-items: center;
+        line-height: 1;
+    }
+
+    .clinic-name {
+        line-height: 1.2;
+        display: flex;
+        align-items: center;
+    }
+
+    .mobile-menu-toggle {
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        min-height: 36px;
+        align-self: center;
+    }
+
+    .burger-icon {
+        width: 18px;
+        height: 12px;
+    }
+
+    .burger-icon .bar {
+        height: 2px;
+    }
+
     .logo-text {
         display: none;
     }
 
     .mobile-menu-overlay {
         width: 100%;
-        max-width: 320px;
+        max-width: 300px;
     }
 
+
     .mobile-menu-header {
-        padding: 0.875rem 1rem;
+        padding: 12px 14px;
+        min-height: 60px;
+        height: 60px;
+        max-height: 60px;
+    }
+
+    .mobile-menu-header .logo-img {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    .mobile-menu-header .clinic-name {
+        font-size: 18px;
     }
 
     .mobile-user-info-section {
-        padding: 1.25rem;
+        padding: 12px 14px;
+        gap: 12px;
+    }
+
+    .mobile-user-info-section .profile-avatar-lg {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        min-height: 44px;
+        font-size: 18px;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .mobile-user-info-section h6 {
+        font-size: 14px;
+        margin: 0 0 2px 0;
+    }
+
+    .mobile-user-info-section small {
+        font-size: 11px;
     }
 
     .mobile-nav-link {
-        padding: 1rem 1.25rem;
-        font-size: 0.9rem;
+        padding: 10px 16px;
+        font-size: 13px;
+        gap: 12px;
     }
 
     .mobile-nav-link i {
-        font-size: 1.3rem;
+        font-size: 18px;
+        width: 22px;
+        min-width: 22px;
     }
 
     .mobile-nav-link:hover {
-        padding-left: 1.5rem;
+        padding-left: 22px;
     }
 
     .mobile-nav-link.active {
-        padding-left: calc(1.25rem - 4px);
+        padding-left: 14px;
     }
 
     .mobile-action-item {
-        padding: 0.9rem 1.25rem;
-        font-size: 0.9rem;
+        padding: 9px 16px;
+        font-size: 13px;
+        gap: 12px;
     }
 
     .mobile-action-item i {
-        font-size: 1.2rem;
+        font-size: 16px;
+        width: 20px;
+        min-width: 20px;
     }
 
     .mobile-action-item:hover {
-        padding-left: 1.5rem;
+        padding-left: 20px;
+    }
+
+    .mobile-action-dark-mode {
+        padding: 9px 16px;
+        gap: 12px;
+    }
+
+    .mobile-action-dark-mode i {
+        font-size: 16px;
+        width: 20px;
+        min-width: 20px;
+    }
+
+    .mobile-action-dark-mode:hover {
+        padding-left: 20px;
+    }
+
+    .mobile-user-actions-section {
+        padding: 6px 0;
     }
 
     .icon-btn {
@@ -1283,9 +1603,160 @@
     }
 
     .profile-avatar-lg {
-        width: 55px;
-        height: 55px;
-        font-size: 1.3rem;
+        width: 52px;
+        height: 52px;
+        min-width: 52px;
+        min-height: 52px;
+        font-size: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-container {
+        padding: 6px 10px;
+        min-height: 48px;
+        align-items: center;
+    }
+
+    .header-logo {
+        align-items: center;
+    }
+
+    .logo-img {
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+        min-height: 40px;
+    }
+
+    .logo-text {
+        align-items: center;
+        line-height: 1;
+    }
+
+    .clinic-name {
+        line-height: 1.2;
+        display: flex;
+        align-items: center;
+    }
+
+    .mobile-menu-toggle {
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+        min-height: 32px;
+        align-self: center;
+    }
+
+    .burger-icon {
+        width: 16px;
+        height: 11px;
+    }
+
+    .burger-icon .bar {
+        height: 1.5px;
+    }
+
+    .mobile-menu-overlay {
+        max-width: 280px;
+    }
+
+
+    .mobile-menu-header {
+        padding: 10px 12px;
+        min-height: 56px;
+        height: 56px;
+        max-height: 56px;
+    }
+
+    .mobile-menu-header .logo-img {
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+        min-height: 40px;
+    }
+
+    .mobile-menu-header .clinic-name {
+        font-size: 16px;
+    }
+
+    .mobile-user-info-section {
+        padding: 10px 12px;
+        gap: 10px;
+    }
+
+    .mobile-user-info-section .profile-avatar-lg {
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+        min-height: 40px;
+        font-size: 16px;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .mobile-user-info-section h6 {
+        font-size: 13px;
+        margin: 0 0 2px 0;
+    }
+
+    .mobile-user-info-section small {
+        font-size: 10px;
+    }
+
+    .mobile-nav-link {
+        padding: 9px 14px;
+        font-size: 12px;
+        gap: 10px;
+    }
+
+    .mobile-nav-link i {
+        font-size: 16px;
+        width: 20px;
+        min-width: 20px;
+    }
+
+    .mobile-nav-link:hover {
+        padding-left: 20px;
+    }
+
+    .mobile-nav-link.active {
+        padding-left: 12px;
+    }
+
+    .mobile-action-item {
+        padding: 8px 14px;
+        font-size: 12px;
+        gap: 10px;
+    }
+
+    .mobile-action-item i {
+        font-size: 14px;
+        width: 18px;
+        min-width: 18px;
+    }
+
+    .mobile-action-item:hover {
+        padding-left: 18px;
+    }
+
+    .mobile-action-dark-mode {
+        padding: 8px 14px;
+        gap: 10px;
+    }
+
+    .mobile-action-dark-mode i {
+        font-size: 14px;
+        width: 18px;
+        min-width: 18px;
+    }
+
+    .mobile-action-dark-mode:hover {
+        padding-left: 18px;
+    }
+
+    .mobile-user-actions-section {
+        padding: 4px 0;
     }
 }
 </style>
@@ -1701,28 +2172,67 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Dark mode switch in profile dropdown
-    const dmSwitch = document.getElementById('patientDarkModeSwitch');
-    if (dmSwitch) {
-        const currentTheme = document.documentElement.getAttribute('data-theme');
-        dmSwitch.checked = currentTheme === 'dark';
+    // Function to update dark mode UI elements
+    function updateDarkModeUI() {
+        const theme = document.documentElement.getAttribute('data-theme');
+        const isDark = theme === 'dark';
+        
+        // Desktop switch
+        const dmSwitch = document.getElementById('patientDarkModeSwitch');
+        if (dmSwitch) {
+            dmSwitch.checked = isDark;
+        }
+        
+        // Desktop labels
         const dmIcon = document.getElementById('dmLabelIcon');
         const dmText = document.getElementById('dmLabelText');
         if (dmIcon && dmText) {
-            if (currentTheme === 'dark') { dmIcon.className = 'bi bi-moon-stars me-2'; dmText.textContent = 'Dark Mode'; }
-            else { dmIcon.className = 'bi bi-sun me-2'; dmText.textContent = 'Light Mode'; }
+            if (isDark) {
+                dmIcon.className = 'bi bi-sun me-2';
+                dmText.textContent = 'Light Mode';
+            } else {
+                dmIcon.className = 'bi bi-moon-stars me-2';
+                dmText.textContent = 'Dark Mode';
+            }
         }
+        
+        // Mobile switch
+        const mobileDmSwitch = document.getElementById('mobilePatientDarkModeSwitch');
+        if (mobileDmSwitch) {
+            mobileDmSwitch.checked = isDark;
+        }
+        
+        // Mobile labels
+        const mobileDmIcon = document.getElementById('mobileDmLabelIcon');
+        const mobileDmText = document.getElementById('mobileDmLabelText');
+        if (mobileDmIcon && mobileDmText) {
+            if (isDark) {
+                mobileDmIcon.className = 'bi bi-sun';
+                mobileDmText.textContent = 'Light Mode';
+            } else {
+                mobileDmIcon.className = 'bi bi-moon-stars';
+                mobileDmText.textContent = 'Dark Mode';
+            }
+        }
+    }
+    
+    // Dark mode switch in profile dropdown (desktop)
+    const dmSwitch = document.getElementById('patientDarkModeSwitch');
+    if (dmSwitch) {
+        updateDarkModeUI(); // Initialize on load
         dmSwitch.addEventListener('change', function() {
             toggleDarkMode();
-            // sync state in case toggled elsewhere
-            const theme = document.documentElement.getAttribute('data-theme');
-            dmSwitch.checked = theme === 'dark';
-            const icon = document.getElementById('dmLabelIcon');
-            const label = document.getElementById('dmLabelText');
-            if (icon && label) {
-                if (theme === 'dark') { icon.className = 'bi bi-moon-stars me-2'; label.textContent = 'Dark Mode'; }
-                else { icon.className = 'bi bi-sun me-2'; label.textContent = 'Light Mode'; }
-            }
+            updateDarkModeUI(); // Update both switches
+        });
+    }
+    
+    // Dark mode switch in mobile menu
+    const mobileDmSwitch = document.getElementById('mobilePatientDarkModeSwitch');
+    if (mobileDmSwitch) {
+        updateDarkModeUI(); // Initialize on load
+        mobileDmSwitch.addEventListener('change', function() {
+            toggleDarkMode();
+            updateDarkModeUI(); // Update both switches
         });
     }
 });

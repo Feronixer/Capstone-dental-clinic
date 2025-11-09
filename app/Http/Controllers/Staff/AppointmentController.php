@@ -13,10 +13,12 @@ use Illuminate\Http\JsonResponse;
 use Carbon\Carbon;
 use App\Services\MailService;
 use App\Services\NotificationService;
+use Illuminate\Support\Facades\Auth;
 // use Maatwebsite\Excel\Facades\Excel; // Removed - using CSV export instead
 
 class AppointmentController extends Controller
 {
+    use CheckStaffAccess;
     /**
      * Display a listing of the resource.
      */
@@ -1149,13 +1151,17 @@ class AppointmentController extends Controller
                 ];
             });
 
+        $user = Auth::guard('staff')->user();
+        $accessControl = $user->accessControl ?? null;
+
         return view('staff.appointment-table', compact(
             'appointments',
             'statusCounts',
             'rescheduledCount',
             'emergencyCount',
             'totalCount',
-            'availableMonths'
+            'availableMonths',
+            'accessControl'
         ))->with('perPage', $perPage)->with('search', $request->get('search', ''));
     }
 
@@ -1164,6 +1170,18 @@ class AppointmentController extends Controller
      */
     public function exportExcel(Request $request)
     {
+        // Check if staff has permission to export data
+        if (!$this->can('export_data')) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You do not have permission to export data.'
+                ], 403);
+            }
+            return redirect()->route('staff-appointment.table')
+                ->with('error', 'You do not have permission to export data.');
+        }
+
         // Build query with same filters as table method
         $query = Appointment::with(['patient.info', 'service'])
             ->whereNotIn('status', ['blocked']);

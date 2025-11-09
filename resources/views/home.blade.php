@@ -57,6 +57,7 @@
             padding: 1rem 3rem;
             background: transparent;
             position: relative;
+            z-index: 20;
             pointer-events: auto;
         }
 
@@ -102,7 +103,7 @@
             justify-content: center;
             font-size: 1.25rem;
             cursor: pointer;
-            z-index: 10002;
+            z-index: 10002; /* above drawer */
         }
 
         /* When menu is open, pin the toggle above everything */
@@ -152,13 +153,15 @@
             transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             flex-direction: column;
-            overflow-y: auto;
+            overflow-y: auto; /* allow scrolling within menu */
             padding-bottom: env(safe-area-inset-bottom, 0);
             padding-top: env(safe-area-inset-top, 0);
+            pointer-events: none;
         }
 
         .mobile-menu-overlay.active {
             right: 0;
+            pointer-events: auto;
         }
 
         .mobile-menu-header {
@@ -335,7 +338,7 @@
 
         .hero-content {
             flex: 1;
-            max-width: 100%;
+            max-width: 600px;
             display: flex;
             flex-direction: column;
             align-items: flex-start;
@@ -357,12 +360,11 @@
         }
 
         .hero-title {
-            font-size: 4.5rem;
+            font-size: 3.5rem;
             font-weight: 800;
             color: #263238;
             line-height: 1.2;
             margin-bottom: 1.5rem;
-            width: 100%;
         }
 
         .hero-title .highlight {
@@ -621,18 +623,6 @@
             line-height: 1.4;
         }
 
-        @media (min-width: 1600px) {
-            .hero-title {
-                font-size: 5.5rem;
-            }
-        }
-
-        @media (max-width: 1200px) {
-            .hero-title {
-                font-size: 4rem;
-            }
-        }
-
         @media (max-width: 1024px) {
             .hero-section {
                 padding: 2rem;
@@ -651,7 +641,7 @@
                 max-width: 100%;
             }
 
-            .hero-title { font-size: 3.2rem; }
+            .hero-title { font-size: 2.4rem; }
 
             .main-card {
                 min-height: 420px;
@@ -701,14 +691,7 @@
 
             .logo { flex: 1; }
             .nav-links { display: none; }
-            .menu-toggle {
-                display: inline-flex !important;
-                margin-left: auto;
-                position: relative;
-                pointer-events: auto;
-                -webkit-tap-highlight-color: transparent;
-                user-select: none;
-            }
+            .menu-toggle { display: inline-flex; margin-left: auto; }
 
             .hero-section {
                 flex-direction: row; /* keep side-by-side at 768px */
@@ -732,7 +715,7 @@
             }
 
             .hero-title {
-                font-size: 2.8rem;
+                font-size: 2rem;
             }
 
             .patient-login-btn {
@@ -832,10 +815,6 @@
                 padding: 0.5rem;
             }
 
-            .hero-title {
-                font-size: 2.5rem;
-            }
-
             .card-title {
                 position: absolute;
                 left: 1rem;
@@ -863,7 +842,7 @@
         @media (max-width: 576px) {
             .hero-section {
                 padding: 1rem 0.75rem;
-                gap: 2rem;
+                gap: 5rem;
             }
 
             .hero-content {
@@ -875,10 +854,6 @@
                 padding: 0.25rem; 
                 width: 100%;
                 max-width: 100%;
-            }
-            
-            .hero-title {
-                font-size: 2.5rem;
             }
             
             .main-card { 
@@ -953,21 +928,23 @@
 
         .services-carousel-wrapper {
             position: relative;
-            padding: 0 clamp(16px, 4vw, 60px);
+            padding: 0;
             max-width: 1600px;
             margin: 0 auto;
             width: 100%;
-            overflow: hidden;
+            overflow: visible;
+            height: clamp(400px, 50vh, 600px);
+            min-height: 400px;
+            perspective: 1200px;
+            perspective-origin: center center;
         }
 
         .services-carousel {
-            display: flex;
-            gap: clamp(1rem, 2vw, 2rem);
-            overflow-x: hidden;
-            scroll-behavior: smooth;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
+            position: relative;
             width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.1s linear;
         }
 
         .services-carousel::-webkit-scrollbar {
@@ -975,24 +952,35 @@
         }
 
         .service-card {
+            position: absolute;
             background: white;
             border-radius: 20px;
-            padding: 2rem;
-            min-width: clamp(220px, 24vw, 280px);
-            max-width: clamp(220px, 24vw, 280px);
-            flex-shrink: 0;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            padding: clamp(1.5rem, 3vw, 2rem);
+            width: clamp(200px, 25vw, 280px);
+            height: clamp(200px, 25vw, 280px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1), 0 0 20px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
             cursor: pointer;
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             text-align: center;
+            backface-visibility: hidden;
+            transform-style: preserve-3d;
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        .service-card.initialized {
+            opacity: 1;
+            visibility: visible;
         }
 
         .service-card:hover {
-            transform: translateY(-6px) scale(1.06);
-            box-shadow: 0 16px 46px rgba(0, 0, 0, 0.18);
+            transform: translateZ(80px) scale(1.1) !important;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25), 0 0 40px rgba(0, 0, 0, 0.15);
+            z-index: 100;
         }
 
         .service-icon-box {
@@ -1167,6 +1155,42 @@
         }
 
         @media (max-width: 768px) {
+            .services-carousel-wrapper {
+                height: clamp(350px, 45vh, 500px);
+                min-height: 350px;
+            }
+            
+            .service-card {
+                width: clamp(180px, 30vw, 240px);
+                height: clamp(180px, 30vw, 240px);
+                padding: clamp(1rem, 2vw, 1.5rem);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .services-carousel-wrapper {
+                height: clamp(300px, 40vh, 450px);
+                min-height: 300px;
+            }
+            
+            .service-card {
+                width: clamp(160px, 35vw, 200px);
+                height: clamp(160px, 35vw, 200px);
+                padding: 1rem;
+            }
+        }
+        
+        @media (max-width: 1024px) {
+            .services-section {
+                padding: 4rem 2rem;
+            }
+
+            .services-carousel-wrapper {
+                padding: 0 50px;
+            }
+        }
+
+        @media (max-width: 768px) {
             .services-section {
                 padding: 3rem 1rem;
             }
@@ -1182,12 +1206,6 @@
             .carousel-nav-btn.prev { left: 8px; }
             .carousel-nav-btn.next { right: 8px; }
 
-            .service-card {
-                min-width: 200px;
-                max-width: 200px;
-                padding: 1.5rem;
-            }
-
             .carousel-nav-btn {
                 width: 40px;
                 height: 40px;
@@ -1198,7 +1216,7 @@
         .footer {
             background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
             color: white;
-            padding: 2rem 2rem 1rem;
+            padding: 4rem 3rem 2rem;
         }
 
         .footer-container {
@@ -1210,7 +1228,7 @@
             display: grid;
             grid-template-columns: 2fr 1fr 1fr 1fr;
             gap: 3rem;
-            margin-bottom: 1.5rem;
+            margin-bottom: 3rem;
         }
 
         .footer-about h3 {
@@ -1345,7 +1363,7 @@
 
         .footer-bottom {
             border-top: 1px solid rgba(255, 255, 255, 0.2);
-            padding-top: 1rem;
+            padding-top: 2rem;
             text-align: center;
             color: rgba(255, 255, 255, 0.8);
         }
@@ -1363,7 +1381,7 @@
 
         @media (max-width: 768px) {
             .footer {
-                padding: 2rem 1.5rem 1rem;
+                padding: 3rem 1.5rem 1.5rem;
             }
 
             .footer-content {
@@ -1965,33 +1983,330 @@
     </div>
 
     <script>
-        // Services Carousel
-        function scrollServices(direction) {
+        // 3D Carousel with Hover Lock (No Auto-Rotation)
+        let rotationAngle = 0;
+        let cards = [];
+        let totalCards = 0;
+        let hoveredCardIndex = null;
+        let updateLoopId = null;
+        let scrollTargetRotationAngle = null;
+        let isScrollingAnimated = false;
+        
+        function getRadius() {
+            // Responsive radius based on screen size
+            const width = window.innerWidth;
+            if (width <= 480) return 280;
+            if (width <= 768) return 320;
+            if (width <= 1024) return 380;
+            return 450;
+        }
+        
+        function init3DCarousel() {
             const carousel = document.getElementById('servicesCarousel');
-            const scrollAmount = 270; // card width (250px) + gap (20px)
-            const maxScroll = carousel.scrollWidth - carousel.clientWidth;
-
-            if (direction === 'next') {
-                const currentScroll = carousel.scrollLeft;
-                const nextScroll = currentScroll + scrollAmount;
-
-                if (nextScroll >= maxScroll - 10) {
-                    // At the end, loop back to the beginning
-                    carousel.scrollTo({ left: 0, behavior: 'smooth' });
-                } else {
-                    carousel.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-                }
+            if (!carousel) return;
+            
+            cards = Array.from(carousel.querySelectorAll('.service-card'));
+            totalCards = cards.length;
+            
+            if (totalCards === 0) return;
+            
+            // Initialize rotation angle to center the first card
+            const angleStep = 360 / totalCards;
+            rotationAngle = 0; // Start with first card centered
+            
+            // Add hover event listeners to each card
+            cards.forEach((card, index) => {
+                card.addEventListener('mouseenter', () => lockCardToCenter(index));
+                card.addEventListener('mouseleave', () => unlockCard());
+            });
+            
+            // Handle window resize
+            let resizeTimeout;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    updateCarouselPosition();
+                }, 200);
+            });
+            
+            // Wait for images to load before positioning
+            const images = carousel.querySelectorAll('img');
+            let imagesLoaded = 0;
+            const totalImages = images.length;
+            
+            if (totalImages === 0) {
+                // No images, position immediately
+                updateCarouselPosition();
             } else {
-                const currentScroll = carousel.scrollLeft;
-
-                if (currentScroll <= 10) {
-                    // At the beginning, loop to the end
-                    carousel.scrollTo({ left: maxScroll, behavior: 'smooth' });
-                } else {
-                    carousel.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+                // Wait for all images to load
+                images.forEach(img => {
+                    if (img.complete) {
+                        imagesLoaded++;
+                    } else {
+                        img.addEventListener('load', () => {
+                            imagesLoaded++;
+                            if (imagesLoaded === totalImages) {
+                                updateCarouselPosition();
+                            }
+                        });
+                        img.addEventListener('error', () => {
+                            imagesLoaded++;
+                            if (imagesLoaded === totalImages) {
+                                updateCarouselPosition();
+                            }
+                        });
+                    }
+                });
+                
+                // Fallback: position after timeout if images don't load
+                setTimeout(() => {
+                    if (imagesLoaded < totalImages) {
+                        updateCarouselPosition();
+                    }
+                }, 1000);
+                
+                // Position immediately if all images are already loaded
+                if (imagesLoaded === totalImages) {
+                    updateCarouselPosition();
                 }
             }
         }
+        
+        function updateCarouselPosition() {
+            const carousel = document.getElementById('servicesCarousel');
+            if (!carousel) return;
+            
+            // Get carousel dimensions for proper centering
+            // Cards are positioned relative to the carousel, so use carousel's dimensions
+            // Force a reflow to ensure dimensions are calculated correctly (especially on mobile)
+            carousel.offsetHeight; // Force reflow
+            let carouselWidth = carousel.offsetWidth;
+            let carouselHeight = carousel.offsetHeight;
+            
+            // If carousel dimensions are not available, try wrapper or window
+            if (!carouselWidth || carouselWidth <= 0) {
+                const wrapper = carousel.closest('.services-carousel-wrapper');
+                if (wrapper) {
+                    wrapper.offsetHeight; // Force reflow for wrapper
+                    carouselWidth = wrapper.clientWidth || wrapper.offsetWidth;
+                } else {
+                    carouselWidth = window.innerWidth;
+                }
+            }
+            if (!carouselHeight || carouselHeight <= 0) {
+                const wrapper = carousel.closest('.services-carousel-wrapper');
+                if (wrapper) {
+                    wrapper.offsetHeight; // Force reflow for wrapper
+                    carouselHeight = wrapper.clientHeight || wrapper.offsetHeight;
+                } else {
+                    carouselHeight = 500;
+                }
+            }
+            
+            // Final fallback
+            if (!carouselWidth || carouselWidth <= 0) {
+                carouselWidth = window.innerWidth;
+            }
+            if (!carouselHeight || carouselHeight <= 0) {
+                carouselHeight = 500;
+            }
+            
+            const radius = getRadius();
+            const angleStep = 360 / totalCards;
+            
+            let targetAngleForInterpolation = null;
+            
+            // Smoothly interpolate to target rotation if hovering
+            if (hoveredCardIndex !== null) {
+                // Calculate target angle to center the hovered card
+                // The card at index should be at angle 0 (front center)
+                let hoverTargetAngle = -(angleStep * hoveredCardIndex);
+                
+                // Snap to nearest card position for perfect centering
+                const nearestCardIndex = Math.round(hoverTargetAngle / angleStep);
+                hoverTargetAngle = nearestCardIndex * angleStep;
+                
+                // Normalize target angle to keep it within reasonable bounds
+                while (hoverTargetAngle >= 360) hoverTargetAngle -= 360;
+                while (hoverTargetAngle < 0) hoverTargetAngle += 360;
+                
+                targetAngleForInterpolation = hoverTargetAngle;
+                isScrollingAnimated = false; // Hover takes precedence, stop scroll animation
+                scrollTargetRotationAngle = null;
+            } else if (isScrollingAnimated && scrollTargetRotationAngle !== null) {
+                // Smooth animation for button clicks
+                targetAngleForInterpolation = scrollTargetRotationAngle;
+            }
+            
+            if (targetAngleForInterpolation !== null) {
+                let diff = targetAngleForInterpolation - rotationAngle;
+                
+                // Normalize angle difference to shortest path
+                while (diff > 180) diff -= 360;
+                while (diff < -180) diff += 360;
+                
+                // Smooth interpolation with adaptive speed
+                // Use faster speed for button clicks (0.3) than hover (0.2) for better responsiveness
+                const animationSpeed = hoveredCardIndex !== null ? 0.2 : 0.3;
+                rotationAngle += diff * animationSpeed;
+                
+                // Check if we're close enough to target
+                if (Math.abs(diff) < 0.05) {
+                    rotationAngle = targetAngleForInterpolation; // Lock to exact position
+                    // Normalize rotation angle
+                    while (rotationAngle >= 360) rotationAngle -= 360;
+                    while (rotationAngle < 0) rotationAngle += 360;
+                    if (hoveredCardIndex === null && isScrollingAnimated) {
+                        // Scroll animation finished
+                        isScrollingAnimated = false;
+                        scrollTargetRotationAngle = null;
+                    }
+                }
+            }
+            
+            cards.forEach((card, index) => {
+                // Ensure card has dimensions before positioning
+                if (!card.offsetWidth || !card.offsetHeight) {
+                    // Force reflow to get dimensions
+                    card.style.display = 'none';
+                    card.offsetHeight; // Trigger reflow
+                    card.style.display = '';
+                }
+                
+                const angle = (angleStep * index + rotationAngle) * (Math.PI / 180);
+                const x = Math.sin(angle) * radius;
+                const z = Math.cos(angle) * radius;
+                
+                // Calculate opacity and scale based on z position (depth)
+                // z ranges from -radius (back) to +radius (front)
+                const normalizedZ = (z + radius) / (radius * 2); // 0 to 1
+                const opacity = 0.5 + (normalizedZ * 0.5); // 0.5 to 1
+                const scale = 0.75 + (normalizedZ * 0.25); // 0.75 to 1
+                
+                // Position card in center of carousel
+                // Use responsive card dimensions for mobile
+                const isMobile = window.innerWidth <= 768;
+                const defaultCardWidth = isMobile ? 180 : 200;
+                const defaultCardHeight = isMobile ? 180 : 200;
+                const cardWidth = card.offsetWidth || defaultCardWidth;
+                const cardHeight = card.offsetHeight || defaultCardHeight;
+                const left = (carouselWidth / 2) + x - (cardWidth / 2);
+                const top = (carouselHeight / 2) - (cardHeight / 2);
+                
+                card.style.left = `${left}px`;
+                card.style.top = `${top}px`;
+                card.style.transform = `
+                    translateZ(${z}px) 
+                    scale(${scale})
+                `;
+                card.style.opacity = opacity;
+                card.style.visibility = 'visible';
+                card.classList.add('initialized');
+                card.style.zIndex = Math.round(normalizedZ * 100);
+            });
+        }
+        
+        // Continuous update loop for hover locking and scroll animation
+        function startUpdateLoop() {
+            function update() {
+                updateCarouselPosition();
+                // Continue loop if either hover or scroll animation is active
+                if (hoveredCardIndex !== null || isScrollingAnimated) {
+                    updateLoopId = requestAnimationFrame(update);
+                } else {
+                    // If neither is active, stop the loop
+                    stopUpdateLoop();
+                }
+            }
+            if (!updateLoopId) { // Only start if not already running
+                updateLoopId = requestAnimationFrame(update);
+            }
+        }
+        
+        function stopUpdateLoop() {
+            if (updateLoopId) {
+                cancelAnimationFrame(updateLoopId);
+                updateLoopId = null;
+            }
+        }
+        
+        function lockCardToCenter(index) {
+            isScrollingAnimated = false; // Stop any ongoing scroll animation
+            scrollTargetRotationAngle = null; // Clear scroll target
+            hoveredCardIndex = index;
+            startUpdateLoop(); // Ensure the main update loop is running for hover animation
+        }
+        
+        function unlockCard() {
+            hoveredCardIndex = null;
+            // The startUpdateLoop's update function will now check if both hoveredCardIndex and isScrollingAnimated are null and stop itself.
+        }
+        
+        function scrollServices(direction) {
+            hoveredCardIndex = null; // Clear any hover lock
+            // Don't stop the update loop - let it continue for smooth rapid clicks
+            
+            const angleStep = 360 / totalCards;
+            
+            // Determine the base angle for calculation:
+            // If a scroll animation is already active, build upon its target.
+            // Otherwise, use the current rotation angle.
+            const baseAngle = isScrollingAnimated && scrollTargetRotationAngle !== null 
+                ? scrollTargetRotationAngle 
+                : rotationAngle;
+            
+            // Calculate the new target angle by moving exactly one card position
+            let newTargetAngle;
+            if (direction === 'next') {
+                newTargetAngle = baseAngle + angleStep;
+            } else {
+                newTargetAngle = baseAngle - angleStep;
+            }
+            
+            // Snap the new target to the nearest card's center position
+            // This ensures it always aligns perfectly with a card, even with rapid clicks
+            const nearestCardIndex = Math.round(newTargetAngle / angleStep);
+            scrollTargetRotationAngle = nearestCardIndex * angleStep;
+            
+            // Normalize target angle to keep it within reasonable bounds
+            while (scrollTargetRotationAngle >= 360) scrollTargetRotationAngle -= 360;
+            while (scrollTargetRotationAngle < 0) scrollTargetRotationAngle += 360;
+            
+            isScrollingAnimated = true;
+            startUpdateLoop(); // Ensure the main update loop is running to animate the scroll
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Longer delay for mobile to ensure layout is ready
+            const isMobile = window.innerWidth <= 768;
+            const delay = isMobile ? 300 : 100;
+            setTimeout(() => {
+                init3DCarousel();
+                // Force an additional update after a short delay for mobile
+                if (isMobile) {
+                    setTimeout(() => {
+                        updateCarouselPosition();
+                    }, 200);
+                }
+            }, delay);
+        });
+        
+        // Also initialize when window loads (for images)
+        window.addEventListener('load', function() {
+            if (totalCards === 0) {
+                init3DCarousel();
+            } else {
+                // Recalculate positions after all assets load
+                updateCarouselPosition();
+                // Additional update for mobile after layout settles
+                if (window.innerWidth <= 768) {
+                    setTimeout(() => {
+                        updateCarouselPosition();
+                    }, 200);
+                }
+            }
+        });
 
         // Service Modal
         function openServiceModal(id, name, description, duration, iconClass) {

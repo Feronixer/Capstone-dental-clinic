@@ -509,9 +509,11 @@
                     <div class="col-md-6 col-lg-4">
                         <div class="archive-card">
                             <!-- Delete Button -->
+                            @if(!$accessControl || $accessControl->can_delete_archives)
                             <button type="button" class="archive-delete-btn" onclick="confirmDeleteArchive({{ $archive->id }}, '{{ addslashes($archive->title) }}')" title="Delete Archive">
                                 <i class="bi bi-x-lg"></i>
                             </button>
+                            @endif
 
                             <!-- Header: Date and Ticker Badge -->
                             <div class="archive-card-header">

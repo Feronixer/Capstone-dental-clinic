@@ -768,6 +768,7 @@
     </div>
 
     <!-- Announcement Section -->
+    @if(!$accessControl || $accessControl->can_manage_announcements)
     <div class="row mb-3">
         <div class="col-12">
             <div class="card shadow-sm border-0">
@@ -889,8 +890,10 @@
             </div>
         </div>
     </div>
+    @endif
 
     <!-- Top Header Ticker Section -->
+    @if(!$accessControl || $accessControl->can_manage_announcements)
     <div class="row mb-3">
     <div class="col-12">
         <div class="card shadow-sm border-0">
@@ -949,8 +952,10 @@
         </div>
     </div>
 </div>
+    @endif
 
 <!-- Services Section (Compact Grid Table - st-*) -->
+@if(!$accessControl || $accessControl->can_manage_services)
 <div class="row mb-3">
         <div class="col-12">
             <div class="card shadow-sm border-0">
@@ -1010,8 +1015,10 @@
             </div>
         </div>
     </div>
+    @endif
 
     <!-- Patient Mail Settings Section -->
+    @if(!$accessControl || $accessControl->can_manage_mails)
     <div class="row mb-3">
         <div class="col-12">
             <div class="card shadow-sm border-0">
@@ -1331,6 +1338,7 @@
         </div>
     </div>
 </div>
+    @endif
 
 <!-- Add Service Modal -->
 <div class="modal fade" id="addServiceModal" tabindex="-1">

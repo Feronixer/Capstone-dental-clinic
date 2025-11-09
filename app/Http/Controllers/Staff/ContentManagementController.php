@@ -11,9 +11,12 @@ use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class ContentManagementController extends Controller
 {
+    use CheckStaffAccess;
+
     /**
      * Display the content management page
      */
@@ -22,8 +25,9 @@ class ContentManagementController extends Controller
         $announcement = Announcement::first();
         $services = Service::orderBy('id')->get();
         $mailTemplates = MailTemplate::all()->keyBy('type');
+        $accessControl = Auth::guard('staff')->user()->accessControl ?? null;
 
-        return view("staff.content-management", compact('announcement', 'services', 'mailTemplates'));
+        return view("staff.content-management", compact('announcement', 'services', 'mailTemplates', 'accessControl'));
     }
 
     /**
@@ -34,8 +38,9 @@ class ContentManagementController extends Controller
         $archives = AnnouncementArchive::with('archivedBy')
             ->orderBy('archived_at', 'desc')
             ->paginate(9);
+        $accessControl = Auth::guard('staff')->user()->accessControl ?? null;
 
-        return view("staff.announcement-archives", compact('archives'));
+        return view("staff.announcement-archives", compact('archives', 'accessControl'));
     }
 
     /**
@@ -43,6 +48,14 @@ class ContentManagementController extends Controller
      */
     public function deleteArchive($id)
     {
+        // Check if staff has permission to delete archives
+        if (!$this->can('delete_archives')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You do not have permission to delete archives.'
+            ], 403);
+        }
+
         try {
             $archive = AnnouncementArchive::findOrFail($id);
 

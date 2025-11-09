@@ -12,7 +12,7 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: Poppins;
             font-size: 10pt;
             color: #1e293b;
             line-height: 1.7;

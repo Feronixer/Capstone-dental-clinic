@@ -148,7 +148,17 @@
         @media (max-width: 576px) {
             .scroll-to-top-btn {
                 right: 16px;
-                bottom: 75px;
+                bottom: 100px;
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .scroll-to-top-btn {
+                right: 16px;
+                bottom: 100px;
                 width: 40px;
                 height: 40px;
                 font-size: 1rem;
@@ -289,14 +299,54 @@
             if (darkModeIcon) {
                 darkModeIcon.className = newTheme === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
             }
+            
+            // Update desktop profile dropdown switch
+            const dmSwitch = document.getElementById('patientDarkModeSwitch');
+            if (dmSwitch) {
+                dmSwitch.checked = newTheme === 'dark';
+            }
+            
+            // Update desktop profile dropdown labels
+            const dmIcon = document.getElementById('dmLabelIcon');
+            const dmText = document.getElementById('dmLabelText');
+            if (dmIcon && dmText) {
+                if (newTheme === 'dark') {
+                    dmIcon.className = 'bi bi-sun me-2';
+                    dmText.textContent = 'Light Mode';
+                } else {
+                    dmIcon.className = 'bi bi-moon-stars me-2';
+                    dmText.textContent = 'Dark Mode';
+                }
+            }
+            
+            // Update mobile menu switch
+            const mobileDmSwitch = document.getElementById('mobilePatientDarkModeSwitch');
+            if (mobileDmSwitch) {
+                mobileDmSwitch.checked = newTheme === 'dark';
+            }
+            
+            // Update mobile menu labels
+            const mobileDmIcon = document.getElementById('mobileDmLabelIcon');
+            const mobileDmText = document.getElementById('mobileDmLabelText');
+            if (mobileDmIcon && mobileDmText) {
+                if (newTheme === 'dark') {
+                    mobileDmIcon.className = 'bi bi-sun';
+                    mobileDmText.textContent = 'Light Mode';
+                } else {
+                    mobileDmIcon.className = 'bi bi-moon-stars';
+                    mobileDmText.textContent = 'Dark Mode';
+                }
+            }
         }
 
         // Update icon on page load
         document.addEventListener('DOMContentLoaded', function() {
             const currentTheme = document.documentElement.getAttribute('data-theme');
+            const isDark = currentTheme === 'dark';
+            
             const darkModeIcon = document.getElementById('darkModeIcon');
             if (darkModeIcon) {
-                darkModeIcon.className = currentTheme === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
+                darkModeIcon.className = isDark ? 'bi bi-sun' : 'bi bi-moon-stars';
             }
 
             // Update navigation icons
@@ -304,7 +354,7 @@
             darkModeLinks.forEach(link => {
                 const icon = link.querySelector('i');
                 const span = link.querySelector('span');
-                if (currentTheme === 'dark') {
+                if (isDark) {
                     if (icon) icon.className = 'bi bi-sun';
                     if (span) span.textContent = 'Light Mode';
                 } else {
@@ -312,6 +362,44 @@
                     if (span) span.textContent = 'Dark Mode';
                 }
             });
+            
+            // Update desktop profile dropdown switch
+            const dmSwitch = document.getElementById('patientDarkModeSwitch');
+            if (dmSwitch) {
+                dmSwitch.checked = isDark;
+            }
+            
+            // Update desktop profile dropdown labels
+            const dmIcon = document.getElementById('dmLabelIcon');
+            const dmText = document.getElementById('dmLabelText');
+            if (dmIcon && dmText) {
+                if (isDark) {
+                    dmIcon.className = 'bi bi-sun me-2';
+                    dmText.textContent = 'Light Mode';
+                } else {
+                    dmIcon.className = 'bi bi-moon-stars me-2';
+                    dmText.textContent = 'Dark Mode';
+                }
+            }
+            
+            // Update mobile menu switch
+            const mobileDmSwitch = document.getElementById('mobilePatientDarkModeSwitch');
+            if (mobileDmSwitch) {
+                mobileDmSwitch.checked = isDark;
+            }
+            
+            // Update mobile menu labels
+            const mobileDmIcon = document.getElementById('mobileDmLabelIcon');
+            const mobileDmText = document.getElementById('mobileDmLabelText');
+            if (mobileDmIcon && mobileDmText) {
+                if (isDark) {
+                    mobileDmIcon.className = 'bi bi-sun';
+                    mobileDmText.textContent = 'Light Mode';
+                } else {
+                    mobileDmIcon.className = 'bi bi-moon-stars';
+                    mobileDmText.textContent = 'Dark Mode';
+                }
+            }
         });
     </script>
 </body>

@@ -44,6 +44,9 @@ class PatientHistory extends Model
         'is_pregnant',
         'is_nursing',
         'birth_control',
+        // Creator tracking
+        'created_by_user_id',
+        'created_by_role',
         // Procedure Details
         'procedure_performed',
         'materials_used',
@@ -69,6 +72,11 @@ class PatientHistory extends Model
     public function patientRecord()
     {
         return $this->belongsTo(PatientRecord::class);
+    }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by_user_id');
     }
 
     // Convenience: get the owning user's id via patient record

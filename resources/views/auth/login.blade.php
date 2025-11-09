@@ -76,7 +76,7 @@
                         <i class="bi bi-key me-1"></i>Forgot Password?
                     </a>
                 </div>
-                <div class="text-center mt-5 pt-2">
+                <div class="text-center mt-5">
                     <a href="/" class="text-muted">
                         <i class="bi bi-arrow-left me-1"></i>Back to Homepage
                     </a>
@@ -106,6 +106,79 @@ document.addEventListener('DOMContentLoaded', function() {
             toggleIcon.classList.toggle('bi-eye-slash');
         });
     }
+
+    // Handle mobile keyboard appearance
+    const inputs = document.querySelectorAll('.login-card-content input[type="text"], .login-card-content input[type="password"], .login-card-content input[type="email"]');
+    const loginCardContent = document.querySelector('.login-card-content');
+    
+    inputs.forEach(function(input) {
+        // Scroll input into view when focused (for mobile keyboards)
+        input.addEventListener('focus', function() {
+            // Small delay to allow keyboard to appear first
+            setTimeout(function() {
+                if (window.innerHeight < 600) { // Likely mobile device
+                    input.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center',
+                        inline: 'nearest'
+                    });
+                }
+            }, 300);
+        });
+
+        // Prevent layout shift when keyboard appears
+        input.addEventListener('blur', function() {
+            // Reset scroll position if needed
+            if (window.innerHeight < 600) {
+                setTimeout(function() {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }, 100);
+            }
+        });
+    });
+
+    // Handle viewport resize (keyboard show/hide)
+    let viewportHeight = window.innerHeight;
+    window.addEventListener('resize', function() {
+        const currentHeight = window.innerHeight;
+        const heightDifference = viewportHeight - currentHeight;
+        
+        // If viewport shrunk significantly, keyboard likely appeared
+        if (heightDifference > 150 && loginCardContent) {
+            const activeElement = document.activeElement;
+            if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
+                setTimeout(function() {
+                    activeElement.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center',
+                        inline: 'nearest'
+                    });
+                }, 100);
+            }
+        }
+        
+        viewportHeight = currentHeight;
+    });
+
+    // Prevent body scroll on mobile when keyboard is open
+    let isKeyboardOpen = false;
+    inputs.forEach(function(input) {
+        input.addEventListener('focus', function() {
+            if (window.innerWidth <= 768) {
+                isKeyboardOpen = true;
+                document.body.style.overflow = 'hidden';
+            }
+        });
+
+        input.addEventListener('blur', function() {
+            if (isKeyboardOpen) {
+                setTimeout(function() {
+                    document.body.style.overflow = '';
+                    isKeyboardOpen = false;
+                }, 100);
+            }
+        });
+    });
 });
 </script>
 @endsection

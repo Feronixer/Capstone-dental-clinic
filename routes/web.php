@@ -41,11 +41,11 @@ Route::get('/about-us', function() {
     return view('about-us', compact('chatbotSetting', 'chatbotFaqs'));
 })->name('about-us');
 Route::get('/announcements', [HomeController::class,"showAnnouncement"])->name('announcements');
-Route::get('/login', [AuthController::class, 'showLoginForm'])->name(name: 'login');
+Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class,'login']);
 Route::get('/change-password', [AuthController::class, 'showChangePasswordForm'])->name('password.change')->middleware('auth');
 Route::post('/change-password', [AuthController::class, 'changePassword'])->name('password.change.submit')->middleware('auth');
-Route::get('/register', [AuthController::class,'showRegisterForm'])->name(name: 'register');
+Route::get('/register', [AuthController::class,'showRegisterForm'])->name('register');
 Route::post('/register', [AuthController::class,'register']);
 
 // Patient Password Reset Routes
@@ -93,6 +93,13 @@ Route::middleware(['auth:admin'])->group(function(): void{
     Route::delete('/admin/account-management/users/{id}', [AccountManagementController::class, 'destroy'])->name('users.delete');
     Route::post('/admin/account-management/users/change-password/{id}', [AccountManagementController::class,'changePasswword']);
     Route::post('/admin/account-management/{id}/reveal-email', [AccountManagementController::class,'revealEmail'])->name('admin-account-management.reveal-email');
+    Route::post('/admin/account-management/verify-password', [AccountManagementController::class,'verifyPassword'])->name('admin-account-management.verify-password');
+
+    // Staff Access Control Routes
+    Route::get('/admin/staff-access-control', [App\Http\Controllers\Admin\StaffAccessControlController::class, 'index'])->name('admin-staff-access-control');
+    Route::post('/admin/staff-access-control/verify-password', [App\Http\Controllers\Admin\StaffAccessControlController::class, 'verifyPassword'])->name('admin-staff-access-control.verify-password');
+    Route::put('/admin/staff-access-control/{staffId}', [App\Http\Controllers\Admin\StaffAccessControlController::class, 'update'])->name('admin-staff-access-control.update');
+    Route::get('/admin/staff-access-control/{staffId}', [App\Http\Controllers\Admin\StaffAccessControlController::class, 'show'])->name('admin-staff-access-control.show');
 
 
     Route::get('/admin/appointment', [AppointmentController::class,'index'])->name('admin-appointment');
@@ -150,6 +157,7 @@ Route::middleware(['auth:admin'])->group(function(): void{
     Route::put('/admin/post-procedural/progress-notes/{id}', [PostProceduralController::class,'updateProgressNote']);
     Route::post('/admin/post-procedural/store-progress-notes', [PostProceduralController::class,'storeProgressNotes']);
     Route::delete('/admin/post-procedural/progress-notes/{id}', [PostProceduralController::class,'destroyProgressNote']);
+    Route::get('/admin/post-procedural/progress-notes/{recordId}/download', [PostProceduralController::class,'downloadProgressNotes']);
     Route::get('/admin/toothtalk', [ToothTalkController::class,'index'])->name('admin-toothtalk');
     Route::post('/admin/toothtalk/settings', [ToothTalkController::class,'saveSettings'])->name('admin-toothtalk.settings.save');
     Route::post('/admin/toothtalk/faq', [ToothTalkController::class,'storeFaq'])->name('admin-toothtalk.faq.store');
@@ -260,8 +268,13 @@ Route::middleware(['auth:staff', \App\Http\Middleware\LogStaffActivity::class])-
     Route::put('/staff/post-procedural/progress-notes/{id}', [StaffPostProceduralController::class,'updateProgressNote']);
     Route::post('/staff/post-procedural/store-progress-notes', [StaffPostProceduralController::class,'storeProgressNotes']);
     Route::delete('/staff/post-procedural/progress-notes/{id}', [StaffPostProceduralController::class,'destroyProgressNote']);
+    Route::get('/staff/post-procedural/progress-notes/{recordId}/download', [StaffPostProceduralController::class,'downloadProgressNotes']);
+    Route::post('/staff/post-procedural/verify-password', [StaffPostProceduralController::class,'verifyPassword'])->name('staff-post-procedural.verify-password');
 
     Route::get('/staff/dashboard',[StaffDashboard::class, 'index'])->name('staff-dashboard');
+
+    // Staff ToothTalk Routes
+    Route::get('/staff/toothtalk', [App\Http\Controllers\Staff\ToothTalkController::class, 'index'])->name('staff-toothtalk');
 
     // Staff Account Management Routes (Patient accounts only)
     Route::get('/staff/account-management', [StaffAccountManagementController::class,'index'])->name('staff-account-management');
@@ -271,6 +284,7 @@ Route::middleware(['auth:staff', \App\Http\Middleware\LogStaffActivity::class])-
     Route::delete('/staff/account-management/users/{id}', [StaffAccountManagementController::class, 'destroy'])->name('staff.users.delete');
     Route::post('/staff/account-management/users/change-password/{id}', [StaffAccountManagementController::class,'changePasswword']);
     Route::post('/staff/account-management/{id}/reveal-email', [StaffAccountManagementController::class,'revealEmail'])->name('staff-account-management.reveal-email');
+    Route::post('/staff/account-management/verify-password', [StaffAccountManagementController::class,'verifyPassword'])->name('staff-account-management.verify-password');
 
     // Staff Appointment Routes (No delete permission)
     Route::get('/staff/appointment', [App\Http\Controllers\Staff\AppointmentController::class,'index'])->name('staff-appointment');

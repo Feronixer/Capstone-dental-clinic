@@ -1,8 +1,3 @@
-<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
-    <i class="bi bi-person-plus-fill"></i>
-    <p class="d-inline ms-1">Add User</p>
-</button>
-
 {{-- Pagination --}}
 <div class="d-flex justify-content-end align-items-center gap-2 flex-wrap">
     {{-- Showing Data --}}

@@ -231,6 +231,29 @@ class AccountManagementController extends Controller
     }
 
     /**
+     * Verify staff password before allowing access to edit user
+     */
+    public function verifyPassword(Request $request)
+    {
+        $request->validate([
+            'password' => 'required|string'
+        ]);
+
+        $staff = Auth::guard('staff')->user();
+        if (!$staff || !Hash::check($request->password, $staff->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Incorrect password. Please try again.'
+            ], 403);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password verified successfully.'
+        ]);
+    }
+
+    /**
      * Remove the specified resource from storage - RESTRICTED FOR STAFF
      */
     public function destroy(string $id)

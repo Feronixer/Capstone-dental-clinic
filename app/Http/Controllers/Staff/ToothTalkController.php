@@ -3,63 +3,43 @@
 namespace App\Http\Controllers\Staff;
 
 use App\Http\Controllers\Controller;
+use App\Models\ChatbotFaq;
+use App\Models\ChatbotSetting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 
 class ToothTalkController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        return view("staff.toothtalk");
-    }
+    use CheckStaffAccess;
 
     /**
-     * Show the form for creating a new resource.
+     * Display the ToothTalk chatbot configuration page.
      */
-    public function create()
+    public function index(): View
     {
-        //
-    }
+        if (!Auth::guard('staff')->check()) {
+            return redirect()->route('staff.login')->withErrors(['error' => 'Please login as staff to access this page.']);
+        }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
+        $user = Auth::guard('staff')->user();
+        if ($user->role_id !== 2) {
+            Auth::guard('staff')->logout();
+            return redirect()->route('staff.login')->withErrors(['error' => 'Access denied. This portal is for staff members only.']);
+        }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
+        // Check access control
+        $accessCheck = $this->requireNavAccess('toothtalk');
+        if ($accessCheck) {
+            return $accessCheck;
+        }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        $setting = ChatbotSetting::first() ?? ChatbotSetting::create([
+            'enabled' => true,
+            'welcome_message' => '',
+            'quick_intents' => [],
+        ]);
+        $faqs = ChatbotFaq::orderBy('order')->get();
+        return view('staff.toothtalk', compact('setting', 'faqs'));
     }
 }

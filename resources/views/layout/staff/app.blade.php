@@ -208,7 +208,7 @@
         }
     </style>
 </head>
-<body class="admin-body">
+<body class="staff-body">
     {{-- Navigation Menu --}}
     @include('layout.staff.navigation')
     {{-- Main Content --}}

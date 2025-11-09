@@ -17,13 +17,13 @@
     z-index: 1001 !important;
 }
 
-/* Mobile menu should be below modals */
+/* Mobile menu should be below modals and behind hamburger button */
 .mobile-menu-backdrop {
-    z-index: 1039 !important;
+    z-index: 1037 !important;
 }
 
 .mobile-menu-overlay {
-    z-index: 1040 !important;
+    z-index: 1038 !important;
 }
 
 .mobile-menu-toggle.fixed-open {
@@ -1620,76 +1620,129 @@
         padding: 0.75rem;
     }
     
-    /* Calendar Grid - Better mobile spacing */
+    /* Calendar Grid - Better mobile spacing - Compact layout */
     .calendar-header-row {
-        gap: 2px;
+        gap: 1px;
     }
     
     .calendar-week {
-        gap: 2px;
+        gap: 1px;
     }
     
     .calendar-body {
-        gap: 2px;
+        gap: 1px;
     }
     
     .calendar-day {
-        min-height: 90px;
-        padding: 0.5rem;
+        min-height: 75px;
+        padding: 0.35rem;
+        position: relative;
     }
     
     .day-number {
-        font-size: 0.875rem;
-        top: 0.4rem;
-        left: 0.4rem;
+        font-size: 0.8rem;
+        top: 0.3rem;
+        left: 0.3rem;
         font-weight: 700;
+        color: #1e293b;
+        z-index: 3;
+        position: absolute;
+    }
+    
+    .calendar-day.today .day-number {
+        color: white;
+    }
+    
+    /* Event count badges - Make them more visible on mobile */
+    .event-count-badge {
+        width: 20px;
+        height: 20px;
+        font-size: 0.65rem;
+        margin: 0.1rem;
+        position: absolute;
+        top: 0.3rem;
+        right: 0.3rem;
+        z-index: 4;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* Multiple badges positioning */
+    .calendar-day .event-count-badge:nth-of-type(1) {
+        top: 0.3rem;
+        right: 0.3rem;
+    }
+    
+    .calendar-day .event-count-badge:nth-of-type(2) {
+        top: 0.3rem;
+        right: 1.6rem;
+    }
+    
+    .calendar-day .event-count-badge:nth-of-type(3) {
+        top: 0.3rem;
+        right: 2.9rem;
     }
     
     .day-events {
-        margin-top: 1.75rem;
-        gap: 0.35rem;
+        margin-top: 1.5rem;
+        gap: 0.25rem;
+        padding-top: 0.2rem;
     }
     
     .event-item {
-        padding: 0.5rem 0.5rem;
-        font-size: 0.75rem;
-        min-height: 2.5rem;
-        line-height: 1.4;
-    }
-    
-    .event-time {
+        padding: 0.35rem 0.4rem;
         font-size: 0.7rem;
-        font-weight: 600;
-        margin-bottom: 0.25rem;
-    }
-    
-    .event-title {
-        font-size: 0.7rem;
+        min-height: 2rem;
         line-height: 1.3;
     }
     
-    .fully-booked-indicator {
-        top: 0.4rem;
-        right: 0.4rem;
-        padding: 0.35rem 0.6rem;
+    .event-time {
         font-size: 0.65rem;
-        max-width: calc(100% - 3rem);
+        font-weight: 600;
+        margin-bottom: 0.15rem;
+    }
+    
+    .event-title {
+        font-size: 0.65rem;
+        line-height: 1.2;
+    }
+    
+    .fully-booked-indicator {
+        top: 0.3rem;
+        right: 0.3rem;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.6rem;
+        max-width: calc(100% - 2.5rem);
+        z-index: 5;
+        box-shadow: 0 2px 4px rgba(239, 68, 68, 0.4);
     }
     
     .calendar-day.fully-booked .day-events {
-        margin-top: 2.75rem;
+        margin-top: 2.2rem;
         padding-right: 0;
     }
     
     .calendar-day.fully-booked .day-number {
-        max-width: calc(100% - 7rem);
+        max-width: calc(100% - 6rem);
+        color: #1e293b;
+    }
+    
+    /* Hide event count badges when fully booked indicator is present */
+    .calendar-day.fully-booked .event-count-badge {
+        display: none;
     }
     
     .event-more-indicator {
-        padding: 0.5rem 0.6rem;
-        font-size: 0.7rem;
-        margin-top: 0.5rem;
-        min-height: 44px;
+        padding: 0.4rem 0.5rem;
+        font-size: 0.65rem;
+        margin-top: 0.4rem;
+        min-height: 36px;
+    }
+    
+    /* Calendar header cells - More compact */
+    .calendar-header-cell {
+        padding: 0.5rem 0.3rem;
+        font-size: 0.65rem;
+        font-weight: 700;
     }
 
     /* Navigation buttons - Better touch targets */
@@ -1884,7 +1937,7 @@
     .day-events {
         overflow-y: auto;
         overflow-x: hidden;
-        max-height: calc(90px - 2.5rem);
+        max-height: calc(75px - 2rem);
     }
 }
 
@@ -1900,33 +1953,66 @@
     }
     
     .calendar-day {
-        min-height: 85px;
-        padding: 0.4rem;
+        min-height: 70px;
+        padding: 0.3rem;
     }
     
     .day-number {
-        font-size: 0.8rem;
-        top: 0.35rem;
-        left: 0.35rem;
+        font-size: 0.75rem;
+        top: 0.25rem;
+        left: 0.25rem;
+        color: #1e293b;
+    }
+    
+    .calendar-day.today .day-number {
+        color: white;
+    }
+    
+    /* Event count badges - Smaller on very small screens */
+    .event-count-badge {
+        width: 18px;
+        height: 18px;
+        font-size: 0.6rem;
+        top: 0.25rem;
+        right: 0.25rem;
+    }
+    
+    .calendar-day .event-count-badge:nth-of-type(2) {
+        right: 1.4rem;
+    }
+    
+    .calendar-day .event-count-badge:nth-of-type(3) {
+        right: 2.55rem;
     }
     
     .event-item {
-        padding: 0.45rem 0.45rem;
-        font-size: 0.7rem;
-        min-height: 2.25rem;
+        padding: 0.3rem 0.35rem;
+        font-size: 0.65rem;
+        min-height: 1.75rem;
     }
     
     .event-time {
-        font-size: 0.65rem;
+        font-size: 0.6rem;
     }
     
     .event-title {
-        font-size: 0.65rem;
+        font-size: 0.6rem;
+    }
+    
+    .fully-booked-indicator {
+        top: 0.25rem;
+        right: 0.25rem;
+        padding: 0.2rem 0.4rem;
+        font-size: 0.55rem;
     }
     
     .calendar-header-cell {
-        padding: 0.5rem 0.25rem;
-        font-size: 0.65rem;
+        padding: 0.4rem 0.2rem;
+        font-size: 0.6rem;
+    }
+    
+    .day-events {
+        max-height: calc(70px - 1.75rem);
     }
     
     .period-title {

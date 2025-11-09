@@ -14,7 +14,7 @@
         <td class="align-middle text-center">{{ $user->created_at ?? 'N/A' }}</td>
         <td class="text-center">
             <div class="d-inline">
-                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editUserModal" data-id="{{ $user->id }}">
+                <button class="btn btn-primary btn-sm edit-user-btn" data-id="{{ $user->id }}">
                     <i class="bi bi-pencil"></i>
                 </button>
                 {{-- <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#changePasswordModal" data-id="{{ $user->id }}">

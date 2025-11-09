@@ -1,67 +1,125 @@
 @if(!empty($chatbotSetting) && $chatbotSetting->enabled)
 <style>
     .chatbot-toggle-btn {
-        position: fixed !important;
-        right: 24px !important;
-        left: auto !important;
-        bottom: 24px !important;
-        width: 60px;
-        height: 60px;
+        position: fixed;
+        right: 24px;
+        left: auto;
+        bottom: 24px;
+        width: 64px;
+        height: 64px;
         border-radius: 50%;
-        background: #2196F3;
+        background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
         color: #fff;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 10px 30px rgba(33, 150, 243, 0.4);
-        cursor: pointer;
+        box-shadow: 0 8px 24px rgba(33, 150, 243, 0.4), 0 0 0 0 rgba(33, 150, 243, 0.7);
+        cursor: move;
+        user-select: none;
+        touch-action: none;
         z-index: 1000;
-        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-        padding: 8px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, opacity 0.2s ease;
+        padding: 0;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        animation: bubblePulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes bubblePulse {
+        0%, 100% {
+            transform: scale(1);
+            box-shadow: 0 8px 24px rgba(33, 150, 243, 0.4), 0 0 0 0 rgba(33, 150, 243, 0.7);
+        }
+        50% {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(33, 150, 243, 0.5), 0 0 0 8px rgba(33, 150, 243, 0);
+        }
+    }
+    
+    /* Stop pulse animation when widget is open */
+    .chatbot-widget.open ~ .chatbot-toggle-btn,
+    .chatbot-toggle-btn:has(+ .chatbot-widget.open) {
+        animation: none;
+    }
+    
+    .chatbot-toggle-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 12px 36px rgba(33, 150, 243, 0.5), 0 0 0 4px rgba(33, 150, 243, 0.3);
+        animation: none;
+    }
+    
+    .chatbot-toggle-btn.dragging {
+        cursor: grabbing;
+        transition: none;
+        box-shadow: 0 15px 40px rgba(33, 150, 243, 0.6), 0 0 0 6px rgba(33, 150, 243, 0.2);
+        animation: none;
+        transform: scale(1.1);
+    }
+    
+    .chatbot-toggle-btn:active {
+        transform: scale(0.95);
+    }
+    
+    .chatbot-toggle-btn.dragged {
+        /* When dragged, allow inline styles to override */
+        right: auto !important;
+        bottom: auto !important;
+        left: auto !important;
+        top: auto !important;
+    }
+    
+    .chatbot-toggle-btn.dragged[style*="left"] {
+        right: auto !important;
+    }
+    
+    .chatbot-toggle-btn.dragged[style*="right"] {
+        left: auto !important;
     }
 
     .chatbot-unread-badge {
         position: absolute;
-        top: -5px;
-        right: -5px;
-        min-width: 20px;
-        height: 20px;
-        padding: 0 5px;
+        top: -2px;
+        right: -2px;
+        min-width: 22px;
+        height: 22px;
+        padding: 0 6px;
         background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
         color: white;
-        border-radius: 10px;
+        border-radius: 11px;
         font-size: 0.7rem;
         font-weight: 700;
         display: flex;
         align-items: center;
         justify-content: center;
-        border: 2px solid white;
-        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.5);
+        border: 3px solid white;
+        box-shadow: 0 3px 10px rgba(239, 68, 68, 0.6), 0 0 0 2px rgba(239, 68, 68, 0.3);
         z-index: 10;
-        animation: badgePulse 2s ease-in-out infinite;
+        animation: badgePulse 1.5s ease-in-out infinite;
     }
 
     @keyframes badgePulse {
         0%, 100% {
             transform: scale(1);
-            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.5);
+            box-shadow: 0 3px 10px rgba(239, 68, 68, 0.6), 0 0 0 2px rgba(239, 68, 68, 0.3);
         }
         50% {
-            transform: scale(1.1);
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.7);
+            transform: scale(1.15);
+            box-shadow: 0 4px 14px rgba(239, 68, 68, 0.8), 0 0 0 4px rgba(239, 68, 68, 0.4);
         }
     }
-
-    .chatbot-toggle-btn:hover {
-        transform: translateY(-2px) scale(1.05);
-        box-shadow: 0 14px 36px rgba(33, 150, 243, 0.45);
-        background: #1976D2;
-    }
-
     .chatbot-toggle-btn img {
-        width: 100%;
-        height: 100%;
+        width: 70%;
+        height: 70%;
         object-fit: contain;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+        transition: transform 0.2s ease;
+    }
+    
+    .chatbot-toggle-btn:hover img {
+        transform: scale(1.1);
+    }
+    
+    .chatbot-toggle-btn.dragging img {
+        transform: scale(1.05);
     }
 
     .chatbot-widget {
@@ -69,26 +127,77 @@
         right: 24px !important;
         left: auto !important;
         bottom: 92px !important;
-        width: 340px;
+        width: 360px;
         max-width: calc(100vw - 32px);
-        border-radius: 16px;
+        border-radius: 20px 20px 4px 20px;
         background: #ffffff;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.05);
+        overflow: visible;
         display: none;
         flex-direction: column;
         z-index: 1000;
+        opacity: 0;
+        transform: scale(0.8) translateY(20px);
+        transform-origin: bottom right;
+        transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), border-radius 0.3s ease;
     }
 
-    .chatbot-widget.open { display: flex; }
+    .chatbot-widget.open { 
+        display: flex;
+        opacity: 1;
+        transform: scale(1) translateY(0);
+        animation: widgetBounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    
+    @keyframes widgetBounce {
+        0% {
+            opacity: 0;
+            transform: scale(0.6) translateY(30px);
+        }
+        60% {
+            transform: scale(1.05) translateY(-5px);
+        }
+        100% {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    }
+    
+    /* Chat bubble tail effect - points to the button (right side) */
+    .chatbot-widget::before {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        right: 24px;
+        width: 0;
+        height: 0;
+        border-left: 10px solid transparent;
+        border-right: 10px solid transparent;
+        border-top: 10px solid #ffffff;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        transition: right 0.3s ease, left 0.3s ease;
+    }
+    
+    /* Adjust tail position when widget is on left side */
+    .chatbot-widget.align-left::before {
+        right: auto;
+        left: 24px;
+    }
+    
+    /* Adjust border radius for left-aligned widget */
+    .chatbot-widget.align-left {
+        border-radius: 20px 20px 20px 4px;
+    }
 
     .chatbot-header {
         background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
         color: #fff;
-        padding: 14px 16px;
+        padding: 16px 18px;
         display: flex;
         align-items: center;
         justify-content: space-between;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
     .chatbot-title {
@@ -109,37 +218,89 @@
     .chatbot-body {
         display: flex;
         flex-direction: column;
-        gap: 10px;
-        padding: 12px;
+        gap: 0;
+        padding: 0;
+        overflow: hidden;
+        background: #f8f9fa;
+        border-radius: inherit;
     }
 
     .chatbot-messages {
-        height: 280px;
+        height: 320px;
         overflow-y: auto;
-        padding-right: 4px;
+        overflow-x: hidden;
+        padding: 16px;
         display: flex;
         flex-direction: column;
-        gap: 8px;
-        border-bottom: 1px solid #eef2f5;
+        gap: 12px;
+        background: #f8f9fa;
+        flex: 1;
+    }
+    
+    /* Custom scrollbar for messages */
+    .chatbot-messages::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .chatbot-messages::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    
+    .chatbot-messages::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 3px;
+    }
+    
+    .chatbot-messages::-webkit-scrollbar-thumb:hover {
+        background: rgba(0, 0, 0, 0.3);
     }
 
     .message {
-        max-width: 82%;
-        padding: 10px 12px;
-        border-radius: 14px;
-        font-size: 0.92rem;
-        line-height: 1.6rem;
+        max-width: 75%;
+        padding: 12px 16px;
+        border-radius: 18px;
+        font-size: 0.9rem;
+        line-height: 1.5rem;
         word-wrap: break-word;
         word-break: break-word;
         white-space: pre-wrap;
+        position: relative;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        animation: messageSlideIn 0.3s ease-out;
+    }
+    
+    @keyframes messageSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     .message.bot {
-        background: #f5f9ff;
-        color: #263238;
-        border: 1px solid #e3f2fd;
+        background: #ffffff;
+        color: #1f2937;
+        border: none;
         align-self: flex-start;
         text-align: left;
+        border-top-left-radius: 4px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    }
+    
+    /* Add tail to bot messages */
+    .message.bot::before {
+        content: '';
+        position: absolute;
+        left: -8px;
+        bottom: 0;
+        width: 0;
+        height: 0;
+        border-right: 8px solid #ffffff;
+        border-bottom: 8px solid transparent;
+        border-top: 8px solid transparent;
     }
 
     .message.bot .bullet-item {
@@ -157,9 +318,24 @@
     }
 
     .message.user {
-        background: #2196F3;
+        background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
         color: #fff;
         align-self: flex-end;
+        border-top-right-radius: 4px;
+        box-shadow: 0 1px 2px rgba(33, 150, 243, 0.3);
+    }
+    
+    /* Add tail to user messages */
+    .message.user::after {
+        content: '';
+        position: absolute;
+        right: -8px;
+        bottom: 0;
+        width: 0;
+        height: 0;
+        border-left: 8px solid #2196F3;
+        border-bottom: 8px solid transparent;
+        border-top: 8px solid transparent;
     }
 
     .chips {
@@ -169,63 +345,111 @@
     }
 
     .chip {
-        background: #e3f2fd;
+        background: #ffffff;
         color: #1976D2;
-        border: 1px solid #bbdefb;
-        padding: 6px 10px;
-        border-radius: 999px;
-        font-size: 0.85rem;
+        border: 1px solid #e3f2fd;
+        padding: 10px 16px;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 500;
         cursor: pointer;
-        transition: background 0.2s ease, transform 0.1s ease;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
 
-    .chip:hover { background: #d2e9fb; transform: translateY(-1px); }
+    .chip:hover { 
+        background: #e3f2fd; 
+        transform: translateY(-2px);
+        box-shadow: 0 2px 6px rgba(33, 150, 243, 0.2);
+        border-color: #90caf9;
+    }
+    
+    .chip:active {
+        transform: translateY(0);
+    }
 
     .chatbot-input {
         display: flex;
         align-items: center;
-        gap: 8px;
-        padding: 8px 0 0;
+        gap: 10px;
+        padding: 12px 16px;
+        background: #ffffff;
+        border-top: 1px solid #e5e7eb;
     }
 
     .chatbot-input input[type="text"] {
         flex: 1;
-        padding: 10px 12px;
-        border: 1px solid #dfe7ef;
-        border-radius: 10px;
+        padding: 12px 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 24px;
         outline: none;
-        transition: border 0.2s ease, box-shadow 0.2s ease;
+        transition: all 0.2s ease;
+        background: #f9fafb;
+        font-size: 0.9rem;
+        color: #1f2937;
+    }
+    
+    .chatbot-input input[type="text"]::placeholder {
+        color: #9ca3af;
     }
 
     .chatbot-input input[type="text"]:focus {
-        border: 1px solid #90caf9;
-        box-shadow: 0 0 0 3px rgba(144,202,249,0.25);
+        border: 1px solid #2196F3;
+        background: #ffffff;
+        box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
     }
 
     .send-btn {
-        background: #2196F3;
+        background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
         color: #fff;
         border: none;
-        padding: 10px 12px;
-        border-radius: 10px;
+        padding: 12px;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
         cursor: pointer;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        transition: background 0.2s ease, transform 0.2s ease;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+        flex-shrink: 0;
     }
 
-    .send-btn:hover { background: #1976D2; }
+    .send-btn:hover { 
+        background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
+    }
+    
+    .send-btn:active {
+        transform: scale(0.95);
+    }
 
     .typing-indicator {
         display: inline-flex;
         align-items: center;
         gap: 4px;
-        padding: 10px 14px;
-        background: #E3F2FD;
-        border-radius: 16px;
-        margin-bottom: 8px;
+        padding: 12px 16px;
+        background: #ffffff;
+        border-radius: 18px;
+        border-top-left-radius: 4px;
+        margin-bottom: 0;
         max-width: fit-content;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+        position: relative;
+    }
+    
+    .typing-indicator::before {
+        content: '';
+        position: absolute;
+        left: -8px;
+        bottom: 0;
+        width: 0;
+        height: 0;
+        border-right: 8px solid #ffffff;
+        border-bottom: 8px solid transparent;
+        border-top: 8px solid transparent;
     }
 
     .typing-indicator span {
@@ -245,58 +469,133 @@
     }
 
     @media (max-width: 480px) {
-        .chatbot-toggle-btn {
+        .chatbot-toggle-btn:not(.dragged):not([style*="left"]) {
             right: 16px !important;
             left: auto !important;
             bottom: 16px !important;
+            top: auto !important;
+        }
+        .chatbot-toggle-btn {
+            opacity: 0.5;
+            width: 60px;
+            height: 60px;
+        }
+        .chatbot-toggle-btn.clicked {
+            opacity: 1;
         }
         .chatbot-widget { 
-            right: 16px !important; 
             left: 16px !important; 
             width: auto; 
+            border-radius: 20px 20px 4px 20px;
+        }
+        .chatbot-widget:not([style*="bottom"]) {
+            right: 16px !important;
             bottom: 88px !important;
         }
-        .chatbot-messages { height: 240px; }
+        .chatbot-widget::before {
+            right: 20px;
+            left: auto;
+        }
+        .chatbot-messages { 
+            height: 280px; 
+            padding: 12px;
+        }
+        
+        .message {
+            max-width: 85%;
+            padding: 10px 14px;
+            font-size: 0.875rem;
+        }
+        
+        .chatbot-input {
+            padding: 10px 12px;
+        }
+        
+        .chatbot-input input[type="text"] {
+            padding: 10px 14px;
+            font-size: 0.875rem;
+        }
+        
+        .send-btn {
+            width: 40px;
+            height: 40px;
+            padding: 10px;
+        }
     }
 
     .chatbot-tabs {
         display: flex;
-        gap: 8px;
-        margin-top: 8px;
-        padding-top: 8px;
-        border-top: 1px solid #eef2f5;
+        gap: 0;
+        padding: 8px;
+        background: #ffffff;
+        border-top: 1px solid #e5e7eb;
     }
 
     .chatbot-tab {
         flex: 1;
-        padding: 8px 12px;
-        border: 1px solid #dfe7ef;
+        padding: 10px 16px;
+        border: none;
         border-radius: 8px;
-        background: #f8f9fa;
-        color: #64748b;
-        font-size: 0.85rem;
+        background: transparent;
+        color: #6b7280;
+        font-size: 0.875rem;
+        font-weight: 500;
         cursor: pointer;
         transition: all 0.2s ease;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 4px;
+        gap: 6px;
+        position: relative;
     }
 
     .chatbot-tab:hover {
-        background: #e9ecef;
-        border-color: #90caf9;
+        background: #f3f4f6;
+        color: #374151;
     }
 
     .chatbot-tab.active {
         background: #2196F3;
         color: #fff;
-        border-color: #2196F3;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(33, 150, 243, 0.25);
     }
 
     .chatbot-tab.active:hover {
         background: #1976D2;
-        border-color: #1976D2;
+    }
+    
+    .chatbot-tab i {
+        font-size: 1rem;
+    }
+    
+    /* Close button styling */
+    #chatbot-close {
+        background: rgba(255, 255, 255, 0.2) !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        box-shadow: none !important;
+    }
+    
+    #chatbot-close:hover {
+        background: rgba(255, 255, 255, 0.3) !important;
+        border-color: rgba(255, 255, 255, 0.5) !important;
+        transform: scale(1.1);
+    }
+    
+    #chatbot-close:active {
+        transform: scale(0.95);
+    }
+    
+    #chatbot-close i {
+        color: #ffffff;
+        font-size: 1.1rem;
     }
 
     [data-theme="dark"] .chatbot-widget {
@@ -425,6 +724,481 @@
         if (!toggleBtn || !widget) {
             return;
         }
+
+        // Drag functionality for chatbot button
+        let isDragging = false;
+        let hasDragged = false;
+        let dragStartX = 0;
+        let dragStartY = 0;
+        let initialX = 0;
+        let initialY = 0;
+        let currentX = 0;
+        let currentY = 0;
+        const SIDE_PADDING = 16; // Padding from the edge when snapping to side
+
+        // Load saved position from localStorage
+        function loadSavedPosition() {
+            if (!toggleBtn) return;
+            
+            const saved = localStorage.getItem('chatbot-button-position');
+            if (saved) {
+                try {
+                    const pos = JSON.parse(saved);
+                    const padding = pos.padding || SIDE_PADDING;
+                    
+                    // Ensure button is visible before positioning
+                    toggleBtn.style.display = 'flex';
+                    toggleBtn.style.visibility = 'visible';
+                    toggleBtn.style.opacity = '';
+                    
+                    if (pos.side === 'left' || pos.side === 'right') {
+                        // New format with side snapping
+                        if (pos.side === 'left') {
+                            toggleBtn.style.left = padding + 'px';
+                            toggleBtn.style.right = 'auto';
+                        } else {
+                            toggleBtn.style.right = padding + 'px';
+                            toggleBtn.style.left = 'auto';
+                        }
+                        
+                        if (pos.top !== undefined && !isNaN(pos.top)) {
+                            const maxY = window.innerHeight - toggleBtn.offsetHeight;
+                            const top = Math.max(padding, Math.min(Math.max(0, pos.top), maxY - padding));
+                            toggleBtn.style.top = top + 'px';
+                            toggleBtn.style.bottom = 'auto';
+                        } else {
+                            // Default position if top is invalid
+                            toggleBtn.style.bottom = '24px';
+                            toggleBtn.style.top = 'auto';
+                        }
+                        
+                        toggleBtn.classList.add('dragged');
+                        
+                        // Only update positions if elements exist
+                        if (widget) {
+                            updateWidgetPosition();
+                        }
+                        updateScrollToTopPosition();
+                    } else if (pos.left !== undefined && pos.top !== undefined) {
+                        // Legacy format with absolute left/top
+                        const centerX = pos.left + (toggleBtn.offsetWidth / 2);
+                        const screenCenterX = window.innerWidth / 2;
+                        const snapToLeft = centerX < screenCenterX;
+                        
+                        if (snapToLeft) {
+                            toggleBtn.style.left = padding + 'px';
+                            toggleBtn.style.right = 'auto';
+                        } else {
+                            toggleBtn.style.right = padding + 'px';
+                            toggleBtn.style.left = 'auto';
+                        }
+                        
+                        const maxY = window.innerHeight - toggleBtn.offsetHeight;
+                        const top = Math.max(padding, Math.min(Math.max(0, pos.top), maxY - padding));
+                        toggleBtn.style.top = top + 'px';
+                        toggleBtn.style.bottom = 'auto';
+                        toggleBtn.classList.add('dragged');
+                        
+                        if (widget) {
+                            updateWidgetPosition();
+                        }
+                        updateScrollToTopPosition();
+                    } else if (pos.right !== undefined && pos.bottom !== undefined) {
+                        // Legacy support for old saved positions
+                        toggleBtn.style.right = pos.right + 'px';
+                        toggleBtn.style.left = 'auto';
+                        toggleBtn.style.bottom = pos.bottom + 'px';
+                        toggleBtn.style.top = 'auto';
+                        
+                        if (widget) {
+                            updateWidgetPosition();
+                        }
+                        updateScrollToTopPosition();
+                    }
+                } catch (e) {
+                    console.error('Error loading saved position:', e);
+                    // Reset to default position on error
+                    toggleBtn.style.left = '';
+                    toggleBtn.style.right = '';
+                    toggleBtn.style.top = '';
+                    toggleBtn.style.bottom = '';
+                    toggleBtn.classList.remove('dragged');
+                }
+            }
+        }
+
+        // Snap button to nearest side (left or right) with padding
+        function snapToSide() {
+            // Get current position BEFORE clearing styles
+            const rect = toggleBtn.getBoundingClientRect();
+            const buttonWidth = toggleBtn.offsetWidth;
+            const buttonHeight = toggleBtn.offsetHeight;
+            
+            // Calculate button center position using getBoundingClientRect
+            // This always gives us the actual position regardless of CSS positioning
+            const buttonCenterX = rect.left + (rect.width / 2);
+            const screenCenterX = window.innerWidth / 2;
+            
+            // Determine which side to snap to based on button center position
+            const snapToLeft = buttonCenterX < screenCenterX;
+            
+            console.log('Snapping button:', {
+                buttonCenterX,
+                screenCenterX,
+                snapToLeft,
+                currentLeft: rect.left,
+                currentRight: window.innerWidth - rect.right
+            });
+            
+            // Get current Y position (keep vertical position)
+            let currentY = rect.top;
+            // Constrain Y to viewport
+            const maxY = window.innerHeight - buttonHeight;
+            currentY = Math.max(SIDE_PADDING, Math.min(currentY, maxY - SIDE_PADDING));
+            
+            // Add smooth transition for snapping
+            toggleBtn.style.transition = 'left 0.3s ease, right 0.3s ease, top 0.3s ease';
+            
+            // Remove dragged class temporarily to clear any CSS rules
+            toggleBtn.classList.remove('dragged');
+            
+            // Clear any existing positioning first
+            toggleBtn.style.left = '';
+            toggleBtn.style.right = '';
+            toggleBtn.style.top = '';
+            toggleBtn.style.bottom = '';
+            
+            // Force reflow to ensure styles are cleared
+            toggleBtn.offsetHeight;
+            
+            // Add dragged class back
+            toggleBtn.classList.add('dragged');
+            
+            if (snapToLeft) {
+                // Snap to left side
+                toggleBtn.style.left = SIDE_PADDING + 'px';
+                toggleBtn.style.right = 'auto';
+                toggleBtn.style.setProperty('left', SIDE_PADDING + 'px', 'important');
+                toggleBtn.style.setProperty('right', 'auto', 'important');
+                console.log('Snapped to LEFT at', SIDE_PADDING + 'px');
+            } else {
+                // Snap to right side
+                toggleBtn.style.right = SIDE_PADDING + 'px';
+                toggleBtn.style.left = 'auto';
+                toggleBtn.style.setProperty('right', SIDE_PADDING + 'px', 'important');
+                toggleBtn.style.setProperty('left', 'auto', 'important');
+                console.log('Snapped to RIGHT at', SIDE_PADDING + 'px');
+            }
+            
+            toggleBtn.style.top = currentY + 'px';
+            toggleBtn.style.bottom = 'auto';
+            toggleBtn.style.setProperty('top', currentY + 'px', 'important');
+            toggleBtn.style.setProperty('bottom', 'auto', 'important');
+            
+            // Remove transition after animation completes
+            setTimeout(() => {
+                toggleBtn.style.transition = '';
+            }, 300);
+            
+            updateWidgetPosition();
+            updateScrollToTopPosition();
+        }
+
+        // Save position to localStorage
+        function savePosition() {
+            const rect = toggleBtn.getBoundingClientRect();
+            const centerX = rect.left + (rect.width / 2);
+            const screenCenterX = window.innerWidth / 2;
+            const snapToLeft = centerX < screenCenterX;
+            
+            const position = {
+                side: snapToLeft ? 'left' : 'right',
+                top: rect.top,
+                padding: SIDE_PADDING
+            };
+            localStorage.setItem('chatbot-button-position', JSON.stringify(position));
+        }
+
+        // Update widget position relative to button
+        function updateWidgetPosition() {
+            if (!widget || !toggleBtn) return;
+            
+            try {
+                const rect = toggleBtn.getBoundingClientRect();
+                const buttonBottom = window.innerHeight - rect.bottom;
+                const buttonRight = window.innerWidth - rect.right;
+                const buttonLeft = rect.left;
+                const centerX = rect.left + (rect.width / 2);
+                const screenCenterX = window.innerWidth / 2;
+                const isOnLeft = centerX < screenCenterX;
+                
+                // On mobile, keep widget full width with margins
+                if (window.innerWidth <= 480) {
+                    widget.style.left = '16px';
+                    widget.style.right = '16px';
+                    widget.style.width = 'auto';
+                    widget.style.bottom = (buttonBottom + 76) + 'px';
+                    widget.style.top = 'auto';
+                    widget.classList.remove('align-left', 'align-right');
+                    widget.style.borderRadius = '20px 20px 4px 20px';
+                } else {
+                    // Keep widget aligned with button side on desktop
+                    if (isOnLeft) {
+                        // Button is on left, align widget to left
+                        widget.style.left = buttonLeft + 'px';
+                        widget.style.right = 'auto';
+                        widget.classList.add('align-left');
+                        widget.classList.remove('align-right');
+                        widget.style.borderRadius = '20px 20px 20px 4px';
+                    } else {
+                        // Button is on right, align widget to right
+                        widget.style.right = buttonRight + 'px';
+                        widget.style.left = 'auto';
+                        widget.classList.add('align-right');
+                        widget.classList.remove('align-left');
+                        widget.style.borderRadius = '20px 20px 4px 20px';
+                    }
+                    widget.style.bottom = (buttonBottom + 76) + 'px';
+                    widget.style.top = 'auto';
+                }
+            } catch (e) {
+                console.error('Error updating widget position:', e);
+            }
+        }
+
+        // Update scroll-to-top button position based on chatbot position
+        function updateScrollToTopPosition() {
+            const scrollToTopBtn = document.getElementById('scrollToTopBtn');
+            if (!scrollToTopBtn) return;
+            
+            const rect = toggleBtn.getBoundingClientRect();
+            const centerX = rect.left + (rect.width / 2);
+            const screenCenterX = window.innerWidth / 2;
+            const isOnRight = centerX >= screenCenterX;
+            
+            // If chatbot is on the right side, move scroll-to-top button to lower right
+            // Otherwise, keep it in its default position
+            if (isOnRight) {
+                // Chatbot is on right, place scroll-to-top in lower right
+                if (window.innerWidth <= 480) {
+                    scrollToTopBtn.style.right = '16px';
+                    scrollToTopBtn.style.bottom = '100px';
+                } else if (window.innerWidth <= 576) {
+                    scrollToTopBtn.style.right = '16px';
+                    scrollToTopBtn.style.bottom = '100px';
+                } else {
+                    scrollToTopBtn.style.right = '24px';
+                    scrollToTopBtn.style.bottom = '100px';
+                }
+            } else {
+                // Chatbot is on left, scroll-to-top can stay in default position
+                // Reset to default (handled by CSS)
+                scrollToTopBtn.style.right = '';
+                scrollToTopBtn.style.bottom = '';
+            }
+        }
+
+        // Mouse drag handlers
+        function handleMouseDown(e) {
+            isDragging = false;
+            hasDragged = false;
+            dragStartX = e.clientX;
+            dragStartY = e.clientY;
+            const rect = toggleBtn.getBoundingClientRect();
+            // Calculate initial position relative to button's current position
+            // This works regardless of whether button uses left/right or top/bottom
+            initialX = e.clientX - rect.left;
+            initialY = e.clientY - rect.top;
+            
+            // Store current button position for reference
+            currentX = rect.left;
+            currentY = rect.top;
+            
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+            e.preventDefault();
+        }
+
+        function handleMouseMove(e) {
+            if (!dragStartX || !dragStartY) return;
+            
+            const deltaX = Math.abs(e.clientX - dragStartX);
+            const deltaY = Math.abs(e.clientY - dragStartY);
+            
+            // Start dragging if moved more than 5px
+            if (deltaX > 5 || deltaY > 5) {
+                if (!isDragging) {
+                    isDragging = true;
+                    hasDragged = true;
+                    toggleBtn.classList.add('dragging');
+                    // Remove transition during dragging for smooth movement
+                    toggleBtn.style.transition = 'none';
+                }
+                
+                // Calculate new position based on mouse position
+                currentX = e.clientX - initialX;
+                currentY = e.clientY - initialY;
+                
+                // Constrain to viewport with padding
+                const maxX = window.innerWidth - toggleBtn.offsetWidth - SIDE_PADDING;
+                const maxY = window.innerHeight - toggleBtn.offsetHeight - SIDE_PADDING;
+                
+                currentX = Math.max(SIDE_PADDING, Math.min(currentX, maxX));
+                currentY = Math.max(SIDE_PADDING, Math.min(currentY, maxY));
+                
+                // Apply position using left/top for consistent dragging
+                toggleBtn.style.left = currentX + 'px';
+                toggleBtn.style.right = 'auto';
+                toggleBtn.style.top = currentY + 'px';
+                toggleBtn.style.bottom = 'auto';
+                toggleBtn.classList.add('dragged');
+                
+                updateWidgetPosition();
+            }
+        }
+
+        function handleMouseUp(e) {
+            if (isDragging) {
+                // Restore transition for snapping animation
+                toggleBtn.style.transition = '';
+                // Snap to nearest side when dragging ends
+                snapToSide();
+                savePosition();
+            }
+            
+            isDragging = false;
+            toggleBtn.classList.remove('dragging');
+            dragStartX = 0;
+            dragStartY = 0;
+            
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+        }
+
+        // Touch drag handlers
+        function handleTouchStart(e) {
+            isDragging = false;
+            hasDragged = false;
+            const touch = e.touches[0];
+            dragStartX = touch.clientX;
+            dragStartY = touch.clientY;
+            const rect = toggleBtn.getBoundingClientRect();
+            // Calculate initial position relative to button's current position
+            initialX = touch.clientX - rect.left;
+            initialY = touch.clientY - rect.top;
+            
+            // Store current button position for reference
+            currentX = rect.left;
+            currentY = rect.top;
+            
+            document.addEventListener('touchmove', handleTouchMove, { passive: false });
+            document.addEventListener('touchend', handleTouchEnd);
+        }
+
+        function handleTouchMove(e) {
+            if (!dragStartX || !dragStartY) return;
+            
+            const touch = e.touches[0];
+            const deltaX = Math.abs(touch.clientX - dragStartX);
+            const deltaY = Math.abs(touch.clientY - dragStartY);
+            
+            // Start dragging if moved more than 5px
+            if (deltaX > 5 || deltaY > 5) {
+                e.preventDefault();
+                
+                if (!isDragging) {
+                    isDragging = true;
+                    hasDragged = true;
+                    toggleBtn.classList.add('dragging');
+                    // Remove transition during dragging for smooth movement
+                    toggleBtn.style.transition = 'none';
+                }
+                
+                // Calculate new position based on touch position
+                currentX = touch.clientX - initialX;
+                currentY = touch.clientY - initialY;
+                
+                // Constrain to viewport with padding
+                const maxX = window.innerWidth - toggleBtn.offsetWidth - SIDE_PADDING;
+                const maxY = window.innerHeight - toggleBtn.offsetHeight - SIDE_PADDING;
+                
+                currentX = Math.max(SIDE_PADDING, Math.min(currentX, maxX));
+                currentY = Math.max(SIDE_PADDING, Math.min(currentY, maxY));
+                
+                // Apply position using left/top for consistent dragging
+                toggleBtn.style.left = currentX + 'px';
+                toggleBtn.style.right = 'auto';
+                toggleBtn.style.top = currentY + 'px';
+                toggleBtn.style.bottom = 'auto';
+                toggleBtn.classList.add('dragged');
+                
+                updateWidgetPosition();
+            }
+        }
+
+        function handleTouchEnd(e) {
+            if (isDragging) {
+                // Restore transition for snapping animation
+                toggleBtn.style.transition = '';
+                // Snap to nearest side when dragging ends
+                snapToSide();
+                savePosition();
+            }
+            
+            isDragging = false;
+            toggleBtn.classList.remove('dragging');
+            dragStartX = 0;
+            dragStartY = 0;
+            
+            document.removeEventListener('touchmove', handleTouchMove);
+            document.removeEventListener('touchend', handleTouchEnd);
+        }
+
+        // Initialize drag functionality
+        toggleBtn.addEventListener('mousedown', handleMouseDown);
+        toggleBtn.addEventListener('touchstart', handleTouchStart, { passive: true });
+        
+        // Ensure button is visible on load
+        if (toggleBtn) {
+            toggleBtn.style.display = 'flex';
+            toggleBtn.style.visibility = 'visible';
+        }
+        
+        // Load saved position on page load
+        loadSavedPosition();
+        
+        // Update widget and scroll-to-top positions on page load
+        setTimeout(() => {
+            // Double-check button is visible
+            if (toggleBtn) {
+                const rect = toggleBtn.getBoundingClientRect();
+                // If button is off-screen, reset to default position
+                if (rect.width === 0 || rect.height === 0 || 
+                    rect.left < -100 || rect.left > window.innerWidth + 100 ||
+                    rect.top < -100 || rect.top > window.innerHeight + 100) {
+                    console.warn('Chatbot button is off-screen, resetting position');
+                    toggleBtn.style.left = '';
+                    toggleBtn.style.right = '';
+                    toggleBtn.style.top = '';
+                    toggleBtn.style.bottom = '';
+                    toggleBtn.classList.remove('dragged');
+                    localStorage.removeItem('chatbot-button-position');
+                }
+            }
+            
+            if (widget) {
+                updateWidgetPosition();
+            }
+            updateScrollToTopPosition();
+        }, 100);
+        
+        // Update widget position on window resize
+        window.addEventListener('resize', () => {
+            if (!isDragging) {
+                updateWidgetPosition();
+                updateScrollToTopPosition();
+            }
+        });
 
         let currentMode = 'faqs';
         let conversationId = null;
@@ -632,6 +1406,9 @@
         async function openChat() {
             widget.classList.add('open');
             widget.setAttribute('aria-hidden', 'false');
+            // Stop pulse animation when widget is open
+            toggleBtn.style.animation = 'none';
+            updateWidgetPosition();
 
             if (!messagesEl.dataset.checked) {
                 if (currentMode === 'faqs') {
@@ -793,6 +1570,15 @@
             widget.classList.remove('open');
             widget.setAttribute('aria-hidden', 'true');
             stopPolling();
+            
+            // Restart pulse animation when widget is closed
+            toggleBtn.style.animation = 'bubblePulse 2s ease-in-out infinite';
+            
+            // Reset opacity to 50% on mobile when chatbot is closed
+            if (window.innerWidth <= 480) {
+                toggleBtn.classList.remove('clicked');
+                toggleBtn.style.opacity = '0.5';
+            }
         }
 
         function switchTab(mode) {
@@ -901,7 +1687,19 @@
             }
         }
 
-        toggleBtn.addEventListener('click', () => {
+        toggleBtn.addEventListener('click', (e) => {
+            // Don't open/close if user was dragging
+            if (hasDragged) {
+                hasDragged = false;
+                return;
+            }
+            
+            // Set opacity to 100% on mobile when clicked
+            if (window.innerWidth <= 480) {
+                toggleBtn.classList.add('clicked');
+                toggleBtn.style.opacity = '1';
+            }
+            
             if (widget.classList.contains('open')) {
                 closeChat();
             } else {

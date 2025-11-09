@@ -165,8 +165,8 @@
                     <div class="row mb-3">
                         <div class="col-md-3">
                             <label for="dateOfBirth" class="form-label fw-bold mb-2" style="color: #495057; font-size: 0.875rem;">Date of birth</label>
-                            <input type="date" class="form-control" id="dateOfBirth" placeholder="MM/DD/YYYY"
-                                   style="border: 2px solid #dee2e6; border-radius: 6px;">
+                            <input type="date" class="form-control" id="dateOfBirth" placeholder="MM/DD/YYYY" readonly
+                                   style="border: 2px solid #dee2e6; border-radius: 6px; background: #f8f9fa; cursor: not-allowed;">
                         </div>
                         <div class="col-md-3">
                             <label for="age" class="form-label fw-bold mb-2" style="color: #495057; font-size: 0.875rem;">
@@ -177,12 +177,13 @@
                         </div>
                         <div class="col-md-3">
                             <label for="sex" class="form-label fw-bold mb-2" style="color: #495057; font-size: 0.875rem;">Sex</label>
-                            <select class="form-select" id="sex"
-                                    style="border: 2px solid #dee2e6; border-radius: 6px;">
+                            <select class="form-select" id="sex" disabled
+                                    style="border: 2px solid #dee2e6; border-radius: 6px; background: #f8f9fa; cursor: not-allowed;">
                                 <option value="">Select...</option>
                                 <option value="Male">Male</option>
                                 <option value="Female">Female</option>
                             </select>
+                            <input type="hidden" id="sex_hidden" name="sex" value="">
                         </div>
                         <div class="col-md-3">
                             <label for="nickname" class="form-label fw-bold mb-2" style="color: #495057; font-size: 0.875rem;">Nickname</label>
@@ -205,8 +206,8 @@
                         </div>
                         <div class="col-md-4">
                             <label for="contact" class="form-label fw-bold mb-2" style="color: #495057; font-size: 0.875rem;">Contact</label>
-                            <input type="text" class="form-control" id="contact"
-                                   style="border: 2px solid #dee2e6; border-radius: 6px;">
+                            <input type="text" class="form-control" id="contact" readonly
+                                   style="border: 2px solid #dee2e6; border-radius: 6px; background: #f8f9fa; cursor: not-allowed;">
                         </div>
                     </div>
 
@@ -395,9 +396,14 @@
                                 <h6 class="mb-0 fw-bold">
                                     <i class="bi bi-table me-2"></i>Progress Notes History
                                 </h6>
-                                <button type="button" class="btn btn-sm btn-light" id="addProgressNoteRowBtn">
-                                    <i class="bi bi-plus-circle me-1"></i>Add Row
-                                </button>
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-sm btn-success" id="downloadProgressNotesBtn" onclick="downloadProgressNotes()" style="display: none;">
+                                        <i class="bi bi-download me-1"></i>Download PDF
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-light" id="addProgressNoteRowBtn">
+                                        <i class="bi bi-plus-circle me-1"></i>Add Row
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         <div class="card-body p-0">
@@ -547,6 +553,11 @@
 <!-- Staff members do not have permission to delete post-procedural records -->
 
 <script>
+// Access control from PHP
+const canEditPatientRecord = @json($accessControl && $accessControl->can_edit_patient_records !== false);
+let isPasswordVerified = false;
+let passwordVerifiedRecordId = null;
+
 // Debounce utility function
 function debounce(func, wait) {
     let timeout;
@@ -657,9 +668,9 @@ function renderPatientRecords(records) {
             groupedRecords[key].user_id = record.user_id || record.data?.user_id || groupedRecords[key].user_id;
         } else if (record.type === 'patient_history') {
             groupedRecords[key].patient_history = record;
-            // Get treatment from patient history procedure_performed if available (prioritize this)
-            if (record.data?.procedure_performed) {
-                groupedRecords[key].treatment = record.data.procedure_performed;
+            // Get treatment from patient history treatment_done if available
+            if (record.data?.treatment_done) {
+                groupedRecords[key].treatment = record.data.treatment_done;
             } else if (record.data?.treatment_done && groupedRecords[key].treatment === 'N/A') {
                 groupedRecords[key].treatment = record.data.treatment_done;
             }
@@ -672,8 +683,8 @@ function renderPatientRecords(records) {
     Object.keys(groupedRecords).forEach(key => {
         const group = groupedRecords[key];
         if (group.treatment === 'N/A' && group.patient_history) {
-            if (group.patient_history.data?.procedure_performed) {
-                group.treatment = group.patient_history.data.procedure_performed;
+            if (group.patient_history.data?.treatment_done) {
+                group.treatment = group.patient_history.data.treatment_done;
             } else if (group.patient_history.data?.treatment_done) {
                 group.treatment = group.patient_history.data.treatment_done;
             }
@@ -721,9 +732,15 @@ function renderPatientRecords(records) {
                 </td>
                 <td class="text-center">
                     ${group.patient_record ? `
-                        <button type="button" class="btn btn-sm btn-outline-primary edit-action-btn" onclick="openEditRecordModal(${recordId})" title="Edit Patient Info">
-                            <i class="bi bi-pencil-square"></i>
-                        </button>
+                        ${canEditPatientRecord ? `
+                            <button type="button" class="btn btn-sm btn-outline-primary edit-action-btn" onclick="openEditRecordModal(${recordId})" title="Edit Patient Info">
+                                <i class="bi bi-pencil-square"></i>
+                            </button>
+                        ` : `
+                            <button type="button" class="btn btn-sm btn-outline-info view-action-btn" onclick="openViewRecordModal(${recordId})" title="View Patient Info">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        `}
                     ` : `
                         <span class="badge bg-light text-muted no-data-badge">No data</span>
                     `}
@@ -1252,7 +1269,7 @@ function renderPatientInfoForm(record) {
             <div class="row g-3 mb-3">
                 <div class="col-md-3">
                     <label class="form-label fw-bold" style="color: #2c3e50;">Date of birth</label>
-                    <input type="date" class="form-control" id="dateOfBirth" name="date_of_birth" value="${record.date_of_birth ? formatDateForInput(record.date_of_birth) : ''}" style="border: 1px solid #ced4da;">
+                    <input type="date" class="form-control" id="dateOfBirth" name="date_of_birth" value="${record.date_of_birth ? formatDateForInput(record.date_of_birth) : ''}" readonly style="background: #e9ecef; border: 1px solid #ced4da; cursor: not-allowed;">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label fw-bold" style="color: #2c3e50;">Age <span class="text-muted fw-normal" style="font-size: 0.75rem;">(auto-calculated)</span></label>
@@ -1260,11 +1277,12 @@ function renderPatientInfoForm(record) {
                 </div>
                 <div class="col-md-3">
                     <label class="form-label fw-bold" style="color: #2c3e50;">Sex</label>
-                    <select class="form-select" id="sex" name="sex" style="border: 1px solid #ced4da;">
+                    <select class="form-select" id="sex" disabled style="background: #e9ecef; border: 1px solid #ced4da; cursor: not-allowed;">
                         <option value="" ${!record.sex ? 'selected' : ''}>Select...</option>
                         <option value="Male" ${record.sex === 'Male' ? 'selected' : ''}>Male</option>
                         <option value="Female" ${record.sex === 'Female' ? 'selected' : ''}>Female</option>
                     </select>
+                    <input type="hidden" id="sex_hidden" name="sex" value="${record.sex || ''}">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label fw-bold" style="color: #2c3e50;">Nickname</label>
@@ -1284,7 +1302,7 @@ function renderPatientInfoForm(record) {
                 </div>
                 <div class="col-md-4">
                     <label class="form-label fw-bold" style="color: #2c3e50;">Contact</label>
-                    <input type="text" class="form-control" id="contact" name="contact" value="${record.contact || ''}" style="border: 1px solid #ced4da;">
+                    <input type="text" class="form-control" id="contact" name="contact" value="${record.contact || ''}" readonly style="border: 1px solid #ced4da; background: #e9ecef; cursor: not-allowed;">
                 </div>
             </div>
 
@@ -1343,14 +1361,7 @@ function renderPatientHistoryView(history) {
                 <div class="card mb-4 shadow-sm" style="border: none; overflow: hidden;">
                     <div class="card-header d-flex justify-content-between align-items-center" style="background: #0d6efd; color: white; padding: 12px 20px;">
                         <h6 class="mb-0">
-                            <i class="bi bi-calendar-check me-2"></i>Visit #${index + 1} - ${(() => {
-                                try {
-                                    const date = new Date(h.visit_date);
-                                    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-                                } catch(e) {
-                                    return h.visit_date || 'Date not set';
-                                }
-                            })()}
+                            <i class="bi bi-calendar-check me-2"></i>Medical History Record #${index + 1}
                         </h6>
                     </div>
                     <div class="card-body" style="background: #f8f9fa; padding: 20px;">
@@ -1451,35 +1462,6 @@ function renderPatientHistoryView(history) {
                         </div>
 
                         <!-- PROCEDURE DETAILS -->
-                        <div class="mb-3">
-                            <h6 class="fw-bold mb-3" style="color: #0d6efd; border-bottom: 2px solid #0d6efd; padding-bottom: 8px;">PROCEDURE DETAILS</h6>
-                            <div class="row g-3">
-                                <div class="col-md-12">
-                                    <label class="d-block" style="color: #6c757d; font-weight: 600; font-size: 0.9rem;">PROCEDURE PERFORMED:</label>
-                                    <span>${h.procedure_performed || 'N/A'}</span>
-                                </div>
-                                <div class="col-md-12">
-                                    <label class="d-block" style="color: #6c757d; font-weight: 600; font-size: 0.9rem;">MATERIALS USED:</label>
-                                    <span>${h.materials_used || 'N/A'}</span>
-                                </div>
-                                <div class="col-md-12">
-                                    <label class="d-block" style="color: #6c757d; font-weight: 600; font-size: 0.9rem;">ANESTHESIA USED:</label>
-                                    <span>${h.anesthesia_used || 'N/A'}</span>
-                                </div>
-                                <div class="col-md-12">
-                                    <label class="d-block" style="color: #6c757d; font-weight: 600; font-size: 0.9rem;">COMPLICATIONS:</label>
-                                    <span>${h.complications || 'None reported'}</span>
-                                </div>
-                                <div class="col-md-12">
-                                    <label class="d-block" style="color: #6c757d; font-weight: 600; font-size: 0.9rem;">POST-OPERATIVE INSTRUCTIONS:</label>
-                                    <span>${h.post_operative_instructions || 'N/A'}</span>
-                                </div>
-                                <div class="col-md-12">
-                                    <label class="d-block" style="color: #6c757d; font-weight: 600; font-size: 0.9rem;">FOLLOW-UP NOTES:</label>
-                                    <span>${h.follow_up_notes || 'N/A'}</span>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             `).join('')}
@@ -1509,7 +1491,6 @@ function renderPatientHistoryEditList(history, recordId) {
                         <div class="d-flex justify-content-between align-items-center">
                             <h6 class="mb-0" style="color: #0a4275;">
                                 <i class="bi bi-calendar-event me-2"></i>Visit #${index + 1}
-                                ${h.visit_date ? ` - ${new Date(h.visit_date).toLocaleDateString()}` : ''}
                             </h6>
                             <!-- Delete button removed - Staff cannot delete records -->
                         </div>
@@ -1727,40 +1708,6 @@ function renderPatientHistoryEditList(history, recordId) {
                                 </div>
                             </div>
 
-                            <!-- VISIT & PROCEDURE DETAILS -->
-                            <div class="mb-4">
-                                <h6 class="fw-bold mb-3" style="color: #0a4275; border-bottom: 2px solid #0a4275; padding-bottom: 0.5rem;">VISIT & PROCEDURE DETAILS</h6>
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-semibold">Visit Date <span class="text-danger">*</span></label>
-                                        <input type="date" class="form-control" name="visit_date" value="${h.visit_date || ''}" required style="border: 1px solid #000;">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-semibold">Anesthesia Used</label>
-                                        <input type="text" class="form-control" name="anesthesia_used" value="${h.anesthesia_used || ''}" style="border: 1px solid #000;">
-                                </div>
-                                <div class="col-12">
-                                        <label class="form-label fw-semibold">Procedure Performed</label>
-                                        <textarea class="form-control" name="procedure_performed" rows="2" style="border: 1px solid #000;">${h.procedure_performed || ''}</textarea>
-                                </div>
-                                <div class="col-12">
-                                        <label class="form-label fw-semibold">Materials Used</label>
-                                        <textarea class="form-control" name="materials_used" rows="2" style="border: 1px solid #000;">${h.materials_used || ''}</textarea>
-                                </div>
-                                <div class="col-12">
-                                        <label class="form-label fw-semibold">Complications</label>
-                                        <textarea class="form-control" name="complications" rows="2" style="border: 1px solid #000;">${h.complications || ''}</textarea>
-                                </div>
-                                <div class="col-12">
-                                        <label class="form-label fw-semibold">Post-Operative Instructions</label>
-                                        <textarea class="form-control" name="post_operative_instructions" rows="2" style="border: 1px solid #000;">${h.post_operative_instructions || ''}</textarea>
-                                </div>
-                                <div class="col-12">
-                                        <label class="form-label fw-semibold">Follow-up Notes</label>
-                                        <textarea class="form-control" name="follow_up_notes" rows="2" style="border: 1px solid #000;">${h.follow_up_notes || ''}</textarea>
-                                    </div>
-                                </div>
-                            </div>
 
                             <!-- Save Button -->
                             <div class="col-12 mt-3">
@@ -2090,40 +2037,6 @@ function renderAddPatientHistoryForm(recordId) {
                         </div>
                     </div>
 
-                    <!-- PROCEDURE DETAILS -->
-                    <div class="mb-4">
-                        <h6 class="fw-bold mb-3" style="color: #0a4275; border-bottom: 2px solid #0a4275; padding-bottom: 0.5rem;">VISIT & PROCEDURE DETAILS</h6>
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Visit Date <span class="text-danger">*</span></label>
-                                <input type="date" class="form-control" name="visit_date" required style="border: 1px solid #000;">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Anesthesia Used</label>
-                                <input type="text" class="form-control" name="anesthesia_used" style="border: 1px solid #000;">
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label fw-semibold">Procedure Performed</label>
-                                <textarea class="form-control" name="procedure_performed" rows="2" style="border: 1px solid #000;"></textarea>
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label fw-semibold">Materials Used</label>
-                                <textarea class="form-control" name="materials_used" rows="2" style="border: 1px solid #000;"></textarea>
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label fw-semibold">Complications</label>
-                                <textarea class="form-control" name="complications" rows="2" style="border: 1px solid #000;"></textarea>
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label fw-semibold">Post-Operative Instructions</label>
-                                <textarea class="form-control" name="post_operative_instructions" rows="2" style="border: 1px solid #000;"></textarea>
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label fw-semibold">Follow-up Notes</label>
-                                <textarea class="form-control" name="follow_up_notes" rows="2" style="border: 1px solid #000;"></textarea>
-                            </div>
-                        </div>
-                    </div>
 
                     <div class="col-12 mt-3">
                         <button type="button" class="btn btn-primary btn-lg" onclick="addNewPatientHistory(${recordId})" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); border: none; padding: 10px 24px; font-weight: 600;">
@@ -2445,49 +2358,16 @@ function initializePatientRecordSearch() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Auto-calculate age when date of birth changes
+    // Date of birth is read-only and auto-filled from user management
+    // Age is automatically calculated when birthdate is set
     const dateOfBirthInput = document.getElementById('dateOfBirth');
     const ageInput = document.getElementById('age');
 
-    if (dateOfBirthInput && ageInput) {
-        dateOfBirthInput.addEventListener('change', function() {
-            const birthDate = new Date(this.value);
-            if (!isNaN(birthDate.getTime())) {
-                const today = new Date();
-                let age = today.getFullYear() - birthDate.getFullYear();
-                const monthDiff = today.getMonth() - birthDate.getMonth();
-
-                // Adjust age if birthday hasn't occurred yet this year
-                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-                    age--;
-                }
-
-                // Only set age if it's a valid positive number
-                if (age >= 0 && age < 150) {
-                    ageInput.value = age;
-
-                    // Visual feedback
-                    ageInput.style.backgroundColor = '#d1e7dd';
-                    ageInput.style.borderColor = '#198754';
-                    setTimeout(() => {
-                        ageInput.style.backgroundColor = '';
-                        ageInput.style.borderColor = '';
-                    }, 1000);
-                } else {
-                    ageInput.value = '';
-                }
-            } else {
-                ageInput.value = '';
-            }
-        });
-
-        // Also trigger on input for immediate feedback
-        dateOfBirthInput.addEventListener('input', function() {
-            const birthDate = new Date(this.value);
-            if (!isNaN(birthDate.getTime()) && this.value.length === 10) {
-                dateOfBirthInput.dispatchEvent(new Event('change'));
-            }
-        });
+    // Make date of birth read-only if it exists
+    if (dateOfBirthInput) {
+        dateOfBirthInput.setAttribute('readonly', 'readonly');
+        dateOfBirthInput.style.backgroundColor = '#f8f9fa';
+        dateOfBirthInput.style.cursor = 'not-allowed';
     }
 
     // Toggle minor form visibility based on checkbox
@@ -2909,11 +2789,21 @@ function formatDateForInput(dateString) {
         // Simply extract the date part without any Date object conversion
         if (typeof dateString === 'string') {
             // If it's already in YYYY-MM-DD format or YYYY-MM-DD HH:MM:SS format
-            const datePart = dateString.split('T')[0].split(' ')[0];
+            const datePart = dateString.split('T')[0].split(' ')[0].trim();
 
             // Validate it's a proper date format (YYYY-MM-DD)
             if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
                 return datePart;
+            }
+            
+            // Try to parse other common date formats
+            // Handle formats like "YYYY/MM/DD" or "MM/DD/YYYY" or "DD/MM/YYYY"
+            const dateObj = new Date(dateString);
+            if (!isNaN(dateObj.getTime())) {
+                const year = dateObj.getFullYear();
+                const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                const day = String(dateObj.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
             }
         }
 
@@ -2982,14 +2872,6 @@ function populateMedicalHistoryFormWithData(container, h) {
     setRadio('is_nursing', h.is_nursing);
     setRadio('birth_control', h.birth_control);
 
-    // Procedure details
-    if (q('visit_date')) q('visit_date').value = h.visit_date ? formatDateForInput(h.visit_date) : '';
-    if (q('anesthesia_used')) q('anesthesia_used').value = h.anesthesia_used || '';
-    if (q('procedure_performed')) q('procedure_performed').value = h.procedure_performed || '';
-    if (q('materials_used')) q('materials_used').value = h.materials_used || '';
-    if (q('complications')) q('complications').value = h.complications || '';
-    if (q('post_operative_instructions')) q('post_operative_instructions').value = h.post_operative_instructions || '';
-    if (q('follow_up_notes')) q('follow_up_notes').value = h.follow_up_notes || '';
 }
 
 // Legacy functions kept for modal compatibility (auto-assign now)
@@ -3293,8 +3175,11 @@ function selectPatientForRecord(patientData) {
     console.log('Selected patient for record:', patientData);
 
     // Clear search results and input
-    document.getElementById('patientNameSearchResults').innerHTML = '';
-    document.getElementById('patientNameSearch').value = '';
+    const searchResults = document.getElementById('patientNameSearchResults');
+    if (searchResults) searchResults.innerHTML = '';
+    
+    const searchInput = document.getElementById('patientNameSearch');
+    if (searchInput) searchInput.value = '';
 
     const firstName = patientData.first_name || '';
     const lastName = patientData.last_name || '';
@@ -3303,54 +3188,108 @@ function selectPatientForRecord(patientData) {
     // Show selected patient alert
     const alertBox = document.getElementById('selectedPatientInfoAlert');
     const alertText = document.getElementById('selectedPatientInfoText');
-    alertText.textContent = `${username} - ${firstName} ${lastName}`;
-    alertBox.classList.remove('d-none');
+    if (alertText) alertText.textContent = `${username} - ${firstName} ${lastName}`;
+    if (alertBox) alertBox.classList.remove('d-none');
 
     // Auto-populate the patient name fields
-    document.getElementById('lastName').value = lastName;
-    document.getElementById('givenName').value = firstName;
-    document.getElementById('middleName').value = ''; // Not provided by API
+    const lastNameElement = document.getElementById('lastName');
+    if (lastNameElement) lastNameElement.value = lastName;
+    
+    const givenNameElement = document.getElementById('givenName');
+    if (givenNameElement) givenNameElement.value = firstName;
+    
+    const middleNameElement = document.getElementById('middleName');
+    if (middleNameElement) middleNameElement.value = ''; // Not provided by API
 
     // Auto-populate home address
     if (patientData.home_address) {
-        document.getElementById('homeAddress').value = patientData.home_address;
+        const homeAddressElement = document.getElementById('homeAddress');
+        if (homeAddressElement) homeAddressElement.value = patientData.home_address;
     }
 
     // Auto-populate birthdate and age
-    if (patientData.birthdate) {
-        document.getElementById('dateOfBirth').value = patientData.birthdate;
+    // Get birthdate from patientData.birthdate or patientData.info.birthdate
+    const birthdate = patientData.birthdate || (patientData.info && patientData.info.birthdate) || '';
+    console.log('Birthdate from patient data:', birthdate);
+    
+    const dateOfBirthElement = document.getElementById('dateOfBirth');
+    if (dateOfBirthElement && birthdate) {
+        // Format birthdate for HTML date input (YYYY-MM-DD)
+        const formattedBirthdate = formatDateForInput(birthdate);
+        console.log('Formatted birthdate:', formattedBirthdate);
+        
+        if (formattedBirthdate) {
+            dateOfBirthElement.value = formattedBirthdate;
 
-        // Calculate age
-        const today = new Date();
-        const birthDate = new Date(patientData.birthdate);
-        let age = today.getFullYear() - birthDate.getFullYear();
-        const monthDiff = today.getMonth() - birthDate.getMonth();
-        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-            age--;
+            // Calculate age
+            const today = new Date();
+            const birthDate = new Date(birthdate);
+            if (!isNaN(birthDate.getTime())) {
+                let age = today.getFullYear() - birthDate.getFullYear();
+                const monthDiff = today.getMonth() - birthDate.getMonth();
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                    age--;
+                }
+                const ageElement = document.getElementById('age');
+                if (ageElement) {
+                    ageElement.value = age;
+                }
+            }
+        } else {
+            console.warn('Failed to format birthdate:', birthdate);
         }
-        document.getElementById('age').value = age;
+    } else {
+        console.warn('Date of birth element not found or birthdate is empty:', {
+            elementExists: !!dateOfBirthElement,
+            birthdate: birthdate
+        });
     }
 
     // Auto-populate sex/gender
-    if (patientData.sex) {
-        // Capitalize first letter
-        const sex = patientData.sex.charAt(0).toUpperCase() + patientData.sex.slice(1).toLowerCase();
-        document.getElementById('sex').value = sex;
+    // Get sex from patientData.sex, patientData.gender, or patientData.info.sex/gender
+    const sex = patientData.sex || patientData.gender || (patientData.info && (patientData.info.sex || patientData.info.gender)) || '';
+    console.log('Sex/Gender from patient data:', sex);
+    
+    const sexElement = document.getElementById('sex');
+    if (sexElement && sex) {
+        // Capitalize first letter and format properly
+        const formattedSex = sex.charAt(0).toUpperCase() + sex.slice(1).toLowerCase();
+        // Handle common variations
+        let finalSex = formattedSex;
+        if (formattedSex.toLowerCase() === 'male' || formattedSex.toLowerCase() === 'm') {
+            finalSex = 'Male';
+        } else if (formattedSex.toLowerCase() === 'female' || formattedSex.toLowerCase() === 'f') {
+            finalSex = 'Female';
+        }
+        sexElement.value = finalSex;
+        // Also update the hidden input for form submission
+        const sexHiddenElement = document.getElementById('sex_hidden');
+        if (sexHiddenElement) {
+            sexHiddenElement.value = finalSex;
+        }
+        console.log('Formatted sex/gender:', finalSex);
+    } else if (!sexElement) {
+        console.warn('Sex element not found');
+    } else if (!sex) {
+        console.warn('Sex/Gender is empty in patient data');
     }
 
     // Auto-populate religion
     if (patientData.religion) {
-        document.getElementById('religion').value = patientData.religion;
+        const religionElement = document.getElementById('religion');
+        if (religionElement) religionElement.value = patientData.religion;
     }
 
     // Auto-populate occupation
     if (patientData.occupation) {
-        document.getElementById('occupation').value = patientData.occupation;
+        const occupationElement = document.getElementById('occupation');
+        if (occupationElement) occupationElement.value = patientData.occupation;
     }
 
     // Auto-populate contact number
     if (patientData.contact_number) {
-        document.getElementById('contact').value = patientData.contact_number;
+        const contactElement = document.getElementById('contact');
+        if (contactElement) contactElement.value = patientData.contact_number;
     }
 
     // Set currentPatientRecord for save functions
@@ -3375,10 +3314,17 @@ function selectPatientForRecord(patientData) {
     };
 
     // Auto-populate "Sent to" section
-    document.getElementById('patientSearchInput').value = `${username} - ${firstName} ${lastName}`;
-    document.getElementById('selectedPatientId').value = patientData.id;
-    document.getElementById('selectedPatientDisplay').classList.remove('d-none');
-    document.getElementById('selectedPatientText').textContent = `${username} - ${firstName} ${lastName}`;
+    const patientSearchInput = document.getElementById('patientSearchInput');
+    if (patientSearchInput) patientSearchInput.value = `${username} - ${firstName} ${lastName}`;
+    
+    const selectedPatientId = document.getElementById('selectedPatientId');
+    if (selectedPatientId) selectedPatientId.value = patientData.id;
+    
+    const selectedPatientDisplay = document.getElementById('selectedPatientDisplay');
+    if (selectedPatientDisplay) selectedPatientDisplay.classList.remove('d-none');
+    
+    const selectedPatientText = document.getElementById('selectedPatientText');
+    if (selectedPatientText) selectedPatientText.textContent = `${username} - ${firstName} ${lastName}`;
 
     // Show success message
     showNotification('Patient information auto-filled successfully!', 'success');
@@ -3612,15 +3558,21 @@ function createNewPatientRecord() {
 
         // Calculate age if birthdate exists
         if (info.birthdate) {
-            setElementValue('dateOfBirth', info.birthdate);
-            const today = new Date();
-            const birthDate = new Date(info.birthdate);
-            let age = today.getFullYear() - birthDate.getFullYear();
-            const monthDiff = today.getMonth() - birthDate.getMonth();
-            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-                age--;
+            // Format birthdate for HTML date input (YYYY-MM-DD)
+            const formattedBirthdate = formatDateForInput(info.birthdate);
+            if (formattedBirthdate) {
+                setElementValue('dateOfBirth', formattedBirthdate);
+                const today = new Date();
+                const birthDate = new Date(info.birthdate);
+                if (!isNaN(birthDate.getTime())) {
+                    let age = today.getFullYear() - birthDate.getFullYear();
+                    const monthDiff = today.getMonth() - birthDate.getMonth();
+                    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                        age--;
+                    }
+                    setElementValue('age', age);
+                }
             }
-            setElementValue('age', age);
         }
     }
 
@@ -3995,7 +3947,6 @@ async function addNewPatientHistory(recordId) {
     const formData = new FormData(form);
     const data = {
         patient_record_id: recordId,
-        visit_date: formData.get('visit_date'),
         // Dental History
         previous_dentist: formData.get('previous_dentist'),
         last_dental_visit: formData.get('last_dental_visit'),
@@ -4031,13 +3982,6 @@ async function addNewPatientHistory(recordId) {
         is_pregnant: formData.get('is_pregnant'),
         is_nursing: formData.get('is_nursing'),
         birth_control: formData.get('birth_control'),
-        // Procedure Details
-        procedure_performed: formData.get('procedure_performed'),
-        materials_used: formData.get('materials_used'),
-        anesthesia_used: formData.get('anesthesia_used'),
-        complications: formData.get('complications'),
-        post_operative_instructions: formData.get('post_operative_instructions'),
-        follow_up_notes: formData.get('follow_up_notes')
     };
 
     fetch('/staff/post-procedural/patient-history', {
@@ -4095,7 +4039,6 @@ async function savePatientHistory(historyId, recordId) {
     const data = {
         id: historyId,
         patient_record_id: recordId,
-        visit_date: formData.get('visit_date'),
         // Dental History
         previous_dentist: formData.get('previous_dentist'),
         last_dental_visit: formData.get('last_dental_visit'),
@@ -4131,13 +4074,6 @@ async function savePatientHistory(historyId, recordId) {
         is_pregnant: formData.get('is_pregnant'),
         is_nursing: formData.get('is_nursing'),
         birth_control: formData.get('birth_control'),
-        // Procedure Details
-        procedure_performed: formData.get('procedure_performed'),
-        materials_used: formData.get('materials_used'),
-        anesthesia_used: formData.get('anesthesia_used'),
-        complications: formData.get('complications'),
-        post_operative_instructions: formData.get('post_operative_instructions'),
-        follow_up_notes: formData.get('follow_up_notes')
     };
 
     fetch('/staff/post-procedural/patient-history', {
@@ -4378,7 +4314,7 @@ function displayPatientMedicalHistory(history, patientName) {
                     <div class="d-flex justify-content-between align-items-center">
                         <h6 class="mb-0">
                             <i class="bi bi-calendar-event me-2"></i>
-                            Visit: ${record.visit_date ? new Date(record.visit_date).toLocaleDateString() : 'N/A'}
+                            Medical History Record
                         </h6>
                         <span class="badge bg-primary">Record #${index + 1}</span>
                     </div>
@@ -4440,18 +4376,6 @@ function displayPatientMedicalHistory(history, patientName) {
                     <hr>
                     ` : ''}
 
-                    <!-- Procedure Details -->
-                    ${record.procedure_performed || record.anesthesia_used ? `
-                    <div class="mb-3">
-                        <h6 class="text-primary"><i class="bi bi-file-medical me-2"></i>PROCEDURE DETAILS</h6>
-                        ${record.procedure_performed ? `<p><strong>Procedure:</strong> ${record.procedure_performed}</p>` : ''}
-                        ${record.anesthesia_used ? `<p><strong>Anesthesia:</strong> ${record.anesthesia_used}</p>` : ''}
-                        ${record.materials_used ? `<p><strong>Materials:</strong> ${record.materials_used}</p>` : ''}
-                        ${record.complications ? `<p><strong>Complications:</strong> ${record.complications}</p>` : ''}
-                        ${record.post_operative_instructions ? `<p><strong>Post-Op Instructions:</strong> ${record.post_operative_instructions}</p>` : ''}
-                        ${record.follow_up_notes ? `<p><strong>Follow-up:</strong> ${record.follow_up_notes}</p>` : ''}
-                    </div>
-                    ` : ''}
                 </div>
                 <div class="card-footer bg-light text-muted small">
                     <i class="bi bi-clock me-1"></i>Recorded: ${record.created_at ? new Date(record.created_at).toLocaleDateString() : 'N/A'}
@@ -4698,13 +4622,13 @@ function renderExistingHistoryRecords(histories, patientRecordId, userId) {
     `;
 
     histories.forEach((history, index) => {
-        const visitDate = history.visit_date ? new Date(history.visit_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A';
+        const visitDate = 'Medical History Record';
 
         html += `
             <div class="card mb-3" style="border: 2px solid #0d6efd;">
                 <div class="card-header" style="background: linear-gradient(135deg, #e7f1ff 0%, #cfe2ff 100%);">
                     <div class="d-flex justify-content-between align-items-center">
-                        <strong style="color: #0a4275;"><i class="bi bi-calendar-event me-2"></i>Visit Date: ${visitDate}</strong>
+                        <strong style="color: #0a4275;"><i class="bi bi-calendar-event me-2"></i>${visitDate}</strong>
                         <div class="btn-group btn-group-sm">
                             <button type="button" class="btn btn-primary" onclick="viewHistoryDetails(${history.id})" title="View Details">
                                 <i class="bi bi-eye me-1"></i>View
@@ -4814,36 +4738,6 @@ function renderExistingHistoryRecords(histories, patientRecordId, userId) {
                         </div>
                     </div>
 
-                    <!-- PROCEDURE DETAILS -->
-                    <div class="mb-3">
-                        <h6 class="fw-bold mb-3" style="color: #0d6efd; border-bottom: 2px solid #0d6efd; padding-bottom: 8px;">PROCEDURE DETAILS</h6>
-                        <div class="row g-3">
-                            <div class="col-md-12">
-                                <strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">PROCEDURE PERFORMED:</strong>
-                                <span>${history.procedure_performed || 'N/A'}</span>
-                            </div>
-                            <div class="col-md-12">
-                                <strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">MATERIALS USED:</strong>
-                                <span>${history.materials_used || 'N/A'}</span>
-                            </div>
-                            <div class="col-md-12">
-                                <strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">ANESTHESIA USED:</strong>
-                                <span>${history.anesthesia_used || 'N/A'}</span>
-                            </div>
-                            <div class="col-md-12">
-                                <strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">COMPLICATIONS:</strong>
-                                <span>${history.complications || 'N/A'}</span>
-                            </div>
-                            <div class="col-md-12">
-                                <strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">POST-OPERATIVE INSTRUCTIONS:</strong>
-                                <span>${history.post_operative_instructions || 'N/A'}</span>
-                            </div>
-                            <div class="col-md-12">
-                                <strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">FOLLOW-UP NOTES:</strong>
-                                <span>${history.follow_up_notes || 'N/A'}</span>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         `;
@@ -5203,40 +5097,6 @@ function renderMedicalHistoryFormOnly(patientId = null) {
                 </div>
             </div>
 
-            <!-- VISIT & PROCEDURE DETAILS -->
-            <div class="mb-4">
-                <h6 class="fw-bold mb-3" style="color: #0a4275; border-bottom: 2px solid #0a4275; padding-bottom: 0.5rem;">VISIT & PROCEDURE DETAILS</h6>
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Visit Date <span class="text-danger">*</span></label>
-                        <input type="date" class="form-control" name="visit_date" required style="border: 1px solid #000;">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Anesthesia Used</label>
-                        <input type="text" class="form-control" name="anesthesia_used" style="border: 1px solid #000;">
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label fw-semibold">Procedure Performed</label>
-                        <textarea class="form-control" name="procedure_performed" rows="2" style="border: 1px solid #000;"></textarea>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label fw-semibold">Materials Used</label>
-                        <textarea class="form-control" name="materials_used" rows="2" style="border: 1px solid #000;"></textarea>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label fw-semibold">Complications</label>
-                        <textarea class="form-control" name="complications" rows="2" style="border: 1px solid #000;"></textarea>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label fw-semibold">Post-Operative Instructions</label>
-                        <textarea class="form-control" name="post_operative_instructions" rows="2" style="border: 1px solid #000;"></textarea>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label fw-semibold">Follow-up Notes</label>
-                        <textarea class="form-control" name="follow_up_notes" rows="2" style="border: 1px solid #000;"></textarea>
-                    </div>
-                </div>
-            </div>
 
             <!-- Action Buttons -->
             <div class="mt-4 pt-3" style="border-top: 2px solid #dee2e6;">
@@ -5314,11 +5174,6 @@ async function saveMedicalHistoryFormFromTab() {
         return;
     }
 
-    // Validate required fields
-    if (!formData.get('visit_date')) {
-        showNotification('Please enter a visit date', 'warning');
-        return;
-    }
 
     // Show confirmation modal before saving
     const confirmed = await showConfirmModal('Are you sure you want to save this medical history record?', {
@@ -5368,13 +5223,6 @@ async function saveMedicalHistoryFormFromTab() {
         is_pregnant: formData.get('is_pregnant'),
         is_nursing: formData.get('is_nursing'),
         birth_control: formData.get('birth_control'),
-        visit_date: formData.get('visit_date'),
-        anesthesia_used: formData.get('anesthesia_used'),
-        procedure_performed: formData.get('procedure_performed'),
-        materials_used: formData.get('materials_used'),
-        complications: formData.get('complications'),
-        post_operative_instructions: formData.get('post_operative_instructions'),
-        follow_up_notes: formData.get('follow_up_notes')
     };
 
     // Send to server
@@ -5730,40 +5578,6 @@ function displayMedicalHistoryForm(patientId, patientName) {
                 </div>
             </div>
 
-            <!-- VISIT & PROCEDURE DETAILS -->
-            <div class="mb-4">
-                <h6 class="fw-bold mb-3" style="color: #0a4275; border-bottom: 2px solid #0a4275; padding-bottom: 0.5rem;">VISIT & PROCEDURE DETAILS</h6>
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Visit Date <span class="text-danger">*</span></label>
-                        <input type="date" class="form-control" name="visit_date" required style="border: 1px solid #000;">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Anesthesia Used</label>
-                        <input type="text" class="form-control" name="anesthesia_used" style="border: 1px solid #000;">
-                </div>
-                    <div class="col-12">
-                        <label class="form-label fw-semibold">Procedure Performed</label>
-                        <textarea class="form-control" name="procedure_performed" rows="2" style="border: 1px solid #000;"></textarea>
-                </div>
-                    <div class="col-12">
-                        <label class="form-label fw-semibold">Materials Used</label>
-                        <textarea class="form-control" name="materials_used" rows="2" style="border: 1px solid #000;"></textarea>
-            </div>
-                    <div class="col-12">
-                        <label class="form-label fw-semibold">Complications</label>
-                        <textarea class="form-control" name="complications" rows="2" style="border: 1px solid #000;"></textarea>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label fw-semibold">Post-Operative Instructions</label>
-                        <textarea class="form-control" name="post_operative_instructions" rows="2" style="border: 1px solid #000;"></textarea>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label fw-semibold">Follow-up Notes</label>
-                        <textarea class="form-control" name="follow_up_notes" rows="2" style="border: 1px solid #000;"></textarea>
-                    </div>
-                </div>
-            </div>
 
             <!-- Action Buttons -->
             <div class="col-12 mt-4 mb-3">
@@ -5785,11 +5599,6 @@ function saveMedicalHistoryForm() {
     const form = document.getElementById('medicalHistoryForm');
     const formData = new FormData(form);
 
-    // Validate required fields
-    if (!formData.get('visit_date')) {
-        showNotification('Please enter a visit date', 'warning');
-        return;
-    }
 
     // Build the data object
     const data = {
@@ -5824,13 +5633,6 @@ function saveMedicalHistoryForm() {
         is_pregnant: formData.get('is_pregnant'),
         is_nursing: formData.get('is_nursing'),
         birth_control: formData.get('birth_control'),
-        visit_date: formData.get('visit_date'),
-        anesthesia_used: formData.get('anesthesia_used'),
-        procedure_performed: formData.get('procedure_performed'),
-        materials_used: formData.get('materials_used'),
-        complications: formData.get('complications'),
-        post_operative_instructions: formData.get('post_operative_instructions'),
-        follow_up_notes: formData.get('follow_up_notes')
     };
 
     // Show loading notification
@@ -5903,6 +5705,7 @@ function createNewMedicalHistory(patientId) {
 // ========================
 
 let selectedProgressNotePatient = null;
+let currentProgressNoteRecordId = null;
 let progressNoteRows = [];
 let progressNoteRowCounter = 0;
 
@@ -5962,6 +5765,23 @@ function selectProgressNotePatient(patientId, patientName, username) {
     showNotification(`Patient ${patientName} selected`, 'success');
 }
 
+// Download progress notes as PDF
+function downloadProgressNotes() {
+    if (!currentProgressNoteRecordId) {
+        showNotification('No patient record selected', 'warning');
+        return;
+    }
+    
+    // Open print-friendly view in new window
+    const printWindow = window.open(`/staff/post-procedural/progress-notes/${currentProgressNoteRecordId}/download`, '_blank');
+    
+    if (printWindow) {
+        showNotification('Opening print-friendly view. Use your browser\'s print function to save as PDF.', 'info');
+    } else {
+        showNotification('Please allow pop-ups to view the printable progress notes.', 'warning');
+    }
+}
+
 // Load existing progress notes for patient
 function loadProgressNotes(patientId) {
     // First, we need to get or create the patient record by user ID
@@ -5970,6 +5790,12 @@ function loadProgressNotes(patientId) {
         .then(data => {
             if (data.success && data.data) {
                 const recordId = data.data.id;
+                currentProgressNoteRecordId = recordId;
+                
+                // Show download button
+                const downloadBtn = document.getElementById('downloadProgressNotesBtn');
+                if (downloadBtn) downloadBtn.style.display = 'inline-block';
+                
                 // Now load progress notes for this record
                 fetch(`/staff/post-procedural/progress-notes/${recordId}`)
                     .then(response => response.json())
@@ -6120,6 +5946,13 @@ function deleteProgressNoteRow(rowId) {
 // Clear progress notes form
 function clearProgressNotesForm() {
     selectedProgressNotePatient = null;
+    currentProgressNoteRecordId = null;
+    
+    // Hide download button
+    const downloadBtn = document.getElementById('downloadProgressNotesBtn');
+    if (downloadBtn) downloadBtn.style.display = 'none';
+    
+    // Clear progress notes table
     progressNoteRows = [];
     progressNoteRowCounter = 0;
 
@@ -6357,6 +6190,161 @@ function openEditRecordModal(recordId) {
         });
 }
 
+// Open view modal with password verification: Patient Record
+function openViewRecordModal(recordId) {
+    if (!recordId || recordId === 'N/A') return;
+    
+    // Check if password is already verified for this record
+    if (isPasswordVerified && passwordVerifiedRecordId === recordId) {
+        // Password already verified, open edit modal directly
+        openEditRecordModal(recordId);
+        return;
+    }
+    
+    // Show password modal
+    showPasswordModal(recordId);
+}
+
+// Show password verification modal
+function showPasswordModal(recordId) {
+    const modalHtml = `
+        <div class="modal fade" id="passwordVerificationModal" tabindex="-1" aria-labelledby="passwordVerificationModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="passwordVerificationModalLabel">
+                            <i class="bi bi-shield-lock me-2"></i>Password Verification
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="mb-3 text-muted">Please enter your account password to access the patient record form.</p>
+                        <form id="staffPasswordForm">
+                            <div class="mb-3">
+                                <label for="staffPasswordInput" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="staffPasswordInput" placeholder="Enter your password" required autofocus>
+                                <div class="text-danger mt-2" id="staffPasswordError" style="display: none;"></div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="verifyStaffPasswordBtn">
+                            <i class="bi bi-check-circle me-2"></i>Verify
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remove existing modal if any
+    const existingModal = document.getElementById('passwordVerificationModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Add modal to body
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('passwordVerificationModal'), {
+        backdrop: true,
+        keyboard: true,
+        focus: true
+    });
+    modal.show();
+    
+    // Handle verify button click
+    document.getElementById('verifyStaffPasswordBtn').addEventListener('click', function() {
+        verifyStaffPassword(recordId, modal);
+    });
+    
+    // Handle Enter key in password input
+    document.getElementById('staffPasswordInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            verifyStaffPassword(recordId, modal);
+        }
+    });
+    
+    // Clear password when modal is closed
+    document.getElementById('passwordVerificationModal').addEventListener('hidden.bs.modal', function() {
+        document.getElementById('staffPasswordInput').value = '';
+        document.getElementById('staffPasswordError').style.display = 'none';
+        document.getElementById('staffPasswordError').textContent = '';
+    });
+}
+
+// Verify staff password
+function verifyStaffPassword(recordId, modal) {
+    const passwordInput = document.getElementById('staffPasswordInput');
+    const passwordError = document.getElementById('staffPasswordError');
+    const verifyBtn = document.getElementById('verifyStaffPasswordBtn');
+    
+    const password = passwordInput.value.trim();
+    
+    if (!password) {
+        passwordError.textContent = 'Please enter your password.';
+        passwordError.style.display = 'block';
+        return;
+    }
+    
+    // Disable button during verification
+    verifyBtn.disabled = true;
+    verifyBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verifying...';
+    passwordError.style.display = 'none';
+    
+    fetch('{{ route("staff-post-procedural.verify-password") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ password: password })
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => {
+                throw new Error(err.message || 'Network response was not ok');
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Password verified successfully
+            isPasswordVerified = true;
+            passwordVerifiedRecordId = recordId;
+            
+            // Close password modal
+            modal.hide();
+            
+            // Open edit modal
+            openEditRecordModal(recordId);
+            
+            // Show success notification
+            showNotification('Password verified successfully. Access granted.', 'success');
+        } else {
+            // Password incorrect
+            passwordError.textContent = data.message || 'Incorrect password. Please try again.';
+            passwordError.style.display = 'block';
+            passwordInput.focus();
+        }
+    })
+    .catch(error => {
+        console.error('Error verifying password:', error);
+        passwordError.textContent = error.message || 'An error occurred. Please try again.';
+        passwordError.style.display = 'block';
+    })
+    .finally(() => {
+        // Re-enable button
+        verifyBtn.disabled = false;
+        verifyBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Verify';
+    });
+}
+
 // Open separate edit modal: Patient History
 function openEditHistoryModal(recordId) {
     if (!recordId || recordId === 'N/A') return;
@@ -6394,7 +6382,6 @@ function openEditHistoryModal(recordId) {
                                     <div class="d-flex justify-content-between align-items-center">
                                         <h6 class="mb-0" style="color: #0a4275;">
                                             <i class="bi bi-calendar-event me-2"></i>Visit #${index + 1}
-                                            ${h.visit_date ? ` - ${new Date(h.visit_date).toLocaleDateString()}` : ''}
                                         </h6>
                                         <!-- Delete button removed - Staff cannot delete records -->
                                     </div>

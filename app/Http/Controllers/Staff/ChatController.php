@@ -11,12 +11,17 @@ use Illuminate\Support\Facades\Auth;
 
 class ChatController extends Controller
 {
+    use CheckStaffAccess;
+
     /**
      * Display chat conversations page
      */
     public function index()
     {
-        return view('staff.chat');
+        $user = Auth::guard('staff')->user();
+        $accessControl = $user->accessControl ?? null;
+        
+        return view('staff.chat', compact('accessControl'));
     }
 
     /**
@@ -124,11 +129,19 @@ class ChatController extends Controller
      */
     public function sendMessage(Request $request, $conversationId)
     {
+        // Check if staff has permission to respond to chat
+        if (!$this->can('respond_to_chat')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You do not have permission to send messages. You can only view conversations.'
+            ], 403);
+        }
+
         $request->validate([
             'message' => 'required|string|max:2000',
         ]);
 
-        $staffId = Auth::id();
+        $staffId = Auth::guard('staff')->id();
         $conversation = ChatConversation::with('patient.info')->findOrFail($conversationId);
 
         // Assign staff to conversation if not already assigned

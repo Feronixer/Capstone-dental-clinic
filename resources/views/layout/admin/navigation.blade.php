@@ -75,6 +75,17 @@
                         @endif
                     </a>
                 </li>
+                <li class="{{ request()->routeIs('admin-staff-access-control') ? 'active' : '' }}">
+                    <a href="{{ route('admin-staff-access-control') }}" class="nav-item-link">
+                        <div class="nav-icon-wrapper">
+                            <i class="bi bi-shield-lock"></i>
+                        </div>
+                        <span class="nav-item-text">Staff Access Control</span>
+                        @if(request()->routeIs('admin-staff-access-control'))
+                            <div class="nav-active-indicator"></div>
+                        @endif
+                    </a>
+                </li>
                 <li class="{{ request()->routeIs('admin-content-management') ? 'active' : '' }}">
                     <a href="{{ route('admin-content-management') }}" class="nav-item-link">
                         <div class="nav-icon-wrapper">
@@ -274,8 +285,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <style>
     .navigation-bar-container {
-        position: relative;
-        transition: width 0.3s ease;
+        position: fixed !important;
+        left: 0 !important;
+        top: 0 !important;
+        height: 100vh !important;
+        z-index: 1000 !important;
+        will-change: width;
+        backface-visibility: hidden;
+        transform: translateZ(0);
+        transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
+                    min-width 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
+                    max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        overflow-y: auto;
+        overflow-x: hidden;
+        background-color: var(--navigation-bar-color, #003B46);
     }
 
     /* Sidebar Toggle Button - Hidden when using hover */
@@ -306,7 +332,13 @@ document.addEventListener('DOMContentLoaded', function() {
         overflow: hidden;
         margin: 0;
         padding: 0;
-        transition: opacity 0.3s ease, max-width 0.3s ease, margin 0.3s ease, padding 0.3s ease;
+        will-change: opacity, max-width;
+        backface-visibility: hidden;
+        transform: translateZ(0);
+        transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1) 0.05s, 
+                    max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
+                    margin 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
+                    padding 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .navigation-bar-container .user-profile-link,
@@ -314,19 +346,30 @@ document.addEventListener('DOMContentLoaded', function() {
         justify-content: center;
         padding-left: 0.5rem;
         padding-right: 0.5rem;
-        transition: padding 0.3s ease, justify-content 0.3s ease;
+        will-change: padding, justify-content;
+        backface-visibility: hidden;
+        transform: translateZ(0);
+        transition: padding 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
+                    justify-content 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .navigation-bar-container .nav-section-label {
         justify-content: center;
         padding-left: 0.5rem;
         padding-right: 0.5rem;
-        transition: padding 0.3s ease, justify-content 0.3s ease;
+        will-change: padding, justify-content;
+        backface-visibility: hidden;
+        transform: translateZ(0);
+        transition: padding 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
+                    justify-content 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .navigation-bar-container .nav-section-label i {
         margin: 0;
-        transition: margin 0.3s ease;
+        will-change: margin;
+        backface-visibility: hidden;
+        transform: translateZ(0);
+        transition: margin 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     /* Expanded state on hover - show text */
@@ -337,6 +380,10 @@ document.addEventListener('DOMContentLoaded', function() {
         max-width: 200px;
         margin: initial;
         padding: initial;
+        transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1) 0.1s, 
+                    max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1) 0.05s, 
+                    margin 0.35s cubic-bezier(0.4, 0, 0.2, 1) 0.05s, 
+                    padding 0.35s cubic-bezier(0.4, 0, 0.2, 1) 0.05s;
     }
 
     .navigation-bar-container:hover .user-profile-link,
@@ -344,16 +391,21 @@ document.addEventListener('DOMContentLoaded', function() {
         justify-content: flex-start;
         padding-left: 0.75rem;
         padding-right: 0.75rem;
+        transition: padding 0.35s cubic-bezier(0.4, 0, 0.2, 1) 0.05s, 
+                    justify-content 0.35s cubic-bezier(0.4, 0, 0.2, 1) 0.05s;
     }
 
     .navigation-bar-container:hover .nav-section-label {
         justify-content: flex-start;
         padding-left: 0.75rem;
         padding-right: 0.75rem;
+        transition: padding 0.35s cubic-bezier(0.4, 0, 0.2, 1) 0.05s, 
+                    justify-content 0.35s cubic-bezier(0.4, 0, 0.2, 1) 0.05s;
     }
 
     .navigation-bar-container:hover .nav-section-label i {
         margin-right: 0.5rem;
+        transition: margin 0.35s cubic-bezier(0.4, 0, 0.2, 1) 0.05s;
     }
 
     /* Dark Mode Toggle Button */
@@ -370,13 +422,26 @@ document.addEventListener('DOMContentLoaded', function() {
     .user-profile-info,
     .nav-section-label,
     .nav-section-label span {
-        transition: opacity 0.3s ease, max-width 0.3s ease, max-height 0.3s ease, margin 0.3s ease, padding 0.3s ease;
+        will-change: opacity, max-width, max-height, margin, padding;
+        backface-visibility: hidden;
+        transform: translateZ(0);
+        transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
+                    max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
+                    max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
+                    margin 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
+                    padding 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .nav-item-link,
     .nav-logout-btn,
     .user-profile-link {
-        transition: padding 0.3s ease, margin 0.3s ease, justify-content 0.3s ease, gap 0.3s ease;
+        will-change: padding, margin, justify-content, gap;
+        backface-visibility: hidden;
+        transform: translateZ(0);
+        transition: padding 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
+                    margin 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
+                    justify-content 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
+                    gap 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     /* User Profile Section - Compact */

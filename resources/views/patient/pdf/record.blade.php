@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Medical Record - {{ $record->user && $record->user->info ? $record->user->info->first_name . ' ' . $record->user->info->last_name : 'Patient' }}</title>
+    <title>Patient Record - {{ $record->user && $record->user->info ? $record->user->info->first_name . ' ' . $record->user->info->last_name : 'Patient' }}</title>
     <style>
         * {
             margin: 0;
@@ -11,17 +11,17 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: POPPINS;
             font-size: 10pt;
-            color: #1e293b;
-            line-height: 1.7;
-            padding: 0.75rem 1rem;
+            color: #000000;
+            line-height: 1.5;
+            padding: 50px;
             background: #ffffff;
         }
 
         @page {
-            size: legal;
-            margin: 0.75in;
+            size: A4;
+            margin: 0.5inch;
         }
 
         @media print {
@@ -29,7 +29,7 @@
                 display: none !important;
             }
             body {
-                padding: 0;
+                padding: 50px;
             }
         }
 
@@ -59,129 +59,186 @@
             transform: translateY(-2px);
         }
 
+        /* Header Section */
         .header {
-            text-align: center;
-            margin-bottom: 1.5rem;
-            padding: 1.25rem 1rem;
             background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
             color: white;
-            border-radius: 8px 8px 0 0;
-            margin: -0.75in -0.75in 1.5rem -0.75in;
+            padding: 1.5rem 0.5in 1.25rem 0.5in;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            width: 100%;
+            margin-top: -0.25in;
+          
         }
 
         .header h1 {
-            font-size: 1.75rem;
+            font-size: 1.1rem;
             font-weight: 700;
-            margin-bottom: 0.5rem;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            color: white;
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        .header .subtitle {
-            font-size: 0.95rem;
-            color: #e0f2fe;
-            opacity: 0.95;
+        .header .clinic-info {
+            text-align: center;
+            font-size: 0.75rem;
+            color: #cfe2ff;
+            line-height: 1.4;
         }
 
-        .section {
-            margin-bottom: 1.25rem;
-            page-break-inside: avoid;
-            background: #ffffff;
-            border: 1px solid #e5e7eb;
-            border-radius: 6px;
-            overflow: hidden;
+        .header .clinic-info p {
+            margin: 0.5rem 0;
         }
 
-        .section-header {
-            background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
-            padding: 0.75rem 1rem;
-            border-left: none;
+        .header .clinic-info p:last-child {
             margin-bottom: 0;
         }
 
-        .section-title {
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: white;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
+        /* Top Section with Patient Name, Service, and Created By */
+        .top-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
             gap: 1rem;
-            padding: 1rem;
         }
 
-        .info-field {
-            padding: 0.75rem;
-            background: #f8fafc;
-            border-left: 3px solid #0d6efd;
+        .patient-info-left {
+            flex: 1;
+        }
+
+        .created-by-box {
+            width: 250px;
+            border: 2px solid #007bff;
             border-radius: 4px;
+            padding: 0.75rem;
+            background: #ffffff;
+            margin-top: 0.23in;
         }
 
-        .field-label {
-            font-size: 0.8rem;
-            color: #475569;
+        .created-by-box .label {
             font-weight: 700;
-            margin-bottom: 0.375rem;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-
-        .field-value {
-            font-size: 0.9rem;
-            color: #1e293b;
-            font-weight: 500;
-            line-height: 1.5;
-        }
-
-        .info-field.full-width {
-            grid-column: 1 / -1;
-        }
-
-        .notes-box {
-            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
-            padding: 1rem;
-            border-radius: 6px;
-            margin: 0.75rem 1rem;
-            border-left: 4px solid #0d6efd;
-            box-shadow: 0 2px 4px rgba(13, 110, 253, 0.1);
-        }
-
-        .notes-box strong {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: #0a58ca;
             font-size: 0.85rem;
+            color: #000000;
+            margin-bottom: 0.25rem;
+        }
+
+        .created-by-box .name {
+            font-size: 0.9rem;
+            color: #000000;
+            margin-bottom: 0.15rem;
+        }
+
+        .created-by-box .role {
+            font-size: 0.8rem;
+            color: #000000;
+            margin-bottom: 0.15rem;
+        }
+
+        .created-by-box .date {
+            font-size: 0.75rem;
+            color: #000000;
+        }
+
+        /* Form Fields */
+        .form-field {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-field label {
+            display: block;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: #000000;
+            margin-bottom: 0.25rem;
+        }
+
+        .form-field input,
+        .form-field textarea {
+            width: 100%;
+            border: 1px solid #007bff;
+            border-radius: 2px;
+            padding: 0.4rem;
+            font-size: 0.9rem;
+            color: #000000;
+            background: #ffffff;
+            font-family: sans-serif;
+        }
+
+        .form-field textarea {
+            min-height: 60px;
+            resize: vertical;
+        }
+
+        /* Horizontal Layout Fields */
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-row .form-field {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .form-row .form-field.col-2 {
+            flex: 2;
+        }
+
+        .form-row .form-field.col-3 {
+            flex: 3;
+        }
+
+        .form-row .form-field.col-4 {
+            flex: 4;
+        }
+
+        /* FOR MINORS Section */
+        .minors-section {
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            border: 2px solid #0d6efd;
+            border-radius: 4px;
+            background: #f8f9fa;
+        }
+
+        .minors-section .section-title {
+            font-weight: 700;
+            font-size: 1rem;
+            color: #000000;
+            margin-bottom: 2rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
+        /* Footer/Signature Section */
         .footer {
-            margin-top: 2rem;
-            padding-top: 1rem;
-            border-top: 3px solid #e5e7eb;
-            text-align: center;
-            color: #64748b;
-            font-size: 0.8rem;
-            line-height: 1.8;
-            background: #f8fafc;
-            padding: 1rem;
-            border-radius: 6px;
-            margin: 2rem -0.75in -0.75in -0.75in;
+            margin-top: 1.5rem;
+            text-align: right;
+           
         }
 
-        .footer strong {
-            font-weight: 700;
-            color: #0d6efd;
-            font-size: 1rem;
-            display: block;
+        .signature-line {
+            border-top: 1px solid #000000;
+            width: 200px;
+            margin-left: auto;
             margin-bottom: 0.5rem;
         }
 
-        .footer p {
-            margin: 0.25rem 0;
+        .footer .name {
+            font-size: 0.9rem;
+            color: #000000;
+            margin-bottom: 0.5rem;
+        }
+
+        .footer .role {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: #000000;
+            margin-bottom: 0.5rem;
         }
     </style>
 </head>
@@ -195,204 +252,112 @@
 
     <!-- Header -->
     <div class="header">
-        <h1>📄 Patient Medical Record</h1>
-        <div class="subtitle">JValera Dental Clinic</div>
-    </div>
-
-    <!-- Patient Information -->
-    <div class="section">
-        <div class="section-header">
-            <div class="section-title">👤 Patient Information</div>
-        </div>
-        <div class="info-grid">
-            <div class="info-field">
-                <div class="field-label">Patient Name</div>
-                <div class="field-value">{{ $record->user && $record->user->info ? $record->user->info->first_name . ' ' . $record->user->info->last_name : 'N/A' }}</div>
-            </div>
-            <div class="info-field">
-                <div class="field-label">Sex</div>
-                <div class="field-value">{{ $record->sex ?? 'N/A' }}</div>
-            </div>
-            <div class="info-field">
-                <div class="field-label">Date of Birth</div>
-                <div class="field-value">{{ $record->date_of_birth ? \Carbon\Carbon::parse($record->date_of_birth)->format('F d, Y') : 'N/A' }}</div>
-            </div>
-            <div class="info-field">
-                <div class="field-label">Age</div>
-                <div class="field-value">{{ $record->age ?? 'N/A' }}</div>
-            </div>
-            <div class="info-field">
-                <div class="field-label">Contact</div>
-                <div class="field-value">{{ $record->contact ?? 'N/A' }}</div>
-            </div>
-            <div class="info-field">
-                <div class="field-label">Nickname</div>
-                <div class="field-value">{{ $record->nickname ?? 'N/A' }}</div>
-            </div>
-            <div class="info-field full-width">
-                <div class="field-label">Home Address</div>
-                <div class="field-value">{{ $record->home_address ?? 'N/A' }}</div>
-            </div>
-            <div class="info-field">
-                <div class="field-label">Religion</div>
-                <div class="field-value">{{ $record->religion ?? 'N/A' }}</div>
-            </div>
-            <div class="info-field">
-                <div class="field-label">Occupation</div>
-                <div class="field-value">{{ $record->occupation ?? 'N/A' }}</div>
-            </div>
+        <h1>JVALERA DENTAL CLINIC</h1>
+        <div class="clinic-info">
+            <p>0190 Policapio St. Gen T. Deleon Valenzuela City</p>
+            <p>No: +63 15 622 9695 | FB: JValera Dental Clinic | EMAIL: jvaleradentalclinic@gmail.com</p>
         </div>
     </div>
 
-    @if($record->guardian_name)
-    <!-- Guardian Information -->
-    <div class="section">
-        <div class="section-header">
-            <div class="section-title">👨‍👩‍👧‍👦 Guardian Information</div>
-        </div>
-        <div class="info-grid">
-            <div class="info-field">
-                <div class="field-label">Guardian Name</div>
-                <div class="field-value">{{ $record->guardian_name }}</div>
+    <!-- Top Section: Patient Name, Service, Created By -->
+    <div class="top-section">
+        <div class="patient-info-left">
+            <div class="form-field">
+                <label>Patient Name:</label>
+                <input type="text" value="{{ $record->user && $record->user->info ? $record->user->info->first_name . ' ' . $record->user->info->last_name : 'N/A' }}" readonly>
             </div>
-            <div class="info-field">
-                <div class="field-label">Guardian Contact</div>
-                <div class="field-value">{{ $record->guardian_contact ?? 'N/A' }}</div>
-            </div>
-            <div class="info-field">
-                <div class="field-label">Guardian Occupation</div>
-                <div class="field-value">{{ $record->guardian_occupation ?? 'N/A' }}</div>
+            <div class="form-field">
+                <label>Service:</label>
+                <input type="text" value="{{ $record->appointment && $record->appointment->service ? $record->appointment->service->service_name : 'N/A' }}" readonly>
             </div>
         </div>
-    </div>
-    @endif
-
-    @if($record->physician_name)
-    <!-- Physician Information -->
-    <div class="section">
-        <div class="section-header">
-            <div class="section-title">👨‍⚕️ Physician Information</div>
-        </div>
-        <div class="info-grid">
-            <div class="info-field">
-                <div class="field-label">Physician Name</div>
-                <div class="field-value">{{ $record->physician_name }}</div>
-            </div>
-            <div class="info-field">
-                <div class="field-label">Specialty</div>
-                <div class="field-value">{{ $record->physician_specialty ?? 'N/A' }}</div>
-            </div>
-            <div class="info-field">
-                <div class="field-label">Contact</div>
-                <div class="field-value">{{ $record->physician_contact ?? 'N/A' }}</div>
-            </div>
-            <div class="info-field full-width">
-                <div class="field-label">Office Address</div>
-                <div class="field-value">{{ $record->physician_office_address ?? 'N/A' }}</div>
-            </div>
-        </div>
-    </div>
-    @endif
-
-    @if($record->previous_dentist || $record->last_dental_visit || $record->treatment_done)
-    <!-- Dental History -->
-    <div class="section">
-        <div class="section-header">
-            <div class="section-title">🦷 Dental History</div>
-        </div>
-        <div class="info-grid">
-            @if($record->previous_dentist)
-            <div class="info-field">
-                <div class="field-label">Previous Dentist</div>
-                <div class="field-value">{{ $record->previous_dentist }}</div>
-            </div>
-            <div class="info-field">
-                <div class="field-label">Last Dental Visit</div>
-                <div class="field-value">{{ $record->last_dental_visit ? \Carbon\Carbon::parse($record->last_dental_visit)->format('F d, Y') : 'N/A' }}</div>
-            </div>
+        <div class="created-by-box">
+            <div class="label">Created by:</div>
+            @if($creator && $creator->info)
+                <div class="name">{{ $creator->info->first_name . ' ' . $creator->info->last_name }}</div>
+                <div class="role">{{ ucfirst($creatorRole ?? 'Staff') }}</div>
+            @else
+                <div class="name">N/A</div>
+                <div class="role">Staff</div>
             @endif
-            @if($record->treatment_done)
-            <div class="info-field full-width">
-                <div class="field-label">Treatment Done</div>
-                <div class="field-value">{{ $record->treatment_done }}</div>
+            <div class="date">{{ $record->created_at ? \Carbon\Carbon::parse($record->created_at)->format('F d, Y, h:i A') : 'N/A' }}</div>
+        </div>
+    </div>
+
+    <!-- Home Address -->
+    <div class="form-field">
+        <label>Home Address</label>
+        <input type="text" value="{{ $record->home_address ?? '' }}" readonly>
+    </div>
+
+    <!-- Date Of Birth, Age, Sex, Nickname -->
+    <div class="form-row">
+        <div class="form-field col-3">
+            <label>Date Of Birth</label>
+            <input type="text" value="{{ $record->date_of_birth ? \Carbon\Carbon::parse($record->date_of_birth)->format('m/d/Y') : '' }}" readonly>
+        </div>
+        <div class="form-field col-2">
+            <label>Age</label>
+            <input type="text" value="{{ $record->age ?? '' }}" readonly>
+        </div>
+        <div class="form-field col-2">
+            <label>Sex</label>
+            <input type="text" value="{{ $record->sex ?? '' }}" readonly>
+        </div>
+        <div class="form-field col-3">
+            <label>Nickname</label>
+            <input type="text" value="{{ $record->nickname ?? '' }}" readonly>
+        </div>
+    </div>
+
+    <!-- Religion, Occupation, Contact -->
+    <div class="form-row">
+        <div class="form-field col-4">
+            <label>Religion</label>
+            <input type="text" value="{{ $record->religion ?? '' }}" readonly>
+        </div>
+        <div class="form-field col-4">
+            <label>Occupation</label>
+            <input type="text" value="{{ $record->occupation ?? '' }}" readonly>
+        </div>
+        <div class="form-field col-4">
+            <label>Contact</label>
+            <input type="text" value="{{ $record->contact ?? '' }}" readonly>
+        </div>
+    </div>
+
+    <!-- FOR MINORS Section -->
+    @if($record->guardian_name || $record->guardian_contact || $record->guardian_occupation)
+    <div class="minors-section">
+        <div class="section-title">FOR MINORS</div>
+        <div class="form-row">
+            <div class="form-field col-4">
+                <label>Parent/Guardian's Name</label>
+                <input type="text" value="{{ $record->guardian_name ?? '' }}" readonly>
             </div>
-            @endif
+            <div class="form-field col-4">
+                <label>Contact No.</label>
+                <input type="text" value="{{ $record->guardian_contact ?? '' }}" readonly>
+            </div>
+            <div class="form-field col-4">
+                <label>Occupation</label>
+                <input type="text" value="{{ $record->guardian_occupation ?? '' }}" readonly>
+            </div>
         </div>
     </div>
     @endif
 
-    @if($record->medical_history || $record->allergies || $record->current_medications)
-    <!-- Medical Information -->
-    <div class="section">
-        <div class="section-header">
-            <div class="section-title">💊 Medical Information</div>
-        </div>
-        @if($record->medical_history)
-        <div class="notes-box">
-            <strong>Medical History</strong>
-            {{ $record->medical_history }}
-        </div>
-        @endif
-        @if($record->allergies)
-        <div class="notes-box">
-            <strong>Allergies</strong>
-            {{ $record->allergies }}
-        </div>
-        @endif
-        @if($record->current_medications)
-        <div class="notes-box">
-            <strong>Current Medications</strong>
-            {{ $record->current_medications }}
-        </div>
-        @endif
+    <!-- Other Notes -->
+    <div class="form-field">
+        <label>Other Notes</label>
+        <textarea readonly>{{ $record->other_notes ?? '' }}</textarea>
     </div>
-    @endif
 
-    @if($record->chief_complaint || $record->diagnosis || $record->treatment_plan)
-    <!-- Treatment Information -->
-    <div class="section">
-        <div class="section-header">
-            <div class="section-title">⚕️ Treatment Information</div>
-        </div>
-        @if($record->chief_complaint)
-        <div class="notes-box">
-            <strong>Chief Complaint</strong>
-            {{ $record->chief_complaint }}
-        </div>
-        @endif
-        @if($record->diagnosis)
-        <div class="notes-box">
-            <strong>Diagnosis</strong>
-            {{ $record->diagnosis }}
-        </div>
-        @endif
-        @if($record->treatment_plan)
-        <div class="notes-box">
-            <strong>Treatment Plan</strong>
-            {{ $record->treatment_plan }}
-        </div>
-        @endif
-    </div>
-    @endif
-
-    @if($record->other_notes)
-    <!-- Additional Notes -->
-    <div class="section">
-        <div class="section-header">
-            <div class="section-title">📝 Additional Notes</div>
-        </div>
-        <div class="notes-box">
-            {{ $record->other_notes }}
-        </div>
-    </div>
-    @endif
-
-    <!-- Footer -->
+    <!-- Footer/Signature -->
     <div class="footer">
-        <strong>JValera Dental Clinic</strong>
-        <p>This is a computer-generated document. No signature is required.</p>
-        <p>Document generated on {{ date('F d, Y \a\t h:i A') }}</p>
-        <p>Record ID: {{ $record->id }} | Patient ID: {{ $record->user_id }}</p>
+        <div class="signature-line"></div>
+        <div class="name">Doc. Justine Valera</div>
+        <div class="role">Lead Dentist</div>
     </div>
 </body>
 </html>

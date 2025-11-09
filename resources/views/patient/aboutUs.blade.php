@@ -535,70 +535,53 @@
 </div>
 
 <script>
-// Google Maps Dark Mode Handler
+// Google Maps - Always keep in light mode regardless of theme
 (function() {
-    let mapContainer = null;
-    let observer = null;
-    
-    function applyDarkModeToMap(isDark) {
-        if (!mapContainer) {
-            mapContainer = document.querySelector('.map-container iframe');
-            if (!mapContainer) return;
-        }
-        
-        if (isDark) {
-            mapContainer.style.filter = 'brightness(0.3) contrast(1.4) invert(1) hue-rotate(180deg) saturate(0.5)';
-            mapContainer.style.transition = 'filter 0.5s ease';
-            mapContainer.style.webkitFilter = 'brightness(0.3) contrast(1.4) invert(1) hue-rotate(180deg) saturate(0.5)';
-            mapContainer.style.opacity = '0.85';
-        } else {
+    function ensureLightModeMap() {
+        const mapContainer = document.querySelector('.map-container iframe');
+        if (mapContainer) {
+            // Always ensure light mode - remove any dark mode filters
             mapContainer.style.filter = 'none';
             mapContainer.style.webkitFilter = 'none';
             mapContainer.style.opacity = '1';
-            mapContainer.style.transition = 'filter 0.5s ease, opacity 0.5s ease';
+            mapContainer.style.transition = 'none';
         }
     }
     
-    function checkTheme() {
-        const theme = document.documentElement.getAttribute('data-theme') || 'light';
-        applyDarkModeToMap(theme === 'dark');
-    }
-    
-    function initMapDarkMode() {
-        mapContainer = document.querySelector('.map-container iframe');
+    function initMapLightMode() {
+        const mapContainer = document.querySelector('.map-container iframe');
         if (!mapContainer) {
-            setTimeout(initMapDarkMode, 500);
+            setTimeout(initMapLightMode, 500);
             return;
         }
-        checkTheme();
-        if (observer) { observer.disconnect(); }
-        observer = new MutationObserver(function(mutations) {
+        
+        // Ensure light mode on load
+        ensureLightModeMap();
+        
+        // Monitor theme changes and always keep map in light mode
+        const observer = new MutationObserver(function(mutations) {
             mutations.forEach(function(mutation) {
                 if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
-                    const theme = document.documentElement.getAttribute('data-theme') || 'light';
-                    applyDarkModeToMap(theme === 'dark');
+                    // Always keep map in light mode, regardless of theme
+                    ensureLightModeMap();
                 }
             });
         });
         observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-        window.addEventListener('storage', function(e) {
-            if (e.key === 'darkMode') { checkTheme(); }
-        });
-        const originalToggleDarkMode = window.toggleDarkMode;
-        if (originalToggleDarkMode) {
-            window.toggleDarkMode = function() {
-                originalToggleDarkMode();
-                setTimeout(checkTheme, 100);
-            };
-        }
+        
+        // Also check periodically to ensure filters aren't re-applied
+        setInterval(ensureLightModeMap, 1000);
     }
+    
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initMapDarkMode);
+        document.addEventListener('DOMContentLoaded', initMapLightMode);
     } else {
-        initMapDarkMode();
+        initMapLightMode();
     }
-    setTimeout(checkTheme, 1000);
-    setTimeout(checkTheme, 2000);
+    
+    // Ensure light mode after a delay to catch any late-loading scripts
+    setTimeout(ensureLightModeMap, 1000);
+    setTimeout(ensureLightModeMap, 2000);
 })();
 </script>
 

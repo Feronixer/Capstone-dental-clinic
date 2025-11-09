@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Auth;
 
 class StaffDashboard extends Controller
 {
+    use CheckStaffAccess;
+
     /**
      * Display a listing of the resource.
      */
@@ -25,6 +27,12 @@ class StaffDashboard extends Controller
         if ($user->role_id !== 2) {
             Auth::guard('staff')->logout();
             return redirect()->route('staff.login')->withErrors(['error' => 'Access denied. This portal is for staff members only.']);
+        }
+
+        // Check access control
+        $accessCheck = $this->requireNavAccess('dashboard');
+        if ($accessCheck) {
+            return $accessCheck;
         }
 
         // Get current month and year for calendar
