@@ -37,7 +37,7 @@
         <!-- Sidebar -->
         <aside class="calendar-sidebar">
             <!-- Tabbed Appointment Section -->
-            <div class="sidebar-card tabbed-section">
+            <div class="sidebar-card tabbed-section reveal-element reveal-slide-left">
                 <!-- Tab Buttons -->
                 <div class="tab-buttons">
                     <button class="tab-btn active" data-tab="upcoming" onclick="switchTab('upcoming')">
@@ -162,7 +162,7 @@
     <div class="calendar-resizer" id="calendarResizer" role="separator" aria-label="Resize appointment panels" aria-orientation="vertical" tabindex="0"></div>
 
         <!-- Main Calendar -->
-        <main class="calendar-main">
+        <main class="calendar-main reveal-element reveal-slide-right">
             <div class="calendar-controls">
                 <div class="view-controls">
                     <button class="view-btn active" data-view="month">
@@ -4937,6 +4937,28 @@
 #bookFormSection .btn-submit i {
     font-size: 1rem;
 }
+
+/* ========================================
+   SCROLL REVEAL ANIMATIONS - REMOVED
+   ======================================== */
+/* Prevent overflow */
+html, body {
+    overflow-x: hidden;
+    width: 100%;
+}
+
+.calendar-container {
+    overflow-x: hidden;
+    width: 100%;
+}
+
+/* Remove reveal animations - elements visible immediately */
+.reveal-element {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+    max-width: 100%;
+}
 </style>
 
 <script>
@@ -5318,9 +5340,131 @@ function refreshTimeSlotAvailability(pickerType) {
     }
 }
 
+// GLOBAL: Check if a day is fully booked
+function checkIfDayIsFullyBooked(dateStr, appointments, blockedTimes) {
+    // Check if there's a full day closure
+    const hasFullDayClosure = blockedTimes && blockedTimes.length > 0 && blockedTimes.some(function(blocked) {
+        if (!blocked || !blocked.start_datetime || !blocked.end_datetime) return false;
+        const startTime = parseLocalDateTime(blocked.start_datetime);
+        const endTime = parseLocalDateTime(blocked.end_datetime);
+        if (!startTime || !endTime) return false;
+        return startTime.getHours() === 0 && startTime.getMinutes() === 0 &&
+               endTime.getHours() === 23 && endTime.getMinutes() === 59;
+    });
+    
+    if (hasFullDayClosure) {
+        return true;
+    }
+    
+    // Generate all 15-minute time slots from 11:00 AM to 6:00 PM
+    const timeSlots = [];
+    for (let hour = 11; hour <= 18; hour++) {
+        for (let minute = 0; minute < 60; minute += 15) {
+            if (hour === 18 && minute > 0) break; // Stop at 6:00 PM
+            timeSlots.push({ hour: hour, minute: minute });
+        }
+    }
+    
+    // Check each time slot for availability
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const minServiceDuration = 15; // Minimum service duration in minutes
+    const defaultDuration = 30; // Default appointment duration in minutes
+    
+    // Check slots with minimum duration first (15 minutes), then default duration (30 minutes)
+    const durationsToCheck = [minServiceDuration, defaultDuration];
+    
+    for (let d = 0; d < durationsToCheck.length; d++) {
+        const duration = durationsToCheck[d];
+        
+        for (let i = 0; i < timeSlots.length; i++) {
+            const slot = timeSlots[i];
+            const slotStart = new Date(year, month - 1, day, slot.hour, slot.minute);
+            const slotEnd = new Date(slotStart.getTime() + duration * 60000);
+            
+            // Make sure slot doesn't go past clinic closing time (6:00 PM)
+            if (slotEnd.getHours() > 18 || (slotEnd.getHours() === 18 && slotEnd.getMinutes() > 0)) {
+                continue; // Skip slots that extend past closing time
+            }
+            
+            // Check if this slot is available
+            let isAvailable = true;
+            
+            // Check against appointments
+            if (appointments && appointments.length > 0) {
+                for (let j = 0; j < appointments.length; j++) {
+                    const apt = appointments[j];
+                    if (!apt || !apt.start_datetime || !apt.end_datetime) continue;
+                    
+                    const aptStart = parseLocalDateTime(apt.start_datetime);
+                    const aptEnd = parseLocalDateTime(apt.end_datetime);
+                    if (!aptStart || !aptEnd) continue;
+                    
+                    // Check for overlap (excluding cancelled appointments)
+                    const status = (apt.status || '').toLowerCase();
+                    if (status !== 'cancelled' && slotStart < aptEnd && slotEnd > aptStart) {
+                        isAvailable = false;
+                        break;
+                    }
+                }
+            }
+            
+            // Check against blocked times
+            if (isAvailable && blockedTimes && blockedTimes.length > 0) {
+                for (let j = 0; j < blockedTimes.length; j++) {
+                    const blocked = blockedTimes[j];
+                    if (!blocked || !blocked.start_datetime || !blocked.end_datetime) continue;
+                    
+                    const blockStart = parseLocalDateTime(blocked.start_datetime);
+                    const blockEnd = parseLocalDateTime(blocked.end_datetime);
+                    if (!blockStart || !blockEnd) continue;
+                    
+                    // Check for overlap
+                    if (slotStart < blockEnd && slotEnd > blockStart) {
+                        isAvailable = false;
+                        break;
+                    }
+                }
+            }
+            
+            // If any slot is available, day is not fully booked
+            if (isAvailable) {
+                return false;
+            }
+        }
+    }
+    
+    // All slots are booked
+    return true;
+}
+
 // GLOBAL: Determine if a time slot is available given current selections
 function isTimeSlotAvailable(selectedDate, selectedTime) {
     if (!selectedDate || !selectedTime) return true;
+
+    // Format date as YYYY-MM-DD for checking fully booked status
+    const dateStr = selectedDate.getFullYear() + '-' + 
+                   String(selectedDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                   String(selectedDate.getDate()).padStart(2, '0');
+    
+    // Get appointments and blocked times for this date
+    const dayAppointments = (window.allAppointments || []).filter(function(apt) {
+        if (!apt || !apt.start_datetime) return false;
+        const aptStart = parseLocalDateTime(apt.start_datetime);
+        if (!aptStart) return false;
+        return aptStart.toDateString() === selectedDate.toDateString();
+    });
+    
+    const dayBlockedTimes = (window.blockedTimes || []).filter(function(blocked) {
+        if (!blocked || !blocked.start_datetime) return false;
+        const blockStart = parseLocalDateTime(blocked.start_datetime);
+        if (!blockStart) return false;
+        return blockStart.toDateString() === selectedDate.toDateString();
+    });
+    
+    // Check if the day is fully booked - if so, no slots are available
+    if (checkIfDayIsFullyBooked(dateStr, dayAppointments, dayBlockedTimes)) {
+        return false;
+    }
 
     const [hours, minutes] = selectedTime.split(':').map(Number);
 
@@ -7467,6 +7611,23 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 </style>
 
+@if(!empty($chatbotSetting) && $chatbotSetting->enabled)
 @include('patient.components.chatbot')
+@endif
+
+<script>
+// ========================================
+// SCROLL REVEAL FUNCTIONALITY - DISABLED
+// ========================================
+// Reveal animations removed - all elements visible immediately
+(function() {
+    document.querySelectorAll('.reveal-element').forEach(el => {
+        el.classList.add('revealed');
+        el.style.opacity = '1';
+        el.style.transform = 'none';
+    });
+})();
+</script>
+
 @endsection
 

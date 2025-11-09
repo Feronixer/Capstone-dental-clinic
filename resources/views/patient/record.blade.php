@@ -131,10 +131,6 @@
     overflow: visible;
 }
 
-.records-table tbody {
-    overflow: visible;
-}
-
 .records-table thead {
     background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
 }
@@ -317,7 +313,7 @@
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    z-index: 10000;
+    z-index: 100;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1166,6 +1162,28 @@
 [data-theme="dark"] span[style*="color: #10b981"] {
     color: #14b8a6 !important;
 }
+
+/* ========================================
+   SCROLL REVEAL ANIMATIONS
+   ======================================== */
+/* Prevent overflow from reveal animations */
+html, body {
+    overflow-x: hidden;
+    width: 100%;
+}
+
+.records-container {
+    overflow-x: hidden;
+    width: 100%;
+}
+
+/* Remove reveal animations - elements visible immediately */
+.reveal-element {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+    max-width: 100%;
+}
 </style>
 
 <div class="records-container">
@@ -1178,7 +1196,7 @@
 
     <div class="records-layout">
         <!-- Records Table -->
-        <div class="records-table-section">
+        <div class="records-table-section reveal-element reveal-slide-up">
             <!-- Enhanced Sort Control -->
             <div class="sort-control-section">
                 <div class="sort-control-wrapper">
@@ -1284,8 +1302,8 @@
                         </div>
 
         <!-- Enhanced Form Preview -->
-        <div class="form-preview-section" id="recordPreviewPanel">
-            <div class="preview-mask" id="previewMask">
+        <div class="form-preview-section reveal-element reveal-fade" id="recordPreviewPanel">
+            <div class="preview-mask hidden" id="previewMask">
                 <div class="mask-content">
                     <i class="bi bi-lock-fill"></i>
                     <p>Access is needed to view this record</p>
@@ -1370,20 +1388,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 pendingAction = null;
             }
             
-            // Restore mask z-index after modal closes
-            const mask = document.getElementById('previewMask');
-            if (mask && !mask.classList.contains('hidden')) {
-                mask.style.zIndex = '10000';
+            // Only show mask if authentication expired and there's content
+            if (!isAuthenticated) {
+                const previewPanel = document.getElementById('recordPreviewPanel');
+                if (previewPanel) {
+                    const hasContent = previewPanel.querySelector('.preview-header, .record-detail-view, .progress-notes-table-container, .form-grid, .section-title');
+                    if (hasContent) {
+                        showPreviewMask();
+                    }
+                }
             }
         });
         
         // Ensure modal is visible when shown
         passwordModal.addEventListener('shown.bs.modal', function() {
-            // Lower preview mask z-index when modal is shown
-            const mask = document.getElementById('previewMask');
-            if (mask) {
-                mask.style.zIndex = '9999';
-            }
+            // Hide preview mask when modal is shown
+            hidePreviewMask();
             
             // Focus on password input
             const passwordInput = document.getElementById('passwordInput');
@@ -1492,7 +1512,7 @@ function showPreviewMask() {
     if (mask) {
         mask.classList.remove('hidden');
         mask.style.opacity = '1';
-        mask.style.zIndex = '10000';
+        mask.style.zIndex = '100';
         mask.style.pointerEvents = 'auto';
     }
 }
@@ -1513,10 +1533,7 @@ function showPasswordModal(actionCallback) {
     pendingAction = actionCallback;
     
     // Hide preview mask when showing password modal
-    const mask = document.getElementById('previewMask');
-    if (mask) {
-        mask.style.zIndex = '9999'; // Lower z-index so modal appears above
-    }
+    hidePreviewMask();
     
     const modal = new bootstrap.Modal(document.getElementById('passwordModal'), {
         backdrop: true,
@@ -1642,7 +1659,7 @@ function startAuthTimer() {
                     if (mask) {
                         mask.classList.remove('hidden');
                         mask.style.opacity = '1';
-                        mask.style.zIndex = '10000';
+                        mask.style.zIndex = '100';
                         mask.style.pointerEvents = 'auto';
                         mask.style.display = 'flex';
                     }
@@ -1680,8 +1697,8 @@ async function executeViewRecord(recordId) {
     currentRecordId = recordId;
     const previewPanel = document.getElementById('recordPreviewPanel');
 
-    // Show mask initially (blurred)
-    showPreviewMask();
+    // Hide mask since user is authenticated
+    hidePreviewMask();
 
     // Show loading state
     previewPanel.innerHTML = `
@@ -1713,7 +1730,18 @@ async function executeViewRecord(recordId) {
             // Hide mask after successful load
             hidePreviewMask();
         } else {
-            throw new Error('Invalid response');
+            // If record not found or access denied, show appropriate message
+            if (data.message && (data.message.includes('access denied') || data.message.includes('not found'))) {
+                previewPanel.innerHTML = `
+                    <div class="alert alert-warning">
+                        <i class="bi bi-shield-exclamation me-2"></i>
+                        ${data.message || 'This record may not be available yet. Please contact the clinic if you believe this is an error.'}
+                    </div>
+                `;
+                hidePreviewMask();
+            } else {
+                throw new Error('Invalid response');
+            }
         }
     } catch (error) {
         console.error('Error loading record:', error);
@@ -1723,7 +1751,8 @@ async function executeViewRecord(recordId) {
                 Failed to load record. Please try again.
             </div>
         `;
-        showPreviewMask(); // Keep mask on error
+        // Don't show mask on error - let user see the error message
+        hidePreviewMask();
     }
 }
 
@@ -2403,6 +2432,22 @@ document.getElementById('recordSortBy')?.addEventListener('change', function() {
 });
 </script>
 
+@if(!empty($chatbotSetting) && $chatbotSetting->enabled)
 @include('patient.components.chatbot')
+@endif
+
+<script>
+// ========================================
+// SCROLL REVEAL FUNCTIONALITY - DISABLED
+// ========================================
+// Reveal animations removed - all elements visible immediately
+(function() {
+    document.querySelectorAll('.reveal-element').forEach(el => {
+        el.classList.add('revealed');
+        el.style.opacity = '1';
+        el.style.transform = 'none';
+    });
+})();
+</script>
 
 @endsection

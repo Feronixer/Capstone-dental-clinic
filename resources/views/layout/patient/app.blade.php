@@ -33,10 +33,47 @@
             box-sizing: border-box;
         }
 
+        html {
+            width: 100%;
+            overflow-x: hidden;
+            overflow-y: hidden;
+            max-width: 100vw;
+            height: 100%;
+        }
+
         body {
             font-family: 'Poppins', sans-serif;
             background: #f5f7fa;
             color: #333;
+            overflow-x: hidden;
+            overflow-y: auto;
+            width: 100%;
+            max-width: 100vw;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            height: 100%;
+        }
+        
+        /* Hide scrollbar but keep scroll functionality */
+        body::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+        
+        body {
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE and Edge */
+        }
+
+        /* Prevent overflow in containers */
+        img, video, iframe, embed, object {
+            max-width: 100%;
+            height: auto;
+        }
+
+        section, main, article, header, footer {
+            max-width: 100%;
+            box-sizing: border-box;
         }
 
         /* Global Scrollbar Styles - White & Blue Theme */

@@ -85,7 +85,8 @@
                     </div>
                     <div class="chat-input-section" id="chat-input-container" style="display: none;">
                         <div class="input-group input-group-lg chat-input-wrapper">
-                            <button class="btn btn-outline-secondary chat-attach-btn" type="button" title="Attach file">
+                            <input type="file" id="chat-file-input" class="d-none" multiple accept="image/*,application/pdf,.doc,.docx,.txt" data-max-size="5242880">
+                            <button class="btn btn-outline-secondary chat-attach-btn" type="button" title="Attach file" id="chat-attach-btn">
                                 <i class="bi bi-paperclip"></i>
                             </button>
                             <input type="text" id="chat-input" class="form-control chat-message-input" placeholder="Type your message..." autocomplete="off">
@@ -93,6 +94,7 @@
                                 <i class="bi bi-send-fill me-1"></i> Send
                             </button>
                         </div>
+                        <div id="chat-attached-files" class="chat-attached-files-container" style="display: none;"></div>
                     </div>
                 </div>
             </div>
@@ -151,6 +153,38 @@
             </div>
             <div class="modal-footer justify-content-center">
                 <button type="button" class="btn btn-success btn-lg px-5" data-bs-dismiss="modal">
+                    <i class="bi bi-check-lg me-2"></i>OK
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- File Size Warning Modal -->
+<div class="modal fade" id="fileSizeWarningModal" tabindex="-1" aria-labelledby="fileSizeWarningModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content file-size-warning-modal-content">
+            <div class="modal-header file-size-warning-modal-header">
+                <h5 class="modal-title text-white" id="fileSizeWarningModalLabel">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>File Size Limit Exceeded
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-4">
+                <div class="file-size-warning-icon mb-3 text-center">
+                    <i class="bi bi-file-earmark-x"></i>
+                </div>
+                <div class="alert alert-warning mb-3 file-size-warning-alert">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>File Size Limit:</strong> The maximum file size allowed is <strong>5MB</strong>.
+                </div>
+                <p class="mb-3 text-center">The following file(s) exceed the size limit:</p>
+                <div class="file-size-warning-list" id="file-size-warning-list">
+                    <!-- File list will be inserted here -->
+                </div>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-warning btn-lg px-5" data-bs-dismiss="modal">
                     <i class="bi bi-check-lg me-2"></i>OK
                 </button>
             </div>
@@ -276,10 +310,10 @@ async function loadMessages(conversationId) {
                 sender_name: 'System',
                 created_at: new Date().toISOString()
             };
-            addMessage(welcomeMessage.message, welcomeMessage.sender_type, welcomeMessage.sender_name, welcomeMessage.created_at);
+            addMessage(welcomeMessage.message, welcomeMessage.sender_type, welcomeMessage.sender_name, welcomeMessage.created_at, null);
         } else {
         data.messages.forEach(msg => {
-                addMessage(msg.message, msg.sender_type, msg.sender_name, msg.created_at);
+                addMessage(msg.message, msg.sender_type, msg.sender_name, msg.created_at, msg.attachments);
         });
         }
         
@@ -289,18 +323,50 @@ async function loadMessages(conversationId) {
     }
 }
 
-function addMessage(text, senderType, senderName, timestamp = null) {
+function addMessage(text, senderType, senderName, timestamp = null, attachments = null) {
     const messagesEl = document.getElementById('chat-messages');
     const messageWrapper = document.createElement('div');
     const isAdmin = senderType === 'admin' || senderType === 'staff';
     
     const timeStr = timestamp ? formatMessageTime(timestamp) : formatMessageTime(new Date().toISOString());
     
+    // Build attachments HTML
+    let attachmentsHtml = '';
+    if (attachments && Array.isArray(attachments) && attachments.length > 0) {
+        attachmentsHtml = '<div class="message-attachments">';
+        attachments.forEach(attachment => {
+            const isImage = attachment.mime_type && attachment.mime_type.startsWith('image/');
+            const fileSize = (attachment.size / 1024).toFixed(1);
+            if (isImage) {
+                attachmentsHtml += `
+                    <div class="attachment-item">
+                        <a href="${attachment.url}" target="_blank" class="attachment-link">
+                            <img src="${attachment.url}" alt="${attachment.name}" class="attachment-image" />
+                            <span class="attachment-name">${escapeHtml(attachment.name)}</span>
+                        </a>
+                    </div>
+                `;
+            } else {
+                attachmentsHtml += `
+                    <div class="attachment-item">
+                        <a href="${attachment.url}" target="_blank" download="${escapeHtml(attachment.name)}" class="attachment-link">
+                            <i class="bi bi-file-earmark"></i>
+                            <span class="attachment-name">${escapeHtml(attachment.name)}</span>
+                            <span class="attachment-size">(${fileSize} KB)</span>
+                        </a>
+                    </div>
+                `;
+            }
+        });
+        attachmentsHtml += '</div>';
+    }
+    
     messageWrapper.className = `message-wrapper ${isAdmin ? 'message-sent' : 'message-received'}`;
     messageWrapper.innerHTML = `
         <div class="message-bubble ${isAdmin ? 'message-outgoing' : 'message-incoming'}">
             ${!isAdmin ? `<div class="message-sender">${senderName}</div>` : ''}
-            <div class="message-text">${escapeHtml(text)}</div>
+            ${text ? `<div class="message-text">${escapeHtml(text)}</div>` : ''}
+            ${attachmentsHtml}
             <div class="message-time">${timeStr}</div>
         </div>
     `;
@@ -327,31 +393,170 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+function buildAttachmentsHtml(attachments) {
+    if (!attachments || !Array.isArray(attachments) || attachments.length === 0) {
+        return '';
+    }
+    
+    let html = '<div class="message-attachments">';
+    attachments.forEach(attachment => {
+        const isImage = attachment.mime_type && attachment.mime_type.startsWith('image/');
+        const fileSize = (attachment.size / 1024).toFixed(1);
+        if (isImage) {
+            html += `
+                <div class="attachment-item">
+                    <a href="${attachment.url}" target="_blank" class="attachment-link">
+                        <img src="${attachment.url}" alt="${escapeHtml(attachment.name)}" class="attachment-image" />
+                        <span class="attachment-name">${escapeHtml(attachment.name)}</span>
+                    </a>
+                </div>
+            `;
+        } else {
+            html += `
+                <div class="attachment-item">
+                    <a href="${attachment.url}" target="_blank" download="${escapeHtml(attachment.name)}" class="attachment-link">
+                        <i class="bi bi-file-earmark"></i>
+                        <span class="attachment-name">${escapeHtml(attachment.name)}</span>
+                        <span class="attachment-size">(${fileSize} KB)</span>
+                    </a>
+                </div>
+            `;
+        }
+    });
+    html += '</div>';
+    return html;
+}
+
 async function sendMessage() {
     const input = document.getElementById('chat-input');
     const message = input.value.trim();
-    if (!message || !currentConversationId) return;
     
-    addMessage(message, 'admin', 'You');
+    // Check if there's something to send
+    if ((!message || message === '') && attachedFiles.length === 0) return;
+    if (!currentConversationId) return;
+    
+    // Store files before clearing input
+    const filesToSend = attachedFiles.slice(); // Deep copy
+    const messageText = message || '';
+    
+    // Clear input immediately for better UX
     input.value = '';
     
+    // Show message immediately with placeholder attachments
+    const placeholderAttachments = filesToSend.length > 0 ? filesToSend.map(f => ({
+        name: f.name,
+        url: '#',
+        size: f.size,
+        mime_type: f.type
+    })) : null;
+    
+    if (messageText || placeholderAttachments) {
+        addMessage(messageText || '📎 File attachment', 'admin', 'You', null, placeholderAttachments);
+    }
+    
     try {
+        // Create FormData
+        const formData = new FormData();
+        
+        // Add message (always send, even if empty)
+        formData.append('message', messageText);
+        
+        // Add CSRF token
+        formData.append('_token', '{{ csrf_token() }}');
+        
+        // Add files - use numeric index for Laravel array handling
+        if (filesToSend.length > 0) {
+            console.log('Sending files:', filesToSend.length);
+            filesToSend.forEach((file, index) => {
+                console.log(`Adding file ${index}:`, file.name, file.size, file.type);
+                formData.append(`files[${index}]`, file);
+            });
+        }
+        
+        // Log FormData contents for debugging
+        console.log('FormData entries:');
+        for (let pair of formData.entries()) {
+            console.log(pair[0], pair[1]);
+        }
+        
         const response = await fetch(`{{ url('/admin/chat/conversations') }}/${currentConversationId}/send`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
             },
-            body: JSON.stringify({ message })
+            body: formData
         });
         
-        const data = await response.json();
+        const responseText = await response.text();
+        console.log('Response status:', response.status);
+        console.log('Response text:', responseText);
+        
+        let data;
+        try {
+            data = JSON.parse(responseText);
+        } catch (e) {
+            console.error('Failed to parse response:', e);
+            throw new Error('Invalid response from server');
+        }
+        
         if (data.success) {
+            console.log('Message sent successfully:', data);
+            
+            // Update the message with actual attachments from server
+            if (data.message && data.message.attachments && data.message.attachments.length > 0) {
+                const messagesEl = document.getElementById('chat-messages');
+                const messageWrappers = messagesEl.querySelectorAll('.message-wrapper');
+                if (messageWrappers.length > 0) {
+                    const lastWrapper = messageWrappers[messageWrappers.length - 1];
+                    const messageBubble = lastWrapper.querySelector('.message-bubble');
+                    if (messageBubble) {
+                        // Remove placeholder attachments if any
+                        const existingAttachments = messageBubble.querySelector('.message-attachments');
+                        if (existingAttachments) {
+                            existingAttachments.remove();
+                        }
+                        // Add real attachments
+                        const attachmentsHtml = buildAttachmentsHtml(data.message.attachments);
+                        const messageTextEl = messageBubble.querySelector('.message-text');
+                        if (messageTextEl && attachmentsHtml) {
+                            messageTextEl.insertAdjacentHTML('afterend', attachmentsHtml);
+                        } else if (attachmentsHtml) {
+                            // If no message text, add attachments directly
+                            messageBubble.insertAdjacentHTML('afterbegin', attachmentsHtml);
+                        }
+                    }
+                }
+            }
+            
             lastMessageId = data.message.id;
-            loadConversations(); // Refresh list
+            loadConversations();
+            
+            // Clear attached files only on success
+            attachedFiles = [];
+            updateAttachedFilesDisplay();
+            document.getElementById('chat-file-input').value = '';
+        } else {
+            console.error('Error sending message:', data);
+            showErrorModal(data.message || 'Failed to send message');
+            // Remove the placeholder message on error
+            const messagesEl = document.getElementById('chat-messages');
+            const messageWrappers = messagesEl.querySelectorAll('.message-wrapper');
+            if (messageWrappers.length > 0) {
+                messageWrappers[messageWrappers.length - 1].remove();
+            }
+            // Don't clear files on error - keep them for retry
         }
     } catch (error) {
         console.error('Error sending message:', error);
+        showErrorModal(error.message);
+        // Remove the placeholder message on error
+        const messagesEl = document.getElementById('chat-messages');
+        const messageWrappers = messagesEl.querySelectorAll('.message-wrapper');
+        if (messageWrappers.length > 0) {
+            messageWrappers[messageWrappers.length - 1].remove();
+        }
+        // Don't clear files on error - keep them for retry
     }
 }
 
@@ -365,7 +570,7 @@ function startPolling() {
             
             data.messages.forEach(msg => {
                 if (msg.id > lastMessageId) {
-                    addMessage(msg.message, msg.sender_type, msg.sender_name, msg.created_at);
+                    addMessage(msg.message, msg.sender_type, msg.sender_name, msg.created_at, msg.attachments);
                     lastMessageId = msg.id;
                 }
             });
@@ -380,6 +585,68 @@ function stopPolling() {
         clearInterval(pollingInterval);
         pollingInterval = null;
     }
+}
+
+// File attachment handling
+let attachedFiles = [];
+
+document.getElementById('chat-attach-btn').addEventListener('click', function() {
+    document.getElementById('chat-file-input').click();
+});
+
+document.getElementById('chat-file-input').addEventListener('change', function(e) {
+    const files = Array.from(e.target.files);
+    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+    const invalidFiles = [];
+    
+    files.forEach(file => {
+        // Check file size (5MB limit)
+        if (file.size > maxSize) {
+            invalidFiles.push(file.name);
+            return;
+        }
+        
+        // Check if file already exists
+        if (!attachedFiles.find(f => f.name === file.name && f.size === file.size)) {
+            attachedFiles.push(file);
+        }
+    });
+    
+    // Show error for files that exceed size limit
+    if (invalidFiles.length > 0) {
+        showFileSizeWarningModal(invalidFiles);
+    }
+    
+    updateAttachedFilesDisplay();
+    // Reset file input to allow selecting the same file again
+    e.target.value = '';
+});
+
+function updateAttachedFilesDisplay() {
+    const container = document.getElementById('chat-attached-files');
+    if (attachedFiles.length === 0) {
+        container.style.display = 'none';
+        return;
+    }
+    
+    container.style.display = 'flex';
+    container.innerHTML = attachedFiles.map((file, index) => `
+        <div class="chat-attached-file-item">
+            <i class="bi bi-file-earmark"></i>
+            <span class="file-name" title="${file.name}">${file.name}</span>
+            <span class="file-size">(${(file.size / 1024).toFixed(1)} KB)</span>
+            <button type="button" class="file-remove" onclick="removeAttachedFile(${index})" title="Remove file">
+                <i class="bi bi-x-circle"></i>
+            </button>
+        </div>
+    `).join('');
+}
+
+function removeAttachedFile(index) {
+    attachedFiles.splice(index, 1);
+    updateAttachedFilesDisplay();
+    // Reset file input
+    document.getElementById('chat-file-input').value = '';
 }
 
 document.getElementById('status-filter').addEventListener('change', loadConversations);
@@ -408,9 +675,48 @@ document.getElementById('conversation-status').addEventListener('change', async 
 // Delete conversation handler (Admin only)
 let deletePasswordModal = null;
 let successModal = null;
+let fileSizeWarningModal = null;
+let errorModal = null;
 if (typeof bootstrap !== 'undefined') {
     deletePasswordModal = new bootstrap.Modal(document.getElementById('deletePasswordModal'));
     successModal = new bootstrap.Modal(document.getElementById('successModal'));
+    fileSizeWarningModal = new bootstrap.Modal(document.getElementById('fileSizeWarningModal'));
+}
+
+// Function to show file size warning modal
+function showFileSizeWarningModal(invalidFiles) {
+    const listContainer = document.getElementById('file-size-warning-list');
+    listContainer.innerHTML = invalidFiles.map(fileName => `
+        <div class="file-size-warning-item">
+            <i class="bi bi-file-earmark-x text-danger me-2"></i>
+            <span class="file-size-warning-name">${escapeHtml(fileName)}</span>
+        </div>
+    `).join('');
+    
+    if (fileSizeWarningModal) {
+        fileSizeWarningModal.show();
+    } else {
+        // Fallback if Bootstrap modal is not available
+        document.getElementById('fileSizeWarningModal').style.display = 'block';
+    }
+}
+
+// Function to show error modal
+function showErrorModal(message) {
+    // Create a simple error modal or use existing modal
+    const errorMessage = escapeHtml(message);
+    if (fileSizeWarningModal) {
+        document.getElementById('fileSizeWarningModalLabel').innerHTML = '<i class="bi bi-exclamation-circle-fill me-2"></i>Error';
+        document.getElementById('file-size-warning-list').innerHTML = `
+            <div class="file-size-warning-item">
+                <i class="bi bi-exclamation-circle text-danger me-2"></i>
+                <span class="file-size-warning-name">${errorMessage}</span>
+            </div>
+        `;
+        fileSizeWarningModal.show();
+    } else {
+        alert('Error: ' + message);
+    }
 }
 
 document.getElementById('delete-conversation-btn').addEventListener('click', function() {
@@ -1022,6 +1328,66 @@ setInterval(loadConversations, 10000); // Refresh list every 10 seconds
     margin-top: 4px;
 }
 
+.message-attachments {
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.attachment-item {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 8px 12px;
+    transition: all 0.2s ease;
+}
+
+.message-incoming .attachment-item {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.attachment-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: inherit;
+    width: 100%;
+}
+
+.attachment-link:hover {
+    opacity: 0.8;
+}
+
+.attachment-image {
+    max-width: 200px;
+    max-height: 200px;
+    border-radius: 6px;
+    object-fit: cover;
+}
+
+.attachment-name {
+    font-size: 0.875rem;
+    font-weight: 500;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.attachment-size {
+    font-size: 0.75rem;
+    opacity: 0.7;
+    margin-left: 4px;
+}
+
+.attachment-item i {
+    font-size: 1.25rem;
+    color: #3b82f6;
+}
+
 .message-incoming .message-time {
     color: #64748b;
 }
@@ -1065,7 +1431,7 @@ setInterval(loadConversations, 10000); // Refresh list every 10 seconds
 .chat-attach-btn:hover {
     background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
     color: #3b82f6;
-    transform: scale(1.1) rotate(15deg);
+    transform: translateY(-1px);
     box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
 }
 
@@ -1604,6 +1970,61 @@ setInterval(loadConversations, 10000); // Refresh list every 10 seconds
 [data-theme="dark"] .chat-attach-btn:hover {
     background: var(--dm-border-color, #475569) !important;
     color: #60a5fa !important;
+    transform: translateY(-1px) !important;
+}
+
+.chat-attached-files-container {
+    padding: 0.75rem 1rem;
+    background: #f8f9fa;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.chat-attached-file-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    color: #475569;
+}
+
+.chat-attached-file-item .file-name {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.chat-attached-file-item .file-remove {
+    cursor: pointer;
+    color: #ef4444;
+    font-size: 1rem;
+    padding: 0;
+    background: none;
+    border: none;
+    display: flex;
+    align-items: center;
+}
+
+.chat-attached-file-item .file-remove:hover {
+    color: #dc2626;
+}
+
+[data-theme="dark"] .chat-attached-files-container {
+    background: var(--dm-bg-secondary, #0f172a) !important;
+    border-top-color: var(--dm-border-color, #475569) !important;
+}
+
+[data-theme="dark"] .chat-attached-file-item {
+    background: var(--dm-bg-tertiary, #1e293b) !important;
+    border-color: var(--dm-border-color, #475569) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
 }
 
 [data-theme="dark"] .chat-message-input {

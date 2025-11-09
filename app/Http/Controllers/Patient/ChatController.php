@@ -53,6 +53,12 @@ class ChatController extends Controller
 
         return response()->json([
             'messages' => $messages->map(function ($message) {
+                // Ensure attachments is properly formatted
+                $attachments = $message->attachments;
+                if ($attachments && !is_array($attachments)) {
+                    $attachments = json_decode($attachments, true);
+                }
+                
                 return [
                     'id' => $message->id,
                     'sender_id' => $message->sender_id,
@@ -61,6 +67,7 @@ class ChatController extends Controller
                         ? $message->sender->info->first_name . ' ' . $message->sender->info->last_name 
                         : $message->sender->username,
                     'message' => $message->message,
+                    'attachments' => $attachments,
                     'is_read' => $message->is_read,
                     'created_at' => $message->created_at->format('Y-m-d H:i:s'),
                 ];
@@ -128,12 +135,13 @@ class ChatController extends Controller
     {
         $patientId = Auth::id();
         
-        $count = ChatConversation::where('patient_id', $patientId)
-            ->where('status', '!=', 'closed')
-            ->whereHas('messages', function($q) {
-                $q->whereIn('sender_type', ['admin', 'staff'])
-                  ->where('is_read', false);
+        // Count unread messages from staff/admin
+        $count = ChatMessage::whereHas('conversation', function($q) use ($patientId) {
+                $q->where('patient_id', $patientId)
+                  ->where('status', '!=', 'closed');
             })
+            ->whereIn('sender_type', ['admin', 'staff'])
+            ->where('is_read', false)
             ->count();
 
         return response()->json(['count' => $count]);

@@ -20,7 +20,11 @@
             box-sizing: border-box;
         }
 
-        html { width: 100%; overflow-x: hidden; }
+        html { 
+            width: 100%; 
+            overflow-x: hidden; 
+            max-width: 100vw;
+        }
 
         body {
             font-family: 'Poppins', sans-serif;
@@ -28,6 +32,18 @@
             min-height: 100vh;
             overflow-x: hidden;
             width: 100%;
+            max-width: 100vw;
+        }
+
+        /* Prevent overflow in containers */
+        img, video, iframe, embed, object {
+            max-width: 100%;
+            height: auto;
+        }
+
+        section, main, article, header, footer {
+            max-width: 100%;
+            box-sizing: border-box;
         }
 
         [data-theme="dark"] body {
@@ -352,19 +368,19 @@
             gap: 0.5rem;
             background: rgba(33, 150, 243, 0.1);
             color: #2196F3;
-            padding: 0.5rem 1rem;
+            padding: 10px 20px;
             border-radius: 20px;
-            font-size: 0.9rem;
+            font-size: 18px;
             font-weight: 600;
-            margin-bottom: 1.5rem;
+            margin-bottom: 0.75rem;
         }
 
         .hero-title {
-            font-size: 3.5rem;
+            font-size: 68px;
             font-weight: 800;
             color: #263238;
             line-height: 1.2;
-            margin-bottom: 1.5rem;
+            margin-bottom: 0.75rem;
         }
 
         .hero-title .highlight {
@@ -386,7 +402,7 @@
             font-size: 1.1rem;
             color: #546e7a;
             line-height: 1.7;
-            margin-bottom: 2rem;
+            margin-bottom: 1rem;
         }
 
         .patient-login-btn {
@@ -641,7 +657,7 @@
                 max-width: 100%;
             }
 
-            .hero-title { font-size: 2.4rem; }
+            .hero-title { font-size: 42px; }
 
             .main-card {
                 min-height: 420px;
@@ -714,8 +730,13 @@
                 padding: 0.5rem;
             }
 
+            .badge {
+                font-size: 16px;
+                padding: 8px 16px;
+            }
+
             .hero-title {
-                font-size: 2rem;
+                font-size: 35px;
             }
 
             .patient-login-btn {
@@ -854,6 +875,10 @@
                 padding: 0.25rem; 
                 width: 100%;
                 max-width: 100%;
+            }
+            
+            .hero-title {
+                font-size: 29px;
             }
             
             .main-card { 
@@ -1697,9 +1722,261 @@
             }
         }
 
+        @media (max-width: 768px) {
+            .chatbot-widget {
+                right: 16px !important;
+                left: 16px !important;
+                width: auto !important;
+                max-width: calc(100vw - 32px);
+                bottom: 88px !important;
+            }
+            
+            .chatbot-toggle-btn {
+                right: 16px !important;
+                bottom: 16px !important;
+                width: 56px;
+                height: 56px;
+            }
+            
+            .chatbot-messages {
+                height: 260px;
+                padding: 12px;
+            }
+            
+            .message {
+                max-width: 85%;
+                padding: 10px 14px;
+                font-size: 0.875rem;
+            }
+            
+            .chatbot-header {
+                padding: 12px 14px;
+            }
+            
+            .chatbot-body {
+                padding: 10px;
+            }
+            
+            .chatbot-input {
+                padding: 10px 12px;
+            }
+            
+            .chatbot-input input[type="text"] {
+                padding: 10px 14px;
+                font-size: 0.875rem;
+            }
+            
+            .send-btn {
+                padding: 10px;
+                width: 40px;
+                height: 40px;
+            }
+            
+            .chip {
+                padding: 8px 12px;
+                font-size: 0.8rem;
+            }
+        }
+
         @media (max-width: 480px) {
-            .chatbot-widget { right: 16px; left: 16px; width: auto; }
-            .chatbot-messages { height: 240px; }
+            .chatbot-widget {
+                right: 12px !important;
+                left: 12px !important;
+                bottom: 80px !important;
+                max-width: calc(100vw - 24px);
+                border-radius: 12px;
+            }
+            
+            .chatbot-toggle-btn {
+                right: 12px !important;
+                bottom: 12px !important;
+                width: 52px;
+                height: 52px;
+                opacity: 0.9;
+            }
+            
+            .chatbot-toggle-btn:active,
+            .chatbot-toggle-btn:focus {
+                opacity: 1;
+            }
+            
+            .chatbot-messages {
+                height: 240px;
+                padding: 10px;
+                gap: 6px;
+            }
+            
+            .message {
+                max-width: 88%;
+                padding: 8px 12px;
+                font-size: 0.85rem;
+                line-height: 1.4rem;
+                border-radius: 12px;
+            }
+            
+            .message.bot {
+                border-radius: 12px 12px 12px 4px;
+            }
+            
+            .message.user {
+                border-radius: 12px 12px 4px 12px;
+            }
+            
+            .chatbot-header {
+                padding: 10px 12px;
+            }
+            
+            .chatbot-title {
+                font-size: 0.9rem;
+            }
+            
+            .chatbot-title .badge-dot {
+                width: 8px;
+                height: 8px;
+            }
+            
+            .chatbot-body {
+                padding: 8px;
+                gap: 8px;
+            }
+            
+            .chatbot-input {
+                padding: 8px 10px;
+                gap: 6px;
+            }
+            
+            .chatbot-input input[type="text"] {
+                padding: 8px 12px;
+                font-size: 0.85rem;
+                border-radius: 20px;
+            }
+            
+            .send-btn {
+                width: 36px;
+                height: 36px;
+                padding: 8px;
+                border-radius: 50%;
+            }
+            
+            .chip {
+                padding: 6px 10px;
+                font-size: 0.75rem;
+                border-radius: 16px;
+            }
+            
+            .typing-indicator {
+                padding: 8px 12px;
+                border-radius: 12px;
+            }
+            
+            .typing-indicator span {
+                width: 6px;
+                height: 6px;
+            }
+            
+            #chatbot-close {
+                width: 32px;
+                height: 32px;
+            }
+            
+            #chatbot-close i {
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .chatbot-widget {
+                right: 8px !important;
+                left: 8px !important;
+                bottom: 72px !important;
+                max-width: calc(100vw - 16px);
+            }
+            
+            .chatbot-toggle-btn {
+                right: 8px !important;
+                bottom: 8px !important;
+                width: 48px;
+                height: 48px;
+            }
+            
+            .chatbot-messages {
+                height: 220px;
+                padding: 8px;
+            }
+            
+            .message {
+                max-width: 90%;
+                padding: 6px 10px;
+                font-size: 0.8rem;
+            }
+        }
+
+        @media (max-width: 768px) and (orientation: landscape) {
+            .chatbot-widget {
+                max-height: calc(100vh - 100px);
+                max-height: calc(100dvh - 100px);
+            }
+            
+            .chatbot-messages {
+                height: 200px;
+                max-height: calc(100vh - 280px);
+                max-height: calc(100dvh - 280px);
+            }
+        }
+
+        @media (max-width: 480px) and (orientation: landscape) {
+            .chatbot-widget {
+                bottom: 60px !important;
+                max-height: calc(100vh - 80px);
+                max-height: calc(100dvh - 80px);
+            }
+            
+            .chatbot-messages {
+                height: 180px;
+                max-height: calc(100vh - 260px);
+                max-height: calc(100dvh - 260px);
+            }
+            
+            .chatbot-toggle-btn {
+                bottom: 8px !important;
+            }
+        }
+
+        /* Fix for mobile browsers with address bar */
+        @media (max-width: 768px) {
+            .chatbot-widget {
+                max-height: calc(100vh - 100px);
+                max-height: calc(100dvh - 100px);
+            }
+            
+            .chatbot-messages {
+                max-height: calc(100vh - 300px);
+                max-height: calc(100dvh - 300px);
+            }
+        }
+
+        /* Ensure touch targets are at least 44x44px for accessibility */
+        @media (max-width: 768px) {
+            .chip,
+            .send-btn,
+            #chatbot-close {
+                min-width: 44px;
+                min-height: 44px;
+            }
+        }
+
+        /* Prevent text size adjustment on iOS */
+        @media (max-width: 768px) {
+            .chatbot-input input[type="text"] {
+                -webkit-text-size-adjust: 100%;
+                font-size: 16px !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .chatbot-input input[type="text"] {
+                font-size: 16px !important;
+            }
         }
 
         /* Chatbot Tabs */
@@ -1794,6 +2071,24 @@
         [data-theme="dark"] * {
             scrollbar-color: #2196F3 var(--dm-bg-secondary, #1e293b);
         }
+
+        /* ========================================
+           SCROLL REVEAL ANIMATIONS
+           ======================================== */
+        /* Prevent overflow from reveal animations */
+        html, body {
+            overflow-x: hidden;
+            width: 100%;
+            max-width: 100vw;
+        }
+        
+        /* Remove reveal animations - elements visible immediately */
+        .reveal-element {
+            opacity: 1 !important;
+            transform: none !important;
+            transition: none !important;
+            max-width: 100%;
+        }
     </style>
 </head>
 <body>
@@ -1859,7 +2154,7 @@
     </div>
 
     <!-- Hero Section -->
-    <section class="hero-section">
+    <section class="hero-section reveal-element reveal-slide-up">
         <!-- Left Content -->
         <div class="hero-content">
             <div class="badge">
@@ -1872,7 +2167,7 @@
             </h1>
 
             <p class="hero-description">
-                Become a patient today! Our clinic staff will register you, and keep you updated with your dental needs.
+                Become our patient today! Our clinic staff will register you, and keep you updated with your dental needs.
             </p>
 
             {{-- Patient Portal --}}
@@ -1924,7 +2219,7 @@
 </section>
 
     <!-- Services Section -->
-    <section class="services-section">
+    <section class="services-section reveal-element reveal-fade">
         <div class="services-container">
             <h2 class="services-title">OUR SERVICES</h2>
             <p class="services-subtitle">We offer a comprehensive range of premium dental services</p>
@@ -2400,11 +2695,11 @@
     </script>
 
     <!-- Footer Section -->
-    <footer class="footer">
+    <footer class="footer reveal-element reveal-slide-up">
         <div class="footer-container">
             <div class="footer-content">
                 <!-- About Section -->
-                <div class="footer-about">
+                <div class="footer-about reveal-element reveal-fade">
                     <h3>
                         <img src="{{ asset('images/logo7.png') }}" alt="ToothTalk" class="footer-logo">
                         ToothTalk
@@ -2423,7 +2718,7 @@
                 </div>
 
                 <!-- Quick Links -->
-                <div class="footer-section">
+                <div class="footer-section reveal-element reveal-fade reveal-delay-1">
                     <h4>Quick Links</h4>
                     <ul>
                         <li><a href="{{ url('/') }}"><i class="bi bi-chevron-right"></i> Home</a></li>
@@ -2434,7 +2729,7 @@
                 </div>
 
                 <!-- Services -->
-                <div class="footer-section">
+                <div class="footer-section reveal-element reveal-fade reveal-delay-2">
                     <h4>Our Services</h4>
                     <ul class="services-bullets">
                         <li>General Dentistry</li>
@@ -2446,7 +2741,7 @@
                 </div>
 
                 <!-- Contact Info -->
-                <div class="footer-section footer-contact">
+                <div class="footer-section footer-contact reveal-element reveal-fade reveal-delay-3">
                     <h4>Contact Info</h4>
                     <p>
                         <i class="bi bi-geo-alt-fill"></i>
@@ -2468,7 +2763,7 @@
             </div>
 
             <!-- Footer Bottom -->
-            <div class="footer-bottom">
+            <div class="footer-bottom reveal-element reveal-fade">
                 <p>&copy; {{ date('Y') }} ToothTalk Appointment Scheduler for JValera Dental Clinic. All rights reserved. | Designed with <i class="bi bi-heart-fill" style="color: #ff5252;"></i> for healthy smiles</p>
             </div>
         </div>
@@ -3060,6 +3355,19 @@
 
             // Initial check
             toggleScrollButton();
+        })();
+
+        // ========================================
+        // SCROLL REVEAL FUNCTIONALITY - DISABLED
+        // ========================================
+        // Reveal animations removed - all elements visible immediately
+        (function() {
+            // Make all reveal elements visible immediately
+            document.querySelectorAll('.reveal-element').forEach(el => {
+                el.classList.add('revealed');
+                el.style.opacity = '1';
+                el.style.transform = 'none';
+            });
         })();
 
         // ========================================

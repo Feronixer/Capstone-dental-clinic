@@ -158,6 +158,7 @@ Route::middleware(['auth:admin'])->group(function(): void{
     Route::post('/admin/post-procedural/store-progress-notes', [PostProceduralController::class,'storeProgressNotes']);
     Route::delete('/admin/post-procedural/progress-notes/{id}', [PostProceduralController::class,'destroyProgressNote']);
     Route::get('/admin/post-procedural/progress-notes/{recordId}/download', [PostProceduralController::class,'downloadProgressNotes']);
+    Route::post('/admin/post-procedural/verify-password', [PostProceduralController::class,'verifyPassword'])->name('admin-post-procedural.verify-password');
     Route::get('/admin/toothtalk', [ToothTalkController::class,'index'])->name('admin-toothtalk');
     Route::post('/admin/toothtalk/settings', [ToothTalkController::class,'saveSettings'])->name('admin-toothtalk.settings.save');
     Route::post('/admin/toothtalk/faq', [ToothTalkController::class,'storeFaq'])->name('admin-toothtalk.faq.store');

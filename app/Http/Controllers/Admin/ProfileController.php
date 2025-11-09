@@ -7,8 +7,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Mail;
 use App\Models\User;
 use App\Models\UserInfo;
+use App\Models\PasswordResetToken;
+use App\Mail\PasswordChangeVerificationMail;
 use Carbon\Carbon;
 
 class ProfileController extends Controller
@@ -30,6 +33,24 @@ class ProfileController extends Controller
     public function update(Request $request)
     {
         $user = Auth::user();
+
+        // Check if email is being changed
+        $emailChanged = $request->email !== $user->email;
+
+        // If email is being changed, require password verification
+        if ($emailChanged) {
+            $request->validate([
+                'password' => 'required|string',
+            ]);
+
+            // Verify password
+            if (!Hash::check($request->password, $user->password)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Incorrect password. Please enter your current password to change your email.'
+                ], 422);
+            }
+        }
 
         $request->validate([
             'username' => 'required|string|max:255|unique:users,username,' . $user->id,
@@ -136,25 +157,74 @@ class ProfileController extends Controller
      */
     public function updatePassword(Request $request)
     {
-        $request->validate([
-            'current_password' => 'required',
-            'new_password' => 'required|string|min:8|confirmed',
-        ]);
-
         $user = Auth::user();
 
-        // Check if current password is correct
-        if (!Hash::check($request->current_password, $user->password)) {
+        // If send_code flag is set, send verification code to email
+        if ($request->has('send_code') && $request->send_code) {
+            try {
+                // Create or update password reset token
+                $passwordReset = PasswordResetToken::createOrUpdate($user->email);
+
+                // Send email with verification code
+                Mail::to($user->email)->send(new PasswordChangeVerificationMail($user, $passwordReset->token));
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Verification code has been sent to your email address.'
+                ]);
+            } catch (\Exception $e) {
+                \Log::error('Failed to send password change verification email: ' . $e->getMessage());
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to send verification code. Please try again.'
+                ], 500);
+            }
+        }
+
+        // If verify_code flag is set, verify the code
+        if ($request->has('verify_code') && $request->verify_code) {
+            $request->validate([
+                'verification_code' => 'required|string|size:6',
+            ]);
+
+            $passwordReset = PasswordResetToken::verifyToken($user->email, $request->verification_code);
+
+            if (!$passwordReset) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid or expired verification code. Please request a new code.'
+                ], 422);
+            }
+
+            // Store verification in session
+            session(['password_change_verified' => true, 'password_change_verified_at' => now()]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Verification code verified successfully.'
+            ]);
+        }
+
+        // Check if password change is verified
+        if (!session('password_change_verified') || 
+            now()->diffInMinutes(session('password_change_verified_at')) > 15) {
             return response()->json([
                 'success' => false,
-                'message' => 'Current password is incorrect'
+                'message' => 'Please verify your email first by entering the verification code.'
             ], 422);
         }
+
+        $request->validate([
+            'new_password' => 'required|string|min:8|confirmed',
+        ]);
 
         // Update password
         $user->update([
             'password' => Hash::make($request->new_password)
         ]);
+
+        // Clear verification session
+        session()->forget(['password_change_verified', 'password_change_verified_at']);
 
         // Force logout across all guards
         Auth::guard('web')->logout();

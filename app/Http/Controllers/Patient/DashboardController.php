@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Service;
 use App\Models\ChatbotSetting;
 use App\Models\ChatbotFaq;
+use App\Models\Announcement;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -18,6 +19,9 @@ class DashboardController extends Controller
         // Fetch all services from database (same ones admin/staff manage)
         $services = Service::orderBy('id')->get();
 
+        // Fetch the latest announcement
+        $announcement = Announcement::first();
+
         // Fetch chatbot data
         $chatbotSetting = ChatbotSetting::first() ?? ChatbotSetting::create([
             'enabled' => true,
@@ -28,6 +32,7 @@ class DashboardController extends Controller
 
         return view('patient.dashboard', [
             'services' => $services,
+            'announcement' => $announcement,
             'chatbotSetting' => $chatbotSetting,
             'chatbotFaqs' => $chatbotFaqs,
         ]);

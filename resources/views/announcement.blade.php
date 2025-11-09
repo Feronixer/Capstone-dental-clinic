@@ -79,9 +79,11 @@
     }
 
     .announcement-content-wrapper {
-        max-width: 1200px;
+        max-width: 100%;
         margin: 0 auto;
-        padding: 0 clamp(1rem, 3vw, 1.5rem);
+        padding: 0 clamp(1rem, 3vw, 2rem);
+        width: 100%;
+        box-sizing: border-box;
     }
 
     /* Page Header */
@@ -582,7 +584,9 @@
         }
 
         .announcement-content-wrapper {
-            padding: 0 1rem;
+            padding: 0 clamp(1rem, 3vw, 1.5rem);
+            max-width: 100%;
+            width: 100%;
         }
 
         .page-header {
@@ -701,13 +705,13 @@
     <div class="announcement-content-wrapper">
 
         <!-- Page Header -->
-        <div class="page-header">
+        <div class="page-header reveal-element reveal-slide-up">
             <h1><i class="bi bi-megaphone-fill me-2"></i>Announcements & Events</h1>
             <p>Stay updated with our latest news and upcoming activities</p>
         </div>
 
         @if($announcement)
-            <div class="announcement-card">
+            <div class="announcement-card reveal-element reveal-slide-up">
                 <div class="announcement-banner">
                     @if($announcement->created_at->diffInDays(now()) < 7)
                         <span class="new-badge">
@@ -776,7 +780,7 @@
 
         <!-- Upcoming Events -->
         @forelse($upcomingEvents as $event)
-            <div class="announcement-card">
+            <div class="announcement-card reveal-element reveal-fade">
                 <div class="announcement-content-section" style="padding-top: 1.25rem; padding-bottom: 0;">
                     <span class="event-badge">
                         <i class="bi bi-calendar-check"></i>
@@ -826,7 +830,7 @@
 
         <!-- Announcement Archive -->
         @if($pastEvents && $pastEvents->count() > 0)
-            <div class="archive-section-header">
+            <div class="archive-section-header reveal-element reveal-slide-up">
                 <h2>
                     <i class="bi bi-archive me-2"></i>Event Archive
                 </h2>
@@ -839,7 +843,7 @@
                     $colorIndex = 0;
                 @endphp
                 @foreach($pastEvents as $pastEvent)
-                    <div class="archive-card" style="border-top-color: {{ $colors[$colorIndex % 3] }};">
+                    <div class="archive-card reveal-element reveal-fade" style="border-top-color: {{ $colors[$colorIndex % 3] }};">
                         <div class="archive-card-content">
                             <div class="archive-date">
                                 <i class="bi bi-calendar3"></i>
@@ -1323,6 +1327,131 @@ document.addEventListener('keydown', function(e) {
         font-size: 0.9rem;
     }
 }
+
+/* ========================================
+   SCROLL REVEAL ANIMATIONS
+   ======================================== */
+/* Prevent overflow from reveal animations */
+html, body {
+    overflow-x: hidden;
+    width: 100%;
+}
+
+.announcement-page {
+    overflow-x: hidden;
+    width: 100%;
+}
+
+.reveal-element {
+    opacity: 0;
+    will-change: opacity, transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transition: opacity 1s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+                transform 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    contain: layout style paint;
+    max-width: 100%;
+}
+
+.reveal-element.reveal-fade {
+    opacity: 0;
+}
+
+.reveal-element.reveal-fade.revealed {
+    opacity: 1;
+}
+
+.reveal-element.reveal-slide-up {
+    opacity: 0;
+    transform: translateY(40px);
+}
+
+.reveal-element.reveal-slide-up.revealed {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.reveal-element.reveal-slide-left {
+    opacity: 0;
+    transform: translateX(-40px);
+}
+
+.reveal-element.reveal-slide-left.revealed {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.reveal-element.reveal-slide-right {
+    opacity: 0;
+    transform: translateX(40px);
+}
+
+.reveal-element.reveal-slide-right.revealed {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.reveal-element.reveal-scale {
+    opacity: 0;
+    transform: scale(0.95);
+}
+
+.reveal-element.reveal-scale.revealed {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+.reveal-delay-5 { transition-delay: 0.5s; }
+
+@media (max-width: 768px) {
+    .reveal-element {
+        will-change: opacity, transform;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+    }
+    .reveal-element.reveal-slide-up {
+        transform: translateY(25px);
+    }
+    .reveal-element.reveal-slide-left {
+        transform: translateX(-25px);
+    }
+    .reveal-element.reveal-slide-right {
+        transform: translateX(25px);
+    }
+    .reveal-element.reveal-scale {
+        transform: scale(0.97);
+    }
+    .reveal-element {
+        transition: opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+                    transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+}
+
+@media (max-width: 480px) {
+    .reveal-element.reveal-slide-up {
+        transform: translateY(20px);
+    }
+    .reveal-element.reveal-slide-left,
+    .reveal-element.reveal-slide-right {
+        transform: translateX(20px);
+    }
+    .reveal-element {
+        transition: opacity 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+                    transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .reveal-element {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+    }
+}
 </style>
 
 @if(!empty($chatbotSetting) && $chatbotSetting->enabled)
@@ -1792,5 +1921,82 @@ document.addEventListener('keydown', function(e) {
     })();
 </script>
 @endif
+
+<script>
+// ========================================
+// SCROLL REVEAL FUNCTIONALITY
+// ========================================
+(function() {
+    if (!('IntersectionObserver' in window)) {
+        document.querySelectorAll('.reveal-element').forEach(el => {
+            el.classList.add('revealed');
+        });
+        return;
+    }
+
+    let isMobile = window.innerWidth <= 768;
+    let observerOptions = {
+        root: null,
+        rootMargin: isMobile ? '0px 0px -50px 0px' : '0px 0px -100px 0px',
+        threshold: isMobile ? 0.05 : 0.1
+    };
+
+    let observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('revealed');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+
+    function initRevealElements() {
+        const revealElements = document.querySelectorAll('.reveal-element');
+        revealElements.forEach(el => {
+            if (!el.classList.contains('revealed')) {
+                observer.observe(el);
+            }
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initRevealElements);
+    } else {
+        initRevealElements();
+    }
+
+    let resizeTimeout;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(function() {
+            const newIsMobile = window.innerWidth <= 768;
+            if (newIsMobile !== isMobile) {
+                const newObserverOptions = {
+                    root: null,
+                    rootMargin: newIsMobile ? '0px 0px -50px 0px' : '0px 0px -100px 0px',
+                    threshold: newIsMobile ? 0.05 : 0.1
+                };
+                observer.disconnect();
+                isMobile = newIsMobile;
+                observerOptions = newObserverOptions;
+                observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('revealed');
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                }, observerOptions);
+                const revealElements = document.querySelectorAll('.reveal-element');
+                revealElements.forEach(el => {
+                    if (!el.classList.contains('revealed')) {
+                        observer.observe(el);
+                    }
+                });
+            }
+        }, 250);
+    });
+})();
+</script>
 
 @endsection

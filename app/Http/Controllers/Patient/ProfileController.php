@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Patient;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Models\UserInfo;
+use App\Models\ChatbotSetting;
+use App\Models\ChatbotFaq;
 use Carbon\Carbon;
 
 class ProfileController extends Controller
@@ -19,7 +22,14 @@ class ProfileController extends Controller
         $user = Auth::user();
         $userInfo = $user->info;
 
-        return view("patient.profile", compact('user', 'userInfo'));
+        $chatbotSetting = ChatbotSetting::first() ?? ChatbotSetting::create([
+            'enabled' => true,
+            'welcome_message' => '',
+            'quick_intents' => [],
+        ]);
+        $chatbotFaqs = ChatbotFaq::where('is_active', true)->orderBy('order')->get(['question', 'answer']);
+
+        return view("patient.profile", compact('user', 'userInfo', 'chatbotSetting', 'chatbotFaqs'));
     }
 
     /**
@@ -29,6 +39,24 @@ class ProfileController extends Controller
     {
         try {
             $user = Auth::user();
+
+            // Check if email is being changed
+            $emailChanged = $request->email !== $user->email;
+
+            // If email is being changed, require password verification
+            if ($emailChanged) {
+                $request->validate([
+                    'password' => 'required|string',
+                ]);
+
+                // Verify password
+                if (!Hash::check($request->password, $user->password)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Incorrect password. Please enter your current password to change your email.'
+                    ], 422);
+                }
+            }
 
             // Validate the incoming data
             $validated = $request->validate([

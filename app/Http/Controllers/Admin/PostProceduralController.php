@@ -8,9 +8,11 @@ use App\Models\PatientHistory;
 use App\Models\ProgressNote;
 use App\Models\User;
 use App\Models\Appointment;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use App\Services\NotificationService;
 
 class PostProceduralController extends Controller
@@ -286,15 +288,27 @@ class PostProceduralController extends Controller
                 ], 422);
             }
 
-            // Automatically set appointment_id to the latest appointment if not provided
+            // Automatically set appointment_id to the latest confirmed or completed appointment if not provided
             if (empty($data['appointment_id'])) {
+                // First, try to find the latest confirmed or completed appointment
                 $latestAppointment = Appointment::where('patient_id', $data['user_id'])
+                    ->whereIn('status', ['Confirmed', 'Completed', 'confirmed', 'completed'])
                     ->orderBy('start_datetime', 'desc')
                     ->first();
 
+                // If no confirmed/completed appointment found, try to find any appointment
+                if (!$latestAppointment) {
+                    $latestAppointment = Appointment::where('patient_id', $data['user_id'])
+                        ->orderBy('start_datetime', 'desc')
+                        ->first();
+                }
+
                 if ($latestAppointment) {
                     $data['appointment_id'] = $latestAppointment->id;
-                    \Log::info('Automatically assigned latest appointment', ['appointment_id' => $latestAppointment->id]);
+                    \Log::info('Automatically assigned appointment', [
+                        'appointment_id' => $latestAppointment->id,
+                        'status' => $latestAppointment->status
+                    ]);
                 }
             }
 
@@ -302,14 +316,50 @@ class PostProceduralController extends Controller
             if (!empty($data['appointment_id'])) {
                 $appointment = Appointment::find($data['appointment_id']);
                 if ($appointment) {
-                    $status = strtolower((string) $appointment->status);
+                    // Normalize status: trim whitespace and convert to lowercase for comparison
+                    $status = strtolower(trim((string) $appointment->status));
+                    \Log::info('Checking appointment status', [
+                        'appointment_id' => $appointment->id,
+                        'status' => $appointment->status,
+                        'normalized_status' => $status
+                    ]);
+                    
                     if (!in_array($status, ['confirmed', 'completed'])) {
-                        return response()->json([
-                            'success' => false,
-                            'message' => 'Post-procedural records can only be created for Confirmed or Completed appointments.'
-                        ], 422);
+                        // Check if there are any confirmed or completed appointments for this patient
+                        $validAppointments = Appointment::where('patient_id', $data['user_id'])
+                            ->whereIn('status', ['Confirmed', 'Completed', 'confirmed', 'completed'])
+                            ->orderBy('start_datetime', 'desc')
+                            ->get();
+                        
+                        if ($validAppointments->count() > 0) {
+                            // Use the latest valid appointment instead
+                            $validAppointment = $validAppointments->first();
+                            $data['appointment_id'] = $validAppointment->id;
+                            \Log::info('Switched to valid appointment', [
+                                'old_appointment_id' => $appointment->id,
+                                'new_appointment_id' => $validAppointment->id,
+                                'status' => $validAppointment->status
+                            ]);
+                        } else {
+                            return response()->json([
+                                'success' => false,
+                                'message' => 'Post-procedural records can only be created for Confirmed or Completed appointments. This patient has no confirmed or completed appointments.'
+                            ], 422);
+                        }
                     }
+                } else {
+                    \Log::warning('Appointment not found', ['appointment_id' => $data['appointment_id']]);
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Appointment not found.'
+                    ], 404);
                 }
+            } else {
+                // No appointment_id provided and no appointments found
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No appointment found. Post-procedural records require a Confirmed or Completed appointment.'
+                ], 422);
             }
 
             // Generate patient number if not exists (do this BEFORE filtering)
@@ -375,20 +425,64 @@ class PostProceduralController extends Controller
 
             \Log::info('Final data before save', ['data' => $data]);
 
+            // Get the authenticated admin user
+            $adminUser = Auth::guard('admin')->user();
+            $adminUserId = $adminUser ? $adminUser->id : null;
+
             // Update or create the record
             if (!empty($data['id'])) {
                 $record = PatientRecord::find($data['id']);
                 if ($record) {
+                    $oldValues = $record->toArray();
                     $record->update($data);
+                    \Log::info('Admin updated patient record', ['record_id' => $record->id]);
+
+                    // Log activity with explicit user_id
+                    ActivityLog::log(
+                        'updated',
+                        'patient_record',
+                        'Updated patient record for ' . ($record->user->info->first_name ?? '') . ' ' . ($record->user->info->last_name ?? ''),
+                        $record->id,
+                        'PatientRecord',
+                        $oldValues,
+                        $record->fresh()->toArray(),
+                        $adminUserId
+                    );
                 } else {
                     // ID provided but record doesn't exist, create new
                     unset($data['id']); // Remove invalid ID
                     $record = PatientRecord::create($data);
+                    \Log::info('Admin created patient record', ['record_id' => $record->id]);
+
+                    // Log activity with explicit user_id
+                    ActivityLog::log(
+                        'created',
+                        'patient_record',
+                        'Created patient record for ' . ($record->user->info->first_name ?? '') . ' ' . ($record->user->info->last_name ?? ''),
+                        $record->id,
+                        'PatientRecord',
+                        null,
+                        $record->toArray(),
+                        $adminUserId
+                    );
                 }
             } else {
                 // Creating new record
                 unset($data['id']); // Make sure id is not set for new records
                 $record = PatientRecord::create($data);
+                \Log::info('Admin created patient record', ['record_id' => $record->id]);
+
+                // Log activity with explicit user_id
+                ActivityLog::log(
+                    'created',
+                    'patient_record',
+                    'Created patient record for ' . ($record->user->info->first_name ?? '') . ' ' . ($record->user->info->last_name ?? ''),
+                    $record->id,
+                    'PatientRecord',
+                    null,
+                    $record->toArray(),
+                    $adminUserId
+                );
             }
 
             \Log::info('Patient record saved successfully', ['record_id' => $record->id]);
@@ -1159,5 +1253,28 @@ class PostProceduralController extends Controller
                 'message' => 'Error saving progress notes: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Verify admin password before allowing edits/deletes
+     */
+    public function verifyPassword(Request $request)
+    {
+        $request->validate([
+            'password' => 'required|string'
+        ]);
+
+        $admin = Auth::guard('admin')->user();
+        if (!$admin || !Hash::check($request->password, $admin->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Incorrect password. Please try again.'
+            ], 403);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password verified successfully.'
+        ]);
     }
 }

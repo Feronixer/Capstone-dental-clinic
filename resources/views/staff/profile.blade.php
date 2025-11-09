@@ -65,6 +65,8 @@
                             <div class="col-md-6">
                                 <label for="email" class="form-label fw-semibold">Email Address <span class="text-danger">*</span></label>
                                 <input type="email" class="form-control" id="email" name="email" value="{{ $user->email }}" required>
+                                <input type="hidden" id="original_email" value="{{ $user->email }}">
+                                <input type="hidden" id="password" name="password">
                             </div>
 
                             <!-- First Name -->
@@ -175,7 +177,7 @@
                                 </button>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100">
+                        <button type="button" class="btn btn-primary w-100" id="verifyPasswordBtn">
                             <i class="bi bi-key me-2"></i>Update Password
                         </button>
                     </form>
@@ -203,6 +205,87 @@
                         <span class="fw-semibold">#{{ str_pad($user->id, 4, '0', STR_PAD_LEFT) }}</span>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Email Change Password Verification Modal -->
+<div class="modal fade" id="passwordModal" tabindex="-1" aria-labelledby="passwordModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="passwordModalLabel">
+                    <i class="bi bi-shield-lock me-2"></i>Password Verification Required
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">You are changing your email address. Please enter your current password to confirm this change.</p>
+                <div class="mb-3">
+                    <label for="modalPassword" class="form-label fw-semibold">Current Password <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <input type="password" class="form-control" id="modalPassword" placeholder="Enter your current password" autocomplete="current-password">
+                        <button class="btn btn-outline-secondary toggle-password" type="button" data-target="#modalPassword" aria-label="Show password">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                    <div class="invalid-feedback" id="passwordError"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmPasswordBtn">
+                    <i class="bi bi-check-circle me-2"></i>Verify & Save
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Password Change Verification Modal -->
+<div class="modal fade" id="passwordChangeModal" tabindex="-1" aria-labelledby="passwordChangeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="passwordChangeModalLabel">
+                    <i class="bi bi-shield-lock me-2"></i>Email Verification Required
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="sendCodeSection">
+                    <p class="mb-3">We'll send a verification code to your email address to verify your identity before changing your password.</p>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Email:</strong> {{ Auth::user()->email }}
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-primary" id="sendVerificationCodeBtn">
+                            <i class="bi bi-envelope me-2"></i>Send Verification Code
+                        </button>
+                    </div>
+                </div>
+                <div id="verifyCodeSection" style="display: none;">
+                    <p class="mb-3">A verification code has been sent to your email address. Please enter the code below:</p>
+                    <div class="mb-3">
+                        <label for="verificationCode" class="form-label fw-semibold">Verification Code <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control text-center" id="verificationCode" placeholder="000000" maxlength="6" style="font-size: 1.5rem; letter-spacing: 0.5rem; font-weight: bold;">
+                        <small class="text-muted">Enter the 6-digit code sent to your email</small>
+                        <div class="invalid-feedback" id="verificationCodeError"></div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-secondary" id="resendCodeBtn">
+                            <i class="bi bi-arrow-clockwise me-2"></i>Resend Code
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="verifyCodeBtn" style="display: none;">
+                    <i class="bi bi-check-circle me-2"></i>Verify & Continue
+                </button>
             </div>
         </div>
     </div>
@@ -259,12 +342,77 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const emailInput = document.getElementById('email');
+    const originalEmailInput = document.getElementById('original_email');
+    const passwordInput = document.getElementById('password');
+    const passwordModal = new bootstrap.Modal(document.getElementById('passwordModal'));
+    const modalPasswordInput = document.getElementById('modalPassword');
+    const confirmPasswordBtn = document.getElementById('confirmPasswordBtn');
+    const passwordError = document.getElementById('passwordError');
+    let pendingFormSubmit = false;
+
     // Profile Form Submit
     document.getElementById('profileForm').addEventListener('submit', function(e) {
         e.preventDefault();
 
-        const formData = new FormData(this);
-        const submitBtn = this.querySelector('button[type="submit"]');
+        const currentEmail = emailInput.value;
+        const originalEmail = originalEmailInput.value;
+
+        // Check if email changed - show modal if it did
+        if (currentEmail !== originalEmail && currentEmail.trim() !== '') {
+            pendingFormSubmit = true;
+            modalPasswordInput.value = '';
+            passwordError.textContent = '';
+            modalPasswordInput.classList.remove('is-invalid');
+            passwordModal.show();
+            modalPasswordInput.focus();
+            return;
+        }
+
+        // If email didn't change, submit directly
+        submitProfileForm();
+    });
+
+    // Handle password confirmation
+    confirmPasswordBtn.addEventListener('click', function() {
+        const password = modalPasswordInput.value.trim();
+        
+        if (!password) {
+            modalPasswordInput.classList.add('is-invalid');
+            passwordError.textContent = 'Password is required';
+            return;
+        }
+
+        // Store password in hidden field
+        passwordInput.value = password;
+        
+        // Close modal and submit form
+        passwordModal.hide();
+        submitProfileForm();
+    });
+
+    // Clear error when typing in modal
+    modalPasswordInput.addEventListener('input', function() {
+        if (this.classList.contains('is-invalid')) {
+            this.classList.remove('is-invalid');
+            passwordError.textContent = '';
+        }
+    });
+
+    // Reset when modal is closed
+    document.getElementById('passwordModal').addEventListener('hidden.bs.modal', function() {
+        if (pendingFormSubmit) {
+            pendingFormSubmit = false;
+            modalPasswordInput.value = '';
+            passwordInput.value = '';
+        }
+    });
+
+    // Submit profile form
+    function submitProfileForm() {
+        const form = document.getElementById('profileForm');
+        const formData = new FormData(form);
+        const submitBtn = form.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
 
         submitBtn.disabled = true;
@@ -287,6 +435,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 1500);
             } else {
                 showToast('Error!', data.message || 'Failed to update profile', 'error');
+                // If password error, show modal again
+                if (data.message && data.message.includes('password')) {
+                    pendingFormSubmit = true;
+                    modalPasswordInput.value = '';
+                    modalPasswordInput.classList.add('is-invalid');
+                    passwordError.textContent = data.message;
+                    passwordModal.show();
+                    modalPasswordInput.focus();
+                }
             }
         })
         .catch(error => {
@@ -297,14 +454,133 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalText;
         });
+    }
+
+    // Password Change Verification
+    const passwordChangeModal = new bootstrap.Modal(document.getElementById('passwordChangeModal'));
+    const verifyPasswordBtn = document.getElementById('verifyPasswordBtn');
+    const sendCodeSection = document.getElementById('sendCodeSection');
+    const verifyCodeSection = document.getElementById('verifyCodeSection');
+    const sendVerificationCodeBtn = document.getElementById('sendVerificationCodeBtn');
+    const verifyCodeBtn = document.getElementById('verifyCodeBtn');
+    const resendCodeBtn = document.getElementById('resendCodeBtn');
+    const verificationCodeInput = document.getElementById('verificationCode');
+    const verificationCodeError = document.getElementById('verificationCodeError');
+    let passwordFormVerified = false;
+
+    // Show verification modal when clicking Update Password
+    verifyPasswordBtn.addEventListener('click', function() {
+        passwordFormVerified = false;
+        verificationCodeInput.value = '';
+        verificationCodeError.textContent = '';
+        verificationCodeInput.classList.remove('is-invalid');
+        sendCodeSection.style.display = 'block';
+        verifyCodeSection.style.display = 'none';
+        verifyCodeBtn.style.display = 'none';
+        passwordChangeModal.show();
     });
 
-    // Password Form Submit
-    document.getElementById('passwordForm').addEventListener('submit', function(e) {
-        e.preventDefault();
+    // Send verification code
+    sendVerificationCodeBtn.addEventListener('click', function() {
+        const btn = this;
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Sending...';
 
-        const formData = new FormData(this);
-        const submitBtn = this.querySelector('button[type="submit"]');
+        const formData = new FormData();
+        formData.append('send_code', 'true');
+
+        fetch('{{ route("staff-profile.update-password") }}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                sendCodeSection.style.display = 'none';
+                verifyCodeSection.style.display = 'block';
+                verifyCodeBtn.style.display = 'block';
+                showToast('Success!', data.message, 'success');
+                verificationCodeInput.focus();
+            } else {
+                showToast('Error!', data.message || 'Failed to send verification code', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Error!', 'Failed to send verification code', 'error');
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        });
+    });
+
+    // Resend verification code
+    resendCodeBtn.addEventListener('click', function() {
+        sendVerificationCodeBtn.click();
+    });
+
+    // Verify code
+    verifyCodeBtn.addEventListener('click', function() {
+        const code = verificationCodeInput.value.trim();
+        
+        if (!code || code.length !== 6) {
+            verificationCodeInput.classList.add('is-invalid');
+            verificationCodeError.textContent = 'Please enter a valid 6-digit code';
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('verification_code', code);
+        formData.append('verify_code', 'true');
+
+        fetch('{{ route("staff-profile.update-password") }}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Code verified, close modal and submit form
+                passwordFormVerified = true;
+                passwordChangeModal.hide();
+                submitPasswordForm();
+            } else {
+                verificationCodeInput.classList.add('is-invalid');
+                verificationCodeError.textContent = data.message || 'Invalid verification code';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            verificationCodeInput.classList.add('is-invalid');
+            verificationCodeError.textContent = 'Error verifying code';
+        });
+    });
+
+    // Clear error when typing in modal
+    verificationCodeInput.addEventListener('input', function() {
+        // Only allow numbers
+        this.value = this.value.replace(/[^0-9]/g, '');
+        if (this.classList.contains('is-invalid')) {
+            this.classList.remove('is-invalid');
+            verificationCodeError.textContent = '';
+        }
+    });
+
+    // Submit password form
+    function submitPasswordForm() {
+        const form = document.getElementById('passwordForm');
+        const formData = new FormData(form);
+        const submitBtn = verifyPasswordBtn;
         const originalText = submitBtn.innerHTML;
 
         // Check if passwords match
@@ -335,9 +611,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
                 showToast('Success!', data.message, 'success');
-                this.reset();
+                form.reset();
             } else {
                 showToast('Error!', data.message || 'Failed to update password', 'error');
+                // If password error, show modal again
+                if (data.message && data.message.includes('password')) {
+                    passwordFormVerified = false;
+                    verifyCurrentPasswordInput.value = '';
+                    verifyCurrentPasswordInput.classList.add('is-invalid');
+                    verifyPasswordError.textContent = data.message;
+                    passwordChangeModal.show();
+                    verifyCurrentPasswordInput.focus();
+                }
             }
         })
         .catch(error => {
@@ -348,7 +633,7 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalText;
         });
-    });
+    }
 
     // Toggle password visibility buttons
     document.querySelectorAll('.toggle-password').forEach(function(btn){

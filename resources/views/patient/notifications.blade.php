@@ -816,7 +816,7 @@
     <!-- Notifications List (Scrollable Container) -->
     <div class="notifications-list" id="notificationsList">
         @forelse($notifications as $notification)
-            <div class="notification-card {{ !$notification->is_read ? 'unread' : '' }}"
+            <div class="notification-card reveal-element reveal-fade {{ !$notification->is_read ? 'unread' : '' }}"
                  data-id="{{ $notification->id }}"
                  data-read="{{ $notification->is_read ? 'true' : 'false' }}"
                  onclick="viewNotification({{ $notification->id }})"
@@ -1322,6 +1322,28 @@
 .notification-modal-header.bg-primary {
     background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
 }
+
+/* ========================================
+   SCROLL REVEAL ANIMATIONS
+   ======================================== */
+/* Prevent overflow from reveal animations */
+html, body {
+    overflow-x: hidden;
+    width: 100%;
+}
+
+.notifications-container {
+    overflow-x: hidden;
+    width: 100%;
+}
+
+/* Remove reveal animations - elements visible immediately */
+.reveal-element {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+    max-width: 100%;
+}
 </style>
 
 <script>
@@ -1521,5 +1543,24 @@ async function confirmClearRead() {
     }
 }
 </script>
+
+@if(!empty($chatbotSetting) && $chatbotSetting->enabled)
+@include('patient.components.chatbot')
+@endif
+
+<script>
+// ========================================
+// SCROLL REVEAL FUNCTIONALITY - DISABLED
+// ========================================
+// Reveal animations removed - all elements visible immediately
+(function() {
+    document.querySelectorAll('.reveal-element').forEach(el => {
+        el.classList.add('revealed');
+        el.style.opacity = '1';
+        el.style.transform = 'none';
+    });
+})();
+</script>
+
 @endsection
 

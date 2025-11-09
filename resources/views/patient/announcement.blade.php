@@ -29,9 +29,11 @@
     }
 
     .announcement-content-wrapper {
-        max-width: 1600px;
+        max-width: 100%;
         margin: 0 auto;
-        padding: 0 1.5rem;
+        padding: 0 clamp(1rem, 3vw, 2rem);
+        width: 100%;
+        box-sizing: border-box;
     }
 
     /* Page Header */
@@ -59,10 +61,10 @@
     /* Main Announcement Card */
     .announcement-card {
         background: var(--bg-white);
-        border-radius: 12px;
+        border-radius: 16px;
         overflow: hidden;
         box-shadow: var(--shadow-lg);
-        margin-bottom: 1.25rem;
+        margin-bottom: 2rem;
         border: 1px solid rgba(33, 150, 243, 0.1);
         transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         animation: fadeInUp 0.6s ease-out;
@@ -70,17 +72,19 @@
 
     .announcement-card:hover {
         box-shadow: var(--shadow-xl);
-        transform: translateY(-2px);
+        transform: translateY(-4px);
     }
 
     .announcement-banner {
         background: linear-gradient(135deg, #2196F3 0%, #1976D2 50%, #0d47a1 100%);
-        padding: 1rem 1.5rem;
+        padding: clamp(1rem, 3vw, 1.5rem) clamp(1rem, 4vw, 2rem);
         text-align: center;
         position: relative;
         overflow: hidden;
-        width: 100%;
-        box-sizing: border-box;
+        min-height: clamp(70px, 15vw, 80px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .announcement-banner::before {
@@ -111,22 +115,25 @@
 
     .banner-title {
         color: white;
-        font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+        font-size: 1.75rem;
         font-weight: 800;
         margin: 0;
         position: relative;
         text-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
         letter-spacing: -0.5px;
+        line-height: 1.3;
+        padding: 0 0.5rem;
     }
 
     .announcement-content-section {
-        padding: 1rem 1.5rem;
+        padding: clamp(1rem, 3vw, 1.5rem) clamp(1rem, 4vw, 2rem);
+        position: relative;
     }
 
     .announcement-image-wrapper {
-        margin-bottom: 0.875rem;
+        margin-bottom: clamp(1rem, 2.5vw, 1.25rem);
         text-align: center;
-        border-radius: 10px;
+        border-radius: 12px;
         overflow: hidden;
         box-shadow: var(--shadow-md);
         max-width: 100%;
@@ -135,8 +142,9 @@
         position: relative;
         cursor: pointer;
         background: #f8f9fa;
-        aspect-ratio: 16 / 9;
-        max-height: 300px;
+        aspect-ratio: 3840 / 2000;
+        width: 100%;
+        display: block;
     }
 
     .announcement-image-wrapper::before {
@@ -161,9 +169,10 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
-        border-radius: 10px;
+        border-radius: 16px;
         transition: transform 0.4s ease, filter 0.3s ease;
         display: block;
+        aspect-ratio: 3840 / 2000;
     }
 
     .announcement-image-wrapper:hover img {
@@ -172,45 +181,50 @@
     }
 
     .announcement-subheading {
-        margin-bottom: 0.75rem !important;
+        margin-bottom: 1rem !important;
     }
 
     .announcement-subheading p {
-        font-size: clamp(0.95rem, 1.5vw, 1rem) !important;
-        line-height: 1.3 !important;
+        font-size: clamp(0.9rem, 2.2vw, 1.1rem) !important;
+        line-height: 1.4 !important;
     }
 
     .announcement-message {
         background: linear-gradient(135deg, #f8fafc 0%, #e3f2fd 100%);
         border-left: 4px solid var(--primary-blue);
-        padding: 0.875rem 1rem;
-        border-radius: 8px;
+        padding: clamp(0.875rem, 2.5vw, 1.25rem) clamp(1rem, 3vw, 1.5rem);
+        border-radius: 10px;
         color: var(--text-dark);
-        line-height: 1.5;
-        font-size: clamp(0.85rem, 1.5vw, 0.9rem);
+        line-height: 1.6;
+        font-size: clamp(0.85rem, 2vw, 0.95rem);
         box-shadow: var(--shadow-sm);
         position: relative;
         margin-top: 0;
+        margin-bottom: 1rem;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
     }
 
 
     .new-badge {
         display: inline-flex;
         align-items: center;
-        gap: 0.25rem;
+        gap: clamp(0.25rem, 0.75vw, 0.375rem);
         background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
         color: white;
-        padding: 0.3rem 0.75rem;
+        padding: clamp(0.3rem, 0.8vw, 0.4rem) clamp(0.65rem, 2vw, 1rem);
         border-radius: 50px;
         font-weight: 700;
-        font-size: 0.7rem;
+        font-size: clamp(0.65rem, 1.6vw, 0.8rem);
         letter-spacing: 0.5px;
         box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
         position: absolute;
-        top: 0.75rem;
-        left: 1.25rem;
+        top: clamp(0.5rem, 2vw, 1rem);
+        left: clamp(0.5rem, 3vw, 1.5rem);
         z-index: 10;
         animation: pulse-badge 2s ease-in-out infinite;
+        margin-bottom: 0.5rem;
+        white-space: nowrap;
     }
 
     @keyframes pulse-badge {
@@ -220,10 +234,10 @@
 
     .announcement-details {
         display: flex;
-        gap: 0.75rem;
+        gap: clamp(0.75rem, 2vw, 1rem);
         flex-wrap: wrap;
-        margin-top: 0.875rem;
-        padding-top: 0.875rem;
+        margin-top: clamp(1rem, 2.5vw, 1.25rem);
+        padding-top: clamp(1rem, 2.5vw, 1.25rem);
         border-top: 2px solid #f0f0f0;
     }
 
@@ -234,11 +248,11 @@
     .detail-item {
         display: flex;
         align-items: center;
-        gap: 0.4rem;
+        gap: clamp(0.375rem, 1vw, 0.5rem);
         color: var(--text-medium);
         font-weight: 600;
-        font-size: clamp(0.75rem, 1.25vw, 0.8rem);
-        padding: 0.4rem 0.75rem;
+        font-size: clamp(0.75rem, 1.75vw, 0.875rem);
+        padding: clamp(0.4rem, 1vw, 0.5rem) clamp(0.75rem, 2vw, 1rem);
         background: var(--bg-light);
         border-radius: 50px;
         transition: all 0.3s ease;
@@ -703,8 +717,9 @@
         }
 
         .announcement-content-wrapper {
-            padding: 0 1.25rem;
+            padding: 0 clamp(1rem, 3vw, 1.5rem);
             max-width: 100%;
+            width: 100%;
         }
 
         .page-header {
@@ -717,10 +732,13 @@
 
         .banner-title {
             font-size: 1.35rem;
+            padding: 0.25rem;
         }
 
         .announcement-banner {
-            padding: 1.25rem 1.25rem;
+            padding: clamp(1rem, 2.5vw, 1.25rem) clamp(0.875rem, 2.5vw, 1rem);
+            min-height: clamp(70px, 14vw, 75px);
+            padding-top: clamp(2.75rem, 6vw, 3rem);
         }
 
         .announcement-banner::after {
@@ -729,15 +747,19 @@
         }
 
         .announcement-content-section {
-            padding: 1.25rem 1.25rem;
+            padding: 1.25rem 1rem;
         }
 
         .announcement-image-wrapper {
             margin-bottom: 1rem;
+            width: 100%;
+            max-width: 100%;
         }
 
         .announcement-image-wrapper img {
             height: auto;
+            width: 100%;
+            display: block;
         }
 
         .announcement-subheading {
@@ -745,31 +767,43 @@
         }
 
         .announcement-subheading p {
-            font-size: 1rem !important;
+            font-size: 0.95rem !important;
+            line-height: 1.5 !important;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
 
         .announcement-message {
-            padding: 1rem 1.25rem;
+            padding: 1rem 1rem;
             font-size: 0.875rem;
+            margin-bottom: 1rem;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
 
 
         .new-badge {
-            padding: 0.35rem 0.875rem;
-            font-size: 0.75rem;
-            top: 1rem;
-            left: 1rem;
+            padding: 0.35rem 0.75rem;
+            font-size: 0.7rem;
+            top: 0.75rem;
+            left: 0.75rem;
+            right: auto;
+            max-width: calc(100% - 1.5rem);
+            white-space: nowrap;
         }
 
         .announcement-details {
-            gap: 0.75rem;
+            gap: 0.5rem;
             margin-top: 1rem;
             padding-top: 1rem;
+            flex-direction: column;
         }
 
         .detail-item {
             font-size: 0.8rem;
             padding: 0.45rem 0.875rem;
+            width: 100%;
+            justify-content: flex-start;
         }
 
         .detail-item i {
@@ -819,7 +853,7 @@
         </div>
 
         @if($announcement)
-            <div class="announcement-card">
+            <div class="announcement-card reveal-element reveal-slide-up">
                 <div class="announcement-banner">
                     @if($announcement->created_at->diffInDays(now()) < 7)
                         <span class="new-badge">
@@ -888,7 +922,7 @@
 
         <!-- Upcoming Events -->
         @forelse($upcomingEvents as $event)
-            <div class="announcement-card">
+            <div class="announcement-card reveal-element reveal-fade">
                 <div class="announcement-content-section" style="padding-top: 0.875rem; padding-bottom: 0;">
                     <span class="event-badge">
                         <i class="bi bi-calendar-check"></i>
@@ -938,7 +972,7 @@
 
         <!-- Announcement Archive -->
         @if($archivedAnnouncements->count() > 0)
-            <div class="archive-section-header">
+            <div class="archive-section-header reveal-element reveal-slide-up">
                 <h2>
                     <i class="bi bi-archive me-2"></i>Announcement Archive
                 </h2>
@@ -951,7 +985,7 @@
                     $colorIndex = 0;
                 @endphp
                 @foreach($archivedAnnouncements->take(5) as $archive)
-                    <div class="archive-card" style="border-top-color: {{ $colors[$colorIndex % 5] }};">
+                    <div class="archive-card reveal-element reveal-fade" style="border-top-color: {{ $colors[$colorIndex % 5] }};">
                         @if($archive->image_path)
                             <img src="{{ asset('storage/' . $archive->image_path) }}" 
                                  alt="{{ $archive->title }}" 
@@ -1059,6 +1093,18 @@ document.addEventListener('keydown', function(e) {
         closeImageModal();
     }
 });
+
+// ========================================
+// SCROLL REVEAL FUNCTIONALITY - DISABLED
+// ========================================
+// Reveal animations removed - all elements visible immediately
+(function() {
+    document.querySelectorAll('.reveal-element').forEach(el => {
+        el.classList.add('revealed');
+        el.style.opacity = '1';
+        el.style.transform = 'none';
+    });
+})();
 </script>
 
 <style>
@@ -1160,8 +1206,32 @@ document.addEventListener('keydown', function(e) {
         font-size: 1rem;
     }
 }
+
+/* ========================================
+   SCROLL REVEAL ANIMATIONS - REMOVED
+   ======================================== */
+/* Prevent overflow */
+html, body {
+    overflow-x: hidden;
+    width: 100%;
+}
+
+.announcement-page {
+    overflow-x: hidden;
+    width: 100%;
+}
+
+/* Remove reveal animations - elements visible immediately */
+.reveal-element {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+    max-width: 100%;
+}
 </style>
 
+@if(!empty($chatbotSetting) && $chatbotSetting->enabled)
 @include('patient.components.chatbot')
+@endif
 
 @endsection

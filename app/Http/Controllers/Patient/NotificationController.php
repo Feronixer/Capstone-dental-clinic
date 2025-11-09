@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Patient;
 
 use App\Http\Controllers\Controller;
 use App\Models\Notification;
+use App\Models\ChatbotSetting;
+use App\Models\ChatbotFaq;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
@@ -32,7 +34,14 @@ class NotificationController extends Controller
             ->unread()
             ->count();
 
-        return view('patient.notifications', compact('notifications', 'unreadCount'));
+        $chatbotSetting = ChatbotSetting::first() ?? ChatbotSetting::create([
+            'enabled' => true,
+            'welcome_message' => '',
+            'quick_intents' => [],
+        ]);
+        $chatbotFaqs = ChatbotFaq::where('is_active', true)->orderBy('order')->get(['question', 'answer']);
+
+        return view('patient.notifications', compact('notifications', 'unreadCount', 'chatbotSetting', 'chatbotFaqs'));
     }
 
     /**

@@ -306,14 +306,27 @@ class PostProceduralController extends Controller
                 ], 422);
             }
 
-            // Automatically set appointment_id to the latest appointment if not provided
+            // Automatically set appointment_id to the latest confirmed or completed appointment if not provided
             if (empty($data['appointment_id'])) {
+                // First, try to find the latest confirmed or completed appointment
                 $latestAppointment = Appointment::where('patient_id', $data['user_id'])
+                    ->whereIn('status', ['Confirmed', 'Completed', 'confirmed', 'completed'])
                     ->orderBy('start_datetime', 'desc')
                     ->first();
 
+                // If no confirmed/completed appointment found, try to find any appointment
+                if (!$latestAppointment) {
+                    $latestAppointment = Appointment::where('patient_id', $data['user_id'])
+                        ->orderBy('start_datetime', 'desc')
+                        ->first();
+                }
+
                 if ($latestAppointment) {
                     $data['appointment_id'] = $latestAppointment->id;
+                    \Log::info('Staff automatically assigned appointment', [
+                        'appointment_id' => $latestAppointment->id,
+                        'status' => $latestAppointment->status
+                    ]);
                 }
             }
 
@@ -321,14 +334,50 @@ class PostProceduralController extends Controller
             if (!empty($data['appointment_id'])) {
                 $appointment = Appointment::find($data['appointment_id']);
                 if ($appointment) {
-                    $status = strtolower((string) $appointment->status);
+                    // Normalize status: trim whitespace and convert to lowercase for comparison
+                    $status = strtolower(trim((string) $appointment->status));
+                    \Log::info('Staff checking appointment status', [
+                        'appointment_id' => $appointment->id,
+                        'status' => $appointment->status,
+                        'normalized_status' => $status
+                    ]);
+                    
                     if (!in_array($status, ['confirmed', 'completed'])) {
-                        return response()->json([
-                            'success' => false,
-                            'message' => 'Post-procedural records can only be created for Confirmed or Completed appointments.'
-                        ], 422);
+                        // Check if there are any confirmed or completed appointments for this patient
+                        $validAppointments = Appointment::where('patient_id', $data['user_id'])
+                            ->whereIn('status', ['Confirmed', 'Completed', 'confirmed', 'completed'])
+                            ->orderBy('start_datetime', 'desc')
+                            ->get();
+                        
+                        if ($validAppointments->count() > 0) {
+                            // Use the latest valid appointment instead
+                            $validAppointment = $validAppointments->first();
+                            $data['appointment_id'] = $validAppointment->id;
+                            \Log::info('Staff switched to valid appointment', [
+                                'old_appointment_id' => $appointment->id,
+                                'new_appointment_id' => $validAppointment->id,
+                                'status' => $validAppointment->status
+                            ]);
+                        } else {
+                            return response()->json([
+                                'success' => false,
+                                'message' => 'Post-procedural records can only be created for Confirmed or Completed appointments. This patient has no confirmed or completed appointments.'
+                            ], 422);
+                        }
                     }
+                } else {
+                    \Log::warning('Staff appointment not found', ['appointment_id' => $data['appointment_id']]);
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Appointment not found.'
+                    ], 404);
                 }
+            } else {
+                // No appointment_id provided and no appointments found
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No appointment found. Post-procedural records require a Confirmed or Completed appointment.'
+                ], 422);
             }
 
             // Generate patient number if not exists

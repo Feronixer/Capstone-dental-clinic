@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Patient;
 
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
+use App\Models\ChatbotSetting;
+use App\Models\ChatbotFaq;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -15,7 +17,14 @@ class FeedbackController extends Controller
      */
     public function index()
     {
-        return view('patient.feedback');
+        $chatbotSetting = ChatbotSetting::first() ?? ChatbotSetting::create([
+            'enabled' => true,
+            'welcome_message' => '',
+            'quick_intents' => [],
+        ]);
+        $chatbotFaqs = ChatbotFaq::where('is_active', true)->orderBy('order')->get(['question', 'answer']);
+
+        return view('patient.feedback', compact('chatbotSetting', 'chatbotFaqs'));
     }
 
     /**

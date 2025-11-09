@@ -1,16 +1,36 @@
 @extends('layout.patient.app')
 @section('content')
 
+<style>
+/* ========================================
+   SCROLL REVEAL ANIMATIONS
+   ======================================== */
+/* Prevent overflow from reveal animations */
+html, body {
+    overflow-x: hidden;
+    width: 100%;
+}
+
+/* Remove reveal animations - elements visible immediately */
+.reveal-element {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+    max-width: 100%;
+}
+
+</style>
+
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <div class="text-center mb-5">
+            <div class="text-center mb-5 reveal-element reveal-slide-up">
                 <h1 class="fw-bold mb-3">Service Feedback</h1>
                 <p class="text-muted">Help us improve our dental services by sharing your experience</p>
             </div>
 
             <!-- Debug Info Card -->
-            <div class="card border-0 shadow-sm mb-4" id="debugCard">
+            <div class="card border-0 shadow-sm mb-4 reveal-element reveal-fade" id="debugCard">
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="fw-bold mb-0">
@@ -33,7 +53,7 @@
             <div class="row g-4">
                 <!-- Give Feedback Card -->
                 <div class="col-md-6">
-                    <div class="card border-0 shadow-sm h-100">
+                    <div class="card border-0 shadow-sm h-100 reveal-element reveal-fade">
                         <div class="card-body text-center p-4">
                             <div class="mb-3">
                                 <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center"
@@ -52,7 +72,7 @@
 
                 <!-- View History Card -->
                 <div class="col-md-6">
-                    <div class="card border-0 shadow-sm h-100">
+                    <div class="card border-0 shadow-sm h-100 reveal-element reveal-fade reveal-delay-1">
                         <div class="card-body text-center p-4">
                             <div class="mb-3">
                                 <div class="rounded-circle bg-success bg-opacity-10 d-inline-flex align-items-center justify-content-center"
@@ -71,7 +91,7 @@
             </div>
 
             <!-- Info Section -->
-            <div class="card border-0 bg-light mt-4">
+            <div class="card border-0 bg-light mt-4 reveal-element reveal-slide-up">
                 <div class="card-body p-4">
                     <h4 class="h6 fw-bold mb-3">
                         <i class="bi bi-info-circle me-2"></i>About Feedback Indicators
@@ -203,6 +223,24 @@ function loadDebugInfo() {
             `;
         });
 }
+</script>
+
+@if(!empty($chatbotSetting) && $chatbotSetting->enabled)
+@include('patient.components.chatbot')
+@endif
+
+<script>
+// ========================================
+// SCROLL REVEAL FUNCTIONALITY - DISABLED
+// ========================================
+// Reveal animations removed - all elements visible immediately
+(function() {
+    document.querySelectorAll('.reveal-element').forEach(el => {
+        el.classList.add('revealed');
+        el.style.opacity = '1';
+        el.style.transform = 'none';
+    });
+})();
 </script>
 
 @endsection

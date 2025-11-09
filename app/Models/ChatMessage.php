@@ -14,6 +14,7 @@ class ChatMessage extends Model
         'sender_id',
         'sender_type',
         'message',
+        'attachments',
         'is_read',
         'read_at',
     ];
@@ -21,6 +22,7 @@ class ChatMessage extends Model
     protected $casts = [
         'is_read' => 'boolean',
         'read_at' => 'datetime',
+        'attachments' => 'array',
     ];
 
     /**

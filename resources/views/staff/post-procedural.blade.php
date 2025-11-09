@@ -802,7 +802,7 @@ function showNotification(message, type = 'info') {
         position: fixed;
         top: 20px;
         right: 20px;
-        z-index: 9999;
+        z-index: 10000;
         min-width: 350px;
         max-width: 500px;
         box-shadow: 0 8px 25px rgba(0,0,0,0.15);
@@ -2178,8 +2178,6 @@ function renderProgressNotesEditList(notes, recordId) {
             ${notes.map((n, index) => {
                 // Escape values to prevent XSS and ensure proper rendering
                 const progressDesc = escapeHtml(n.progress_description || '');
-                const treatmentResp = escapeHtml(n.treatment_response || '');
-                const nextSteps = escapeHtml(n.next_steps || '');
 
                 return `
                 <div class="card mb-3" style="border-left: 4px solid #${statusColors[n.status] === 'warning' ? 'ffc107' : statusColors[n.status] === 'success' ? '198754' : '0dcaf0'};">
@@ -2198,13 +2196,17 @@ function renderProgressNotesEditList(notes, recordId) {
                                     <label class="form-label">Progress Description</label>
                                     <textarea class="form-control note-progress-textarea" name="progress_description" rows="3" required>${progressDesc}</textarea>
                                 </div>
-                                <div class="col-12">
-                                    <label class="form-label">Treatment Response</label>
-                                    <textarea class="form-control note-treatment-textarea" name="treatment_response" rows="2">${treatmentResp}</textarea>
+                                <div class="col-md-4">
+                                    <label class="form-label">Amount Paid</label>
+                                    <input type="number" class="form-control" name="amount_paid" step="0.01" min="0" value="${n.amount_paid || ''}" placeholder="0.00">
                                 </div>
-                                <div class="col-12">
-                                    <label class="form-label">Next Steps</label>
-                                    <textarea class="form-control note-nextsteps-textarea" name="next_steps" rows="2">${nextSteps}</textarea>
+                                <div class="col-md-4">
+                                    <label class="form-label">Balance</label>
+                                    <input type="number" class="form-control" name="balance" step="0.01" min="0" value="${n.balance || ''}" placeholder="0.00">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Conforme</label>
+                                    <input type="text" class="form-control" name="conforme" value="${n.conforme || ''}" placeholder="Conforme...">
                                 </div>
                                 <div class="col-12">
                                     <button type="button" class="btn btn-success btn-sm" onclick="saveProgressNote(${n.id}, ${recordId})">
@@ -2237,13 +2239,17 @@ function renderAddProgressNoteForm(recordId) {
                             <label class="form-label">Progress Description</label>
                             <textarea class="form-control" name="progress_description" rows="3" required></textarea>
                         </div>
-                        <div class="col-12">
-                            <label class="form-label">Treatment Response</label>
-                            <textarea class="form-control" name="treatment_response" rows="2"></textarea>
+                        <div class="col-md-4">
+                            <label class="form-label">Amount Paid</label>
+                            <input type="number" class="form-control" name="amount_paid" step="0.01" min="0" placeholder="0.00">
                         </div>
-                        <div class="col-12">
-                            <label class="form-label">Next Steps</label>
-                            <textarea class="form-control" name="next_steps" rows="2"></textarea>
+                        <div class="col-md-4">
+                            <label class="form-label">Balance</label>
+                            <input type="number" class="form-control" name="balance" step="0.01" min="0" placeholder="0.00">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Conforme</label>
+                            <input type="text" class="form-control" name="conforme" placeholder="Conforme...">
                         </div>
                         <div class="col-12">
                             <button type="button" class="btn btn-primary" onclick="addNewProgressNote(${recordId})">
@@ -4135,8 +4141,9 @@ function addNewProgressNote(recordId) {
         patient_record_id: recordId,
         note_date: formData.get('note_date'),
         progress_description: formData.get('progress_description'),
-        treatment_response: formData.get('treatment_response'),
-        next_steps: formData.get('next_steps')
+        amount_paid: formData.get('amount_paid'),
+        balance: formData.get('balance'),
+        conforme: formData.get('conforme')
     };
 
     fetch('/staff/post-procedural/progress-notes', {
@@ -4183,8 +4190,9 @@ function saveProgressNote(noteId, recordId) {
         patient_record_id: recordId,
         note_date: formData.get('note_date'),
         progress_description: formData.get('progress_description'),
-        treatment_response: formData.get('treatment_response'),
-        next_steps: formData.get('next_steps')
+        amount_paid: formData.get('amount_paid'),
+        balance: formData.get('balance'),
+        conforme: formData.get('conforme')
     };
 
     console.log('Saving progress note:', data);
@@ -4200,7 +4208,16 @@ function saveProgressNote(noteId, recordId) {
     .then(response => response.json())
     .then(result => {
         if (result.success) {
-            showNotification('Progress note updated successfully!', 'success');
+            // Close the edit notes modal first
+            const editNotesModal = bootstrap.Modal.getInstance(document.getElementById('editNotesModal'));
+            if (editNotesModal) {
+                editNotesModal.hide();
+            }
+
+            // Show success notification (will appear above any remaining modal backdrop)
+            setTimeout(() => {
+                showNotification('Progress note updated successfully!', 'success');
+            }, 300);
 
             // Auto-refresh: reload form list to show updates
             loadPatientRecords();
@@ -6144,8 +6161,26 @@ function makeContainerEditable(container) {
     });
 }
 
+// Password verification state
+let isPasswordVerified = false;
+let passwordVerifiedRecordId = null;
+let pendingAction = null; // 'edit_record', 'edit_history', 'edit_notes'
+
 // Open separate edit modal: Patient Record
 function openEditRecordModal(recordId) {
+    if (!recordId || recordId === 'N/A') return;
+    
+    // Check if password is already verified for this record
+    if (isPasswordVerified && passwordVerifiedRecordId === recordId) {
+        openEditRecordModalDirect(recordId);
+        return;
+    }
+    
+    // Show password verification first
+    showPasswordVerificationModal(recordId, 'edit_record');
+}
+
+function openEditRecordModalDirect(recordId) {
     if (!recordId || recordId === 'N/A') return;
     window.currentEditingRecordId = recordId;
 
@@ -6202,34 +6237,39 @@ function openViewRecordModal(recordId) {
     }
     
     // Show password modal
-    showPasswordModal(recordId);
+    showPasswordVerificationModal(recordId, 'edit_record');
 }
 
 // Show password verification modal
-function showPasswordModal(recordId) {
+function showPasswordVerificationModal(recordId, action = 'edit_record') {
+    pendingAction = action;
+    passwordVerifiedRecordId = null;
+    isPasswordVerified = false;
+    
+    const actionText = action === 'edit_record' ? 'edit the patient record' : action === 'edit_history' ? 'edit the patient history' : action === 'edit_notes' ? 'edit the progress notes' : 'edit this record';
+    
     const modalHtml = `
         <div class="modal fade" id="passwordVerificationModal" tabindex="-1" aria-labelledby="passwordVerificationModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header bg-primary text-white">
-                        <h5 class="modal-title" id="passwordVerificationModalLabel">
+                <div class="modal-content password-verification-modal">
+                    <div class="modal-header password-modal-header-custom" style="display: flex !important; justify-content: space-between !important; align-items: center !important; width: 100% !important;">
+                        <h5 class="modal-title fw-bold" id="passwordVerificationModalLabel" style="margin: 0 !important; flex: 1 !important;">
                             <i class="bi bi-shield-lock me-2"></i>Password Verification
                         </h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <button type="button" class="btn-close password-modal-close-btn" data-bs-dismiss="modal" aria-label="Close" style="background: transparent !important; background-color: transparent !important; background-image: none !important; border: none !important; opacity: 1 !important; position: relative !important; width: 32px !important; height: 32px !important; padding: 0.5rem !important; margin: 0 !important; margin-left: auto !important; order: 2 !important;">
+                            <span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.75rem; line-height: 1; color: #64748b; font-weight: 300;">×</span>
+                        </button>
                     </div>
-                    <div class="modal-body">
-                        <p class="mb-3 text-muted">Please enter your account password to access the patient record form.</p>
-                        <form id="staffPasswordForm">
-                            <div class="mb-3">
-                                <label for="staffPasswordInput" class="form-label">Password</label>
-                                <input type="password" class="form-control" id="staffPasswordInput" placeholder="Enter your password" required autofocus>
-                                <div class="text-danger mt-2" id="staffPasswordError" style="display: none;"></div>
-                            </div>
-                        </form>
+                    <div class="modal-body password-modal-body-custom">
+                        <p class="password-instruction-text">Please enter your password to ${actionText}.</p>
+                        <div class="password-input-wrapper-custom">
+                            <input type="password" class="form-control password-input-field-custom" id="staffPasswordInput" placeholder="Enter your password" autocomplete="current-password">
+                            <div id="staffPasswordError" class="password-error-message"></div>
+                        </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-primary" id="verifyStaffPasswordBtn">
+                    <div class="modal-footer password-modal-footer-custom">
+                        <button type="button" class="btn btn-cancel-password-custom" data-bs-dismiss="modal" style="background: #e2e8f0 !important; color: #64748b !important; border: 2px solid #cbd5e1 !important; padding: 0.625rem 1.25rem !important; border-radius: 8px !important; font-weight: 600 !important; transition: all 0.2s ease !important; outline: none !important;">Cancel</button>
+                        <button type="button" class="btn btn-verify-password-custom" id="verifyStaffPasswordBtn" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important; color: white !important; border: 2px solid #2563eb !important; padding: 0.625rem 1.5rem !important; border-radius: 8px !important; font-weight: 600 !important; transition: all 0.2s ease !important; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important; display: flex !important; align-items: center !important; outline: none !important;">
                             <i class="bi bi-check-circle me-2"></i>Verify
                         </button>
                     </div>
@@ -6255,29 +6295,127 @@ function showPasswordModal(recordId) {
     });
     modal.show();
     
+    // Apply styles after modal is shown to ensure they override any conflicting CSS
+    setTimeout(() => {
+        const modalHeader = document.querySelector('#passwordVerificationModal .password-modal-header-custom');
+        const modalTitle = document.querySelector('#passwordVerificationModal .password-modal-header-custom .modal-title');
+        const closeBtn = document.querySelector('#passwordVerificationModal .password-modal-close-btn');
+        const cancelBtn = document.querySelector('#passwordVerificationModal .btn-cancel-password-custom');
+        const verifyBtn = document.querySelector('#passwordVerificationModal .btn-verify-password-custom');
+        
+        if (modalHeader) {
+            modalHeader.style.setProperty('display', 'flex', 'important');
+            modalHeader.style.setProperty('justify-content', 'space-between', 'important');
+            modalHeader.style.setProperty('align-items', 'center', 'important');
+            modalHeader.style.setProperty('width', '100%', 'important');
+        }
+        
+        if (modalTitle) {
+            modalTitle.style.setProperty('margin', '0', 'important');
+            modalTitle.style.setProperty('flex', '1', 'important');
+        }
+        
+        if (closeBtn) {
+            closeBtn.style.setProperty('margin-left', 'auto', 'important');
+            closeBtn.style.setProperty('order', '2', 'important');
+            closeBtn.style.setProperty('background', 'transparent', 'important');
+            closeBtn.style.setProperty('background-color', 'transparent', 'important');
+            closeBtn.style.setProperty('background-image', 'none', 'important');
+            closeBtn.style.setProperty('border', 'none', 'important');
+            closeBtn.style.setProperty('opacity', '1', 'important');
+            closeBtn.style.setProperty('position', 'relative', 'important');
+            closeBtn.style.setProperty('width', '32px', 'important');
+            closeBtn.style.setProperty('height', '32px', 'important');
+            closeBtn.style.setProperty('padding', '0.5rem', 'important');
+            closeBtn.style.setProperty('margin', '0', 'important');
+        }
+        
+        if (cancelBtn) {
+            cancelBtn.style.setProperty('border', '2px solid #cbd5e1', 'important');
+            cancelBtn.style.setProperty('background', '#e2e8f0', 'important');
+            cancelBtn.style.setProperty('color', '#64748b', 'important');
+            cancelBtn.addEventListener('mouseenter', function() {
+                this.style.setProperty('border', '2px solid #94a3b8', 'important');
+                this.style.setProperty('background', '#cbd5e1', 'important');
+            });
+            cancelBtn.addEventListener('mouseleave', function() {
+                this.style.setProperty('border', '2px solid #cbd5e1', 'important');
+                this.style.setProperty('background', '#e2e8f0', 'important');
+            });
+        }
+        
+        if (verifyBtn) {
+            verifyBtn.style.setProperty('border', '2px solid #2563eb', 'important');
+            verifyBtn.addEventListener('mouseenter', function() {
+                this.style.setProperty('border', '2px solid #1d4ed8', 'important');
+            });
+            verifyBtn.addEventListener('mouseleave', function() {
+                this.style.setProperty('border', '2px solid #2563eb', 'important');
+            });
+        }
+        
+        // Dark mode adjustments
+        const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+        if (isDarkMode) {
+            if (closeBtn) {
+                const closeSpan = closeBtn.querySelector('span');
+                if (closeSpan) closeSpan.style.setProperty('color', '#cbd5e1', 'important');
+                closeBtn.addEventListener('mouseenter', function() {
+                    const span = this.querySelector('span');
+                    if (span) span.style.setProperty('color', '#ffffff', 'important');
+                });
+                closeBtn.addEventListener('mouseleave', function() {
+                    const span = this.querySelector('span');
+                    if (span) span.style.setProperty('color', '#cbd5e1', 'important');
+                });
+            }
+            if (cancelBtn) {
+                cancelBtn.style.setProperty('background', 'rgba(51, 65, 85, 0.8)', 'important');
+                cancelBtn.style.setProperty('color', '#e2e8f0', 'important');
+                cancelBtn.style.setProperty('border', '2px solid rgba(148, 163, 184, 0.5)', 'important');
+                cancelBtn.addEventListener('mouseenter', function() {
+                    this.style.setProperty('border', '2px solid rgba(148, 163, 184, 0.7)', 'important');
+                    this.style.setProperty('background', 'rgba(71, 85, 105, 0.9)', 'important');
+                });
+                cancelBtn.addEventListener('mouseleave', function() {
+                    this.style.setProperty('border', '2px solid rgba(148, 163, 184, 0.5)', 'important');
+                    this.style.setProperty('background', 'rgba(51, 65, 85, 0.8)', 'important');
+                });
+            }
+            if (verifyBtn) {
+                verifyBtn.style.setProperty('border', '2px solid #2563eb', 'important');
+            }
+        }
+    }, 100);
+    
     // Handle verify button click
     document.getElementById('verifyStaffPasswordBtn').addEventListener('click', function() {
-        verifyStaffPassword(recordId, modal);
+        verifyStaffPassword(recordId, pendingAction, modal);
     });
     
     // Handle Enter key in password input
     document.getElementById('staffPasswordInput').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
             e.preventDefault();
-            verifyStaffPassword(recordId, modal);
+            verifyStaffPassword(recordId, pendingAction, modal);
         }
     });
     
     // Clear password when modal is closed
     document.getElementById('passwordVerificationModal').addEventListener('hidden.bs.modal', function() {
-        document.getElementById('staffPasswordInput').value = '';
-        document.getElementById('staffPasswordError').style.display = 'none';
-        document.getElementById('staffPasswordError').textContent = '';
+        const passwordInput = document.getElementById('staffPasswordInput');
+        const passwordError = document.getElementById('staffPasswordError');
+        if (passwordInput) passwordInput.value = '';
+        if (passwordError) {
+            passwordError.classList.remove('show');
+            passwordError.textContent = '';
+        }
+        pendingAction = null;
     });
 }
 
 // Verify staff password
-function verifyStaffPassword(recordId, modal) {
+function verifyStaffPassword(recordId, action, modal) {
     const passwordInput = document.getElementById('staffPasswordInput');
     const passwordError = document.getElementById('staffPasswordError');
     const verifyBtn = document.getElementById('verifyStaffPasswordBtn');
@@ -6286,14 +6424,14 @@ function verifyStaffPassword(recordId, modal) {
     
     if (!password) {
         passwordError.textContent = 'Please enter your password.';
-        passwordError.style.display = 'block';
+        passwordError.classList.add('show');
         return;
     }
     
     // Disable button during verification
     verifyBtn.disabled = true;
-    verifyBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verifying...';
-    passwordError.style.display = 'none';
+    verifyBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Verifying...';
+    passwordError.classList.remove('show');
     
     fetch('{{ route("staff-post-procedural.verify-password") }}', {
         method: 'POST',
@@ -6321,22 +6459,28 @@ function verifyStaffPassword(recordId, modal) {
             // Close password modal
             modal.hide();
             
-            // Open edit modal
-            openEditRecordModal(recordId);
+            // Execute the pending action
+            if (action === 'edit_record') {
+                openEditRecordModalDirect(recordId);
+            } else if (action === 'edit_history') {
+                openEditHistoryModalDirect(recordId);
+            } else if (action === 'edit_notes') {
+                openEditNotesModalDirect(recordId);
+            }
             
             // Show success notification
             showNotification('Password verified successfully. Access granted.', 'success');
         } else {
             // Password incorrect
             passwordError.textContent = data.message || 'Incorrect password. Please try again.';
-            passwordError.style.display = 'block';
+            passwordError.classList.add('show');
             passwordInput.focus();
         }
     })
     .catch(error => {
         console.error('Error verifying password:', error);
         passwordError.textContent = error.message || 'An error occurred. Please try again.';
-        passwordError.style.display = 'block';
+        passwordError.classList.add('show');
     })
     .finally(() => {
         // Re-enable button
@@ -6347,6 +6491,19 @@ function verifyStaffPassword(recordId, modal) {
 
 // Open separate edit modal: Patient History
 function openEditHistoryModal(recordId) {
+    if (!recordId || recordId === 'N/A') return;
+    
+    // Check if password is already verified for this record
+    if (isPasswordVerified && passwordVerifiedRecordId === recordId) {
+        openEditHistoryModalDirect(recordId);
+        return;
+    }
+    
+    // Show password verification first
+    showPasswordVerificationModal(recordId, 'edit_history');
+}
+
+function openEditHistoryModalDirect(recordId) {
     if (!recordId || recordId === 'N/A') return;
     window.currentEditingRecordId = recordId;
 
@@ -6427,6 +6584,19 @@ function openEditHistoryModal(recordId) {
 
 // Open separate edit modal: Progress Notes
 function openEditNotesModal(recordId) {
+    if (!recordId || recordId === 'N/A') return;
+    
+    // Check if password is already verified for this record
+    if (isPasswordVerified && passwordVerifiedRecordId === recordId) {
+        openEditNotesModalDirect(recordId);
+        return;
+    }
+    
+    // Show password verification first
+    showPasswordVerificationModal(recordId, 'edit_notes');
+}
+
+function openEditNotesModalDirect(recordId) {
     if (!recordId || recordId === 'N/A') return;
     window.currentEditingRecordId = recordId;
 
@@ -6522,38 +6692,33 @@ function openEditNotesModal(recordId) {
                 </div>
             </div>
 
-            <!-- Treatment & Response Section -->
+            <!-- Payment Information Section -->
             <div class="progress-notes-section">
                 <div class="section-header">
-                    <i class="bi bi-clipboard-pulse"></i>
-                    <h6>Treatment & Response</h6>
+                    <i class="bi bi-cash-coin"></i>
+                    <h6>Payment Information</h6>
                 </div>
                 <div class="row g-3">
-                    <div class="col-md-12">
+                    <div class="col-md-4">
                         <label class="form-label">
-                            <i class="bi bi-heart-pulse me-2"></i>Treatment Response
+                            <i class="bi bi-currency-dollar me-2"></i>Amount Paid
                         </label>
-                        <textarea class="form-control" name="treatment_response" rows="3"
-                                  placeholder="How did the patient respond to treatment?"></textarea>
-                        <small class="text-muted">Document patient's response to prescribed treatment</small>
+                        <input type="number" class="form-control" name="amount_paid" step="0.01" min="0" placeholder="0.00">
+                        <small class="text-muted">Enter the amount paid</small>
                     </div>
-                </div>
-            </div>
-
-            <!-- Next Steps Section -->
-            <div class="progress-notes-section">
-                <div class="section-header">
-                    <i class="bi bi-arrow-right-circle"></i>
-                    <h6>Next Steps</h6>
-                </div>
-                <div class="row g-3">
-                    <div class="col-md-12">
+                    <div class="col-md-4">
                         <label class="form-label">
-                            <i class="bi bi-list-check me-2"></i>Next Steps
+                            <i class="bi bi-wallet2 me-2"></i>Balance
                         </label>
-                        <textarea class="form-control" name="next_steps" rows="3"
-                                  placeholder="What are the next steps in treatment?"></textarea>
-                        <small class="text-muted">Outline the recommended next steps or follow-up actions</small>
+                        <input type="number" class="form-control" name="balance" step="0.01" min="0" placeholder="0.00">
+                        <small class="text-muted">Enter the remaining balance</small>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">
+                            <i class="bi bi-person-check me-2"></i>Conforme
+                        </label>
+                        <input type="text" class="form-control" name="conforme" placeholder="Conforme...">
+                        <small class="text-muted">Enter conforme information</small>
                     </div>
                 </div>
             </div>
@@ -6583,9 +6748,9 @@ function openEditNotesModal(recordId) {
             // Add null checks for each field
             if (form.note_date) form.note_date.value = '';
             if (form.progress_description) form.progress_description.value = '';
-            if (form.treatment_response) form.treatment_response.value = '';
-            if (form.next_steps) form.next_steps.value = '';
-            if (form.other_notes) form.other_notes.value = '';
+            if (form.amount_paid) form.amount_paid.value = '';
+            if (form.balance) form.balance.value = '';
+            if (form.conforme) form.conforme.value = '';
         }
     }, 100);
 
@@ -7024,6 +7189,357 @@ document.addEventListener('DOMContentLoaded', function() {
 /* Dark Mode - Existing History Records Heading */
 [data-theme="dark"] h6[style*="color: #0a4275"] {
     color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+/* Password Verification Modal - Base Styles */
+.password-verification-modal .modal-content {
+    border-radius: 16px;
+    border: none;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    max-width: 100%;
+}
+
+.password-verification-modal .modal-dialog {
+    max-width: 450px;
+    margin: 1rem auto;
+}
+
+/* Responsive Design */
+@media (max-width: 576px) {
+    .password-verification-modal .modal-dialog {
+        max-width: calc(100% - 2rem);
+        margin: 1rem;
+    }
+    
+    .password-modal-header-custom {
+        padding: 1.25rem 1rem 0.75rem 1rem;
+    }
+    
+    .password-modal-header-custom .modal-title {
+        font-size: 1.25rem;
+    }
+    
+    .password-modal-body-custom {
+        padding: 1.25rem 1rem;
+    }
+    
+    .password-modal-footer-custom {
+        padding: 1rem;
+        flex-direction: column-reverse;
+    }
+    
+    .btn-cancel-password-custom,
+    .btn-verify-password-custom {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+.password-modal-header-custom {
+    background: white;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 1.5rem 1.5rem 1rem 1.5rem;
+    position: relative;
+}
+
+.password-modal-header-custom .modal-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+.password-modal-header-custom .modal-title i {
+    color: #1e293b;
+    font-size: 1.5rem;
+}
+
+.password-modal-header-custom .btn-close.password-modal-close-btn,
+.password-modal-close-btn.btn-close {
+    opacity: 1 !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    background-size: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0.5rem !important;
+    width: auto !important;
+    height: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.2s ease !important;
+    position: relative !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+}
+
+.password-modal-header-custom .btn-close.password-modal-close-btn::before,
+.password-modal-close-btn.btn-close::before {
+    content: '' !important;
+    display: none !important;
+}
+
+.password-modal-header-custom .btn-close.password-modal-close-btn::after,
+.password-modal-close-btn.btn-close::after {
+    content: '×' !important;
+    display: flex !important;
+    font-size: 1.75rem !important;
+    line-height: 1 !important;
+    color: #64748b !important;
+    font-weight: 300 !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: 24px !important;
+    height: 24px !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.password-modal-header-custom .btn-close.password-modal-close-btn:hover,
+.password-modal-close-btn.btn-close:hover {
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    opacity: 1 !important;
+}
+
+.password-modal-header-custom .btn-close.password-modal-close-btn:hover::after,
+.password-modal-close-btn.btn-close:hover::after {
+    color: #1e293b !important;
+}
+
+.password-modal-body-custom {
+    padding: 1.5rem;
+    background: white;
+}
+
+.password-instruction-text {
+    color: #64748b;
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+.password-input-wrapper-custom {
+    position: relative;
+    margin-bottom: 0;
+}
+
+.password-input-field-custom {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: white;
+    color: #1e293b;
+}
+
+.password-input-field-custom:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    background: white;
+}
+
+.password-input-field-custom::placeholder {
+    color: #94a3b8;
+}
+
+.password-error-message {
+    color: #ef4444;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    display: none;
+    padding: 0.5rem 0.75rem;
+    background: rgba(239, 68, 68, 0.05);
+    border-radius: 6px;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.password-error-message.show {
+    display: block;
+}
+
+.password-modal-footer-custom {
+    background: white;
+    border-top: 1px solid #e2e8f0;
+    padding: 1rem 1.5rem 1.5rem 1.5rem;
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+}
+
+.btn.btn-cancel-password-custom,
+.password-modal-footer-custom .btn-cancel-password-custom {
+    background: #e2e8f0 !important;
+    color: #64748b !important;
+    border: 2px solid #cbd5e1 !important;
+    padding: 0.625rem 1.25rem !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    transition: all 0.2s ease !important;
+    outline: none !important;
+}
+
+.btn.btn-cancel-password-custom:hover,
+.password-modal-footer-custom .btn-cancel-password-custom:hover {
+    background: #cbd5e1 !important;
+    color: #475569 !important;
+    border-color: #94a3b8 !important;
+    border-width: 2px !important;
+    transform: translateY(-1px) !important;
+}
+
+.btn.btn-verify-password-custom,
+.password-modal-footer-custom .btn-verify-password-custom {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    color: white !important;
+    border: 2px solid #2563eb !important;
+    padding: 0.625rem 1.5rem !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+    display: flex !important;
+    align-items: center !important;
+    outline: none !important;
+}
+
+.btn.btn-verify-password-custom:hover,
+.password-modal-footer-custom .btn-verify-password-custom:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+    color: white !important;
+    border: 2px solid #1d4ed8 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4) !important;
+}
+
+.btn-verify-password-custom:active {
+    transform: translateY(0);
+}
+
+.btn-verify-password-custom:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Password Verification Modal - Dark Mode */
+[data-theme="dark"] .password-verification-modal .modal-content {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+}
+
+[data-theme="dark"] .password-modal-header-custom {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .password-modal-header-custom .modal-title {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .password-modal-header-custom .modal-title i {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .password-modal-header-custom .btn-close.password-modal-close-btn,
+[data-theme="dark"] .password-modal-close-btn.btn-close {
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    background-image: none !important;
+}
+
+[data-theme="dark"] .password-modal-header-custom .btn-close.password-modal-close-btn::after,
+[data-theme="dark"] .password-modal-close-btn.btn-close::after {
+    color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .password-modal-header-custom .btn-close.password-modal-close-btn:hover,
+[data-theme="dark"] .password-modal-close-btn.btn-close:hover {
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    background-image: none !important;
+}
+
+[data-theme="dark"] .password-modal-header-custom .btn-close.password-modal-close-btn:hover::after,
+[data-theme="dark"] .password-modal-close-btn.btn-close:hover::after {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .password-modal-body-custom {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+}
+
+[data-theme="dark"] .password-instruction-text {
+    color: #cbd5e1;
+}
+
+[data-theme="dark"] .password-input-field-custom {
+    background: rgba(15, 23, 42, 0.8);
+    border-color: rgba(59, 130, 246, 0.4);
+    color: #ffffff;
+}
+
+[data-theme="dark"] .password-input-field-custom:focus {
+    background: rgba(15, 23, 42, 0.95);
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+[data-theme="dark"] .password-input-field-custom::placeholder {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .password-error-message {
+    color: #f87171;
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+[data-theme="dark"] .password-modal-footer-custom {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .btn.btn-cancel-password-custom,
+[data-theme="dark"] .password-modal-footer-custom .btn-cancel-password-custom {
+    background: rgba(51, 65, 85, 0.8) !important;
+    color: #e2e8f0 !important;
+    border: 2px solid rgba(148, 163, 184, 0.5) !important;
+}
+
+[data-theme="dark"] .btn.btn-cancel-password-custom:hover,
+[data-theme="dark"] .password-modal-footer-custom .btn-cancel-password-custom:hover {
+    background: rgba(71, 85, 105, 0.9) !important;
+    color: #ffffff !important;
+    border: 2px solid rgba(148, 163, 184, 0.7) !important;
+}
+
+[data-theme="dark"] .btn.btn-verify-password-custom,
+[data-theme="dark"] .password-modal-footer-custom .btn-verify-password-custom {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    border: 2px solid #2563eb !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4) !important;
+}
+
+[data-theme="dark"] .btn.btn-verify-password-custom:hover,
+[data-theme="dark"] .password-modal-footer-custom .btn-verify-password-custom:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+    border: 2px solid #1d4ed8 !important;
+    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.5) !important;
 }
 </style>
 @endsection

@@ -1,8 +1,8 @@
-<footer class="patient-footer">
+<footer class="patient-footer reveal-element reveal-slide-up">
     <div class="footer-content">
         <div class="footer-grid">
             <!-- About Section -->
-            <div class="footer-section">
+            <div class="footer-section reveal-element reveal-fade">
                 <div class="footer-logo">
                     <h3 class="footer-brand">
                         <img src="{{ asset('images/logo7.png') }}" alt="ToothTalk" class="footer-logo-img">
@@ -23,7 +23,7 @@
             </div>
 
             <!-- Quick Links -->
-            <div class="footer-section">
+            <div class="footer-section reveal-element reveal-fade reveal-delay-1">
                 <h4 class="footer-heading">Quick Links</h4>
                 <ul class="footer-links">
                     <li><a href="{{ route('patient-home') }}">Home</a></li>
@@ -35,7 +35,7 @@
             </div>
 
             <!-- Services -->
-            <div class="footer-section">
+            <div class="footer-section reveal-element reveal-fade reveal-delay-2">
                 <h4 class="footer-heading">Our Services</h4>
                 <ul class="footer-services-list" style="list-style-type:disc;">
                     <li>General Dentistry</li>
@@ -47,7 +47,7 @@
             </div>
 
             <!-- Contact Info -->
-            <div class="footer-section">
+            <div class="footer-section reveal-element reveal-fade reveal-delay-3">
                 <h4 class="footer-heading">Contact Us</h4>
                 <ul class="footer-contact">
                     <li>
@@ -71,7 +71,7 @@
         </div>
 
         <!-- Bottom Bar -->
-        <div class="footer-bottom">
+        <div class="footer-bottom reveal-element reveal-fade">
             <p class="copyright">
                 &copy; {{ date('Y') }} Dental Clinic. All Rights Reserved.
             </p>

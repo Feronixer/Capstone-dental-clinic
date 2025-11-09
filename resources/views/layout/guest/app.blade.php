@@ -663,11 +663,11 @@
     @yield('content')
 
     <!-- Footer Section -->
-    <footer class="footer">
+    <footer class="footer reveal-element reveal-slide-up">
         <div class="footer-container">
             <div class="footer-content">
                 <!-- About Section -->
-                <div class="footer-about">
+                <div class="footer-about reveal-element reveal-fade">
                     <h3>
                         <img src="{{ asset('images/logo7.png') }}" alt="ToothTalk" class="footer-logo">
                         ToothTalk
@@ -686,7 +686,7 @@
                 </div>
 
                 <!-- Quick Links -->
-                <div class="footer-section">
+                <div class="footer-section reveal-element reveal-fade reveal-delay-1">
                     <h4>Quick Links</h4>
                     <ul>
                         <li><a href="{{ url('/') }}"><i class="bi bi-chevron-right"></i> Home</a></li>
@@ -697,7 +697,7 @@
                 </div>
 
                 <!-- Services -->
-                <div class="footer-section">
+                <div class="footer-section reveal-element reveal-fade reveal-delay-2">
                     <h4>Our Services</h4>
                     <ul class="services-bullets">
                         <li>General Dentistry</li>
@@ -709,7 +709,7 @@
                 </div>
 
                 <!-- Contact Info -->
-                <div class="footer-section footer-contact">
+                <div class="footer-section footer-contact reveal-element reveal-fade reveal-delay-3">
                     <h4>Contact Info</h4>
                     <p>
                         <i class="bi bi-geo-alt-fill"></i>
@@ -731,7 +731,7 @@
             </div>
 
             <!-- Footer Bottom -->
-            <div class="footer-bottom">
+            <div class="footer-bottom reveal-element reveal-fade">
                 <p>&copy; {{ date('Y') }} ToothTalk Appointment Scheduler for JValera Dental Clinic. All rights reserved.  | Designed with <i class="bi bi-heart-fill" style="color: #ff5252;"></i> for healthy smiles</p>
             </div>
         </div>

@@ -151,13 +151,19 @@
 
 .map-container {
     width: 100%;
+    height: 450px;
+    min-height: 450px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.1);
     border-radius: 12px;
     overflow: hidden;
+    position: relative;
 }
 
 .map-container iframe {
     display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
 }
 
 /* Features Highlight Section */
@@ -248,8 +254,13 @@
         font-size: 1rem;
     }
 
-    .map-container iframe {
+    .map-container {
         height: 350px;
+        min-height: 350px;
+    }
+    
+    .map-container iframe {
+        height: 100%;
     }
 
     .features-grid {
@@ -321,8 +332,13 @@
         text-align: center;
     }
 
-    .map-container iframe {
+    .map-container {
         height: 300px;
+        min-height: 300px;
+    }
+    
+    .map-container iframe {
+        height: 100%;
     }
 
     .features-grid {
@@ -447,11 +463,33 @@
 [data-theme="dark"] .feature-description {
     color: var(--dm-text-muted, #94a3b8) !important;
 }
+
+/* ========================================
+   SCROLL REVEAL ANIMATIONS
+   ======================================== */
+/* Prevent overflow from reveal animations */
+html, body {
+    overflow-x: hidden;
+    width: 100%;
+}
+
+.about-page {
+    overflow-x: hidden;
+    width: 100%;
+}
+
+/* Remove reveal animations - elements visible immediately */
+.reveal-element {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+    max-width: 100%;
+}
 </style>
 
 <div class="about-page">
     <div class="about-container">
-        <div class="about-header">
+        <div class="about-header reveal-element reveal-slide-up">
             <h1 class="about-main-title">ABOUT US</h1>
             <h2 class="about-clinic-title">JVALERA DENTAL CLINIC</h2>
         </div>
@@ -465,7 +503,7 @@
                 <!-- Features Highlight Section -->
                 <div class="features-section">
                     <div class="features-grid">
-                        <div class="feature-card">
+                        <div class="feature-card reveal-element reveal-fade">
                             <div class="feature-icon-wrapper">
                                 <i class="bi bi-people-fill"></i>
                             </div>
@@ -473,7 +511,7 @@
                             <p class="feature-description">Our skilled professionals are dedicated to providing the highest quality dental care.</p>
                         </div>
 
-                        <div class="feature-card">
+                        <div class="feature-card reveal-element reveal-fade reveal-delay-1">
                             <div class="feature-icon-wrapper">
                                 <i class="bi bi-cpu-fill"></i>
                             </div>
@@ -481,7 +519,7 @@
                             <p class="feature-description">We utilize the latest dental technology for precise diagnoses and effective treatments.</p>
                         </div>
 
-                        <div class="feature-card">
+                        <div class="feature-card reveal-element reveal-fade reveal-delay-2">
                             <div class="feature-icon-wrapper">
                                 <i class="bi bi-heart-pulse-fill"></i>
                             </div>
@@ -489,7 +527,7 @@
                             <p class="feature-description">Your comfort and satisfaction are at the heart of everything we do.</p>
                         </div>
 
-                        <div class="feature-card">
+                        <div class="feature-card reveal-element reveal-fade reveal-delay-3">
                             <div class="feature-icon-wrapper">
                                 <i class="bi bi-shield-fill"></i>
                             </div>
@@ -500,7 +538,7 @@
                 </div>
             </div>
 
-            <div class="about-image-section">
+            <div class="about-image-section reveal-element reveal-slide-right">
                 <div class="dentist-card">
                     <div class="dentist-icon">
                         <i class="bi bi-person-circle"></i>
@@ -521,8 +559,6 @@
             <div class="map-container">
                 <iframe
                     src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3857.234!2d120.9831!3d14.7045!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397b36e1e1e1e1e%3A0x1e1e1e1e1e1e1e1e!2sPolicarpio%20St%2C%20Valenzuela%2C%20Metro%20Manila!5e0!3m2!1sen!2sph!4v1234567890123!5m2!1sen!2sph"
-                    width="100%"
-                    height="450"
                     style="border:0; border-radius: 12px;"
                     allowfullscreen=""
                     loading="lazy"
@@ -583,8 +619,22 @@
     setTimeout(ensureLightModeMap, 1000);
     setTimeout(ensureLightModeMap, 2000);
 })();
+
+// ========================================
+// SCROLL REVEAL FUNCTIONALITY - DISABLED
+// ========================================
+// Reveal animations removed - all elements visible immediately
+(function() {
+    document.querySelectorAll('.reveal-element').forEach(el => {
+        el.classList.add('revealed');
+        el.style.opacity = '1';
+        el.style.transform = 'none';
+    });
+})();
 </script>
 
+@if(!empty($chatbotSetting) && $chatbotSetting->enabled)
 @include('patient.components.chatbot')
+@endif
 
 @endsection

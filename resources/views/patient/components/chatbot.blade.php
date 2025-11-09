@@ -1,50 +1,30 @@
 @if(!empty($chatbotSetting) && $chatbotSetting->enabled)
 <style>
     .chatbot-toggle-btn {
-        position: fixed;
+        position: fixed !important;
         right: 24px;
-        left: auto;
         bottom: 24px;
-        width: 64px;
-        height: 64px;
+        width: 60px;
+        height: 60px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
-        color: #fff;
-        display: flex;
+        background: #2196F3;
+        color: white;
+        display: flex !important;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 8px 24px rgba(33, 150, 243, 0.4), 0 0 0 0 rgba(33, 150, 243, 0.7);
-        cursor: move;
+        box-shadow: 0 10px 30px rgba(33,150,243,0.4);
+        cursor: pointer;
+        z-index: 1000 !important;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        padding: 8px;
         user-select: none;
         touch-action: none;
-        z-index: 1000;
-        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, opacity 0.2s ease;
-        padding: 0;
-        border: 3px solid rgba(255, 255, 255, 0.3);
-        animation: bubblePulse 2s ease-in-out infinite;
     }
-    
-    @keyframes bubblePulse {
-        0%, 100% {
-            transform: scale(1);
-            box-shadow: 0 8px 24px rgba(33, 150, 243, 0.4), 0 0 0 0 rgba(33, 150, 243, 0.7);
-        }
-        50% {
-            transform: scale(1.05);
-            box-shadow: 0 10px 30px rgba(33, 150, 243, 0.5), 0 0 0 8px rgba(33, 150, 243, 0);
-        }
-    }
-    
-    /* Stop pulse animation when widget is open */
-    .chatbot-widget.open ~ .chatbot-toggle-btn,
-    .chatbot-toggle-btn:has(+ .chatbot-widget.open) {
-        animation: none;
-    }
-    
+
     .chatbot-toggle-btn:hover {
-        transform: scale(1.1);
-        box-shadow: 0 12px 36px rgba(33, 150, 243, 0.5), 0 0 0 4px rgba(33, 150, 243, 0.3);
-        animation: none;
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 14px 36px rgba(33,150,243,0.45);
+        background: #1976D2;
     }
     
     .chatbot-toggle-btn.dragging {
@@ -77,26 +57,27 @@
 
     .chatbot-unread-badge {
         position: absolute;
-        top: -2px;
-        right: -2px;
-        min-width: 22px;
-        height: 22px;
-        padding: 0 6px;
-        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        top: -4px;
+        right: -4px;
+        min-width: 24px;
+        height: 24px;
+        padding: 0 7px;
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
         color: white;
-        border-radius: 11px;
+        border-radius: 12px;
         font-size: 0.7rem;
         font-weight: 700;
         display: flex;
         align-items: center;
         justify-content: center;
         border: 3px solid white;
-        box-shadow: 0 3px 10px rgba(239, 68, 68, 0.6), 0 0 0 2px rgba(239, 68, 68, 0.3);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.7), 0 0 0 3px rgba(239, 68, 68, 0.3);
         z-index: 10;
-        animation: badgePulse 1.5s ease-in-out infinite;
+        animation: messengerBadgePulse 1.5s ease-in-out infinite;
+        line-height: 1;
     }
 
-    @keyframes badgePulse {
+    @keyframes messengerBadgePulse {
         0%, 100% {
             transform: scale(1);
             box-shadow: 0 3px 10px rgba(239, 68, 68, 0.6), 0 0 0 2px rgba(239, 68, 68, 0.3);
@@ -106,20 +87,11 @@
             box-shadow: 0 4px 14px rgba(239, 68, 68, 0.8), 0 0 0 4px rgba(239, 68, 68, 0.4);
         }
     }
+
     .chatbot-toggle-btn img {
-        width: 70%;
-        height: 70%;
+        width: 100%;
+        height: 100%;
         object-fit: contain;
-        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-        transition: transform 0.2s ease;
-    }
-    
-    .chatbot-toggle-btn:hover img {
-        transform: scale(1.1);
-    }
-    
-    .chatbot-toggle-btn.dragging img {
-        transform: scale(1.05);
     }
 
     .chatbot-widget {
@@ -127,77 +99,45 @@
         right: 24px !important;
         left: auto !important;
         bottom: 92px !important;
-        width: 360px;
-        max-width: calc(100vw - 32px);
-        border-radius: 20px 20px 4px 20px;
+        width: 85vw;
+        min-width: 300px;
+        max-width: calc(85vw - 24px);
+        height: 600px;
+        min-height: 400px;
+        max-height: calc(100vh - 120px);
+        border-radius: 20px;
         background: #ffffff;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.05);
-        overflow: visible;
+        box-shadow: 0 25px 70px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.05);
+        overflow: hidden;
         display: none;
         flex-direction: column;
         z-index: 1000;
-        opacity: 0;
-        transform: scale(0.8) translateY(20px);
-        transform-origin: bottom right;
-        transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), border-radius 0.3s ease;
+        resize: both;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .chatbot-widget.resizing {
+        transition: none;
     }
 
     .chatbot-widget.open { 
         display: flex;
-        opacity: 1;
-        transform: scale(1) translateY(0);
-        animation: widgetBounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-    
-    @keyframes widgetBounce {
-        0% {
-            opacity: 0;
-            transform: scale(0.6) translateY(30px);
-        }
-        60% {
-            transform: scale(1.05) translateY(-5px);
-        }
-        100% {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-        }
-    }
-    
-    /* Chat bubble tail effect - points to the button (right side) */
-    .chatbot-widget::before {
-        content: '';
-        position: absolute;
-        bottom: -10px;
-        right: 24px;
-        width: 0;
-        height: 0;
-        border-left: 10px solid transparent;
-        border-right: 10px solid transparent;
-        border-top: 10px solid #ffffff;
-        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
-        transition: right 0.3s ease, left 0.3s ease;
-    }
-    
-    /* Adjust tail position when widget is on left side */
-    .chatbot-widget.align-left::before {
-        right: auto;
-        left: 24px;
-    }
-    
-    /* Adjust border radius for left-aligned widget */
-    .chatbot-widget.align-left {
-        border-radius: 20px 20px 20px 4px;
     }
 
     .chatbot-header {
-        background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+        background: linear-gradient(135deg, #2196F3 0%, #1976D2 50%, #1565C0 100%);
         color: #fff;
         padding: 16px 18px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        cursor: move;
+        user-select: none;
+    }
+    
+    .chatbot-header:active {
+        cursor: grabbing;
     }
 
     .chatbot-title {
@@ -218,23 +158,22 @@
     .chatbot-body {
         display: flex;
         flex-direction: column;
+        height: 100%;
+        padding: 12px;
         gap: 0;
-        padding: 0;
         overflow: hidden;
-        background: #f8f9fa;
-        border-radius: inherit;
     }
 
     .chatbot-messages {
-        height: 320px;
+        flex: 1;
+        min-height: 200px;
         overflow-y: auto;
         overflow-x: hidden;
-        padding: 16px;
+        padding: 12px 8px;
         display: flex;
         flex-direction: column;
         gap: 12px;
-        background: #f8f9fa;
-        flex: 1;
+        margin-bottom: 10px;
     }
     
     /* Custom scrollbar for messages */
@@ -255,52 +194,71 @@
         background: rgba(0, 0, 0, 0.3);
     }
 
+    .message-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-bottom: 12px;
+        width: 100%;
+        background: none !important;
+        border: none !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+    }
+    
     .message {
-        max-width: 75%;
-        padding: 12px 16px;
-        border-radius: 18px;
-        font-size: 0.9rem;
-        line-height: 1.5rem;
+        max-width: 82%;
+        padding: 12px 14px;
+        border-radius: 16px;
+        font-size: 0.92rem;
+        line-height: 1.6rem;
         word-wrap: break-word;
         word-break: break-word;
         white-space: pre-wrap;
         position: relative;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-        animation: messageSlideIn 0.3s ease-out;
     }
     
-    @keyframes messageSlideIn {
-        from {
-            opacity: 0;
-            transform: translateY(10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+    .message-time {
+        font-size: 0.7rem;
+        color: #94a3b8;
+        padding: 0 4px;
+        margin-top: 4px;
+        font-weight: 500;
+        display: block;
+        width: 100%;
+    }
+    
+    .message-wrapper:has(.message.user) {
+        align-items: flex-end;
+    }
+    
+    .message-wrapper:has(.message.user) .message-time {
+        text-align: right;
+        padding-right: 4px;
+    }
+    
+    .message-wrapper:has(.message.bot) .message-time,
+    .message-wrapper:has(.message.staff) .message-time,
+    .message-wrapper:has(.message.admin) .message-time {
+        text-align: left;
+        padding-left: 4px;
+    }
+    
+    .message-wrapper:has(.message.bot),
+    .message-wrapper:has(.message.staff),
+    .message-wrapper:has(.message.admin) {
+        align-items: flex-start;
     }
 
-    .message.bot {
-        background: #ffffff;
-        color: #1f2937;
-        border: none;
+    .message.bot,
+    .message.staff,
+    .message.admin {
+        background: linear-gradient(135deg, #f5f9ff 0%, #e8f4fd 100%);
+        color: #263238;
+        border: 1px solid #e3f2fd;
         align-self: flex-start;
         text-align: left;
-        border-top-left-radius: 4px;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
-    }
-    
-    /* Add tail to bot messages */
-    .message.bot::before {
-        content: '';
-        position: absolute;
-        left: -8px;
-        bottom: 0;
-        width: 0;
-        height: 0;
-        border-right: 8px solid #ffffff;
-        border-bottom: 8px solid transparent;
-        border-top: 8px solid transparent;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
 
     .message.bot .bullet-item {
@@ -317,139 +275,188 @@
         display: block;
     }
 
+    .message.bot .section-header:first-child {
+        margin-top: 0;
+    }
+
+    .message-attachments {
+        margin-top: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .attachment-item {
+        display: flex;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        padding: 8px 12px;
+        transition: all 0.2s ease;
+    }
+
+    .message.bot .attachment-item {
+        background: rgba(0, 0, 0, 0.05);
+    }
+
+    .attachment-item-image {
+        padding: 8px;
+        background: transparent;
+    }
+
+    .message.bot .attachment-item-image {
+        background: transparent;
+    }
+
+    .attachment-link {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        color: inherit;
+        width: 100%;
+    }
+
+    .attachment-link-image {
+        width: auto;
+        cursor: pointer;
+    }
+
+    .attachment-link:hover {
+        opacity: 0.8;
+    }
+
+    .attachment-link-image:hover {
+        opacity: 1;
+    }
+
+    .attachment-image {
+        max-width: 200px;
+        max-height: 200px;
+        border-radius: 6px;
+        object-fit: cover;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .attachment-image:hover {
+        transform: scale(1.02);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .attachment-name {
+        font-size: 0.75rem;
+        font-weight: 500;
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .attachment-size {
+        font-size: 0.75rem;
+        opacity: 0.7;
+        margin-left: 4px;
+    }
+
+    .attachment-item i {
+        font-size: 1.25rem;
+        color: #3b82f6;
+    }
+
     .message.user {
         background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
         color: #fff;
         align-self: flex-end;
-        border-top-right-radius: 4px;
-        box-shadow: 0 1px 2px rgba(33, 150, 243, 0.3);
+        box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
     }
-    
-    /* Add tail to user messages */
-    .message.user::after {
-        content: '';
-        position: absolute;
-        right: -8px;
-        bottom: 0;
-        width: 0;
-        height: 0;
-        border-left: 8px solid #2196F3;
-        border-bottom: 8px solid transparent;
-        border-top: 8px solid transparent;
+
+    /* Remove triangle pointers from message bubbles */
+    .message.user::after,
+    .message.bot::before,
+    .message.staff::before,
+    .message.admin::before {
+        display: none !important;
     }
 
     .chips {
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
+        flex-shrink: 0;
+        margin-bottom: 8px;
     }
 
     .chip {
-        background: #ffffff;
+        background: #e3f2fd;
         color: #1976D2;
-        border: 1px solid #e3f2fd;
-        padding: 10px 16px;
-        border-radius: 20px;
-        font-size: 0.875rem;
-        font-weight: 500;
+        border: 1px solid #bbdefb;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 0.85rem;
         cursor: pointer;
-        transition: all 0.2s ease;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     }
 
     .chip:hover { 
-        background: #e3f2fd; 
-        transform: translateY(-2px);
-        box-shadow: 0 2px 6px rgba(33, 150, 243, 0.2);
-        border-color: #90caf9;
-    }
-    
-    .chip:active {
-        transform: translateY(0);
+        background: #d2e9fb; 
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(33, 150, 243, 0.15);
     }
 
     .chatbot-input {
         display: flex;
         align-items: center;
-        gap: 10px;
-        padding: 12px 16px;
-        background: #ffffff;
-        border-top: 1px solid #e5e7eb;
+        gap: 8px;
+        padding: 8px 0;
+        margin-bottom: 8px;
+        flex-shrink: 0;
     }
 
     .chatbot-input input[type="text"] {
         flex: 1;
-        padding: 12px 16px;
-        border: 1px solid #e5e7eb;
-        border-radius: 24px;
+        padding: 10px 12px;
+        border: 1px solid #dfe7ef;
+        border-radius: 10px;
         outline: none;
-        transition: all 0.2s ease;
-        background: #f9fafb;
-        font-size: 0.9rem;
-        color: #1f2937;
+        transition: border 0.2s ease, box-shadow 0.2s ease;
     }
-    
+
+    .chatbot-input input[type="text"]:focus {
+        border: 1px solid #90caf9;
+        box-shadow: 0 0 0 3px rgba(144,202,249,0.25);
+    }
+
     .chatbot-input input[type="text"]::placeholder {
         color: #9ca3af;
     }
 
-    .chatbot-input input[type="text"]:focus {
-        border: 1px solid #2196F3;
-        background: #ffffff;
-        box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
-    }
-
     .send-btn {
-        background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+        background: #2196F3;
         color: #fff;
         border: none;
-        padding: 12px;
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
+        padding: 10px 12px;
+        border-radius: 10px;
         cursor: pointer;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.2s ease;
-        box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
-        flex-shrink: 0;
     }
 
     .send-btn:hover { 
-        background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
-        transform: scale(1.05);
-        box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
-    }
-    
-    .send-btn:active {
-        transform: scale(0.95);
+        background: #1976D2;
     }
 
     .typing-indicator {
         display: inline-flex;
         align-items: center;
         gap: 4px;
-        padding: 12px 16px;
-        background: #ffffff;
-        border-radius: 18px;
-        border-top-left-radius: 4px;
-        margin-bottom: 0;
+        padding: 10px 14px;
+        background: #E3F2FD;
+        border-radius: 16px;
+        margin-bottom: 8px;
         max-width: fit-content;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
-        position: relative;
-    }
-    
-    .typing-indicator::before {
-        content: '';
-        position: absolute;
-        left: -8px;
-        bottom: 0;
-        width: 0;
-        height: 0;
-        border-right: 8px solid #ffffff;
-        border-bottom: 8px solid transparent;
-        border-top: 8px solid transparent;
     }
 
     .typing-indicator span {
@@ -468,37 +475,39 @@
         30% { transform: translateY(-10px); opacity: 1; }
     }
 
-    @media (max-width: 480px) {
-        .chatbot-toggle-btn:not(.dragged):not([style*="left"]) {
+    @media (max-width: 768px) {
+        .chatbot-widget {
             right: 16px !important;
-            left: auto !important;
-            bottom: 16px !important;
-            top: auto !important;
-        }
-        .chatbot-toggle-btn {
-            opacity: 0.5;
-            width: 60px;
-            height: 60px;
-        }
-        .chatbot-toggle-btn.clicked {
-            opacity: 1;
-        }
-        .chatbot-widget { 
-            left: 16px !important; 
-            width: auto; 
-            border-radius: 20px 20px 4px 20px;
-        }
-        .chatbot-widget:not([style*="bottom"]) {
-            right: 16px !important;
+            left: 16px !important;
+            width: auto !important;
+            min-width: calc(100vw - 32px) !important;
+            max-width: calc(100vw - 32px);
+            height: calc(100vh - 120px) !important;
+            min-height: 400px !important;
+            max-height: calc(100vh - 120px);
             bottom: 88px !important;
         }
-        .chatbot-widget::before {
-            right: 20px;
-            left: auto;
+        
+        .chatbot-widget.resize {
+            resize: none;
         }
-        .chatbot-messages { 
-            height: 280px; 
-            padding: 12px;
+        
+        .chatbot-toggle-btn:not(.dragged) {
+            right: 16px !important;
+            bottom: 16px !important;
+            width: 56px;
+            height: 56px;
+        }
+        
+        .chatbot-toggle-btn.dragged {
+            width: 56px;
+            height: 56px;
+        }
+        
+        .chatbot-messages {
+            flex: 1;
+            min-height: 200px;
+            padding: 12px 8px;
         }
         
         .message {
@@ -507,8 +516,23 @@
             font-size: 0.875rem;
         }
         
+        .chatbot-header {
+            padding: 12px 14px;
+        }
+        
+        .chatbot-body {
+            height: 100%;
+            padding: 10px;
+        }
+        
         .chatbot-input {
-            padding: 10px 12px;
+            padding: 8px 0;
+            margin-bottom: 8px;
+        }
+        
+        .chatbot-tabs {
+            padding: 8px 0 0;
+            margin-top: auto;
         }
         
         .chatbot-input input[type="text"] {
@@ -517,56 +541,304 @@
         }
         
         .send-btn {
+            padding: 10px;
             width: 40px;
             height: 40px;
-            padding: 10px;
+        }
+        
+        .chip {
+            padding: 8px 12px;
+            font-size: 0.8rem;
         }
     }
 
+    @media (max-width: 480px) {
+        .chatbot-widget {
+            right: 12px !important;
+            left: 12px !important;
+            bottom: 80px !important;
+            max-width: calc(100vw - 24px);
+            border-radius: 12px;
+        }
+        
+        .chatbot-toggle-btn:not(.dragged) {
+            right: 12px !important;
+            bottom: 12px !important;
+            width: 52px;
+            height: 52px;
+            opacity: 0.9;
+        }
+        
+        .chatbot-toggle-btn.dragged {
+            width: 52px;
+            height: 52px;
+        }
+        
+        .chatbot-toggle-btn:active,
+        .chatbot-toggle-btn:focus {
+            opacity: 1;
+        }
+        
+        .chatbot-messages {
+            flex: 1;
+            min-height: 180px;
+            padding: 10px 8px;
+            gap: 6px;
+        }
+        
+        .message {
+            max-width: 88%;
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            line-height: 1.4rem;
+            border-radius: 12px;
+        }
+        
+        .message.bot {
+            border-radius: 12px 12px 12px 4px;
+        }
+        
+        .message.user {
+            border-radius: 12px 12px 4px 12px;
+        }
+        
+        .chatbot-header {
+            padding: 10px 12px;
+        }
+        
+        .chatbot-title {
+            font-size: 0.9rem;
+        }
+        
+        .chatbot-title .badge-dot {
+            width: 8px;
+            height: 8px;
+        }
+        
+        .chatbot-body {
+            height: 100%;
+            padding: 8px;
+        }
+        
+        .chatbot-input {
+            padding: 8px 0;
+            margin-bottom: 6px;
+        }
+        
+        .chatbot-tabs {
+            padding: 6px 0 0;
+            margin-top: auto;
+        }
+        
+        .chatbot-input input[type="text"] {
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            border-radius: 20px;
+        }
+        
+        .send-btn {
+            width: 36px;
+            height: 36px;
+            padding: 8px;
+            border-radius: 50%;
+        }
+        
+        .chip {
+            padding: 6px 10px;
+            font-size: 0.75rem;
+            border-radius: 16px;
+        }
+        
+        .typing-indicator {
+            padding: 8px 12px;
+            border-radius: 12px;
+        }
+        
+        .typing-indicator span {
+            width: 6px;
+            height: 6px;
+        }
+        
+        #chatbot-close {
+            width: 32px;
+            height: 32px;
+        }
+        
+        #chatbot-close i {
+            font-size: 1rem;
+        }
+    }
+
+    @media (max-width: 360px) {
+        .chatbot-widget {
+            right: 8px !important;
+            left: 8px !important;
+            bottom: 72px !important;
+            max-width: calc(100vw - 16px);
+        }
+        
+        .chatbot-toggle-btn {
+            right: 8px !important;
+            bottom: 8px !important;
+            width: 48px;
+            height: 48px;
+        }
+        
+        .chatbot-messages {
+            flex: 1;
+            min-height: 160px;
+            padding: 8px 6px;
+        }
+        
+        .message {
+            max-width: 90%;
+            padding: 6px 10px;
+            font-size: 0.8rem;
+        }
+        
+        .chatbot-body {
+            height: 100%;
+            padding: 8px;
+        }
+        
+        .chatbot-input {
+            padding: 6px 0;
+            margin-bottom: 6px;
+        }
+        
+        .chatbot-tabs {
+            padding: 6px 0 0;
+            margin-top: auto;
+        }
+    }
+
+    @media (max-width: 768px) and (orientation: landscape) {
+        .chatbot-widget {
+            max-height: calc(100vh - 100px);
+            max-height: calc(100dvh - 100px); /* Dynamic viewport height */
+        }
+        
+        .chatbot-messages {
+            height: 200px;
+            max-height: calc(100vh - 280px);
+            max-height: calc(100dvh - 280px); /* Dynamic viewport height */
+        }
+    }
+
+    @media (max-width: 480px) and (orientation: landscape) {
+        .chatbot-widget {
+            bottom: 60px !important;
+            max-height: calc(100vh - 80px);
+            max-height: calc(100dvh - 80px); /* Dynamic viewport height */
+        }
+        
+        .chatbot-messages {
+            flex: 1;
+            min-height: 160px;
+            max-height: calc(100vh - 260px);
+            max-height: calc(100dvh - 260px); /* Dynamic viewport height */
+        }
+        
+        .chatbot-body {
+            height: 100%;
+        }
+        
+        .chatbot-tabs {
+            margin-top: auto;
+        }
+        
+        .chatbot-toggle-btn {
+            bottom: 8px !important;
+        }
+    }
+
+    /* Fix for mobile browsers with address bar */
+    @media (max-width: 768px) {
+        .chatbot-widget {
+            max-height: calc(100vh - 100px);
+            max-height: calc(100dvh - 100px); /* Dynamic viewport height */
+        }
+        
+        .chatbot-messages {
+            flex: 1;
+            min-height: 200px;
+            max-height: calc(100vh - 300px);
+            max-height: calc(100dvh - 300px); /* Dynamic viewport height */
+        }
+        
+        .chatbot-body {
+            height: 100%;
+        }
+        
+        .chatbot-tabs {
+            margin-top: auto;
+        }
+    }
+
+    /* Ensure touch targets are at least 44x44px for accessibility */
+    @media (max-width: 768px) {
+        .chip,
+        .send-btn,
+        #chatbot-close {
+            min-width: 44px;
+            min-height: 44px;
+        }
+    }
+
+    /* Prevent text size adjustment on iOS */
+    @media (max-width: 768px) {
+        .chatbot-input input[type="text"] {
+            -webkit-text-size-adjust: 100%;
+            font-size: 16px !important; /* Prevents zoom on iOS */
+        }
+    }
+
+    @media (max-width: 480px) {
+        .chatbot-input input[type="text"] {
+            font-size: 16px !important; /* Prevents zoom on iOS */
+        }
+    }
+
+
     .chatbot-tabs {
         display: flex;
-        gap: 0;
-        padding: 8px;
-        background: #ffffff;
-        border-top: 1px solid #e5e7eb;
+        gap: 8px;
+        padding: 8px 0 0;
+        border-top: 1px solid #eef2f5;
+        margin-top: auto;
+        flex-shrink: 0;
     }
 
     .chatbot-tab {
         flex: 1;
-        padding: 10px 16px;
-        border: none;
+        padding: 8px 12px;
+        border: 1px solid #dfe7ef;
         border-radius: 8px;
-        background: transparent;
-        color: #6b7280;
-        font-size: 0.875rem;
-        font-weight: 500;
+        background: #f8f9fa;
+        color: #64748b;
+        font-size: 0.85rem;
         cursor: pointer;
         transition: all 0.2s ease;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 6px;
-        position: relative;
+        gap: 4px;
     }
 
     .chatbot-tab:hover {
-        background: #f3f4f6;
-        color: #374151;
+        background: #e9ecef;
+        border-color: #90caf9;
     }
 
     .chatbot-tab.active {
         background: #2196F3;
         color: #fff;
-        font-weight: 600;
-        box-shadow: 0 2px 8px rgba(33, 150, 243, 0.25);
+        border-color: #2196F3;
     }
 
     .chatbot-tab.active:hover {
         background: #1976D2;
-    }
-    
-    .chatbot-tab i {
-        font-size: 1rem;
+        border-color: #1976D2;
     }
     
     /* Close button styling */
@@ -581,12 +853,13 @@
         justify-content: center;
         transition: all 0.2s ease;
         box-shadow: none !important;
+        border-radius: 10px !important;
     }
     
     #chatbot-close:hover {
         background: rgba(255, 255, 255, 0.3) !important;
         border-color: rgba(255, 255, 255, 0.5) !important;
-        transform: scale(1.1);
+        transform: scale(1.05);
     }
     
     #chatbot-close:active {
@@ -599,69 +872,143 @@
     }
 
     [data-theme="dark"] .chatbot-widget {
-        background: var(--dm-card-bg, #1e293b);
-        color: var(--dm-text-primary, #f1f5f9);
-        box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+        background: #1e293b;
+        color: #f1f5f9;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.5);
     }
 
-    [data-theme="dark"] .message.bot {
-        background: rgba(33, 150, 243, 0.08);
-        border-color: rgba(33, 150, 243, 0.25);
-        color: var(--dm-text-primary, #f1f5f9);
+    [data-theme="dark"] .chatbot-body {
+        background: #1e293b;
     }
 
-    [data-theme="dark"] .message.user {
-        background: #3b82f6;
+    [data-theme="dark"] .chatbot-messages {
+        background: #1e293b;
+        border-bottom-color: rgba(148, 163, 184, 0.2);
+    }
+
+    [data-theme="dark"] .message.bot,
+    [data-theme="dark"] .message.staff,
+    [data-theme="dark"] .message.admin {
+        background: #334155;
+        border: 1px solid #475569;
+        color: #f1f5f9;
+    }
+
+    /* Remove triangle pointers in dark mode as well */
+    [data-theme="dark"] .message.user::after,
+    [data-theme="dark"] .message.bot::before,
+    [data-theme="dark"] .message.staff::before,
+    [data-theme="dark"] .message.admin::before {
+        display: none !important;
     }
 
     [data-theme="dark"] .chips .chip {
-        background: rgba(59, 130, 246, 0.15);
-        color: #93c5fd;
-        border-color: rgba(59, 130, 246, 0.25);
+        background: #334155;
+        color: #e2e8f0;
+        border-color: #475569;
+    }
+
+    [data-theme="dark"] .chips .chip:hover {
+        background: #475569;
+        border-color: #60a5fa;
+        color: #f1f5f9;
+    }
+
+    [data-theme="dark"] .chatbot-tabs {
+        border-top-color: rgba(148, 163, 184, 0.2);
     }
 
     [data-theme="dark"] .chatbot-tab {
-        background: rgba(148, 163, 184, 0.12);
-        border-color: rgba(148, 163, 184, 0.2);
-        color: var(--dm-text-muted, #94a3b8);
+        background: #334155;
+        border-color: #475569;
+        color: #cbd5e1;
     }
 
     [data-theme="dark"] .chatbot-tab:hover {
-        background: rgba(59, 130, 246, 0.2);
-        border-color: rgba(59, 130, 246, 0.3);
-        color: #bfdbfe;
+        background: #475569;
+        border-color: #60a5fa;
     }
 
     [data-theme="dark"] .chatbot-tab.active {
-        background: #2563eb;
-        border-color: #2563eb;
+        background: #2196F3;
         color: #fff;
+        border-color: #2196F3;
+    }
+
+    [data-theme="dark"] .chatbot-tab.active:hover {
+        background: #1976D2;
+        border-color: #1976D2;
+    }
+
+    [data-theme="dark"] .chatbot-input {
+        background: #1e293b;
+        border-top-color: rgba(148, 163, 184, 0.2);
     }
 
     [data-theme="dark"] .chatbot-input input[type="text"] {
-        background: rgba(15, 23, 42, 0.4);
-        border-color: rgba(148, 163, 184, 0.3);
-        color: #e2e8f0;
+        background: #0f172a;
+        border-color: #334155;
+        color: #f1f5f9;
+    }
+
+    [data-theme="dark"] .chatbot-input input[type="text"]::placeholder {
+        color: #94a3b8;
     }
 
     [data-theme="dark"] .chatbot-input input[type="text"]:focus {
-        border-color: rgba(96, 165, 250, 0.45);
+        border-color: #60a5fa;
+        background: #1e293b;
         box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
     }
 
     [data-theme="dark"] .typing-indicator {
-        background: rgba(59, 130, 246, 0.08);
+        background: #334155;
     }
 
-    [data-theme="dark"] .chatbot-body { background: var(--dm-card-bg, #1e293b); }
+    [data-theme="dark"] .typing-indicator::before {
+        border-right-color: #334155;
+    }
 
-    [data-theme="dark"] .chatbot-messages { border-bottom-color: rgba(148, 163, 184, 0.2); }
+    [data-theme="dark"] .typing-indicator span {
+        background: #60a5fa;
+    }
 
-    [data-theme="dark"] .chatbot-tabs { border-top-color: rgba(148, 163, 184, 0.2); }
+    [data-theme="dark"] .chatbot-toggle-btn {
+        box-shadow: 0 10px 30px rgba(33, 150, 243, 0.4);
+    }
 
-    [data-theme="dark"] .chip:hover { background: rgba(59, 130, 246, 0.25); }
+    [data-theme="dark"] .chatbot-messages::-webkit-scrollbar-thumb {
+        background: #475569;
+    }
 
-    [data-theme="dark"] .chatbot-toggle-btn { box-shadow: 0 10px 30px rgba(33, 150, 243, 0.35); }
+    [data-theme="dark"] .chatbot-messages::-webkit-scrollbar-thumb:hover {
+        background: #64748b;
+    }
+
+    [data-theme="dark"] .message-time {
+        color: #94a3b8;
+    }
+
+    [data-theme="dark"] .message.bot .attachment-item,
+    [data-theme="dark"] .message.staff .attachment-item,
+    [data-theme="dark"] .message.admin .attachment-item {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    [data-theme="dark"] .message.bot .attachment-item:hover,
+    [data-theme="dark"] .message.staff .attachment-item:hover,
+    [data-theme="dark"] .message.admin .attachment-item:hover {
+        background: rgba(255, 255, 255, 0.15);
+    }
+
+    [data-theme="dark"] .attachment-name {
+        color: #e2e8f0;
+    }
+
+    [data-theme="dark"] .attachment-size {
+        color: #94a3b8;
+    }
 
     /* Adjust position when scroll-to-top button present */
     .scroll-to-top-btn + #chatbot-toggle.chatbot-toggle-btn {
@@ -670,6 +1017,106 @@
 
     .scroll-to-top-btn + #chatbot-toggle.chatbot-toggle-btn + .chatbot-widget {
         bottom: 158px;
+    }
+
+    /* Image Modal for Chatbot Attachments */
+    .chatbot-image-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 10000;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .chatbot-image-modal.show {
+        opacity: 1;
+    }
+
+    .chatbot-image-modal-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+
+    .chatbot-image-modal-content {
+        position: relative;
+        max-width: 90vw;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .chatbot-image-modal-close {
+        position: absolute;
+        top: -50px;
+        right: 0;
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: white;
+        font-size: 1.5rem;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        z-index: 10;
+    }
+
+    .chatbot-image-modal-close:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: rotate(90deg);
+    }
+
+    .chatbot-image-modal-img {
+        max-width: 100%;
+        max-height: 80vh;
+        object-fit: contain;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+
+    .chatbot-image-modal-title {
+        color: white;
+        margin-top: 1rem;
+        font-size: 1.25rem;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    @media (max-width: 768px) {
+        .chatbot-image-modal-content {
+            max-width: 95vw;
+            max-height: 95vh;
+        }
+
+        .chatbot-image-modal-close {
+            top: -40px;
+            width: 35px;
+            height: 35px;
+            font-size: 1.25rem;
+        }
+
+        .chatbot-image-modal-img {
+            max-height: 75vh;
+        }
+
+        .chatbot-image-modal-title {
+            font-size: 1rem;
+        }
     }
 </style>
 
@@ -682,7 +1129,7 @@
     <div class="chatbot-header">
         <div class="chatbot-title">
             <span class="badge-dot"></span>
-            <span id="chatbotTitle">ToothTalk Assistant</span>
+            <span id="chatbotTitle">Live Chat</span>
         </div>
         <button id="chatbot-close" class="send-btn" aria-label="Close chat" title="Close" style="background:#ffffff22;border:1px solid #ffffff33;">
             <i class="bi bi-x-lg"></i>
@@ -691,17 +1138,17 @@
     <div class="chatbot-body">
         <div id="chatbot-messages" class="chatbot-messages" aria-live="polite"></div>
         <div class="chips" id="chatbot-chips"></div>
-        <div class="chatbot-input" style="display:none;">
+        <div class="chatbot-input" id="chatbot-input-container" style="display:none;">
             <input id="chatbot-input" type="text" placeholder="Ask about services, hours, pricing..." autocomplete="off" />
             <button id="chatbot-send" class="send-btn" aria-label="Send message">
                 <i class="bi bi-send-fill"></i>
             </button>
         </div>
-        <div class="chatbot-tabs">
-            <button id="tab-live-chat" class="chatbot-tab" data-tab="live-chat">
+        <div class="chatbot-tabs" id="chatbot-tabs">
+            <button id="tab-live-chat" class="chatbot-tab active" data-tab="live-chat">
                 <i class="bi bi-chat-dots me-1"></i> Live Chat
             </button>
-            <button id="tab-faqs" class="chatbot-tab active" data-tab="faqs">
+            <button id="tab-faqs" class="chatbot-tab" data-tab="faqs">
                 <i class="bi bi-question-circle me-1"></i> FAQs
             </button>
         </div>
@@ -724,6 +1171,207 @@
         if (!toggleBtn || !widget) {
             return;
         }
+        
+        const headerEl = widget.querySelector('.chatbot-header');
+        
+        // Widget drag and resize functionality
+        let isWidgetDragging = false;
+        let isWidgetResizing = false;
+        let widgetDragStartX = 0;
+        let widgetDragStartY = 0;
+        let widgetInitialX = 0;
+        let widgetInitialY = 0;
+        let widgetResizeStartX = 0;
+        let widgetResizeStartY = 0;
+        let widgetInitialWidth = 0;
+        let widgetInitialHeight = 0;
+        let resizeHandle = null;
+        
+        // Load saved widget position and size
+        function loadSavedWidgetState() {
+            const saved = localStorage.getItem('chatbot-widget-state');
+            if (saved) {
+                try {
+                    const state = JSON.parse(saved);
+                    if (state.width) widget.style.width = state.width + 'px';
+                    if (state.height) widget.style.height = state.height + 'px';
+                    if (state.left !== undefined) {
+                        widget.style.left = state.left + 'px';
+                        widget.style.right = 'auto';
+                    }
+                    if (state.top !== undefined) {
+                        widget.style.top = state.top + 'px';
+                        widget.style.bottom = 'auto';
+                    }
+                } catch (e) {
+                    console.error('Error loading widget state:', e);
+                }
+            }
+        }
+        
+        // Save widget position and size
+        function saveWidgetState() {
+            const rect = widget.getBoundingClientRect();
+            const state = {
+                width: rect.width,
+                height: rect.height,
+                left: rect.left,
+                top: rect.top
+            };
+            localStorage.setItem('chatbot-widget-state', JSON.stringify(state));
+        }
+        
+        // Widget drag handlers
+        if (headerEl) {
+            headerEl.addEventListener('mousedown', (e) => {
+                if (e.target === closeBtn || closeBtn.contains(e.target)) return;
+                isWidgetDragging = true;
+                widgetDragStartX = e.clientX;
+                widgetDragStartY = e.clientY;
+                const rect = widget.getBoundingClientRect();
+                widgetInitialX = rect.left;
+                widgetInitialY = rect.top;
+                widget.classList.add('resizing');
+                e.preventDefault();
+            });
+            
+            headerEl.addEventListener('touchstart', (e) => {
+                if (e.target === closeBtn || closeBtn.contains(e.target)) return;
+                const touch = e.touches[0];
+                isWidgetDragging = true;
+                widgetDragStartX = touch.clientX;
+                widgetDragStartY = touch.clientY;
+                const rect = widget.getBoundingClientRect();
+                widgetInitialX = rect.left;
+                widgetInitialY = rect.top;
+                widget.classList.add('resizing');
+                e.preventDefault();
+            });
+        }
+        
+        document.addEventListener('mousemove', (e) => {
+            if (isWidgetDragging) {
+                const deltaX = e.clientX - widgetDragStartX;
+                const deltaY = e.clientY - widgetDragStartY;
+                let newX = widgetInitialX + deltaX;
+                let newY = widgetInitialY + deltaY;
+                
+                // Constrain to viewport
+                const maxX = window.innerWidth - widget.offsetWidth;
+                const maxY = window.innerHeight - widget.offsetHeight;
+                newX = Math.max(0, Math.min(newX, maxX));
+                newY = Math.max(0, Math.min(newY, maxY));
+                
+                widget.style.left = newX + 'px';
+                widget.style.top = newY + 'px';
+                widget.style.right = 'auto';
+                widget.style.bottom = 'auto';
+            }
+        });
+        
+        document.addEventListener('touchmove', (e) => {
+            if (isWidgetDragging) {
+                const touch = e.touches[0];
+                const deltaX = touch.clientX - widgetDragStartX;
+                const deltaY = touch.clientY - widgetDragStartY;
+                let newX = widgetInitialX + deltaX;
+                let newY = widgetInitialY + deltaY;
+                
+                // Constrain to viewport
+                const maxX = window.innerWidth - widget.offsetWidth;
+                const maxY = window.innerHeight - widget.offsetHeight;
+                newX = Math.max(0, Math.min(newX, maxX));
+                newY = Math.max(0, Math.min(newY, maxY));
+                
+                widget.style.left = newX + 'px';
+                widget.style.top = newY + 'px';
+                widget.style.right = 'auto';
+                widget.style.bottom = 'auto';
+                e.preventDefault();
+            }
+        });
+        
+        document.addEventListener('mouseup', () => {
+            if (isWidgetDragging) {
+                isWidgetDragging = false;
+                widget.classList.remove('resizing');
+                saveWidgetState();
+            }
+        });
+        
+        document.addEventListener('touchend', () => {
+            if (isWidgetDragging) {
+                isWidgetDragging = false;
+                widget.classList.remove('resizing');
+                saveWidgetState();
+            }
+        });
+        
+        // Create resize handle
+        function createResizeHandle() {
+            if (resizeHandle) return;
+            resizeHandle = document.createElement('div');
+            resizeHandle.style.cssText = `
+                position: absolute;
+                bottom: 0;
+                right: 0;
+                width: 20px;
+                height: 20px;
+                cursor: nwse-resize;
+                background: linear-gradient(135deg, transparent 0%, transparent 40%, rgba(0,0,0,0.1) 40%, rgba(0,0,0,0.1) 60%, transparent 60%);
+                z-index: 10;
+            `;
+            widget.appendChild(resizeHandle);
+            
+            const resizeMoveHandler = (e) => {
+                if (isWidgetResizing) {
+                    const deltaX = e.clientX - widgetResizeStartX;
+                    const deltaY = e.clientY - widgetResizeStartY;
+                    let newWidth = widgetInitialWidth + deltaX;
+                    let newHeight = widgetInitialHeight - deltaY;
+                    
+                    // Constrain sizes
+                    newWidth = Math.max(300, Math.min(newWidth, window.innerWidth - 20));
+                    newHeight = Math.max(400, Math.min(newHeight, window.innerHeight - 20));
+                    
+                    widget.style.width = newWidth + 'px';
+                    widget.style.height = newHeight + 'px';
+                }
+            };
+            
+            const resizeUpHandler = () => {
+                if (isWidgetResizing) {
+                    isWidgetResizing = false;
+                    widget.classList.remove('resizing');
+                    saveWidgetState();
+                    document.removeEventListener('mousemove', resizeMoveHandler);
+                    document.removeEventListener('mouseup', resizeUpHandler);
+                }
+            };
+            
+            resizeHandle.addEventListener('mousedown', (e) => {
+                isWidgetResizing = true;
+                widgetResizeStartX = e.clientX;
+                widgetResizeStartY = e.clientY;
+                widgetInitialWidth = widget.offsetWidth;
+                widgetInitialHeight = widget.offsetHeight;
+                widget.classList.add('resizing');
+                document.addEventListener('mousemove', resizeMoveHandler);
+                document.addEventListener('mouseup', resizeUpHandler);
+                e.preventDefault();
+            });
+        }
+        
+        // Create resize handle when widget opens
+        const observer = new MutationObserver(() => {
+            if (widget.classList.contains('open') && !resizeHandle) {
+                createResizeHandle();
+            }
+        });
+        observer.observe(widget, { attributes: true, attributeFilter: ['class'] });
+        
+        // Load saved state on page load
+        loadSavedWidgetState();
 
         // Drag functionality for chatbot button
         let isDragging = false;
@@ -932,6 +1580,14 @@
                 const screenCenterX = window.innerWidth / 2;
                 const isOnLeft = centerX < screenCenterX;
                 
+                // During dragging, disable transitions for instant movement
+                if (isDragging) {
+                    widget.style.transition = 'none';
+                } else {
+                    // Smooth transition when not dragging
+                    widget.style.transition = 'left 0.3s ease, right 0.3s ease, bottom 0.3s ease, border-radius 0.3s ease';
+                }
+                
                 // On mobile, keep widget full width with margins
                 if (window.innerWidth <= 480) {
                     widget.style.left = '16px';
@@ -940,7 +1596,7 @@
                     widget.style.bottom = (buttonBottom + 76) + 'px';
                     widget.style.top = 'auto';
                     widget.classList.remove('align-left', 'align-right');
-                    widget.style.borderRadius = '20px 20px 4px 20px';
+                    widget.style.borderRadius = '16px';
                 } else {
                     // Keep widget aligned with button side on desktop
                     if (isOnLeft) {
@@ -949,14 +1605,14 @@
                         widget.style.right = 'auto';
                         widget.classList.add('align-left');
                         widget.classList.remove('align-right');
-                        widget.style.borderRadius = '20px 20px 20px 4px';
+                        widget.style.borderRadius = '16px';
                     } else {
                         // Button is on right, align widget to right
                         widget.style.right = buttonRight + 'px';
                         widget.style.left = 'auto';
                         widget.classList.add('align-right');
                         widget.classList.remove('align-left');
-                        widget.style.borderRadius = '20px 20px 4px 20px';
+                        widget.style.borderRadius = '16px';
                     }
                     widget.style.bottom = (buttonBottom + 76) + 'px';
                     widget.style.top = 'auto';
@@ -1200,13 +1856,44 @@
             }
         });
 
-        let currentMode = 'faqs';
+        let currentMode = 'live-chat';
         let conversationId = null;
         let pollingInterval = null;
         let lastMessageId = null;
         let faqInitialized = false;
-        let liveChatMessages = []; // Store live chat messages
-        let faqMessages = []; // Store FAQ messages
+        // Use Maps to store messages with unique keys to prevent duplicates
+        const liveChatMessagesMap = new Map(); // key -> message object
+        const faqMessagesMap = new Map(); // key -> message object
+        // Global Set to track all message IDs that have been added to DOM
+        const addedMessageIds = new Set();
+        const addedMessageKeys = new Set();
+        
+        // Helper function to create a unique key for a message
+        function createMessageKey(msg) {
+            if (msg.id) {
+                return `id_${msg.id}`;
+            }
+            const attachmentKey = msg.attachments && Array.isArray(msg.attachments) 
+                ? msg.attachments.map(a => (a.url || a.name || '')).sort().join('|')
+                : (msg.attachments ? (msg.attachments.url || msg.attachments.name || '') : '');
+            return `${msg.message || ''}_${msg.created_at || ''}_${msg.sender_type || ''}_${attachmentKey}`;
+        }
+        
+        // Helper function to get messages array from Map
+        function getMessagesFromMap(map) {
+            return Array.from(map.values());
+        }
+        
+        // Helper function to add message to Map (prevents duplicates)
+        function addMessageToMap(map, msg) {
+            const key = createMessageKey(msg);
+            if (!map.has(key)) {
+                map.set(key, msg);
+                console.log('Added message to map:', key, msg);
+            } else {
+                console.log('Duplicate message skipped:', key);
+            }
+        }
 
         const quickIntents = {!! json_encode($chatbotSetting->quick_intents ?? []) !!};
         const faqRaw = @json($chatbotFaqs ?? []);
@@ -1218,11 +1905,174 @@
             messagesEl.scrollTop = messagesEl.scrollHeight;
         }
 
-        function addMessage(text, sender) {
-            const div = document.createElement('div');
-            div.className = 'message ' + (sender === 'user' ? 'user' : 'bot');
+        // Format time indicator
+        function formatTimeIndicator(dateString) {
+            if (!dateString) return '';
+            
+            const now = new Date();
+            const msgDate = new Date(dateString);
+            const diffMs = now - msgDate;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            
+            // Just now (less than 1 minute)
+            if (diffMins < 1) {
+                return 'just now';
+            }
+            
+            // Minutes ago (less than 1 hour)
+            if (diffMins < 60) {
+                return `${diffMins} ${diffMins === 1 ? 'min' : 'mins'}. ago`;
+            }
+            
+            // Today (same day)
+            const isToday = msgDate.toDateString() === now.toDateString();
+            if (isToday) {
+                const hours = msgDate.getHours();
+                const minutes = msgDate.getMinutes();
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                const displayHours = hours % 12 || 12;
+                const displayMinutes = minutes < 10 ? '0' + minutes : minutes;
+                return `Today ${displayHours}:${displayMinutes} ${ampm}`;
+            }
+            
+            // Yesterday
+            const yesterday = new Date(now);
+            yesterday.setDate(yesterday.getDate() - 1);
+            if (msgDate.toDateString() === yesterday.toDateString()) {
+                const hours = msgDate.getHours();
+                const minutes = msgDate.getMinutes();
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                const displayHours = hours % 12 || 12;
+                const displayMinutes = minutes < 10 ? '0' + minutes : minutes;
+                return `Yesterday ${displayHours}:${displayMinutes} ${ampm}`;
+            }
+            
+            // This week (within 7 days)
+            if (diffDays < 7) {
+                const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                const dayName = days[msgDate.getDay()];
+                const hours = msgDate.getHours();
+                const minutes = msgDate.getMinutes();
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                const displayHours = hours % 12 || 12;
+                const displayMinutes = minutes < 10 ? '0' + minutes : minutes;
+                return `${dayName}. ${displayHours}:${displayMinutes} ${ampm}`;
+            }
+            
+            // Older dates - full date format
+            const month = msgDate.getMonth() + 1;
+            const day = msgDate.getDate();
+            const year = msgDate.getFullYear();
+            const hours = msgDate.getHours();
+            const minutes = msgDate.getMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            const displayHours = hours % 12 || 12;
+            const displayMinutes = minutes < 10 ? '0' + minutes : minutes;
+            return `${month}/${day}/${year} ${displayHours}:${displayMinutes} ${ampm}`;
+        }
 
-            if (sender === 'bot') {
+        // Helper function to check if message already exists in DOM
+        function messageExistsInDOM(messageId, text, sender, timestamp, attachments) {
+            // First check by message ID if available
+            if (messageId) {
+                const existingById = Array.from(messagesEl.children).find(wrapper => {
+                    return wrapper.getAttribute('data-message-id') === String(messageId);
+                });
+                if (existingById) return true;
+            }
+            
+            // Check by content, sender, timestamp, and attachments
+            const attachmentKey = attachments && Array.isArray(attachments) 
+                ? attachments.map(a => (a.url || a.name || '')).sort().join('|')
+                : (attachments ? (attachments.url || attachments.name || '') : '');
+            
+            const existingByContent = Array.from(messagesEl.children).find(wrapper => {
+                const messageDiv = wrapper.querySelector('.message');
+                if (!messageDiv) return false;
+                
+                const wrapperTimestamp = wrapper.getAttribute('data-timestamp');
+                const isUser = messageDiv.classList.contains('user');
+                const msgSender = sender === 'user' ? 'user' : sender;
+                const matchesSender = (isUser && msgSender === 'user') || 
+                                     (!isUser && (messageDiv.classList.contains(msgSender) || (msgSender === 'bot' && messageDiv.classList.contains('bot'))));
+                const matchesContent = messageDiv.textContent === text || messageDiv.innerHTML.includes(text);
+                const matchesTimestamp = wrapperTimestamp === timestamp;
+                
+                // Check attachments match
+                let matchesAttachments = true;
+                if (attachments && (Array.isArray(attachments) ? attachments.length > 0 : true)) {
+                    const domAttachments = messageDiv.querySelectorAll('.message-attachments .attachment-item a');
+                    const msgAttachments = Array.isArray(attachments) ? attachments : [attachments];
+                    if (domAttachments.length !== msgAttachments.length) {
+                        matchesAttachments = false;
+                    } else {
+                        const domUrls = Array.from(domAttachments).map(a => a.href).sort();
+                        const msgUrls = msgAttachments.map(a => a.url || '').filter(Boolean).sort();
+                        matchesAttachments = domUrls.length === msgUrls.length && 
+                                            domUrls.every((url, i) => url === msgUrls[i]);
+                    }
+                } else {
+                    const domAttachments = messageDiv.querySelectorAll('.message-attachments .attachment-item');
+                    matchesAttachments = domAttachments.length === 0;
+                }
+                
+                return matchesSender && matchesContent && matchesTimestamp && matchesAttachments;
+            });
+            
+            return !!existingByContent;
+        }
+
+        function addMessage(text, sender, attachments = null, timestamp = null, messageId = null) {
+            // Check if message already exists in DOM before adding
+            if (messageExistsInDOM(messageId, text, sender, timestamp, attachments)) {
+                return; // Skip if already exists
+            }
+            
+            // Create unique key for tracking
+            const attachmentKey = attachments && Array.isArray(attachments) 
+                ? attachments.map(a => (a.url || a.name || '')).sort().join('|')
+                : (attachments ? (attachments.url || attachments.name || '') : '');
+            const messageKey = `${text}_${timestamp}_${sender}_${attachmentKey}`;
+            
+            // Check if we've already added this message (by ID or key)
+            if (messageId && addedMessageIds.has(String(messageId))) {
+                return; // Skip if already added
+            }
+            if (addedMessageKeys.has(messageKey)) {
+                return; // Skip if already added
+            }
+            
+            // Mark as added
+            if (messageId) {
+                addedMessageIds.add(String(messageId));
+            }
+            addedMessageKeys.add(messageKey);
+            
+            const wrapper = document.createElement('div');
+            wrapper.className = 'message-wrapper';
+            
+            // Store the original ISO timestamp as a data attribute for preservation
+            if (timestamp) {
+                wrapper.setAttribute('data-timestamp', timestamp);
+            } else {
+                // If no timestamp provided, use current time and store it
+                timestamp = new Date().toISOString();
+                wrapper.setAttribute('data-timestamp', timestamp);
+            }
+            
+            // Store message ID if provided
+            if (messageId) {
+                wrapper.setAttribute('data-message-id', messageId);
+            }
+            
+            const div = document.createElement('div');
+            div.className = 'message ' + (sender === 'user' ? 'user' : (sender === 'staff' ? 'staff' : (sender === 'admin' ? 'admin' : 'bot')));
+
+            let contentHTML = '';
+            
+            if (sender === 'bot' || sender === 'staff' || sender === 'admin') {
                 let lines = String(text).split('\n');
                 let formattedHTML = '';
                 for (let i = 0; i < lines.length; i++) {
@@ -1239,12 +2089,64 @@
                         }
                     }
                 }
-                div.innerHTML = formattedHTML || text;
+                contentHTML = formattedHTML || text;
             } else {
-                div.textContent = text;
+                contentHTML = text;
             }
-
-            messagesEl.appendChild(div);
+            
+            // Add attachments if any (ONLY if not already in contentHTML)
+            // Check if contentHTML already contains attachment HTML to avoid duplicates
+            const hasAttachmentHTML = contentHTML.includes('message-attachments') || contentHTML.includes('attachment-item');
+            
+            if (attachments && Array.isArray(attachments) && attachments.length > 0 && !hasAttachmentHTML) {
+                contentHTML += '<div class="message-attachments">';
+                attachments.forEach(attachment => {
+                    // Ensure attachment has required properties
+                    if (!attachment || !attachment.url || !attachment.name) return;
+                    
+                    const isImage = attachment.mime_type && attachment.mime_type.startsWith('image/');
+                    const fileSize = attachment.size ? (attachment.size / 1024).toFixed(1) : '0';
+                    if (isImage) {
+                        // Escape quotes for safe JavaScript string usage
+                        const escapedUrl = attachment.url.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                        const escapedName = escapeHtml(attachment.name).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                        contentHTML += `
+                            <div class="attachment-item attachment-item-image">
+                                <a href="javascript:void(0)" onclick="openChatbotImageModal('${escapedUrl}', '${escapedName}')" class="attachment-link attachment-link-image">
+                                    <img src="${attachment.url}" alt="${escapeHtml(attachment.name)}" class="attachment-image" />
+                                </a>
+                            </div>
+                        `;
+                    } else {
+                        contentHTML += `
+                            <div class="attachment-item">
+                                <a href="${attachment.url}" target="_blank" download="${escapeHtml(attachment.name)}" class="attachment-link">
+                                    <i class="bi bi-file-earmark"></i>
+                                    <span class="attachment-name">${escapeHtml(attachment.name)}</span>
+                                    <span class="attachment-size">(${fileSize} KB)</span>
+                                </a>
+                            </div>
+                        `;
+                    }
+                });
+                contentHTML += '</div>';
+            }
+            
+            div.innerHTML = contentHTML;
+            wrapper.appendChild(div);
+            
+            // Add time indicator (only once)
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'message-time';
+            if (timestamp) {
+                timeDiv.textContent = formatTimeIndicator(timestamp);
+            } else {
+                // Use current time if no timestamp provided
+                timeDiv.textContent = formatTimeIndicator(new Date().toISOString());
+            }
+            wrapper.appendChild(timeDiv);
+            
+            messagesEl.appendChild(wrapper);
             scrollToBottom();
         }
 
@@ -1260,6 +2162,13 @@
         function hideTypingIndicator() {
             const indicator = document.getElementById('typing-indicator');
             if (indicator) indicator.remove();
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
         function normalize(s) {
@@ -1352,15 +2261,15 @@
             }
 
             if (currentMode === 'faqs') {
-                addMessage(text.trim(), 'user');
+                addMessage(text.trim(), 'user', null, new Date().toISOString());
                 showTypingIndicator();
                 const typingDelay = 1000 + Math.random() * 1000;
                 setTimeout(() => {
                     hideTypingIndicator();
-                    addMessage(getBotReply(text), 'bot');
+                    addMessage(getBotReply(text), 'bot', null, new Date().toISOString());
                 }, typingDelay);
             } else {
-                addMessage('Please wait for the chat to initialize...', 'bot');
+                addMessage('Please wait for the chat to initialize...', 'bot', null, new Date().toISOString());
             }
         }
 
@@ -1384,12 +2293,12 @@
 
         function sendFaqMessage(text) {
             if (!text.trim()) return;
-            addMessage(text.trim(), 'user');
+            addMessage(text.trim(), 'user', null, new Date().toISOString());
             showTypingIndicator();
             const typingDelay = 1000 + Math.random() * 1000;
             setTimeout(() => {
                 hideTypingIndicator();
-                addMessage(getBotReply(text), 'bot');
+                addMessage(getBotReply(text), 'bot', null, new Date().toISOString());
             }, typingDelay);
         }
 
@@ -1408,6 +2317,12 @@
             widget.setAttribute('aria-hidden', 'false');
             // Stop pulse animation when widget is open
             toggleBtn.style.animation = 'none';
+            // Set title based on current mode
+            if (currentMode === 'live-chat') {
+                titleEl.textContent = 'Live Chat';
+            } else {
+                titleEl.textContent = 'FAQs about the Clinic';
+            }
             updateWidgetPosition();
 
             if (!messagesEl.dataset.checked) {
@@ -1418,27 +2333,49 @@
                     showTypingIndicator();
                     setTimeout(() => {
                         hideTypingIndicator();
-                        addMessage(@json($chatbotSetting->welcome_message ?: 'Welcome! How can I help today?'), 'bot');
+                        addMessage(@json($chatbotSetting->welcome_message ?: 'Welcome! How can I help today?'), 'bot', null, new Date().toISOString());
                         renderChips();
                         faqInitialized = true;
                     }, 800);
                 } else if (currentMode === 'live-chat') {
                     chipsEl.style.display = 'none';
                     chipsEl.innerHTML = '';
+                    const inputContainer = document.getElementById('chatbot-input-container');
+                    const tabsContainer = document.getElementById('chatbot-tabs');
+                    if (inputContainer) {
+                        inputContainer.style.display = 'flex';
+                    }
+                    if (tabsContainer) {
+                        tabsContainer.style.display = 'flex';
+                    }
                     const isAuth = await checkAuth();
                     if (isAuth) {
-                        inputEl.placeholder = 'Type your message to staff...';
+                        inputEl.placeholder = 'Type your message for the clinic...';
+                        inputEl.disabled = false;
+                        sendBtn.disabled = false;
                         await initializeLiveChat();
                     } else {
                         messagesEl.innerHTML = '';
-                        addMessage('To chat with our staff, please log in to your account. You can use the FAQ chatbot for general questions.', 'bot');
+                        addMessage('To chat with our staff, please log in to your account. You can use the FAQ chatbot for general questions.', 'bot', null, new Date().toISOString());
                         const loginBtn = document.createElement('button');
                         loginBtn.className = 'chip';
                         loginBtn.textContent = 'Login to Chat with Staff';
-                        loginBtn.style.background = '#0d6efd';
+                        loginBtn.style.background = '#2196F3';
                         loginBtn.style.color = 'white';
                         loginBtn.style.marginTop = '10px';
                         loginBtn.style.width = '100%';
+                        loginBtn.style.padding = '12px 16px';
+                        loginBtn.style.borderRadius = '999px';
+                        loginBtn.style.border = 'none';
+                        loginBtn.style.fontWeight = '600';
+                        loginBtn.style.cursor = 'pointer';
+                        loginBtn.style.transition = 'all 0.2s ease';
+                        loginBtn.addEventListener('mouseenter', () => {
+                            loginBtn.style.background = '#1976D2';
+                        });
+                        loginBtn.addEventListener('mouseleave', () => {
+                            loginBtn.style.background = '#2196F3';
+                        });
                         loginBtn.addEventListener('click', () => {
                             window.location.href = '{{ route("login") }}';
                         });
@@ -1460,6 +2397,7 @@
                 const response = await fetch('{{ route("patient-chat.conversation") }}');
                 const data = await response.json();
                 conversationId = data.conversation_id;
+                titleEl.textContent = 'Live Chat';
                 await loadMessages();
                 startPolling();
             } catch (error) {
@@ -1468,13 +2406,24 @@
         }
 
         function restoreLiveChatMessages() {
+            // Clear DOM completely first
             messagesEl.innerHTML = '';
+            // Clear tracking sets when clearing DOM
+            addedMessageIds.clear();
+            addedMessageKeys.clear();
+            
+            const liveChatMessages = getMessagesFromMap(liveChatMessagesMap);
+            console.log('Restoring live chat messages:', liveChatMessages.length, liveChatMessages);
+            
             if (liveChatMessages.length === 0) {
-                addMessage("Hello! 👋 Welcome to our dental clinic chat. Our staff is here to assist you with any questions or concerns. How can we help you today?", 'bot');
+                addMessage("Hello! 👋 Welcome to our dental clinic chat. Our staff is here to assist you with any questions or concerns. How can we help you today?", 'bot', null, new Date().toISOString());
             } else {
+                // Messages in Map are already unique, just restore them
                 liveChatMessages.forEach(msg => {
                     const sender = msg.sender_type === 'patient' ? 'user' : msg.sender_type;
-                    addMessage(msg.message, sender);
+                    // Ensure attachments is an array or null
+                    const attachments = msg.attachments && Array.isArray(msg.attachments) ? msg.attachments : (msg.attachments ? [msg.attachments] : null);
+                    addMessage(msg.message, sender, attachments, msg.created_at, msg.id);
                 });
             }
         }
@@ -1485,19 +2434,35 @@
                 const response = await fetch(`{{ route("patient-chat.messages") }}?conversation_id=${conversationId}`);
                 const data = await response.json();
                 
-                // Store messages for restoration when switching tabs
-                liveChatMessages = data.messages || [];
+                // Clear Map and add all messages from server (Map prevents duplicates)
+                liveChatMessagesMap.clear();
+                console.log('Loading messages from server:', data.messages?.length || 0);
+                (data.messages || []).forEach(msg => {
+                    addMessageToMap(liveChatMessagesMap, msg);
+                    if (!lastMessageId || msg.id > lastMessageId) {
+                        lastMessageId = msg.id;
+                    }
+                });
+                
+                const liveChatMessages = getMessagesFromMap(liveChatMessagesMap);
+                console.log('Messages in map after loading:', liveChatMessages.length);
                 
                 // Show welcome message if no messages exist
                 if (liveChatMessages.length === 0) {
-                    addMessage("Hello! 👋 Welcome to our dental clinic chat. Our staff is here to assist you with any questions or concerns. How can we help you today?", 'bot');
+                    addMessage("Hello! 👋 Welcome to our dental clinic chat. Our staff is here to assist you with any questions or concerns. How can we help you today?", 'bot', null, new Date().toISOString());
                 } else {
+                    // Clear DOM completely first
+                    messagesEl.innerHTML = '';
+                    // Clear tracking sets when clearing DOM
+                    addedMessageIds.clear();
+                    addedMessageKeys.clear();
+                    
+                    // Messages in Map are already unique, just display them
                     liveChatMessages.forEach(msg => {
                         const sender = msg.sender_type === 'patient' ? 'user' : msg.sender_type;
-                        addMessage(msg.message, sender);
-                        if (!lastMessageId || msg.id > lastMessageId) {
-                            lastMessageId = msg.id;
-                        }
+                        // Ensure attachments is an array or null
+                        const attachments = msg.attachments && Array.isArray(msg.attachments) ? msg.attachments : (msg.attachments ? [msg.attachments] : null);
+                        addMessage(msg.message, sender, attachments, msg.created_at, msg.id);
                     });
                 }
             } catch (error) {
@@ -1513,12 +2478,79 @@
                     const response = await fetch(`{{ route("patient-chat.messages") }}?conversation_id=${conversationId}`);
                     const data = await response.json();
                     data.messages.forEach(msg => {
-                        if (msg.id > lastMessageId) {
+                        // Check if message already exists in DOM to prevent duplicates
+                        const existingMessage = Array.from(messagesEl.children).find(wrapper => {
+                            const messageDiv = wrapper.querySelector('.message');
+                            if (!messageDiv) return false;
+                            const wrapperTimestamp = wrapper.getAttribute('data-timestamp');
+                            // Simple check: compare message content, sender type, timestamp, and attachments
+                            const isUser = messageDiv.classList.contains('user');
+                            const msgSender = msg.sender_type === 'patient' ? 'user' : msg.sender_type;
+                            const matchesSender = (isUser && msgSender === 'user') || 
+                                                 (!isUser && (messageDiv.classList.contains(msgSender) || (msgSender === 'bot' && messageDiv.classList.contains('bot'))));
+                            const matchesContent = messageDiv.textContent === msg.message || messageDiv.innerHTML.includes(msg.message);
+                            const matchesTimestamp = wrapperTimestamp === msg.created_at;
+                            
+                            // Check attachments match
+                            let matchesAttachments = true;
+                            if (msg.attachments) {
+                                const domAttachments = messageDiv.querySelectorAll('.message-attachments .attachment-item a');
+                                const msgAttachments = Array.isArray(msg.attachments) ? msg.attachments : [msg.attachments];
+                                if (domAttachments.length !== msgAttachments.length) {
+                                    matchesAttachments = false;
+                                } else {
+                                    const domUrls = Array.from(domAttachments).map(a => a.href).sort();
+                                    const msgUrls = msgAttachments.map(a => a.url || '').filter(Boolean).sort();
+                                    matchesAttachments = domUrls.length === msgUrls.length && 
+                                                        domUrls.every((url, i) => url === msgUrls[i]);
+                                }
+                            } else {
+                                // No attachments in message, check DOM has no attachments
+                                const domAttachments = messageDiv.querySelectorAll('.message-attachments .attachment-item');
+                                matchesAttachments = domAttachments.length === 0;
+                            }
+                            
+                            return matchesSender && matchesContent && matchesTimestamp && matchesAttachments;
+                        });
+                        
+                        if (!existingMessage && msg.id > lastMessageId) {
+                            // Add to Map (Map prevents duplicates automatically)
+                            addMessageToMap(liveChatMessagesMap, msg);
+                            
                             const sender = msg.sender_type === 'patient' ? 'user' : msg.sender_type;
-                            addMessage(msg.message, sender);
-                            // Update stored messages
-                            liveChatMessages.push(msg);
+                            // Ensure attachments is an array or null
+                            const attachments = msg.attachments && Array.isArray(msg.attachments) ? msg.attachments : (msg.attachments ? [msg.attachments] : null);
+                            addMessage(msg.message, sender, attachments, msg.created_at, msg.id);
                             lastMessageId = msg.id;
+                            
+                            // Visual indicator for new messages from staff/admin
+                            if (sender === 'staff' || sender === 'admin') {
+                                // Update unread badge
+                                updatePatientChatUnreadCount();
+                                
+                                // Show notification if widget is closed
+                                if (!widget.classList.contains('open')) {
+                                    // Add pulse animation to toggle button
+                                    toggleBtn.style.animation = 'messengerBadgePulse 1.5s ease-in-out infinite';
+                                    
+                                    // Browser notification (if permission granted)
+                                    if (Notification.permission === 'granted') {
+                                        try {
+                                            new Notification('New Message from Clinic', {
+                                                body: msg.message.substring(0, 50) + (msg.message.length > 50 ? '...' : ''),
+                                                icon: '{{ asset("images/chatbot-logo_3.png") }}',
+                                                tag: 'chat-message-' + msg.id,
+                                                requireInteraction: false
+                                            });
+                                        } catch (e) {
+                                            // Ignore notification errors
+                                        }
+                                    }
+                                } else {
+                                    // Widget is open, just scroll to bottom
+                                    scrollToBottom();
+                                }
+                            }
                         }
                     });
                 } catch (error) {
@@ -1529,13 +2561,17 @@
 
         async function sendLiveMessage(text) {
             if (!conversationId) return;
-            addMessage(text, 'user');
-            // Store user message
-            liveChatMessages.push({
+            const now = new Date().toISOString();
+            const tempId = Date.now();
+            addMessage(text, 'user', null, now, tempId);
+            // Store user message temporarily
+            const tempMsg = {
                 sender_type: 'patient',
                 message: text,
-                id: Date.now() // Temporary ID
-            });
+                id: tempId,
+                created_at: now
+            };
+            addMessageToMap(liveChatMessagesMap, tempMsg);
             inputEl.value = '';
 
             try {
@@ -1552,17 +2588,14 @@
                 });
                 const data = await response.json();
                 if (data.success) {
-                    // Update the temporary message with the real one
-                    const lastIndex = liveChatMessages.length - 1;
-                    if (liveChatMessages[lastIndex] && liveChatMessages[lastIndex].id === Date.now()) {
-                        liveChatMessages[lastIndex] = data.message;
-                    } else {
-                        liveChatMessages.push(data.message);
-                    }
+                    // Remove temporary message and add real one
+                    const tempKey = createMessageKey(tempMsg);
+                    liveChatMessagesMap.delete(tempKey);
+                    addMessageToMap(liveChatMessagesMap, data.message);
                     lastMessageId = data.message.id;
                 }
             } catch (error) {
-                addMessage('Error sending message. Please try again.', 'bot');
+                addMessage('Error sending message. Please try again.', 'bot', null, new Date().toISOString());
             }
         }
 
@@ -1582,109 +2615,313 @@
         }
 
         function switchTab(mode) {
+            // Don't switch if already in this mode
+            if (currentMode === mode) return;
+            
             // Store current messages before switching
             if (currentMode === 'live-chat') {
+                // Clear Map first
+                liveChatMessagesMap.clear();
+                console.log('Saving live chat messages from DOM');
+                
                 // Save current live chat messages state
-                const currentMessages = Array.from(messagesEl.children).map(el => {
-                    const isUser = el.classList.contains('user');
+                const currentMessages = Array.from(messagesEl.children).map(wrapper => {
+                    // Get the actual message div inside the wrapper
+                    const messageDiv = wrapper.querySelector('.message');
+                    if (!messageDiv) return null;
+                    
+                    const isUser = messageDiv.classList.contains('user');
+                    const isStaff = messageDiv.classList.contains('staff');
+                    const isAdmin = messageDiv.classList.contains('admin');
+                    const isBot = messageDiv.classList.contains('bot');
+                    
+                    // Extract attachments FIRST (before getting message content)
+                    const attachmentDivs = messageDiv.querySelectorAll('.message-attachments .attachment-item');
+                    const attachments = attachmentDivs.length > 0 ? Array.from(attachmentDivs).map(attDiv => {
+                        const link = attDiv.querySelector('a');
+                        const img = attDiv.querySelector('img');
+                        const nameSpan = attDiv.querySelector('.attachment-name');
+                        const sizeSpan = attDiv.querySelector('.attachment-size');
+                        
+                        if (link && nameSpan) {
+                            return {
+                                url: link.href,
+                                name: nameSpan.textContent,
+                                size: sizeSpan ? parseFloat(sizeSpan.textContent.match(/[\d.]+/)?.[0] || 0) * 1024 : 0,
+                                mime_type: img ? 'image/' + (link.href.match(/\.(jpg|jpeg|png|gif|webp)/i)?.[1] || 'jpeg') : 'application/pdf'
+                            };
+                        }
+                        return null;
+                    }).filter(Boolean) : null;
+                    
+                    // Get message content WITHOUT attachments HTML
+                    // Clone the message div to avoid modifying the original
+                    const messageClone = messageDiv.cloneNode(true);
+                    // Remove attachment HTML from clone
+                    const attachmentContainer = messageClone.querySelector('.message-attachments');
+                    if (attachmentContainer) {
+                        attachmentContainer.remove();
+                    }
+                    // Get text content (for user messages) or HTML without attachments (for bot/staff/admin)
+                    const messageContent = isUser ? messageClone.textContent.trim() : messageClone.innerHTML.trim();
+                    
+                    // Get original ISO timestamp from data attribute (preserves original time)
+                    const originalTimestamp = wrapper.getAttribute('data-timestamp');
+                    
+                    // Try to get message ID from data attribute
+                    let messageId = wrapper.getAttribute('data-message-id');
+                    if (messageId) {
+                        messageId = parseInt(messageId) || messageId;
+                    }
+                    
+                    // Determine sender type
+                    let senderType = 'bot';
+                    if (isUser) senderType = 'patient';
+                    else if (isStaff) senderType = 'staff';
+                    else if (isAdmin) senderType = 'admin';
+                    
                     return {
-                        sender_type: isUser ? 'patient' : 'bot',
-                        message: isUser ? el.textContent : el.innerHTML,
+                        id: messageId || null,
+                        sender_type: senderType,
+                        message: messageContent,
+                        attachments: attachments,
+                        // Use original timestamp if available, otherwise use current time
+                        created_at: originalTimestamp || new Date().toISOString(),
                         isUser: isUser
                     };
-                }).filter(msg => msg.message && msg.message.trim());
+                }).filter(msg => msg && msg.message && msg.message.trim());
+                
                 // Only update if we have messages (not just welcome message)
                 if (currentMessages.length > 0) {
-                    liveChatMessages = currentMessages;
+                    // Add messages to Map (Map prevents duplicates automatically)
+                    currentMessages.forEach(msg => {
+                        addMessageToMap(liveChatMessagesMap, msg);
+                    });
+                    console.log('Saved messages to map:', liveChatMessagesMap.size);
                 }
             } else if (currentMode === 'faqs') {
+                // Clear Map first
+                faqMessagesMap.clear();
+                console.log('Saving FAQ messages from DOM');
+                
                 // Save current FAQ messages state
-                const currentMessages = Array.from(messagesEl.children).map(el => {
-                    const isUser = el.classList.contains('user');
+                const currentMessages = Array.from(messagesEl.children).map(wrapper => {
+                    // Get the actual message div inside the wrapper
+                    const messageDiv = wrapper.querySelector('.message');
+                    if (!messageDiv) return null;
+                    
+                    const isUser = messageDiv.classList.contains('user');
+                    const isBot = messageDiv.classList.contains('bot');
+                    
+                    // Extract attachments FIRST (before getting message content)
+                    const attachmentDivs = messageDiv.querySelectorAll('.message-attachments .attachment-item');
+                    const attachments = attachmentDivs.length > 0 ? Array.from(attachmentDivs).map(attDiv => {
+                        const link = attDiv.querySelector('a');
+                        const img = attDiv.querySelector('img');
+                        const nameSpan = attDiv.querySelector('.attachment-name');
+                        const sizeSpan = attDiv.querySelector('.attachment-size');
+                        
+                        if (link && nameSpan) {
+                            return {
+                                url: link.href,
+                                name: nameSpan.textContent,
+                                size: sizeSpan ? parseFloat(sizeSpan.textContent.match(/[\d.]+/)?.[0] || 0) * 1024 : 0,
+                                mime_type: img ? 'image/' + (link.href.match(/\.(jpg|jpeg|png|gif|webp)/i)?.[1] || 'jpeg') : 'application/pdf'
+                            };
+                        }
+                        return null;
+                    }).filter(Boolean) : null;
+                    
+                    // Get message content WITHOUT attachments HTML
+                    // Clone the message div to avoid modifying the original
+                    const messageClone = messageDiv.cloneNode(true);
+                    // Remove attachment HTML from clone
+                    const attachmentContainer = messageClone.querySelector('.message-attachments');
+                    if (attachmentContainer) {
+                        attachmentContainer.remove();
+                    }
+                    // Get text content (for user messages) or HTML without attachments (for bot)
+                    const messageContent = isUser ? messageClone.textContent.trim() : messageClone.innerHTML.trim();
+                    
+                    // Get original ISO timestamp from data attribute (preserves original time)
+                    const originalTimestamp = wrapper.getAttribute('data-timestamp');
+                    
+                    // Try to get message ID from data attribute
+                    let messageId = wrapper.getAttribute('data-message-id');
+                    if (messageId) {
+                        messageId = parseInt(messageId) || messageId;
+                    }
+                    
                     return {
+                        id: messageId || null,
                         sender_type: isUser ? 'patient' : 'bot',
-                        message: isUser ? el.textContent : el.innerHTML,
+                        message: messageContent,
+                        attachments: attachments,
+                        // Use original timestamp if available, otherwise use current time
+                        created_at: originalTimestamp || new Date().toISOString(),
                         isUser: isUser
                     };
-                }).filter(msg => msg.message && msg.message.trim());
+                }).filter(msg => msg && msg.message && msg.message.trim());
+                
                 if (currentMessages.length > 0) {
-                    faqMessages = currentMessages;
+                    // Add messages to Map (Map prevents duplicates automatically)
+                    currentMessages.forEach(msg => {
+                        addMessageToMap(faqMessagesMap, msg);
+                    });
+                    console.log('Saved FAQ messages to map:', faqMessagesMap.size);
                 }
             }
 
+            // Update mode and tabs
             currentMode = mode;
             tabLiveChat.classList.toggle('active', mode === 'live-chat');
             tabFaqs.classList.toggle('active', mode === 'faqs');
 
-            const inputContainer = document.querySelector('.chatbot-input');
+            const inputContainer = document.getElementById('chatbot-input-container');
+            const tabsContainer = document.getElementById('chatbot-tabs');
 
-            if (mode === 'live-chat') {
-                titleEl.textContent = 'Live Chat - Staff';
-                inputEl.placeholder = 'Type your message to staff...';
-                inputContainer.style.display = 'flex';
-                chipsEl.style.display = 'none';
-                chipsEl.innerHTML = '';
-                stopPolling();
-                checkAuth().then(async isAuth => {
-                    if (isAuth) {
-                        inputEl.disabled = false;
-                        sendBtn.disabled = false;
-                        if (!conversationId) {
-                            initializeLiveChat();
+            // Ensure tabs are always visible
+            if (tabsContainer) {
+                tabsContainer.style.display = 'flex';
+            }
+
+            // Add fade transition
+            messagesEl.style.opacity = '0';
+            messagesEl.style.transition = 'opacity 0.2s ease';
+
+            setTimeout(() => {
+                // Clear tracking sets when switching tabs (DOM will be cleared/restored)
+                addedMessageIds.clear();
+                addedMessageKeys.clear();
+                
+                if (mode === 'live-chat') {
+                    titleEl.textContent = 'Live Chat';
+                    inputEl.placeholder = 'Type your message to staff...';
+                    // Always show input and tabs in Live Chat mode
+                    if (inputContainer) {
+                        inputContainer.style.display = 'flex';
+                    }
+                    if (tabsContainer) {
+                        tabsContainer.style.display = 'flex';
+                    }
+                    chipsEl.style.display = 'none';
+                    chipsEl.innerHTML = '';
+                    stopPolling();
+                    checkAuth().then(async isAuth => {
+                        if (isAuth) {
+                            inputEl.disabled = false;
+                            sendBtn.disabled = false;
+                            if (!conversationId) {
+                                messagesEl.innerHTML = '';
+                                await initializeLiveChat();
+                            } else {
+                                // Restore messages if available, otherwise load from server
+                                const liveChatMessages = getMessagesFromMap(liveChatMessagesMap);
+                                console.log('Restoring live chat messages from map:', liveChatMessages.length);
+                                
+                                if (liveChatMessages.length > 0) {
+                                    // Clear DOM completely first
+                                    messagesEl.innerHTML = '';
+                                    // Clear tracking sets when clearing DOM
+                                    addedMessageIds.clear();
+                                    addedMessageKeys.clear();
+                                    
+                                    // Messages in Map are already unique, just restore them
+                                    liveChatMessages.forEach(msg => {
+                                        const sender = msg.isUser ? 'user' : (msg.sender_type || 'bot');
+                                        // Ensure attachments is an array or null
+                                        const attachments = msg.attachments && Array.isArray(msg.attachments) ? msg.attachments : (msg.attachments ? [msg.attachments] : null);
+                                        addMessage(msg.message, sender, attachments, msg.created_at, msg.id);
+                                    });
+                                } else {
+                                    // Load from server if no saved messages
+                                    await loadMessages();
+                                }
+                                startPolling();
+                            }
                         } else {
-                            // Always load fresh messages from server to ensure we have the latest
                             messagesEl.innerHTML = '';
-                            await loadMessages();
-                            startPolling();
+                            addMessage('To chat with our staff, please log in to your account. You can use the FAQ chatbot for general questions.', 'bot', null, new Date().toISOString());
+                            const loginBtn = document.createElement('button');
+                            loginBtn.className = 'chip';
+                            loginBtn.textContent = 'Login to Chat with Staff';
+                            loginBtn.style.background = '#2196F3';
+                            loginBtn.style.color = 'white';
+                            loginBtn.style.marginTop = '10px';
+                            loginBtn.style.width = '100%';
+                            loginBtn.style.padding = '12px 16px';
+                            loginBtn.style.borderRadius = '999px';
+                            loginBtn.style.border = 'none';
+                            loginBtn.style.fontWeight = '600';
+                            loginBtn.style.cursor = 'pointer';
+                            loginBtn.style.transition = 'all 0.2s ease';
+                            loginBtn.addEventListener('mouseenter', () => {
+                                loginBtn.style.background = '#1976D2';
+                            });
+                            loginBtn.addEventListener('mouseleave', () => {
+                                loginBtn.style.background = '#2196F3';
+                            });
+                            loginBtn.addEventListener('click', () => {
+                                window.location.href = '{{ route("login") }}';
+                            });
+                            const loginContainer = document.createElement('div');
+                            loginContainer.style.marginTop = '10px';
+                            loginContainer.appendChild(loginBtn);
+                            messagesEl.appendChild(loginContainer);
+                            inputEl.disabled = true;
+                            sendBtn.disabled = true;
                         }
+                        messagesEl.style.opacity = '1';
+                    });
+                } else {
+                    titleEl.textContent = 'FAQs about the Clinic';
+                    inputEl.placeholder = 'Ask about services, hours, pricing...';
+                    // Hide input in FAQs mode, but keep tabs visible
+                    if (inputContainer) {
+                        inputContainer.style.display = 'none';
+                    }
+                    if (tabsContainer) {
+                        tabsContainer.style.display = 'flex';
+                    }
+                    chipsEl.style.display = 'flex';
+                    chipsEl.innerHTML = '';
+                    stopPolling();
+                    inputEl.disabled = false;
+                    sendBtn.disabled = false;
+                    
+                    // Restore FAQ messages if available
+                    const faqMessages = getMessagesFromMap(faqMessagesMap);
+                    console.log('Restoring FAQ messages from map:', faqMessages.length);
+                    
+                    if (faqMessages.length > 0) {
+                        // Clear DOM completely first
+                        messagesEl.innerHTML = '';
+                        // Clear tracking sets when clearing DOM
+                        addedMessageIds.clear();
+                        addedMessageKeys.clear();
+                        
+                        // Messages in Map are already unique, just restore them
+                        faqMessages.forEach(msg => {
+                            const attachments = msg.attachments && Array.isArray(msg.attachments) ? msg.attachments : (msg.attachments ? [msg.attachments] : null);
+                            addMessage(msg.message, msg.isUser ? 'user' : 'bot', attachments, msg.created_at || new Date().toISOString(), msg.id);
+                        });
+                        renderChips();
+                        messagesEl.style.opacity = '1';
                     } else {
                         messagesEl.innerHTML = '';
-                        addMessage('To chat with our staff, please log in to your account. You can use the FAQ chatbot for general questions.', 'bot');
-                        const loginBtn = document.createElement('button');
-                        loginBtn.className = 'chip';
-                        loginBtn.textContent = 'Login to Chat with Staff';
-                        loginBtn.style.background = '#0d6efd';
-                        loginBtn.style.color = 'white';
-                        loginBtn.style.marginTop = '10px';
-                        loginBtn.style.width = '100%';
-                        loginBtn.addEventListener('click', () => {
-                            window.location.href = '{{ route("login") }}';
-                        });
-                        const loginContainer = document.createElement('div');
-                        loginContainer.style.marginTop = '10px';
-                        loginContainer.appendChild(loginBtn);
-                        messagesEl.appendChild(loginContainer);
-                        inputEl.disabled = true;
-                        sendBtn.disabled = true;
+                        // Clear tracking sets when clearing DOM
+                        addedMessageIds.clear();
+                        addedMessageKeys.clear();
+                        showTypingIndicator();
+                        setTimeout(() => {
+                            hideTypingIndicator();
+                            addMessage(@json($chatbotSetting->welcome_message ?: 'Welcome! How can I help today?'), 'bot', null, new Date().toISOString());
+                            renderChips();
+                            messagesEl.style.opacity = '1';
+                        }, 600);
                     }
-                });
-            } else {
-                titleEl.textContent = 'ToothTalk Assistant';
-                inputEl.placeholder = 'Ask about services, hours, pricing...';
-                inputContainer.style.display = 'none';
-                chipsEl.style.display = 'flex';
-                chipsEl.innerHTML = '';
-                stopPolling();
-                inputEl.disabled = false;
-                sendBtn.disabled = false;
-                
-                // Restore FAQ messages if available
-                if (faqMessages.length > 0) {
-                    messagesEl.innerHTML = '';
-                    faqMessages.forEach(msg => {
-                        addMessage(msg.message, msg.isUser ? 'user' : 'bot');
-                    });
-                    renderChips();
-                } else {
-                    messagesEl.innerHTML = '';
-                    showTypingIndicator();
-                    setTimeout(() => {
-                        hideTypingIndicator();
-                        addMessage(@json($chatbotSetting->welcome_message ?: 'Welcome! How can I help today?'), 'bot');
-                        renderChips();
-                    }, 600);
                 }
-            }
+            }, 200);
         }
 
         toggleBtn.addEventListener('click', (e) => {
@@ -1759,11 +2996,55 @@
         }
     }
     
+    // Request notification permission on page load
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission().catch(() => {
+            // Ignore permission errors
+        });
+    }
+    
     // Start polling for chat unread count
     if (document.getElementById('patient-chat-badge')) {
         updatePatientChatUnreadCount(); // Initial load
         patientChatUnreadInterval = setInterval(updatePatientChatUnreadCount, 10000); // Update every 10 seconds
     }
+
+    // Image Modal for chatbot attachments
+    function openChatbotImageModal(imageSrc, imageTitle) {
+        const modal = document.createElement('div');
+        modal.className = 'chatbot-image-modal';
+        modal.innerHTML = `
+            <div class="chatbot-image-modal-overlay" onclick="closeChatbotImageModal()">
+                <div class="chatbot-image-modal-content" onclick="event.stopPropagation()">
+                    <button class="chatbot-image-modal-close" onclick="closeChatbotImageModal()">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                    <img src="${imageSrc}" alt="${imageTitle}" class="chatbot-image-modal-img">
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => modal.classList.add('show'), 10);
+    }
+
+    function closeChatbotImageModal() {
+        const modal = document.querySelector('.chatbot-image-modal');
+        if (modal) {
+            modal.classList.remove('show');
+            setTimeout(() => {
+                document.body.removeChild(modal);
+                document.body.style.overflow = '';
+            }, 300);
+        }
+    }
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeChatbotImageModal();
+        }
+    });
 </script>
 @endif
 

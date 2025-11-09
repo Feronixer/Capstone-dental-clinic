@@ -6,6 +6,10 @@
         background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
         min-height: 80vh;
         padding: 0;
+        overflow-x: hidden;
+        overflow-y: visible;
+        width: 100%;
+        max-width: 100vw;
     }
 
     [data-theme="dark"] .main-wrapper {
@@ -41,6 +45,24 @@
         box-shadow: 0 20px 60px rgba(30, 64, 175, 0.4) !important;
     }
 
+    /* Modern Color Palette */
+    :root {
+        --primary-blue: #2196F3;
+        --primary-dark: #1976D2;
+        --primary-light: #BBDEFB;
+        --accent-teal: #26a69a;
+        --accent-teal-dark: #00897b;
+        --text-dark: #263238;
+        --text-medium: #546e7a;
+        --text-light: #78909c;
+        --bg-light: #f8fafc;
+        --bg-white: #ffffff;
+        --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+        --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+        --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+        --shadow-xl: 0 12px 48px rgba(0, 0, 0, 0.15);
+    }
+
     [data-theme="dark"] .feature-card {
         background: var(--dm-card-bg, #1e293b) !important;
         border: 1px solid var(--dm-border-color, #334155) !important;
@@ -74,6 +96,10 @@
         max-width: 1400px;
         margin: 0 auto;
         margin-bottom: 2rem; /* spacing before next section */
+        overflow: hidden;
+        width: 100%;
+        box-sizing: border-box;
+        position: relative;
     }
 
     .hero-content {
@@ -84,6 +110,9 @@
         align-items: flex-start;
         justify-content: flex-start;
         gap: 0;
+        min-width: 0;
+        position: relative;
+        z-index: 1;
     }
 
     .badge {
@@ -91,20 +120,20 @@
         align-items: center;
         gap: 0.5rem;
         background: rgba(33, 150, 243, 0.1);
-        color: #2196F3;
-        padding: 0.5rem 1rem;
+        color: #64b5f6;
+        padding: 10px 20px;
         border-radius: 20px;
-        font-size: 0.9rem;
+        font-size: 16px;
         font-weight: 600;
-        margin-bottom: 1.5rem;
+        margin-bottom: 0.75rem;
     }
 
     .hero-title {
-        font-size: 3.5rem;
+        font-size: 68px;
         font-weight: 800;
         color: #263238;
         line-height: 1.2;
-        margin-bottom: 1.5rem;
+        margin-bottom: 0.75rem;
     }
 
     .hero-title .highlight {
@@ -123,7 +152,7 @@
         font-size: 1.1rem;
         color: #546e7a;
         line-height: 1.7;
-        margin-bottom: 2rem;
+        margin-bottom: 1rem;
     }
 
     /* Hero Card */
@@ -133,6 +162,8 @@
         position: relative;
         padding: 1rem;
         min-width: 0;
+        overflow: visible;
+        box-sizing: border-box;
     }
 
     .main-card {
@@ -156,7 +187,7 @@
         left: 50%;
         transform: translate(-50%, -50%);
         width: 135%;
-        max-width: none;
+        max-width: 135%;
         height: auto;
         min-height: 100%;
         object-fit: cover;
@@ -165,6 +196,7 @@
         filter: brightness(1) contrast(1) drop-shadow(0 8px 24px rgba(128, 128, 128, 0.25));
         pointer-events: none;
         mix-blend-mode: normal;
+        contain: layout style paint;
     }
 
     .main-card::before {
@@ -251,12 +283,14 @@
 
     .feature-card.top {
         top: 2rem;
-        right: -2rem;
+        right: 0.5rem;
+        max-width: calc(100% - 1rem);
     }
 
     .feature-card.bottom {
         bottom: 8rem;
-        right: -2rem;
+        right: 0.5rem;
+        max-width: calc(100% - 1rem);
     }
 
     .feature-icon {
@@ -292,6 +326,9 @@
         background: linear-gradient(135deg, #0a2a6b 0%, #0b3b91 100%);
         position: relative;
         color: #ffffff;
+        overflow-x: hidden;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     [data-theme="dark"] .services-section {
@@ -331,11 +368,12 @@
         max-width: 1600px;
         margin: 0 auto;
         width: 100%;
-        overflow: visible;
+        overflow: hidden;
         height: clamp(400px, 50vh, 600px);
         min-height: 400px;
         perspective: 1200px;
         perspective-origin: center center;
+        box-sizing: border-box;
     }
 
     .services-carousel {
@@ -369,6 +407,8 @@
         transform-style: preserve-3d;
         opacity: 0;
         visibility: hidden;
+        box-sizing: border-box;
+        overflow: hidden;
     }
     
     .service-card.initialized {
@@ -404,7 +444,7 @@
     }
 
     .service-card:hover {
-        transform: translateZ(80px) scale(1.1) !important;
+        transform: translateZ(80px) scale(1.05) !important;
         box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25), 0 0 40px rgba(0, 0, 0, 0.15);
         z-index: 100;
     }
@@ -430,6 +470,12 @@
         text-transform: uppercase;
         margin: 0;
         line-height: 1.4;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        word-wrap: break-word;
     }
 
     .carousel-nav-btn {
@@ -628,6 +674,7 @@
         .hero-section {
             padding: 2.5rem 2rem;
             gap: 2rem;
+            overflow: hidden;
         }
     }
 
@@ -636,6 +683,7 @@
             padding: 2rem;
             margin-bottom: 1.5rem;
             gap: 2rem;
+            overflow: hidden;
         }
 
         .hero-content {
@@ -650,7 +698,7 @@
         }
 
         .hero-title { 
-            font-size: 2.4rem; 
+            font-size: 50px; 
         }
 
         .main-card {
@@ -684,8 +732,8 @@
             box-shadow: 0 8px 22px rgba(0,0,0,0.12);
             z-index: 10;
         }
-        .feature-card.top { top: 0.5rem !important; right: 0.5rem !important; }
-        .feature-card.bottom { bottom: 5rem !important; right: 0.5rem !important; }
+        .feature-card.top { top: 0.5rem !important; right: 0.5rem !important; max-width: calc(100% - 1rem) !important; }
+        .feature-card.bottom { bottom: 5rem !important; right: 0.5rem !important; max-width: calc(100% - 1rem) !important; }
         .feature-text h4 { font-size: 0.95rem; }
         .feature-text p { font-size: 0.8rem; }
 
@@ -702,8 +750,9 @@
         .hero-section {
             flex-direction: row; /* keep side-by-side at 768px */
             padding: 1.5rem 1rem;
-            gap: 1.5rem;
+            gap: 1rem;
             align-items: flex-start;
+            overflow: hidden;
         }
 
         .hero-content {
@@ -721,12 +770,12 @@
         }
 
         .badge {
-            font-size: 0.85rem;
-            padding: 0.4rem 0.8rem;
+            font-size: 16px;
+            padding: 8px 16px;
         }
 
         .hero-title {
-            font-size: 2rem;
+            font-size: 52px;
             margin-bottom: 1rem;
         }
 
@@ -747,8 +796,8 @@
         .main-card-image {
             position: absolute;
             top: 50%;
-            left: 60%;
-            transform: translate(-50%, -50%);
+            left: -15%;
+            transform: translate(0, -50%);
             width: 135%;
             max-width: none;
             height: auto;
@@ -783,8 +832,8 @@
             max-width: 240px;
             z-index: 10;
         }
-        .feature-card.top { top: 0.75rem !important; right: 0.75rem !important; }
-        .feature-card.bottom { bottom: 2.25rem !important; right: 0.75rem !important; }
+        .feature-card.top { top: 0.75rem !important; right: 0.75rem !important; max-width: calc(100% - 1.5rem) !important; }
+        .feature-card.bottom { bottom: 2.25rem !important; right: 0.75rem !important; max-width: calc(100% - 1.5rem) !important; }
 
         .services-section {
             padding: 3rem 1rem;
@@ -814,6 +863,12 @@
     }
     
     @media (max-width: 480px) {
+
+        .hero-title {
+            font-size: 76px;
+            margin-bottom: 1rem;
+        }
+
         .services-carousel-wrapper {
             height: clamp(300px, 40vh, 450px);
             min-height: 300px;
@@ -850,9 +905,10 @@
     @media (max-width: 640px) {
         .hero-section {
             flex-direction: column;
-            gap: 5rem;
-            margin-bottom: 7rem;
+            gap: 2rem;
+            margin-bottom: 3rem;
             align-items: stretch;
+            overflow: hidden;
         }
 
         .hero-content {
@@ -883,8 +939,8 @@
             box-shadow: 0 8px 22px rgba(0,0,0,0.12);
             z-index: 10;
         }
-        .feature-card.top { top: 0.5rem !important; right: -0.5rem !important; }
-        .feature-card.bottom { bottom: 8rem !important; right: -0.5rem !important; }
+        .feature-card.top { top: 0.5rem !important; right: 0.5rem !important; max-width: calc(100% - 1rem) !important; }
+        .feature-card.bottom { bottom: 8rem !important; right: 0.5rem !important; max-width: calc(100% - 1rem) !important; }
         .feature-text h4 { font-size: 0.95rem; }
         .feature-text p { font-size: 0.8rem; }
     }
@@ -893,7 +949,8 @@
     @media (max-width: 576px) {
         .hero-section {
             padding: 1rem 0.75rem;
-            gap: 5rem;
+            gap: 2rem;
+            overflow: hidden;
         }
 
         .hero-content {
@@ -908,7 +965,7 @@
         }
         
         .hero-title {
-            font-size: 1.6rem;
+            font-size: 48px;
         }
 
         .hero-description {
@@ -925,8 +982,8 @@
         .main-card-image { 
             position: absolute;
             top: 50%;
-            left: 60%;
-            transform: translate(-50%, -50%);
+            left: 5%;
+            transform: translate(0, -50%);
             width: 135%;
             max-width: none;
             height: auto;
@@ -946,8 +1003,8 @@
             box-shadow: 0 8px 22px rgba(0,0,0,0.12);
             z-index: 10;
         }
-        .feature-card.top { top: 0.5rem !important; right: -0.5rem !important; }
-        .feature-card.bottom { bottom: 6rem !important; right: -0.5rem !important; }
+        .feature-card.top { top: 0.5rem !important; right: 0.5rem !important; max-width: calc(100% - 1rem) !important; }
+        .feature-card.bottom { bottom: 6rem !important; right: 0.5rem !important; max-width: calc(100% - 1rem) !important; }
         .feature-text h4 { font-size: 0.95rem; }
         .feature-text p { font-size: 0.8rem; }
 
@@ -960,15 +1017,67 @@
             font-size: 1.5rem;
         }
     }
+
+    @media (min-width: 280px) and (max-width: 350px) {
+        .hero-section {
+            padding: 0.75rem 0.5rem;
+            gap: 1.5rem;
+        }
+
+        .hero-title {
+            font-size: 3.2rem;
+            margin-bottom: 0.75rem;
+            line-height: 1.2;
+        }
+
+        .hero-description {
+            font-size: 0.85rem;
+        }
+
+        .badge {
+            font-size: 14px;
+            padding: 6px 12px;
+        }
+
+        .main-card {
+            min-height: 300px;
+            padding: 0.75rem 0.75rem 1.5rem;
+        }
+
+        .main-card-image {
+            left: -10%;
+        }
+
+        .feature-card {
+            max-width: 180px;
+            padding: 0.75rem 0.8rem;
+        }
+
+        .feature-text h4 {
+            font-size: 0.9rem;
+        }
+
+        .feature-text p {
+            font-size: 0.75rem;
+        }
+
+        .card-title {
+            font-size: 0.9rem;
+        }
+
+        .services-title {
+            font-size: 1.3rem;
+        }
+    }
 </style>
 
 <!-- Hero Section -->
-<section class="hero-section">
+<section class="hero-section reveal-element reveal-slide-up">
     <!-- Left Content -->
     <div class="hero-content">
         <div class="badge">
             <i class="bi bi-stars"></i>
-            Welcome Back, {{ auth()->user()->name ?? 'Patient' }}!
+            Welcome Back, @if(auth()->user()->info){{ trim(auth()->user()->info->first_name . ' ' . auth()->user()->info->last_name) }}@else{{ auth()->user()->name ?? 'User' }}@endif!
         </div>
 
         <h1 class="hero-title">
@@ -1011,7 +1120,7 @@
 </section>
 
 <!-- Services Section -->
-<section class="services-section">
+<section class="services-section reveal-element reveal-fade">
     <div class="services-container">
         <h2 class="services-title">OUR SERVICES</h2>
         <p class="services-subtitle">We offer a comprehensive range of premium dental services</p>
@@ -1273,8 +1382,8 @@
             // Position card in center of carousel
             // Use responsive card dimensions for mobile
             const isMobile = window.innerWidth <= 768;
-            const defaultCardWidth = isMobile ? 180 : 200;
-            const defaultCardHeight = isMobile ? 180 : 200;
+            const defaultCardWidth = isMobile ? 200 : 280;
+            const defaultCardHeight = isMobile ? 200 : 280;
             const cardWidth = card.offsetWidth || defaultCardWidth;
             const cardHeight = card.offsetHeight || defaultCardHeight;
             const left = (carouselWidth / 2) + x - (cardWidth / 2);
@@ -1485,20 +1594,174 @@
         }
     });
 
+    // ========================================
+    // SCROLL REVEAL FUNCTIONALITY - DISABLED
+    // ========================================
+    // Reveal animations removed - all elements visible immediately
+    (function() {
+        // Make all reveal elements visible immediately
+        document.querySelectorAll('.reveal-element').forEach(el => {
+            el.classList.add('revealed');
+            el.style.opacity = '1';
+            el.style.transform = 'none';
+        });
+    })();
+
+    // Image Modal for full-size viewing
+    function openImageModal(imageSrc, imageTitle) {
+        const modal = document.createElement('div');
+        modal.className = 'image-modal';
+        modal.innerHTML = `
+            <div class="image-modal-overlay" onclick="closeImageModal()">
+                <div class="image-modal-content" onclick="event.stopPropagation()">
+                    <button class="image-modal-close" onclick="closeImageModal()">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                    <img src="${imageSrc}" alt="${imageTitle}" class="image-modal-img">
+                    <div class="image-modal-title">${imageTitle}</div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => modal.classList.add('show'), 10);
+    }
+
+    function closeImageModal() {
+        const modal = document.querySelector('.image-modal');
+        if (modal) {
+            modal.classList.remove('show');
+            setTimeout(() => {
+                document.body.removeChild(modal);
+                document.body.style.overflow = '';
+            }, 300);
+        }
+    }
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeImageModal();
+        }
+    });
+
 </script>
 
+<style>
+.image-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.image-modal.show {
+    opacity: 1;
+}
+
+.image-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.image-modal-content {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.image-modal-close {
+    position: absolute;
+    top: -50px;
+    right: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.image-modal-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+.image-modal-img {
+    max-width: 100%;
+    max-height: 80vh;
+    object-fit: contain;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.image-modal-title {
+    color: white;
+    margin-top: 1rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .image-modal-content {
+        max-width: 95vw;
+        max-height: 95vh;
+    }
+
+    .image-modal-close {
+        top: -40px;
+        width: 35px;
+        height: 35px;
+        font-size: 1.25rem;
+    }
+
+    .image-modal-img {
+        max-height: 75vh;
+    }
+
+    .image-modal-title {
+        font-size: 1rem;
+    }
+}
+</style>
+
 <!-- Feedback Section -->
-<section class="feedback-section" id="feedback">
+<section class="feedback-section reveal-element reveal-slide-up" id="feedback">
     <div class="feedback-container">
         <h2 class="feedback-title">
             Rate Your Experience
-            <span class="title-badge" id="titleFeedbackBadge" style="display: none;">
-                <i class="bi bi-exclamation-circle"></i> You have pending reviews
-            </span>
         </h2>
         <p class="feedback-description">
             Help us improve our services by sharing your feedback
         </p>
+        <div class="feedback-badge-wrapper">
+            <span class="title-badge" id="titleFeedbackBadge" style="display: none;">
+                <i class="bi bi-exclamation-circle"></i> You have pending reviews
+            </span>
+        </div>
 
         <div class="feedback-cards">
             <!-- Give Feedback Card -->
@@ -1646,6 +1909,9 @@
     .feedback-section {
         padding: 4rem 3rem;
         background: #f8f9fa;
+        overflow-x: hidden;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     [data-theme="dark"] .feedback-section {
@@ -1663,28 +1929,40 @@
         color: #263238;
         text-align: center;
         margin-bottom: 0.5rem;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.75rem;
     }
 
     [data-theme="dark"] .feedback-title {
         color: var(--dm-text-primary, #f1f5f9) !important;
     }
 
+    .feedback-badge-wrapper {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 2rem;
+    }
+
     .title-badge {
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-        color: #92400e;
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        color: #1976D2;
         padding: 0.5rem 1.25rem;
         border-radius: 20px;
         font-size: 0.9rem;
         font-weight: 600;
-        box-shadow: 0 2px 8px rgba(251, 191, 36, 0.3);
+        box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
         animation: gentle-pulse 2s ease-in-out infinite;
+    }
+
+    [data-theme="dark"] .title-badge {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.2) 100%) !important;
+        color: #60a5fa !important;
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4) !important;
+    }
+
+    [data-theme="dark"] .title-badge i {
+        color: #60a5fa !important;
     }
 
     @keyframes gentle-pulse {
@@ -1700,7 +1978,7 @@
         text-align: center;
         color: #546e7a;
         font-size: 1rem;
-        margin-bottom: 3rem;
+        margin-bottom: 1rem;
     }
 
     [data-theme="dark"] .feedback-description {
@@ -1897,7 +2175,11 @@
 
         .feedback-description {
             font-size: 0.9rem;
-            margin-bottom: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .feedback-badge-wrapper {
+            margin-bottom: 1.5rem;
         }
 
         .feedback-cards {
@@ -1947,6 +2229,10 @@
 
         .title-badge {
             font-size: 0.8rem;
+        }
+
+        .feedback-badge-wrapper {
+            margin-bottom: 1.25rem;
         }
 
         .feedback-action-card {
@@ -2197,60 +2483,195 @@ function loadPendingFeedbackCount() {
 
 <!-- Chatbot Styles -->
 <style>
-    /* Chatbot */
+    /* Chatbot - Messenger Style Bubble */
     .chatbot-toggle-btn {
-        position: fixed;
+        position: fixed !important;
         right: 24px;
         bottom: 24px;
-        width: 60px;
-        height: 60px;
+        width: 64px;
+        height: 64px;
         border-radius: 50%;
-        background: #2196F3;
+        background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
         color: white;
-        display: flex;
+        display: flex !important;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 10px 30px rgba(33,150,243,0.4);
+        box-shadow: 0 8px 24px rgba(33, 150, 243, 0.4), 0 0 0 0 rgba(33, 150, 243, 0.7);
         cursor: pointer;
-        z-index: 1000;
-        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-        padding: 8px;
+        z-index: 1000 !important;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, opacity 0.2s ease;
+        padding: 0;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        user-select: none;
+        touch-action: none;
+        animation: messengerBubblePulse 2s ease-in-out infinite;
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+
+    @keyframes messengerBubblePulse {
+        0%, 100% {
+            transform: scale(1);
+            box-shadow: 0 8px 24px rgba(33, 150, 243, 0.4), 0 0 0 0 rgba(33, 150, 243, 0.7);
+        }
+        50% {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(33, 150, 243, 0.5), 0 0 0 8px rgba(33, 150, 243, 0);
+        }
+    }
+
+    /* Stop pulse animation when widget is open */
+    .chatbot-widget.open ~ .chatbot-toggle-btn,
+    .chatbot-toggle-btn:has(+ .chatbot-widget.open) {
+        animation: none;
     }
 
     .chatbot-toggle-btn:hover {
-        transform: translateY(-2px) scale(1.05);
-        box-shadow: 0 14px 36px rgba(33,150,243,0.45);
-        background: #1976D2;
+        transform: scale(1.1);
+        box-shadow: 0 12px 36px rgba(33, 150, 243, 0.5), 0 0 0 4px rgba(33, 150, 243, 0.3);
+        animation: none;
+    }
+
+    .chatbot-toggle-btn.dragging {
+        cursor: grabbing;
+        transition: none;
+        box-shadow: 0 15px 40px rgba(33, 150, 243, 0.6), 0 0 0 6px rgba(33, 150, 243, 0.2);
+        animation: none;
+        transform: scale(1.1);
+    }
+
+    .chatbot-toggle-btn:active {
+        transform: scale(0.95);
+    }
+
+    .chatbot-toggle-btn.dragged {
+        right: auto !important;
+        bottom: auto !important;
+        left: auto !important;
+        top: auto !important;
+    }
+
+    .chatbot-toggle-btn.dragged[style*="left"] {
+        right: auto !important;
+    }
+
+    .chatbot-toggle-btn.dragged[style*="right"] {
+        left: auto !important;
+    }
+
+    .chatbot-unread-badge {
+        position: absolute;
+        top: -2px;
+        right: -2px;
+        min-width: 22px;
+        height: 22px;
+        padding: 0 6px;
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: white;
+        border-radius: 11px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 3px solid white;
+        box-shadow: 0 3px 10px rgba(239, 68, 68, 0.6), 0 0 0 2px rgba(239, 68, 68, 0.3);
+        z-index: 10;
+        animation: messengerBadgePulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes messengerBadgePulse {
+        0%, 100% {
+            transform: scale(1);
+            box-shadow: 0 3px 10px rgba(239, 68, 68, 0.6), 0 0 0 2px rgba(239, 68, 68, 0.3);
+        }
+        50% {
+            transform: scale(1.15);
+            box-shadow: 0 4px 14px rgba(239, 68, 68, 0.8), 0 0 0 4px rgba(239, 68, 68, 0.4);
+        }
     }
 
     .chatbot-toggle-btn img {
-        width: 100%;
-        height: 100%;
+        width: 70%;
+        height: 70%;
         object-fit: contain;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+        transition: transform 0.2s ease;
+    }
+
+    .chatbot-toggle-btn:hover img {
+        transform: scale(1.1);
+    }
+
+    .chatbot-toggle-btn.dragging img {
+        transform: scale(1.05);
     }
 
     .chatbot-widget {
-        position: fixed;
-        right: 24px;
-        bottom: 92px;
-        width: 340px;
+        position: fixed !important;
+        right: 24px !important;
+        left: auto !important;
+        bottom: 92px !important;
+        width: 360px;
         max-width: calc(100vw - 32px);
-        border-radius: 16px;
+        border-radius: 20px 20px 4px 20px;
         background: #ffffff;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.05);
+        overflow: visible;
         display: none;
         flex-direction: column;
         z-index: 1000;
-        transition: opacity 0.3s ease, transform 0.3s ease;
         opacity: 0;
-        transform: translateY(10px);
+        transform: scale(0.8) translateY(20px);
+        transform-origin: bottom right;
+        transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), border-radius 0.3s ease;
     }
 
     .chatbot-widget.open { 
         display: flex;
         opacity: 1;
-        transform: translateY(0);
+        transform: scale(1) translateY(0);
+        animation: widgetBounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    
+    @keyframes widgetBounce {
+        0% {
+            opacity: 0;
+            transform: scale(0.6) translateY(30px);
+        }
+        60% {
+            transform: scale(1.05) translateY(-5px);
+        }
+        100% {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    }
+    
+    /* Chat bubble tail effect - points to the button (right side) */
+    .chatbot-widget::before {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        right: 24px;
+        width: 0;
+        height: 0;
+        border-left: 10px solid transparent;
+        border-right: 10px solid transparent;
+        border-top: 10px solid #ffffff;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        transition: right 0.3s ease, left 0.3s ease;
+    }
+    
+    /* Adjust tail position when widget is on left side */
+    .chatbot-widget.align-left::before {
+        right: auto;
+        left: 24px;
+    }
+    
+    /* Adjust border radius for left-aligned widget */
+    .chatbot-widget.align-left {
+        border-radius: 20px 20px 20px 4px;
     }
 
     .chatbot-header {
@@ -2281,60 +2702,99 @@ function loadPendingFeedbackCount() {
     .chatbot-body {
         display: flex;
         flex-direction: column;
-        gap: 10px;
-        padding: 12px;
-        background: #ffffff;
+        gap: 0;
+        padding: 0;
+        overflow: hidden;
+        background: #f8f9fa;
+        border-radius: inherit;
     }
 
     .chatbot-messages {
-        height: 280px;
+        height: 320px;
         overflow-y: auto;
-        padding-right: 4px;
+        overflow-x: hidden;
+        padding: 16px;
         display: flex;
         flex-direction: column;
-        gap: 8px;
-        border-bottom: 1px solid #eef2f5;
+        gap: 12px;
+        background: #f8f9fa;
+        flex: 1;
     }
 
+    /* Custom scrollbar for messages */
     .chatbot-messages::-webkit-scrollbar {
-        width: 8px;
+        width: 6px;
     }
-
+    
     .chatbot-messages::-webkit-scrollbar-track {
-        background: #f1f5f9;
-        border-radius: 4px;
+        background: transparent;
     }
-
+    
     .chatbot-messages::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 4px;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 3px;
     }
-
+    
     .chatbot-messages::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
+        background: rgba(0, 0, 0, 0.3);
     }
 
     .message {
-        max-width: 82%;
-        padding: 10px 12px;
-        border-radius: 14px;
-        font-size: 0.92rem;
-        line-height: 1.6rem;
+        max-width: 75%;
+        padding: 12px 16px;
+        border-radius: 18px;
+        font-size: 0.9rem;
+        line-height: 1.5rem;
         word-wrap: break-word;
         word-break: break-word;
         white-space: pre-wrap;
+        position: relative;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        animation: messageSlideIn 0.3s ease-out;
+    }
+    
+    @keyframes messageSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     .message.bot {
-        background: #f5f9ff;
-        color: #263238;
-        border: 1px solid #e3f2fd;
+        background: #ffffff;
+        color: #1f2937;
+        border: none;
         align-self: flex-start;
         text-align: left;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        border-top-left-radius: 4px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    }
+    
+    /* Add tail to bot messages */
+    .message.bot::before {
+        content: '';
+        position: absolute;
+        left: -8px;
+        bottom: 0;
+        width: 0;
+        height: 0;
+        border-right: 8px solid #ffffff;
+        border-bottom: 8px solid transparent;
+        border-top: 8px solid transparent;
     }
 
     /* Style for bullet lists in bot messages */
+    .message.bot .bullet-item {
+        display: block;
+        padding-left: 1.2em;
+        text-indent: -1.2em;
+        margin: 0.3em 0;
+    }
+
     .message.bot .bullet-item {
         display: block;
         padding-left: 1.2em;
@@ -2349,15 +2809,25 @@ function loadPendingFeedbackCount() {
         display: block;
     }
 
-    .message.bot .section-header:first-child {
-        margin-top: 0;
-    }
-
     .message.user {
-        background: #2196F3;
+        background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
         color: #fff;
         align-self: flex-end;
-        box-shadow: 0 1px 2px rgba(33, 150, 243, 0.2);
+        border-top-right-radius: 4px;
+        box-shadow: 0 1px 2px rgba(33, 150, 243, 0.3);
+    }
+    
+    /* Add tail to user messages */
+    .message.user::after {
+        content: '';
+        position: absolute;
+        right: -8px;
+        bottom: 0;
+        width: 0;
+        height: 0;
+        border-left: 8px solid #2196F3;
+        border-bottom: 8px solid transparent;
+        border-top: 8px solid transparent;
     }
 
     .chips {
@@ -2387,53 +2857,59 @@ function loadPendingFeedbackCount() {
     .chatbot-input {
         display: flex;
         align-items: center;
-        gap: 8px;
-        padding: 8px 0 0;
+        gap: 10px;
+        padding: 12px 16px;
+        background: #ffffff;
+        border-top: 1px solid #e5e7eb;
     }
 
     .chatbot-input input[type="text"] {
         flex: 1;
-        padding: 10px 12px;
-        border: 1px solid #dfe7ef;
-        border-radius: 10px;
+        padding: 12px 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 24px;
         outline: none;
-        transition: border 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-        background: #ffffff;
+        transition: all 0.2s ease;
+        background: #f9fafb;
         font-size: 0.9rem;
+        color: #1f2937;
     }
 
     .chatbot-input input[type="text"]::placeholder {
-        color: #94a3b8;
+        color: #9ca3af;
     }
 
     .chatbot-input input[type="text"]:focus {
-        border: 1px solid #90caf9;
-        box-shadow: 0 0 0 3px rgba(144,202,249,0.25);
+        border: 1px solid #2196F3;
         background: #ffffff;
+        box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
     }
 
     .send-btn {
-        background: #2196F3;
+        background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
         color: #fff;
         border: none;
-        padding: 10px 12px;
-        border-radius: 10px;
+        padding: 12px;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
         cursor: pointer;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
-        box-shadow: 0 2px 4px rgba(33, 150, 243, 0.2);
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+        flex-shrink: 0;
     }
 
     .send-btn:hover { 
-        background: #1976D2;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+        background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
     }
-
+    
     .send-btn:active {
-        transform: translateY(0);
+        transform: scale(0.95);
     }
 
     /* Typing Indicator */
@@ -2446,6 +2922,7 @@ function loadPendingFeedbackCount() {
         border-radius: 16px;
         margin-bottom: 8px;
         max-width: fit-content;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     }
 
     .typing-indicator span {
@@ -2475,10 +2952,292 @@ function loadPendingFeedbackCount() {
         }
     }
 
+    @media (max-width: 768px) {
+        .chatbot-widget {
+            right: 16px !important;
+            left: 16px !important;
+            width: auto !important;
+            max-width: calc(100vw - 32px);
+            bottom: 88px !important;
+        }
+        
+        .chatbot-toggle-btn:not(.dragged) {
+            right: 16px !important;
+            bottom: 16px !important;
+            width: 56px;
+            height: 56px;
+        }
+        
+        .chatbot-toggle-btn.dragged {
+            width: 56px;
+            height: 56px;
+        }
+        
+        .chatbot-messages {
+            height: 260px;
+            padding: 12px;
+        }
+        
+        .message {
+            max-width: 85%;
+            padding: 10px 14px;
+            font-size: 0.875rem;
+        }
+        
+        .chatbot-header {
+            padding: 12px 14px;
+        }
+        
+        .chatbot-body {
+            padding: 10px;
+        }
+        
+        .chatbot-input {
+            padding: 10px 12px;
+        }
+        
+        .chatbot-input input[type="text"] {
+            padding: 10px 14px;
+            font-size: 0.875rem;
+        }
+        
+        .send-btn {
+            padding: 10px;
+            width: 40px;
+            height: 40px;
+        }
+        
+        .chip {
+            padding: 8px 12px;
+            font-size: 0.8rem;
+        }
+        
+    }
+
     @media (max-width: 480px) {
-        .chatbot-widget { right: 16px; left: 16px; width: auto; }
-        .chatbot-messages { height: 240px; }
-        .chatbot-toggle-btn { right: 16px; bottom: 16px; }
+        .chatbot-widget {
+            right: 12px !important;
+            left: 12px !important;
+            bottom: 80px !important;
+            max-width: calc(100vw - 24px);
+            border-radius: 12px;
+        }
+        
+        .chatbot-toggle-btn:not(.dragged) {
+            right: 12px !important;
+            bottom: 12px !important;
+            width: 52px;
+            height: 52px;
+            opacity: 0.9;
+        }
+        
+        .chatbot-toggle-btn.dragged {
+            width: 52px;
+            height: 52px;
+        }
+        
+        .chatbot-toggle-btn:active,
+        .chatbot-toggle-btn:focus {
+            opacity: 1;
+        }
+        
+        .chatbot-messages {
+            height: 240px;
+            padding: 10px;
+            gap: 6px;
+        }
+        
+        .message {
+            max-width: 88%;
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            line-height: 1.4rem;
+            border-radius: 12px;
+        }
+        
+        .message.bot {
+            border-radius: 12px 12px 12px 4px;
+        }
+        
+        .message.user {
+            border-radius: 12px 12px 4px 12px;
+        }
+        
+        .chatbot-header {
+            padding: 10px 12px;
+        }
+        
+        .chatbot-title {
+            font-size: 0.9rem;
+        }
+        
+        .chatbot-title .badge-dot {
+            width: 8px;
+            height: 8px;
+        }
+        
+        .chatbot-body {
+            padding: 8px;
+            gap: 8px;
+        }
+        
+        .chatbot-input {
+            padding: 8px 10px;
+            gap: 6px;
+        }
+        
+        .chatbot-input input[type="text"] {
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            border-radius: 20px;
+        }
+        
+        .send-btn {
+            width: 36px;
+            height: 36px;
+            padding: 8px;
+            border-radius: 50%;
+        }
+        
+        .chip {
+            padding: 6px 10px;
+            font-size: 0.75rem;
+            border-radius: 16px;
+        }
+        
+        
+        .typing-indicator {
+            padding: 8px 12px;
+            border-radius: 12px;
+        }
+        
+        .typing-indicator span {
+            width: 6px;
+            height: 6px;
+        }
+        
+        #chatbot-close {
+            width: 32px;
+            height: 32px;
+        }
+        
+        #chatbot-close i {
+            font-size: 1rem;
+        }
+    }
+
+    @media (max-width: 360px) {
+        .chatbot-widget {
+            right: 8px !important;
+            left: 8px !important;
+            bottom: 72px !important;
+            max-width: calc(100vw - 16px);
+        }
+        
+        .chatbot-toggle-btn {
+            right: 8px !important;
+            bottom: 8px !important;
+            width: 48px;
+            height: 48px;
+        }
+        
+        .chatbot-messages {
+            height: 220px;
+            padding: 8px;
+        }
+        
+        .message {
+            max-width: 90%;
+            padding: 6px 10px;
+            font-size: 0.8rem;
+        }
+        
+        .chatbot-header {
+            padding: 8px 10px;
+        }
+        
+        .chatbot-body {
+            padding: 6px;
+        }
+        
+        .chatbot-input {
+            padding: 6px 8px;
+        }
+        
+        .send-btn {
+            width: 32px;
+            height: 32px;
+            padding: 6px;
+        }
+    }
+
+    /* Landscape orientation for mobile */
+    @media (max-width: 768px) and (orientation: landscape) {
+        .chatbot-widget {
+            max-height: calc(100vh - 100px);
+            max-height: calc(100dvh - 100px); /* Dynamic viewport height */
+        }
+        
+        .chatbot-messages {
+            height: 200px;
+            max-height: calc(100vh - 280px);
+            max-height: calc(100dvh - 280px); /* Dynamic viewport height */
+        }
+    }
+
+    @media (max-width: 480px) and (orientation: landscape) {
+        .chatbot-widget {
+            bottom: 60px !important;
+            max-height: calc(100vh - 80px);
+            max-height: calc(100dvh - 80px); /* Dynamic viewport height */
+        }
+        
+        .chatbot-messages {
+            height: 180px;
+            max-height: calc(100vh - 260px);
+            max-height: calc(100dvh - 260px); /* Dynamic viewport height */
+        }
+        
+        .chatbot-toggle-btn {
+            bottom: 8px !important;
+        }
+    }
+
+    /* Fix for mobile browsers with address bar */
+    @media (max-width: 768px) {
+        .chatbot-widget {
+            max-height: calc(100vh - 100px);
+            max-height: calc(100dvh - 100px); /* Dynamic viewport height */
+        }
+        
+        .chatbot-messages {
+            max-height: calc(100vh - 300px);
+            max-height: calc(100dvh - 300px); /* Dynamic viewport height */
+        }
+    }
+
+    /* Ensure touch targets are at least 44x44px for accessibility */
+    @media (max-width: 768px) {
+        .chip,
+        .send-btn,
+        #chatbot-close {
+            min-width: 44px;
+            min-height: 44px;
+        }
+    }
+
+    /* Prevent text size adjustment on iOS */
+    @media (max-width: 768px) {
+        .chatbot-input input[type="text"] {
+            -webkit-text-size-adjust: 100%;
+            font-size: 16px !important; /* Prevents zoom on iOS */
+        }
+    }
+
+    @media (max-width: 480px) {
+        .chatbot-input input[type="text"] {
+            font-size: 16px !important; /* Prevents zoom on iOS */
+        }
     }
 
     /* Dark Mode for Chatbot */
@@ -2493,19 +3252,34 @@ function loadPendingFeedbackCount() {
     }
 
     [data-theme="dark"] .message.bot {
-        background: var(--dm-bg-secondary, #0f172a) !important;
-        color: var(--dm-text-primary, #f1f5f9) !important;
-        border-color: var(--dm-border-color, #334155) !important;
+        background: #334155 !important;
+        color: #f1f5f9 !important;
+        border: none !important;
+    }
+
+    [data-theme="dark"] .message.bot::before {
+        border-right-color: #334155 !important;
+    }
+
+    [data-theme="dark"] .message.user {
+        background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%) !important;
+        color: #fff !important;
+    }
+
+    [data-theme="dark"] .message.user::after {
+        border-left-color: #2196F3 !important;
     }
 
     [data-theme="dark"] .chip {
-        background: var(--dm-bg-tertiary, #334155) !important;
-        color: #93c5fd !important;
-        border-color: var(--dm-border-color, #475569) !important;
+        background: #334155 !important;
+        color: #e2e8f0 !important;
+        border-color: #475569 !important;
     }
 
     [data-theme="dark"] .chip:hover {
-        background: var(--dm-bg-secondary, #1e293b) !important;
+        background: #475569 !important;
+        border-color: #60a5fa !important;
+        color: #f1f5f9 !important;
     }
 
     [data-theme="dark"] .chatbot-input input[type="text"] {
@@ -2531,67 +3305,6 @@ function loadPendingFeedbackCount() {
         background: #60a5fa !important;
     }
 
-    /* Chatbot Tabs */
-    .chatbot-tabs {
-        display: flex;
-        gap: 8px;
-        margin-top: 8px;
-        padding-top: 8px;
-        border-top: 1px solid #eef2f5;
-    }
-
-    .chatbot-tab {
-        flex: 1;
-        padding: 8px 12px;
-        border: 1px solid #dfe7ef;
-        border-radius: 8px;
-        background: #f8f9fa;
-        color: #64748b;
-        font-size: 0.85rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 4px;
-    }
-
-    .chatbot-tab:hover {
-        background: #e9ecef;
-        border-color: #90caf9;
-    }
-
-    .chatbot-tab.active {
-        background: #2196F3;
-        color: #fff;
-        border-color: #2196F3;
-    }
-
-    .chatbot-tab.active:hover {
-        background: #1976D2;
-        border-color: #1976D2;
-    }
-
-    [data-theme="dark"] .chatbot-tabs {
-        border-top-color: var(--dm-border-color, #334155) !important;
-    }
-
-    [data-theme="dark"] .chatbot-tab {
-        background: var(--dm-bg-secondary, #0f172a) !important;
-        border-color: var(--dm-border-color, #334155) !important;
-        color: var(--dm-text-muted, #64748b) !important;
-    }
-
-    [data-theme="dark"] .chatbot-tab:hover {
-        background: var(--dm-bg-tertiary, #334155) !important;
-        border-color: #60a5fa !important;
-    }
-
-    [data-theme="dark"] .chatbot-tab.active {
-        background: #2196F3 !important;
-        color: #fff !important;
-        border-color: #2196F3 !important;
-    }
 
     /* Dark Mode for Modals */
     [data-theme="dark"] .modal-content {
@@ -2651,418 +3364,65 @@ function loadPendingFeedbackCount() {
         opacity: 0.3 !important;
         color: var(--dm-text-muted, #64748b) !important;
     }
+
+    /* ========================================
+       SCROLL REVEAL ANIMATIONS
+       ======================================== */
+    /* Prevent overflow from reveal animations */
+    html {
+        overflow-x: hidden !important;
+        overflow-y: hidden;
+        width: 100%;
+        max-width: 100vw;
+        box-sizing: border-box;
+        height: 100%;
+    }
+    
+    body {
+        overflow-x: hidden !important;
+        overflow-y: auto;
+        width: 100%;
+        max-width: 100vw;
+        box-sizing: border-box;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+        height: 100%;
+    }
+    
+    /* Hide scrollbar but keep scroll functionality */
+    body::-webkit-scrollbar {
+        width: 0px;
+        background: transparent;
+    }
+    
+    body {
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE and Edge */
+    }
+    
+    * {
+        box-sizing: border-box;
+    }
+    
+    .main-wrapper {
+        overflow-x: hidden;
+        overflow-y: visible;
+        width: 100%;
+        max-width: 100vw;
+        box-sizing: border-box;
+    }
+    
+    /* Remove reveal animations - elements visible immediately */
+    .reveal-element {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+        max-width: 100%;
+    }
 </style>
 
 @if(!empty($chatbotSetting) && $chatbotSetting->enabled)
-<!-- Chatbot Toggle Button -->
-<div id="chatbot-toggle" class="chatbot-toggle-btn" aria-label="Open chat" title="Chat with us">
-    <img src="{{ asset('images/chatbot-logo_3.png') }}" alt="ToothTalk Assistant">
-</div>
-
-<!-- Chatbot Widget -->
-<div id="chatbot" class="chatbot-widget" role="dialog" aria-modal="false" aria-labelledby="chatbotTitle">
-    <div class="chatbot-header">
-        <div class="chatbot-title">
-            <span class="badge-dot"></span>
-            <span id="chatbotTitle">ToothTalk Assistant</span>
-        </div>
-        <button id="chatbot-close" class="send-btn" aria-label="Close chat" title="Close" style="background:#ffffff22;border:1px solid #ffffff33;">
-            <i class="bi bi-x-lg"></i>
-        </button>
-    </div>
-    <div class="chatbot-body">
-        <div id="chatbot-messages" class="chatbot-messages" aria-live="polite"></div>
-        <div class="chips" id="chatbot-chips"></div>
-        <div class="chatbot-input" style="display:none;">
-            <input id="chatbot-input" type="text" placeholder="Type your message to staff..." autocomplete="off" />
-            <button id="chatbot-send" class="send-btn" aria-label="Send message">
-                <i class="bi bi-send-fill"></i>
-            </button>
-        </div>
-        <div class="chatbot-tabs">
-            <button id="tab-live-chat" class="chatbot-tab active" data-tab="live-chat">
-                <i class="bi bi-chat-dots me-1"></i> Live Chat
-            </button>
-            <button id="tab-faqs" class="chatbot-tab" data-tab="faqs">
-                <i class="bi bi-question-circle me-1"></i> FAQs
-            </button>
-        </div>
-    </div>
-</div>
-
-<script>
-    (function() {
-        const toggleBtn = document.getElementById('chatbot-toggle');
-        const widget = document.getElementById('chatbot');
-        const closeBtn = document.getElementById('chatbot-close');
-        const messagesEl = document.getElementById('chatbot-messages');
-        const inputEl = document.getElementById('chatbot-input');
-        const sendBtn = document.getElementById('chatbot-send');
-        const chipsEl = document.getElementById('chatbot-chips');
-        const titleEl = document.getElementById('chatbotTitle');
-        const tabLiveChat = document.getElementById('tab-live-chat');
-        const tabFaqs = document.getElementById('tab-faqs');
-
-        let conversationId = null;
-        let pollingInterval = null;
-        let isAuthenticated = true; // Patient is always authenticated on dashboard
-        let lastMessageId = null;
-        let currentMode = 'live-chat'; // 'live-chat' or 'faqs'
-        let faqInitialized = false;
-
-        // FAQ data
-        const quickIntents = {!! json_encode($chatbotSetting->quick_intents ?? []) !!};
-        const faqRaw = @json($chatbotFaqs ?? []);
-        const faqPairs = (faqRaw || []).map(function(f){
-            return { q: (f.question || ''), a: (f.answer || '') };
-        });
-
-        function scrollToBottom() {
-            messagesEl.scrollTop = messagesEl.scrollHeight;
-        }
-
-        function addMessage(text, sender, messageId = null) {
-            // Check if message already exists
-            if (messageId) {
-                const existing = messagesEl.querySelector(`[data-message-id="${messageId}"]`);
-                if (existing) return;
-            }
-
-            const div = document.createElement('div');
-            div.className = 'message ' + (sender === 'user' || sender === 'patient' ? 'user' : 'bot');
-            if (messageId) div.setAttribute('data-message-id', messageId);
-
-            if (sender === 'bot' || sender === 'staff' || sender === 'admin') {
-                let lines = text.split('\n');
-                let formattedHTML = '';
-                for (let i = 0; i < lines.length; i++) {
-                    let line = lines[i].trim();
-                    if (!line) continue;
-                    if (line.endsWith(':')) {
-                        formattedHTML += `<span class="section-header">${line}</span>`;
-                    } else if (line.startsWith('•')) {
-                        formattedHTML += `<span class="bullet-item">${line}</span>`;
-                    } else {
-                        formattedHTML += line;
-                        if (i < lines.length - 1) formattedHTML += '<br>';
-                        }
-                    }
-                div.innerHTML = formattedHTML;
-            } else {
-                div.textContent = text;
-            }
-
-            messagesEl.appendChild(div);
-            scrollToBottom();
-        }
-
-        function showTypingIndicator() {
-            const typingDiv = document.createElement('div');
-            typingDiv.className = 'typing-indicator';
-            typingDiv.id = 'typing-indicator';
-            typingDiv.innerHTML = '<span></span><span></span><span></span>';
-            messagesEl.appendChild(typingDiv);
-            scrollToBottom();
-        }
-
-        function hideTypingIndicator() {
-            const indicator = document.getElementById('typing-indicator');
-            if (indicator) indicator.remove();
-        }
-
-        async function loadConversation() {
-            try {
-                const response = await fetch('{{ route("patient-chat.conversation") }}');
-                const data = await response.json();
-                conversationId = data.conversation_id;
-                titleEl.textContent = 'Live Chat - Staff';
-                await loadMessages();
-                startPolling();
-            } catch (error) {
-                console.error('Error loading conversation:', error);
-            }
-        }
-
-        async function loadMessages() {
-            if (!conversationId) return;
-            try {
-                const response = await fetch(`{{ route("patient-chat.messages") }}?conversation_id=${conversationId}`);
-                const data = await response.json();
-                
-                messagesEl.innerHTML = '';
-                data.messages.forEach(msg => {
-                    const sender = msg.sender_type === 'patient' ? 'user' : msg.sender_type;
-                    addMessage(msg.message, sender, msg.id);
-                    if (!lastMessageId || msg.id > lastMessageId) {
-                        lastMessageId = msg.id;
-                    }
-                });
-            } catch (error) {
-                console.error('Error loading messages:', error);
-            }
-        }
-
-        // FAQ Bot Functions
-        function normalize(s) {
-            return String(s)
-                .toLowerCase()
-                .replace(/&nbsp;/g, ' ')
-                .replace(/[^a-z0-9\s]/g, '')
-                .replace(/\s+/g, ' ')
-                .trim();
-        }
-
-        const stopWords = new Set(['the','a','an','is','are','do','i','you','we','how','what','where','when','why','to','for','of','and','or','in','on','at','with','get','does','it','this','that','about']);
-
-        function tokenize(text) {
-            return normalize(text).split(' ').filter(w => w && !stopWords.has(w));
-        }
-
-        function overlapScore(aTokens, bTokens) {
-            const a = new Set(aTokens);
-            const b = new Set(bTokens);
-            let inter = 0;
-            a.forEach(t => { if (b.has(t)) inter++; });
-            const union = a.size + b.size - inter || 1;
-            return { inter, jaccard: inter / union };
-        }
-
-        const faqIndexed = (faqPairs || []).map(p => ({ q: p.q, a: p.a, tokens: tokenize(p.q || '') }));
-
-        function getBotReply(query) {
-            const q = normalize(query);
-            const qLower = q.toLowerCase();
-            const qTokens = tokenize(q);
-
-            const helpPatterns = ['help', 'assist', 'support', 'can you', 'could you', 'need help', 'i need', 'i want', 'how can', 'what can'];
-            const greetingPatterns = ['hi', 'hello', 'hey', 'good morning', 'good afternoon', 'good evening', 'greetings'];
-            const servicePatterns = ['service', 'treatment', 'procedure', 'what do you', 'what services', 'offer', 'available'];
-            const hoursPatterns = ['hours', 'open', 'close', 'time', 'when', 'what time', 'schedule', 'availability'];
-            const pricePatterns = ['price', 'cost', 'fee', 'payment', 'how much', 'expensive', 'charge'];
-            const appointmentPatterns = ['appointment', 'book', 'schedule', 'reserve', 'visit', 'see dentist'];
-
-            if (helpPatterns.some(pattern => qLower.includes(pattern))) {
-                return 'Of course! I\'m here to help you. You can ask me about:\n\n• Our clinic hours and availability\n• Services and treatments we offer\n• Appointment scheduling\n• Pricing information\n• General questions about dental care\n\nWhat would you like to know more about?';
-            }
-            if (greetingPatterns.some(pattern => qLower.includes(pattern))) {
-                return 'Hello! Welcome to our dental clinic. How can I assist you today? You can ask about our services, hours, pricing, or schedule an appointment.';
-            }
-            if (servicePatterns.some(pattern => qLower.includes(pattern))) {
-                return 'We offer a comprehensive range of dental services including:\n\n• General dentistry (cleanings, check-ups)\n• Cosmetic dentistry (whitening, veneers)\n• Orthodontics (braces, aligners)\n• Root canals and fillings\n• Crowns and bridges\n• Implants\n• Emergency dental care\n\nWould you like to know more about a specific service?';
-            }
-            if (hoursPatterns.some(pattern => qLower.includes(pattern))) {
-                return 'Our clinic hours are:\n\n• Tuesday to Saturday: 11:00 AM to 6:00 PM\n• Sunday and Monday: Closed\n\nWe recommend scheduling an appointment in advance. Would you like to book one?';
-            }
-            if (pricePatterns.some(pattern => qLower.includes(pattern))) {
-                return 'Pricing varies depending on the service and treatment needed. For specific pricing information, please contact our office or schedule a consultation. We\'d be happy to provide a detailed quote based on your needs.';
-            }
-            if (appointmentPatterns.some(pattern => qLower.includes(pattern))) {
-                return 'You can schedule an appointment by:\n\n• Logging into your patient portal and using the calendar\n• Contacting us directly at (63)915 622 9695\n• Visiting our clinic at Policarpio St. Gen. T. de Leon Valenzuela City\n\nWould you like help with anything else?';
-            }
-
-            let best = { score: 0, inter: 0, a: null };
-            for (const item of faqIndexed) {
-                if (!item.tokens.length) continue;
-                const { inter, jaccard } = overlapScore(qTokens, item.tokens);
-                const score = inter >= 1 ? jaccard + 0.15 : jaccard;
-                if (score > best.score) best = { score, inter, a: item.a };
-            }
-            if (best.a && (best.score >= 0.15 || best.inter >= 1)) return best.a;
-
-            return 'I\'m here to help! You can ask me about:\n\n• Clinic hours and availability\n• Our dental services\n• Appointment scheduling\n• Pricing information\n• General questions\n\nOr feel free to browse our FAQs for more detailed information. What would you like to know?';
-        }
-
-        function sendFaqMessage(text) {
-            if (!text.trim()) return;
-            addMessage(text.trim(), 'user');
-            showTypingIndicator();
-            const typingDelay = 1000 + Math.random() * 1000;
-            setTimeout(() => {
-                hideTypingIndicator();
-                addMessage(getBotReply(text), 'bot');
-            }, typingDelay);
-        }
-
-        function renderChips() {
-            chipsEl.innerHTML = '';
-            quickIntents.forEach(intent => {
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'chip';
-                btn.textContent = intent.label;
-                btn.addEventListener('click', () => {
-                    if (currentMode === 'faqs') {
-                        sendFaqMessage(intent.value);
-                    } else {
-                        sendMessage(intent.value);
-                    }
-                });
-                chipsEl.appendChild(btn);
-            });
-        }
-
-        async function sendMessage(text) {
-            if (currentMode === 'faqs') {
-                sendFaqMessage(text);
-                return;
-            }
-
-            if (!text.trim() || !conversationId) return;
-
-            const messageText = text.trim();
-            addMessage(messageText, 'user');
-            inputEl.value = '';
-            inputEl.disabled = true;
-            sendBtn.disabled = true;
-
-            try {
-                const response = await fetch('{{ route("patient-chat.send") }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    body: JSON.stringify({
-                        conversation_id: conversationId,
-                        message: messageText
-                    })
-                });
-
-                const data = await response.json();
-                if (data.success) {
-                    lastMessageId = data.message.id;
-                }
-            } catch (error) {
-                console.error('Error sending message:', error);
-                addMessage('Sorry, there was an error sending your message. Please try again.', 'bot');
-            } finally {
-                inputEl.disabled = false;
-                sendBtn.disabled = false;
-                inputEl.focus();
-            }
-        }
-
-        function startPolling() {
-            if (pollingInterval) clearInterval(pollingInterval);
-            pollingInterval = setInterval(async () => {
-                if (!conversationId) return;
-                try {
-                    const response = await fetch(`{{ route("patient-chat.messages") }}?conversation_id=${conversationId}`);
-                    const data = await response.json();
-                    
-                    data.messages.forEach(msg => {
-                        if (msg.id > lastMessageId) {
-                            const sender = msg.sender_type === 'patient' ? 'user' : msg.sender_type;
-                            addMessage(msg.message, sender, msg.id);
-                            lastMessageId = msg.id;
-                        }
-                    });
-                } catch (error) {
-                    console.error('Error polling messages:', error);
-                }
-            }, 3000); // Poll every 3 seconds
-        }
-
-        function stopPolling() {
-            if (pollingInterval) {
-                clearInterval(pollingInterval);
-                pollingInterval = null;
-            }
-        }
-
-        function switchTab(mode) {
-            currentMode = mode;
-            tabLiveChat.classList.toggle('active', mode === 'live-chat');
-            tabFaqs.classList.toggle('active', mode === 'faqs');
-            
-            const inputContainer = document.querySelector('.chatbot-input');
-            
-            if (mode === 'live-chat') {
-                titleEl.textContent = 'Live Chat - Staff';
-                inputEl.placeholder = 'Type your message to staff...';
-                inputContainer.style.display = 'flex'; // Show input
-                chipsEl.style.display = 'none'; // Hide chips
-                if (!conversationId) {
-                    loadConversation();
-                }
-                startPolling();
-            } else {
-                titleEl.textContent = 'ToothTalk Assistant';
-                inputEl.placeholder = 'Ask about services, hours, pricing...';
-                inputContainer.style.display = 'none'; // Hide input
-                chipsEl.style.display = 'flex'; // Show FAQ chips
-                chipsEl.innerHTML = ''; // Clear any previous buttons
-                stopPolling();
-                if (!faqInitialized || messagesEl.innerHTML === '') {
-                    messagesEl.innerHTML = '';
-                    showTypingIndicator();
-                    setTimeout(() => {
-                        hideTypingIndicator();
-                        addMessage(@json($chatbotSetting->welcome_message ?: 'Welcome! How can I help today?'), 'bot');
-                        renderChips();
-                        faqInitialized = true;
-                    }, 800);
-                } else {
-                    // If FAQ already initialized, just ensure chips are rendered
-                    renderChips();
-                }
-            }
-        }
-
-        function openChat() {
-            widget.classList.add('open');
-            widget.setAttribute('aria-hidden', 'false');
-            
-            if (currentMode === 'live-chat' && !messagesEl.dataset.initialized) {
-                chipsEl.style.display = 'none'; // Hide chips in live chat
-                showTypingIndicator();
-                loadConversation().then(() => {
-                    hideTypingIndicator();
-                    messagesEl.dataset.initialized = '1';
-                });
-            } else if (currentMode === 'faqs' && !faqInitialized) {
-                chipsEl.style.display = 'flex'; // Show chips in FAQs
-                messagesEl.innerHTML = '';
-                showTypingIndicator();
-                setTimeout(() => {
-                    hideTypingIndicator();
-                    addMessage(@json($chatbotSetting->welcome_message ?: 'Welcome! How can I help today?'), 'bot');
-                    renderChips();
-                    faqInitialized = true;
-                }, 800);
-            }
-            inputEl.focus();
-        }
-
-        function closeChat() {
-            widget.classList.remove('open');
-            widget.setAttribute('aria-hidden', 'true');
-            stopPolling();
-        }
-
-        toggleBtn.addEventListener('click', () => {
-            if (widget.classList.contains('open')) closeChat(); else openChat();
-        });
-        closeBtn.addEventListener('click', closeChat);
-        tabLiveChat.addEventListener('click', () => switchTab('live-chat'));
-        tabFaqs.addEventListener('click', () => switchTab('faqs'));
-        sendBtn.addEventListener('click', () => {
-            const v = inputEl.value;
-            if (v.trim()) sendMessage(v);
-        });
-        inputEl.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                const v = inputEl.value;
-                if (v.trim()) sendMessage(v);
-            }
-        });
-
-        // Cleanup on page unload
-        window.addEventListener('beforeunload', () => {
-            stopPolling();
-        });
-    })();
-</script>
+@include('patient.components.chatbot')
 @endif
 
 @endsection

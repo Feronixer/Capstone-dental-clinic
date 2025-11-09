@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\PasswordResetToken;
 use App\Mail\PasswordResetMail;
+use App\Mail\PasswordChangeVerificationMail;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -104,24 +105,121 @@ class AuthController extends Controller
      */
     public function changePassword(Request $request)
     {
-        $request->validate([
-            'current_password' => ['required'],
-            'new_password' => ['required', 'min:8', 'confirmed'],
-        ]);
-
         $user = Auth::user();
 
-        // Verify current password
-        if (!Hash::check($request->current_password, $user->password)) {
+        // If send_code flag is set, send verification code to email
+        if ($request->has('send_code') && $request->send_code) {
+            // Validate password fields before sending code
+            try {
+                $request->validate([
+                    'new_password' => ['required', 'min:8'],
+                    'new_password_confirmation' => ['required', 'same:new_password'],
+                ], [
+                    'new_password.required' => 'Please enter a new password.',
+                    'new_password.min' => 'Password must be at least 8 characters long.',
+                    'new_password_confirmation.required' => 'Please confirm your new password.',
+                    'new_password_confirmation.same' => 'Passwords do not match.',
+                ]);
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Validation failed',
+                        'errors' => $e->errors()
+                    ], 422);
+                }
+                return back()->withErrors($e->errors());
+            }
+
+            try {
+                // Create or update password reset token
+                $passwordReset = PasswordResetToken::createOrUpdate($user->email);
+
+                // Send email with verification code
+                Mail::to($user->email)->send(new PasswordChangeVerificationMail($user, $passwordReset->token));
+
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Verification code has been sent to your email address.'
+                    ]);
+                }
+
+                return back()->with('success', 'Verification code has been sent to your email address.');
+            } catch (\Exception $e) {
+                \Log::error('Failed to send password change verification email: ' . $e->getMessage());
+                
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Failed to send verification code. Please try again.'
+                    ], 500);
+                }
+
+                return back()->withErrors(['error' => 'Failed to send verification code. Please try again.']);
+            }
+        }
+
+        // If verify_code flag is set, verify the code
+        if ($request->has('verify_code') && $request->verify_code) {
+            $request->validate([
+                'verification_code' => 'required|string|size:6',
+            ]);
+
+            $passwordReset = PasswordResetToken::verifyToken($user->email, $request->verification_code);
+
+            if (!$passwordReset) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Invalid or expired verification code. Please request a new code.'
+                    ], 422);
+                }
+
+                return back()->withErrors([
+                    'verification_code' => 'Invalid or expired verification code. Please request a new code.',
+                ]);
+            }
+
+            // Store verification in session
+            session(['password_change_verified' => true, 'password_change_verified_at' => now()]);
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Verification code verified successfully.'
+                ]);
+            }
+
+            return back()->with('success', 'Verification code verified successfully.');
+        }
+
+        // Check if password change is verified
+        if (!session('password_change_verified') || 
+            now()->diffInMinutes(session('password_change_verified_at')) > 15) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Please verify your email first by entering the verification code.'
+                ], 422);
+            }
+
             return back()->withErrors([
-                'current_password' => 'The current password is incorrect.',
+                'verification_code' => 'Please verify your email first by entering the verification code.',
             ]);
         }
+
+        $request->validate([
+            'new_password' => ['required', 'min:8', 'confirmed'],
+        ]);
 
         // Update password and reset must_change_password flag
         $user->password = Hash::make($request->new_password);
         $user->must_change_password = false;
         $user->save();
+
+        // Clear verification session
+        session()->forget(['password_change_verified', 'password_change_verified_at']);
 
         // Force logout from all guards after password change
         Auth::guard('web')->logout();
