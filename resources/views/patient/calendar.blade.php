@@ -60,7 +60,16 @@
                     <div id="tab-upcoming" class="tab-content active">
                 <div id="upcomingAppointments" class="upcoming-list">
                     @forelse($upcomingAppointments as $appointment)
-                        <div class="upcoming-item">
+                        @php
+                            $status = strtolower($appointment->status ?? 'pending');
+                            $statusClass = '';
+                            if ($status === 'confirmed') {
+                                $statusClass = 'confirmed';
+                            } elseif ($status === 'pending') {
+                                $statusClass = 'pending';
+                            }
+                        @endphp
+                        <div class="upcoming-item {{ $statusClass }}">
                             <div class="upcoming-date">
                                 <span class="date-day">{{ $appointment->start_datetime->format('d') }}</span>
                                 <span class="date-month">{{ $appointment->start_datetime->format('M') }}</span>
@@ -90,14 +99,17 @@
                     @forelse($pendingRequests as $request)
                         <div class="pending-request-item">
                             <div class="pending-request-header">
-                                <span class="request-type-badge {{ $request->request_type === 'walk-in' ? 'emergency' : $request->request_type }}">
-                                    <i class="bi {{ $request->request_type === 'walk-in' ? 'bi-lightning-charge-fill' : 'bi-arrow-repeat' }}"></i>
-                                    {{ $request->request_type === 'walk-in' ? 'Emergency' : 'Reschedule' }}
+                                <span class="request-type-badge {{ $request->request_type === 'walk-in' ? 'emergency' : ($request->request_type === 'book' ? 'regular' : $request->request_type) }}">
+                                    <i class="bi {{ $request->request_type === 'walk-in' ? 'bi-lightning-charge-fill' : ($request->request_type === 'book' ? 'bi-calendar-check' : 'bi-arrow-repeat') }}"></i>
+                                    {{ $request->request_type === 'walk-in' ? 'Emergency' : ($request->request_type === 'book' ? 'Regular' : 'Reschedule') }}
                                 </span>
                             </div>
                             <div class="pending-request-info">
                                 <div class="pending-request-service">
-                                    <i class="bi bi-heart-pulse me-1"></i>
+                                    <svg class="tooth-icon me-1" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; display: inline-block;">
+                                        <!-- Simple tooth outline: crown with two roots -->
+                                        <path d="M12 2C10.5 2 9 2.5 8.5 3.5C8 4.5 8 5.5 8.5 6.5C9 7.5 10 8 11 8C12 8 13 7.5 13.5 6.5C14 5.5 14 4.5 13.5 3.5C13 2.5 11.5 2 12 2ZM9 8L8.5 10L8 13L7.5 16L8 19L9 21L10 22M15 8L15.5 10L16 13L16.5 16L16 19L15 21L14 22M10 22L14 22"/>
+                                    </svg>
                                     {{ $request->service ? $request->service->service_name : $request->other_concern }}
                                 </div>
                                 <div class="pending-request-datetime">
@@ -125,21 +137,32 @@
                     <div id="tab-history" class="tab-content">
                 <div id="appointmentHistory" class="history-list">
                     @forelse($appointmentHistory as $appointment)
-                        <div class="history-item {{ strtolower($appointment->status) === 'cancelled' ? 'cancelled' : '' }}">
+                        @php
+                            $status = strtolower($appointment->status);
+                            $statusClass = '';
+                            if ($status === 'cancelled') {
+                                $statusClass = 'cancelled';
+                            } elseif ($status === 'missed') {
+                                $statusClass = 'missed';
+                            } elseif ($status === 'completed') {
+                                $statusClass = 'completed';
+                            }
+                        @endphp
+                        <div class="history-item {{ $statusClass }}">
                             <div class="history-date">
                                 <span class="history-day">{{ $appointment->start_datetime->format('d') }}</span>
                                 <span class="history-month">{{ $appointment->start_datetime->format('M') }}</span>
                                 <span class="history-year">{{ $appointment->start_datetime->format('Y') }}</span>
                             </div>
                             <div class="history-info">
-                                <div class="history-title {{ strtolower($appointment->status) === 'cancelled' ? 'text-decoration-line-through' : '' }}">{{ $appointment->service ? $appointment->service->service_name : $appointment->reason_for_visit }}</div>
+                                <div class="history-title {{ $status === 'cancelled' ? 'text-decoration-line-through' : '' }}">{{ $appointment->service ? $appointment->service->service_name : $appointment->reason_for_visit }}</div>
                                 <div class="history-meta">
                                     <div class="history-time">
                                         <i class="bi bi-clock me-1"></i>{{ $appointment->start_datetime->format('g:i A') }}
                                     </div>
-                                    <span class="status-badge history {{ strtolower($appointment->status) }}">{{ $appointment->status }}</span>
+                                    <span class="status-badge history {{ $status }}">{{ $appointment->status }}</span>
                                 </div>
-                                @if(strtolower($appointment->status) === 'cancelled' && $appointment->notes)
+                                @if(($status === 'cancelled' || $status === 'missed') && $appointment->notes)
                                     <div class="history-notes text-muted small mt-1">
                                         <i class="bi bi-info-circle me-1"></i>{{ $appointment->notes }}
                                     </div>
@@ -342,18 +365,17 @@
                                         <input type="hidden" id="emergencyTime" name="time" required>
                                         <div class="time-slot-grid" id="emergencyTimeSlots">
                                             @foreach($clinicTimeSlots as $slot)
-                                                <button type="button" class="time-slot-btn" data-value="{{ $slot['value'] }}">{{ $slot['label'] }}</button>
+                                                @if($slot['value'] !== '18:00')
+                                                    <button type="button" class="time-slot-btn" data-value="{{ $slot['value'] }}">{{ $slot['label'] }}</button>
+                                                @endif
                                             @endforeach
                                         </div>
                                     </div>
-                                    <small class="time-slot-help">Clinic hours: 11:00 AM – 6:00 PM</small>
+                                    <small class="time-slot-help" style="margin-top: 0.5rem;">Clinic hours: 11:00 AM – 6:00 PM</small>
+                                    <button type="submit" form="emergencyForm" class="btn-submit-time-slot">
+                                        <i class="bi bi-check-circle me-2"></i>Submit Request
+                                    </button>
                                 </div>
-                            </div>
-
-                            <div class="form-actions">
-                                <button type="submit" class="btn-submit">
-                                    <i class="bi bi-check-circle me-2"></i>Submit Request
-                                </button>
                             </div>
                         </form>
                     </div>
@@ -460,18 +482,17 @@
                                         <input type="hidden" id="rescheduleTime" name="time" required>
                                         <div class="time-slot-grid" id="rescheduleTimeSlots">
                                             @foreach($clinicTimeSlots as $slot)
-                                                <button type="button" class="time-slot-btn" data-value="{{ $slot['value'] }}">{{ $slot['label'] }}</button>
+                                                @if($slot['value'] !== '18:00')
+                                                    <button type="button" class="time-slot-btn" data-value="{{ $slot['value'] }}">{{ $slot['label'] }}</button>
+                                                @endif
                                             @endforeach
                                         </div>
                     </div>
-                    <small class="time-slot-help">Tap a slot to request a new time</small>
+                    <small class="time-slot-help" style="margin-top: 0.5rem;">Tap a slot to request a new time</small>
+                    <button type="submit" form="rescheduleForm" class="btn-submit-time-slot">
+                        <i class="bi bi-check-circle me-2"></i>Submit Request
+                    </button>
                 </div>
-            </div>
-
-            <div class="form-actions">
-                <button type="submit" class="btn-submit">
-                    <i class="bi bi-check-circle me-2"></i>Submit Request
-                </button>
             </div>
         </form>
                     </div>
@@ -860,12 +881,17 @@
     animation: fadeIn 0.3s ease;
     flex: 1;
     min-height: 0;
+    max-height: 100%;
     flex-direction: column;
+    padding-bottom: 0;
+    margin-bottom: 0;
 }
 
 .tab-content.active {
     display: flex;
     flex-direction: column;
+    padding-bottom: 0;
+    margin-bottom: 0;
 }
 
 .tab-content .upcoming-list,
@@ -873,9 +899,12 @@
 .tab-content .history-list {
     flex: 1;
     min-height: 0;
+    max-height: 100%;
     overflow-y: auto;
     overflow-x: hidden;
     padding-right: 0.45rem;
+    padding-bottom: 0;
+    margin-bottom: 0;
 }
 
 @keyframes fadeIn {
@@ -936,6 +965,8 @@
     gap: 0.625rem;
     display: flex;
     flex-direction: column;
+    margin-bottom: 0;
+    padding-bottom: 0;
 }
 
 .upcoming-item,
@@ -951,15 +982,58 @@
     box-shadow: 0 3px 10px rgba(33, 150, 243, 0.2);
 }
 
+/* Upcoming Item Status Colors - Light Mode */
+.upcoming-item.pending {
+    background: #F8FAFC;
+    border-left: 3px solid #fbbf24;
+}
+
+.upcoming-item.pending:hover {
+    transform: translateX(3px);
+    box-shadow: 0 3px 10px rgba(251, 191, 36, 0.3);
+}
+
+.upcoming-item.confirmed {
+    background: #F8FAFC;
+    border-left: 3px solid #3b82f6;
+}
+
+.upcoming-item.confirmed:hover {
+    transform: translateX(3px);
+    box-shadow: 0 3px 10px rgba(59, 130, 246, 0.3);
+}
+
+/* History Item Status Colors */
+.history-item.completed {
+    background: #F8FAFC;
+    border-left: 3px solid #10b981;
+}
+
+.history-item.completed:hover {
+    transform: translateX(3px);
+    box-shadow: 0 3px 10px rgba(16, 185, 129, 0.3);
+}
+
 .history-item.cancelled {
-    background: #fef3c7;
-    opacity: 0.8;
+    background: #F8FAFC;
+    opacity: 0.9;
     border-left: 3px solid #92400e;
 }
 
 .history-item.cancelled:hover {
     transform: translateX(3px);
-    box-shadow: 0 3px 10px rgba(146, 64, 14, 0.2);
+    box-shadow: 0 3px 10px rgba(146, 64, 14, 0.3);
+}
+
+.history-item.missed {
+    background: #F8FAFC;
+    opacity: 0.9;
+    border-left: 3px solid #6b7280;
+}
+
+.history-item.missed:hover {
+    transform: translateX(3px);
+    box-shadow: 0 3px 10px rgba(107, 114, 128, 0.3);
 }
 
 .history-notes {
@@ -974,7 +1048,6 @@
     width: 48px;
     height: 48px;
     border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(33, 150, 243, 0.3);
     flex-shrink: 0;
 }
 
@@ -1407,6 +1480,9 @@
 /* Pending Request - More Compact */
 .pending-request-item {
     padding: 0.625rem;
+    border-radius: 8px;
+    transition: all 0.25s ease;
+    margin-bottom: 0;
 }
 
 .pending-request-header {
@@ -1438,18 +1514,30 @@
 .history-date {
     width: 44px;
     padding: 0.375rem;
+    background: linear-gradient(135deg, #25079C 0%, #1a0569 100%);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
 }
 
 .history-day {
     font-size: 1.1rem;
+    color: white;
+    font-weight: 700;
 }
 
 .history-month {
     font-size: 0.6rem;
+    color: white;
 }
 
 .history-year {
     font-size: 0.5rem;
+    color: white;
 }
 
 /* Responsive Calendar Header */
@@ -1504,8 +1592,10 @@
 
 /* Pending Request Items */
 .pending-request-item {
+    background: #F8FAFC;
     border-left: 3px solid #f59e0b;
     transition: all 0.25s ease;
+    margin-bottom: 0;
 }
 
 .pending-request-item:hover {
@@ -1516,16 +1606,53 @@
 .request-type-badge {
     font-weight: 700;
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    padding: 0.25rem 0.625rem;
+    font-size: 0.65rem;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.request-type-badge.emergency {
+    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+    color: white;
+}
+
+.request-type-badge.reschedule {
+    background: linear-gradient(135deg, #4DD3E0 0%, #38B3C0 100%);
+    color: white;
+}
+
+.request-type-badge.regular {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: white;
 }
 
 /* History Items */
 .history-date {
     border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(100, 116, 139, 0.2);
+    background: linear-gradient(135deg, #25079C 0%, #1a0569 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
 }
 
 .history-day {
     font-size: 1.2rem;
+    color: white;
+    font-weight: 700;
+}
+
+.history-month {
+    color: white;
+}
+
+.history-year {
+    color: white;
 }
 
 /* Responsive Adjustments */
@@ -1695,6 +1822,123 @@
         line-height: 1.3;
     }
     
+    /* Mobile: Booked event items as overlapping circular indicators */
+    .event-item.booked {
+        width: 24px;
+        height: 24px;
+        min-height: 24px;
+        padding: 0;
+        border-radius: 50%;
+        border: none;
+        background: #3b82f6;
+        position: relative;
+        display: inline-block;
+        flex-shrink: 0;
+        margin-left: -8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        opacity: 0.95;
+    }
+    
+    .event-item.booked:first-of-type {
+        margin-left: 0;
+    }
+    
+    /* Different colors for multiple booked items - blue, purple, red */
+    .event-item.booked:nth-of-type(1) {
+        background: #3b82f6;
+        z-index: 1;
+    }
+    
+    .event-item.booked:nth-of-type(2) {
+        background: #9333ea;
+        z-index: 2;
+    }
+    
+    .event-item.booked:nth-of-type(3) {
+        background: #ef4444;
+        z-index: 3;
+    }
+    
+    .event-item.booked:nth-of-type(4) {
+        background: #3b82f6;
+        z-index: 4;
+    }
+    
+    .event-item.booked:nth-of-type(5) {
+        background: #9333ea;
+        z-index: 5;
+    }
+    
+    /* Hide text content in booked items on mobile */
+    .event-item.booked .event-time,
+    .event-item.booked .event-title,
+    .event-item.booked .event-notes {
+        display: none;
+    }
+    
+    /* Container for booked items - overlapping circular layout */
+    .day-events:has(.event-item.booked) {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 0;
+        margin-top: 1.75rem;
+        justify-content: flex-start;
+        position: relative;
+    }
+    
+    /* Count number below the circles */
+    .day-events:has(.event-item.booked)::after {
+        content: attr(data-booked-count);
+        position: absolute;
+        bottom: -1.25rem;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.65rem;
+        font-weight: 600;
+        color: white;
+        text-align: center;
+        white-space: nowrap;
+        line-height: 1;
+    }
+    
+    /* Dark mode: Count number color */
+    [data-theme="dark"] .day-events:has(.event-item.booked)::after {
+        color: #f1f5f9;
+    }
+    
+    /* Fully-booked days: keep overlapping circles */
+    .calendar-day.fully-booked .event-item.booked {
+        width: 24px;
+        height: 24px;
+        min-height: 24px;
+        margin-left: -8px;
+        border-radius: 50%;
+    }
+    
+    .calendar-day.fully-booked .event-item.booked:first-of-type {
+        margin-left: 0;
+    }
+    
+    .calendar-day.fully-booked .day-events:has(.event-item.booked) {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        gap: 0;
+    }
+    
+    /* Non-booked items still use column layout */
+    .day-events .event-item:not(.booked) {
+        width: 100%;
+        margin-left: 0;
+    }
+    
+    /* When day has booked items, keep column layout for non-booked items */
+    .day-events:has(.event-item.booked) .event-item:not(.booked) {
+        width: 100%;
+        margin-left: 0;
+        margin-top: 0.25rem;
+    }
+    
     .event-time {
         font-size: 0.65rem;
         font-weight: 600;
@@ -1712,13 +1956,33 @@
         padding: 0.25rem 0.5rem;
         font-size: 0.6rem;
         max-width: calc(100% - 2.5rem);
-        z-index: 5;
+        z-index: 30;
         box-shadow: 0 2px 4px rgba(239, 68, 68, 0.4);
+    }
+    
+    /* Position booked circles below day number */
+    .calendar-day .day-events:has(.event-item.booked) {
+        margin-top: 1.75rem;
+        padding-top: 0.5rem;
+        justify-content: flex-start;
+        padding-bottom: 1.5rem; /* Space for count number */
     }
     
     .calendar-day.fully-booked .day-events {
         margin-top: 2.2rem;
         padding-right: 0;
+    }
+    
+    /* Ensure fully-booked indicator is on top of event circles */
+    .calendar-day.fully-booked .fully-booked-indicator {
+        z-index: 35;
+    }
+    
+    /* Position booked circles when fully-booked indicator is present */
+    .calendar-day.fully-booked .day-events:has(.event-item.booked) {
+        margin-top: 2.2rem;
+        padding-top: 0.5rem;
+        padding-bottom: 1.5rem; /* Space for count number */
     }
     
     .calendar-day.fully-booked .day-number {
@@ -1900,11 +2164,43 @@
         font-size: 0.75rem;
     }
 
+    /* Show only first 3 letters of day names on mobile */
     .calendar-header-cell {
         padding: 0.6rem 0.4rem;
-        font-size: 0.7rem;
+        font-size: 0 !important;
         font-weight: 700;
+        overflow: hidden;
+        text-overflow: clip;
+        white-space: nowrap;
+        max-width: 100%;
+        position: relative;
+        line-height: 0 !important;
+        color: transparent !important;
+        text-indent: -9999px;
     }
+    
+    .calendar-header-cell::before {
+        font-size: 0.7rem;
+        display: block;
+        line-height: normal;
+        font-weight: 700;
+        text-indent: 0;
+        color: #64748b;
+    }
+    
+    /* Dark mode color for abbreviated day names */
+    [data-theme="dark"] .calendar-header-cell::before {
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+    
+    /* Set abbreviated day names (first 3 letters) */
+    .calendar-header-cell:nth-child(1)::before { content: 'Sun'; }
+    .calendar-header-cell:nth-child(2)::before { content: 'Mon'; }
+    .calendar-header-cell:nth-child(3)::before { content: 'Tue'; }
+    .calendar-header-cell:nth-child(4)::before { content: 'Wed'; }
+    .calendar-header-cell:nth-child(5)::before { content: 'Thu'; }
+    .calendar-header-cell:nth-child(6)::before { content: 'Fri'; }
+    .calendar-header-cell:nth-child(7)::before { content: 'Sat'; }
     
     .calendar-day.today .day-number {
         width: 32px;
@@ -1938,6 +2234,32 @@
         overflow-y: auto;
         overflow-x: hidden;
         max-height: calc(75px - 2rem);
+    }
+    
+    /* Dark mode: Booked items as overlapping circular indicators on mobile */
+    [data-theme="dark"] .event-item.booked {
+        background: #3b82f6 !important;
+        border: none !important;
+    }
+    
+    [data-theme="dark"] .event-item.booked:nth-of-type(1) {
+        background: #3b82f6 !important;
+    }
+    
+    [data-theme="dark"] .event-item.booked:nth-of-type(2) {
+        background: #9333ea !important;
+    }
+    
+    [data-theme="dark"] .event-item.booked:nth-of-type(3) {
+        background: #ef4444 !important;
+    }
+    
+    [data-theme="dark"] .event-item.booked:nth-of-type(4) {
+        background: #3b82f6 !important;
+    }
+    
+    [data-theme="dark"] .event-item.booked:nth-of-type(5) {
+        background: #9333ea !important;
     }
 }
 
@@ -2758,6 +3080,7 @@
     display: block;
     margin-top: 0.5rem;
     font-size: 0.75rem;
+    margin-bottom: 0.5rem;
     color: #94a3b8;
 }
 
@@ -2820,6 +3143,40 @@
 
 .btn-submit i {
     font-size: 0.95rem;
+}
+
+.btn-submit-time-slot {
+    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+    color: white;
+    border: none;
+    padding: 0.875rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 16px rgba(33, 150, 243, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    margin-top: 1rem;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.btn-submit-time-slot:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(33, 150, 243, 0.4);
+}
+
+.btn-submit-time-slot:active {
+    transform: translateY(-1px);
+}
+
+.btn-submit-time-slot i {
+    font-size: 1rem;
 }
 
 .btn-cancel {
@@ -3745,6 +4102,13 @@
     color: var(--dm-text-primary, #f1f5f9) !important;
 }
 
+/* Period Header Dark Mode */
+[data-theme="dark"] .period-header {
+    background: var(--dm-bg-secondary, #1e293b) !important;
+    border: 1px solid var(--dm-border-color, #334155) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
 /* Sidebar Scrollbar Dark Mode */
 [data-theme="dark"] .calendar-sidebar::-webkit-scrollbar-track {
     background: var(--dm-bg-secondary, #1e293b) !important;
@@ -3817,14 +4181,104 @@
     box-shadow: 0 3px 10px rgba(59, 130, 246, 0.3) !important;
 }
 
+/* History Item Status Colors - Dark Mode */
+[data-theme="dark"] .history-item.completed {
+    background: rgba(16, 185, 129, 0.15) !important;
+    border-left: 3px solid #10b981 !important;
+}
+
+[data-theme="dark"] .history-item.completed:hover {
+    box-shadow: 0 3px 10px rgba(16, 185, 129, 0.4) !important;
+}
+
+[data-theme="dark"] .history-item.cancelled {
+    background: rgba(146, 64, 14, 0.2) !important;
+    border-left: 3px solid #d97706 !important;
+    opacity: 0.95 !important;
+}
+
+[data-theme="dark"] .history-item.cancelled:hover {
+    box-shadow: 0 3px 10px rgba(146, 64, 14, 0.4) !important;
+}
+
+[data-theme="dark"] .history-item.missed {
+    background: rgba(107, 114, 128, 0.2) !important;
+    border-left: 3px solid #9ca3af !important;
+    opacity: 0.95 !important;
+}
+
+[data-theme="dark"] .history-item.missed:hover {
+    box-shadow: 0 3px 10px rgba(107, 114, 128, 0.4) !important;
+}
+
+/* Upcoming Date Container - Status-Specific Shadows - Dark Mode */
 [data-theme="dark"] .upcoming-date {
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4) !important;
+    background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%) !important;
+    color: white !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Pending Status - Yellow Shadow */
+[data-theme="dark"] .upcoming-item.pending .upcoming-date {
+    box-shadow: 
+        0 4px 12px rgba(251, 191, 36, 0.5),
+        0 2px 6px rgba(251, 191, 36, 0.4),
+        0 0 15px rgba(251, 191, 36, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Confirmed Status - Blue Shadow */
+[data-theme="dark"] .upcoming-item.confirmed .upcoming-date {
+    box-shadow: 
+        0 4px 12px rgba(59, 130, 246, 0.5),
+        0 2px 6px rgba(59, 130, 246, 0.4),
+        0 0 15px rgba(59, 130, 246, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.5) !important;
 }
 
 
-/* History Date Dark Mode */
+/* History Date Dark Mode - Status-Specific Shadows */
 [data-theme="dark"] .history-date {
-    box-shadow: 0 2px 6px rgba(100, 116, 139, 0.3) !important;
+    background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Completed Status - Green Shadow */
+[data-theme="dark"] .history-item.completed .history-date {
+    box-shadow: 
+        0 4px 12px rgba(16, 185, 129, 0.5),
+        0 2px 6px rgba(16, 185, 129, 0.4),
+        0 0 15px rgba(16, 185, 129, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Cancelled Status - Brown/Orange Shadow */
+[data-theme="dark"] .history-item.cancelled .history-date {
+    box-shadow: 
+        0 4px 12px rgba(217, 119, 6, 0.5),
+        0 2px 6px rgba(217, 119, 6, 0.4),
+        0 0 15px rgba(217, 119, 6, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Missed Status - Gray Shadow */
+[data-theme="dark"] .history-item.missed .history-date {
+    box-shadow: 
+        0 4px 12px rgba(107, 114, 128, 0.5),
+        0 2px 6px rgba(107, 114, 128, 0.4),
+        0 0 15px rgba(107, 114, 128, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-theme="dark"] .history-day,
+[data-theme="dark"] .history-month,
+[data-theme="dark"] .history-year {
+    color: white !important;
 }
 
 /* Calendar Grid Dark Mode */
@@ -4418,6 +4872,61 @@
     color: #FFFFFF !important;
 }
 
+[data-theme="dark"] .status-badge.completed {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    color: white !important;
+    box-shadow: 
+        0 4px 12px rgba(16, 185, 129, 0.5),
+        0 2px 6px rgba(16, 185, 129, 0.4),
+        0 0 8px rgba(16, 185, 129, 0.3) !important;
+}
+
+[data-theme="dark"] .status-badge.cancelled {
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;
+    color: white !important;
+    box-shadow: 
+        0 4px 12px rgba(217, 119, 6, 0.5),
+        0 2px 6px rgba(217, 119, 6, 0.4),
+        0 0 8px rgba(217, 119, 6, 0.3) !important;
+}
+
+[data-theme="dark"] .status-badge.missed {
+    background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%) !important;
+    color: white !important;
+    box-shadow: 
+        0 4px 12px rgba(107, 114, 128, 0.5),
+        0 2px 6px rgba(107, 114, 128, 0.4),
+        0 0 8px rgba(107, 114, 128, 0.3) !important;
+}
+
+/* Request Type Badge Dark Mode - Same Colors as Light Mode with Status-Specific Shadows */
+[data-theme="dark"] .request-type-badge.emergency {
+    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%) !important;
+    color: white !important;
+    box-shadow: 
+        0 4px 12px rgba(33, 150, 243, 0.5),
+        0 2px 6px rgba(33, 150, 243, 0.4),
+        0 0 8px rgba(33, 150, 243, 0.3) !important;
+}
+
+[data-theme="dark"] .request-type-badge.reschedule {
+    background: linear-gradient(135deg, #4DD3E0 0%, #38B3C0 100%) !important;
+    color: white !important;
+    box-shadow: 
+        0 4px 12px rgba(77, 211, 224, 0.5),
+        0 2px 6px rgba(77, 211, 224, 0.4),
+        0 0 8px rgba(77, 211, 224, 0.3) !important;
+}
+
+[data-theme="dark"] .request-type-badge.regular {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+    color: white !important;
+    box-shadow: 
+        0 4px 12px rgba(34, 197, 94, 0.5),
+        0 2px 6px rgba(34, 197, 94, 0.4),
+        0 0 8px rgba(34, 197, 94, 0.3) !important;
+}
+
 /* Cancellation Modal Dark Mode */
 [data-theme="dark"] .cancel-icon-wrapper {
     background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.2) 100%) !important;
@@ -4475,15 +4984,42 @@
 [data-theme="dark"] .appointment-action-btn.emergency-btn {
     background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
     color: white !important;
-    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.5) !important;
+    box-shadow: 
+        0 4px 15px rgba(59, 130, 246, 0.6),
+        0 0 20px rgba(59, 130, 246, 0.4),
+        0 0 30px rgba(59, 130, 246, 0.3) !important;
     border-color: #2563eb !important;
 }
 
 [data-theme="dark"] .appointment-action-btn.emergency-btn:hover {
     background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
-    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.7) !important;
+    box-shadow: 
+        0 6px 20px rgba(59, 130, 246, 0.7),
+        0 0 25px rgba(59, 130, 246, 0.5),
+        0 0 40px rgba(59, 130, 246, 0.4) !important;
     transform: translateY(-2px) scale(1.02) !important;
     border-color: #1d4ed8 !important;
+}
+
+/* Book Now Button Dark Mode - Green Glow */
+[data-theme="dark"] .appointment-action-btn.book-now-btn {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+    color: white !important;
+    box-shadow: 
+        0 4px 15px rgba(34, 197, 94, 0.6),
+        0 0 20px rgba(34, 197, 94, 0.4),
+        0 0 30px rgba(34, 197, 94, 0.3) !important;
+    border-color: #16a34a !important;
+}
+
+[data-theme="dark"] .appointment-action-btn.book-now-btn:hover {
+    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%) !important;
+    box-shadow: 
+        0 6px 20px rgba(34, 197, 94, 0.7),
+        0 0 25px rgba(34, 197, 94, 0.5),
+        0 0 40px rgba(34, 197, 94, 0.4) !important;
+    transform: translateY(-2px) scale(1.02) !important;
+    border-color: #15803d !important;
 }
 
 [data-theme="dark"] .appointment-action-btn.reschedule-btn {
@@ -4539,18 +5075,23 @@
     color: var(--dm-text-primary, #f1f5f9) !important;
 }
 
-/* Upcoming Appointments Dark Mode */
-[data-theme="dark"] .upcoming-item {
-    background: var(--dm-bg-secondary, #1e293b) !important;
-    border-color: var(--dm-border-color, #334155) !important;
+/* Upcoming Appointments Dark Mode - Status-Based Colors */
+[data-theme="dark"] .upcoming-item.pending {
+    background: rgba(251, 191, 36, 0.15) !important;
+    border-left: 3px solid #fbbf24 !important;
 }
 
-[data-theme="dark"] .upcoming-item:hover {
-    background: var(--dm-bg-tertiary, #334155) !important;
+[data-theme="dark"] .upcoming-item.pending:hover {
+    box-shadow: 0 3px 10px rgba(251, 191, 36, 0.4) !important;
 }
 
-[data-theme="dark"] .upcoming-date {
-    background: var(--dm-bg-primary, #0f172a) !important;
+[data-theme="dark"] .upcoming-item.confirmed {
+    background: rgba(59, 130, 246, 0.15) !important;
+    border-left: 3px solid #3b82f6 !important;
+}
+
+[data-theme="dark"] .upcoming-item.confirmed:hover {
+    box-shadow: 0 3px 10px rgba(59, 130, 246, 0.4) !important;
 }
 
 [data-theme="dark"] .upcoming-title,
@@ -4983,6 +5524,7 @@ function openAppointmentModal(type) {
         if (rescheduleFormSection) rescheduleFormSection.style.display = 'none';
         if (bookFormSection) bookFormSection.style.display = 'none';
 
+
         // Update modal title
         const modalTitle = document.getElementById('appointmentRequestModalLabel');
         if (modalTitle) {
@@ -5010,6 +5552,7 @@ function openAppointmentModal(type) {
         if (emergencyFormSection) emergencyFormSection.style.display = 'none';
         if (rescheduleFormSection) rescheduleFormSection.style.display = 'none';
         if (bookFormSection) bookFormSection.style.display = 'block';
+
 
         if (modalDialog) {
             modalDialog.classList.add('compact-book');
@@ -5670,7 +6213,11 @@ function clearTimeSlotSelection(gridId, inputId, displayId) {
 document.getElementById('emergencyForm').addEventListener('submit', function(e) {
     e.preventDefault();
 
-    const submitButton = this.querySelector('.btn-submit');
+    const submitButton = document.querySelector('#emergencyFormSection .btn-submit-time-slot') || this.querySelector('.btn-submit') || this.querySelector('.btn-submit-time-slot');
+    if (!submitButton) {
+        console.error('Submit button not found');
+        return;
+    }
     const originalText = submitButton.innerHTML;
 
     // Disable button and show loading
@@ -5913,7 +6460,11 @@ document.getElementById('emergencyForm').addEventListener('submit', function(e) 
 document.getElementById('rescheduleForm').addEventListener('submit', function(e) {
     e.preventDefault();
 
-    const submitButton = this.querySelector('.btn-submit');
+    const submitButton = document.querySelector('#rescheduleFormSection .btn-submit-time-slot') || this.querySelector('.btn-submit') || this.querySelector('.btn-submit-time-slot');
+    if (!submitButton) {
+        console.error('Submit button not found');
+        return;
+    }
     const originalText = submitButton.innerHTML;
 
     // Disable button and show loading
@@ -7630,4 +8181,5 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 @endsection
+
 

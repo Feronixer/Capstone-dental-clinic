@@ -5978,6 +5978,12 @@ document.addEventListener('DOMContentLoaded', function() {
     border-left-color: #6b7280;
 }
 
+.day-appointment-item.missed {
+    background: #e5e7eb;
+    border-left-color: #6b7280;
+    opacity: 0.8;
+}
+
 .appointment-time {
     font-size: 0.85rem;
     font-weight: 600;
@@ -6139,6 +6145,13 @@ document.addEventListener('DOMContentLoaded', function() {
     background: #2F2F2F !important;
     border-left-color: #6b7280 !important;
     color: #D1D5DB !important;
+}
+
+[data-theme="dark"] .day-appointment-item.missed {
+    background: #2F2F2F !important;
+    border-left-color: #6b7280 !important;
+    color: #D1D5DB !important;
+    opacity: 0.8;
 }
 
 [data-theme="dark"] .day-appointment-item .appointment-time {

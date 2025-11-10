@@ -89,14 +89,13 @@
     /* Hero Section */
     .hero-section {
         display: flex;
-        justify-content: space-between;
+        justify-content: center;
         align-items: center;
-        padding: 3rem 3rem;
-        gap: 3rem;
+        padding: 4.7rem 3rem;
+        gap: 5rem;
         max-width: 1400px;
         margin: 0 auto;
-        margin-bottom: 2rem; /* spacing before next section */
-        overflow: hidden;
+        overflow: visible;
         width: 100%;
         box-sizing: border-box;
         position: relative;
@@ -120,10 +119,10 @@
         align-items: center;
         gap: 0.5rem;
         background: rgba(33, 150, 243, 0.1);
-        color: #64b5f6;
+        color: #1976D2;
         padding: 10px 20px;
         border-radius: 20px;
-        font-size: 16px;
+        font-size: 24px;
         font-weight: 600;
         margin-bottom: 0.75rem;
     }
@@ -161,9 +160,6 @@
         max-width: 550px;
         position: relative;
         padding: 1rem;
-        min-width: 0;
-        overflow: visible;
-        box-sizing: border-box;
     }
 
     .main-card {
@@ -187,7 +183,7 @@
         left: 50%;
         transform: translate(-50%, -50%);
         width: 135%;
-        max-width: 135%;
+        max-width: none;
         height: auto;
         min-height: 100%;
         object-fit: cover;
@@ -196,7 +192,6 @@
         filter: brightness(1) contrast(1) drop-shadow(0 8px 24px rgba(128, 128, 128, 0.25));
         pointer-events: none;
         mix-blend-mode: normal;
-        contain: layout style paint;
     }
 
     .main-card::before {
@@ -267,7 +262,7 @@
         padding: 1.3rem 1.5rem;
         box-shadow: 0 8px 25px rgba(0, 0, 128, 0.12), 0 4px 12px rgba(0, 0, 128, 0.08), 0 2px 6px rgba(0, 0, 128, 0.06);
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         gap: 1rem;
         max-width: 250px;
         z-index: 15;
@@ -283,14 +278,12 @@
 
     .feature-card.top {
         top: 2rem;
-        right: 0.5rem;
-        max-width: calc(100% - 1rem);
+        right: -2rem;
     }
 
     .feature-card.bottom {
         bottom: 8rem;
-        right: 0.5rem;
-        max-width: calc(100% - 1rem);
+        right: -2rem;
     }
 
     .feature-icon {
@@ -311,13 +304,13 @@
         font-size: 1rem;
         font-weight: 700;
         color: #263238;
-        margin-bottom: 0.3rem;
     }
 
     .feature-text p {
         font-size: 0.85rem;
         color: #78909c;
         line-height: 1.4;
+        margin-bottom: 0;
     }
 
     /* Services Section */
@@ -368,12 +361,20 @@
         max-width: 1600px;
         margin: 0 auto;
         width: 100%;
-        overflow: hidden;
+        overflow: visible;
         height: clamp(400px, 50vh, 600px);
         min-height: 400px;
         perspective: 1200px;
         perspective-origin: center center;
         box-sizing: border-box;
+        touch-action: pan-y pinch-zoom; /* Allow vertical scrolling and pinch zoom, but handle horizontal swipes */
+    }
+    
+    /* On mobile, allow horizontal panning for swipe */
+    @media (max-width: 768px), (hover: none) {
+        .services-carousel-wrapper {
+            touch-action: pan-x pan-y pinch-zoom;
+        }
     }
 
     .services-carousel {
@@ -447,6 +448,19 @@
         transform: translateZ(80px) scale(1.05) !important;
         box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25), 0 0 40px rgba(0, 0, 0, 0.15);
         z-index: 100;
+    }
+    
+    /* Disable hover effects on mobile/touch devices */
+    @media (max-width: 768px), (hover: none) {
+        .service-card:hover {
+            transform: none !important;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1), 0 0 20px rgba(0, 0, 0, 0.05) !important;
+            z-index: auto !important;
+        }
+        
+        [data-theme="dark"] .service-card:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+        }
     }
 
     .service-icon-box {
@@ -674,7 +688,7 @@
         .hero-section {
             padding: 2.5rem 2rem;
             gap: 2rem;
-            overflow: hidden;
+            overflow: visible;
         }
     }
 
@@ -683,7 +697,7 @@
             padding: 2rem;
             margin-bottom: 1.5rem;
             gap: 2rem;
-            overflow: hidden;
+            overflow: visible;
         }
 
         .hero-content {
@@ -732,8 +746,8 @@
             box-shadow: 0 8px 22px rgba(0,0,0,0.12);
             z-index: 10;
         }
-        .feature-card.top { top: 0.5rem !important; right: 0.5rem !important; max-width: calc(100% - 1rem) !important; }
-        .feature-card.bottom { bottom: 5rem !important; right: 0.5rem !important; max-width: calc(100% - 1rem) !important; }
+        .feature-card.top { top: 0.5rem !important; right: 0.5rem !important; }
+        .feature-card.bottom { bottom: 5rem !important; right: 0.5rem !important; }
         .feature-text h4 { font-size: 0.95rem; }
         .feature-text p { font-size: 0.8rem; }
 
@@ -752,7 +766,7 @@
             padding: 1.5rem 1rem;
             gap: 1rem;
             align-items: flex-start;
-            overflow: hidden;
+            overflow: visible;
         }
 
         .hero-content {
@@ -796,8 +810,8 @@
         .main-card-image {
             position: absolute;
             top: 50%;
-            left: -15%;
-            transform: translate(0, -50%);
+            left: 60%;
+            transform: translate(-50%, -50%);
             width: 135%;
             max-width: none;
             height: auto;
@@ -832,8 +846,8 @@
             max-width: 240px;
             z-index: 10;
         }
-        .feature-card.top { top: 0.75rem !important; right: 0.75rem !important; max-width: calc(100% - 1.5rem) !important; }
-        .feature-card.bottom { bottom: 2.25rem !important; right: 0.75rem !important; max-width: calc(100% - 1.5rem) !important; }
+        .feature-card.top { top: 0.75rem !important; right: 0.75rem !important; }
+        .feature-card.bottom { bottom: 2.25rem !important; right: 0.75rem !important; }
 
         .services-section {
             padding: 3rem 1rem;
@@ -841,14 +855,33 @@
 
         .services-title {
             font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .services-subtitle {
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
         }
 
         .services-carousel-wrapper {
             padding: 0 16px;
+            height: clamp(350px, 45vh, 500px);
+            min-height: 350px;
         }
 
-        .carousel-nav-btn.prev { left: 8px; }
-        .carousel-nav-btn.next { right: 8px; }
+        .carousel-nav-btn.prev { 
+            left: 8px; 
+        }
+        
+        .carousel-nav-btn.next { 
+            right: 8px; 
+        }
+
+        .carousel-nav-btn {
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
+        }
 
         .service-card {
             width: clamp(180px, 30vw, 240px);
@@ -856,28 +889,230 @@
             padding: clamp(1rem, 2vw, 1.5rem);
         }
 
-        .carousel-nav-btn {
-            width: 40px;
-            height: 40px;
+        .service-icon-box {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 1rem;
+        }
+
+        .service-icon-box i {
+            font-size: 2.2rem;
+        }
+
+        .service-card h3 {
+            font-size: 1rem;
+        }
+
+        .services-empty-state {
+            padding: 2rem 1rem;
+        }
+
+        .services-empty-state i {
+            font-size: 3rem !important;
+        }
+
+        .services-empty-state p {
+            font-size: 0.9rem;
         }
     }
     
     @media (max-width: 480px) {
-
         .hero-title {
             font-size: 76px;
             margin-bottom: 1rem;
+            line-height: 1.1;
+            text-align: left;
+        }
+
+        .main-card {
+            min-height: 320px;
+            padding: 1rem 1rem 2rem;
+            border-radius: 24px;
+            position: relative;
+            overflow: visible;
+            width: 100%;
+        }
+
+        .main-card-image {
+            position: absolute;
+            top: 20%;
+            left: 60%;
+            transform: translate(-50%, -50%);
+            width: 135%;
+            max-width: none;
+            height: auto;
+            min-height: 100%;
+            object-fit: cover;
+            opacity: 1;
+            z-index: 1;
+            filter: brightness(1) contrast(1) drop-shadow(0 8px 24px rgba(128, 128, 128, 0.25));
+            pointer-events: none;
+            mix-blend-mode: normal;
+        }
+
+        .main-card::before {
+            width: 200px;
+            height: 200px;
+            top: -30%;
+            right: -10%;
+        }
+
+        .main-card::after {
+            width: 180px;
+            height: 180px;
+            bottom: -25%;
+            left: -8%;
+        }
+
+        .card-title {
+            position: absolute;
+            left: 1rem;
+            bottom: 1rem;
+            width: calc(100% - 2rem);
+            text-align: left;
+            font-size: 1.2rem;
+        }
+
+        .card-title i {
+            color: #00EAFF;
+            font-size: 1.4rem;
+            filter: drop-shadow(0 0 8px rgba(0, 234, 255, 0.8)) drop-shadow(0 0 16px rgba(0, 234, 255, 0.6));
+            animation: arrow-pulse 2s ease-in-out infinite;
+        }
+
+        .services-section {
+            padding: 2.5rem 1rem;
+        }
+
+        .services-title {
+            font-size: 1.6rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .services-subtitle {
+            font-size: 0.85rem;
+            margin-bottom: 1.5rem;
         }
 
         .services-carousel-wrapper {
+            padding: 0 12px;
             height: clamp(300px, 40vh, 450px);
             min-height: 300px;
+        }
+
+        .carousel-nav-btn.prev { 
+            left: 4px; 
+        }
+        
+        .carousel-nav-btn.next { 
+            right: 4px; 
+        }
+
+        .carousel-nav-btn {
+            width: 36px;
+            height: 36px;
+            font-size: 1rem;
         }
         
         .service-card {
             width: clamp(160px, 35vw, 200px);
             height: clamp(160px, 35vw, 200px);
             padding: 1rem;
+        }
+
+        .service-icon-box {
+            width: 50px;
+            height: 50px;
+            margin-bottom: 0.75rem;
+        }
+
+        .service-icon-box i {
+            font-size: 1.8rem;
+        }
+
+        .service-card h3 {
+            font-size: 0.9rem;
+            line-height: 1.3;
+        }
+
+        .services-empty-state {
+            padding: 1.5rem 0.75rem;
+        }
+
+        .services-empty-state i {
+            font-size: 2.5rem !important;
+        }
+
+        .services-empty-state p {
+            font-size: 0.85rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .services-section {
+            padding: 2rem 0.75rem;
+        }
+
+        .services-title {
+            font-size: 1.4rem;
+        }
+
+        .services-subtitle {
+            font-size: 0.8rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .services-carousel-wrapper {
+            padding: 0 8px;
+            height: clamp(280px, 38vh, 400px);
+            min-height: 280px;
+        }
+
+        .carousel-nav-btn {
+            width: 32px;
+            height: 32px;
+            font-size: 0.9rem;
+        }
+
+        .carousel-nav-btn.prev { 
+            left: 2px; 
+        }
+        
+        .carousel-nav-btn.next { 
+            right: 2px; 
+        }
+
+        .service-card {
+            width: clamp(140px, 38vw, 180px);
+            height: clamp(140px, 38vw, 180px);
+            padding: 0.75rem;
+        }
+
+        .service-icon-box {
+            width: 45px;
+            height: 45px;
+            margin-bottom: 0.5rem;
+        }
+
+        .service-icon-box i {
+            font-size: 1.5rem;
+        }
+
+        .service-card h3 {
+            font-size: 0.85rem;
+            line-height: 1.2;
+        }
+
+        .services-empty-state {
+            padding: 1.25rem 0.5rem;
+        }
+
+        .services-empty-state i {
+            font-size: 2rem !important;
+        }
+
+        .services-empty-state p {
+            font-size: 0.8rem;
         }
     }
     
@@ -891,16 +1126,6 @@
         }
     }
 
-    @media (max-width: 768px) {
-        .services-section {
-            padding: 3rem 1rem;
-        }
-
-        .services-title {
-            font-size: 1.8rem;
-        }
-    }
-
     /* Stack hero vertically on medium-small screens */
     @media (max-width: 640px) {
         .hero-section {
@@ -908,7 +1133,7 @@
             gap: 2rem;
             margin-bottom: 3rem;
             align-items: stretch;
-            overflow: hidden;
+            overflow: visible;
         }
 
         .hero-content {
@@ -939,8 +1164,8 @@
             box-shadow: 0 8px 22px rgba(0,0,0,0.12);
             z-index: 10;
         }
-        .feature-card.top { top: 0.5rem !important; right: 0.5rem !important; max-width: calc(100% - 1rem) !important; }
-        .feature-card.bottom { bottom: 8rem !important; right: 0.5rem !important; max-width: calc(100% - 1rem) !important; }
+        .feature-card.top { top: 0.5rem !important; right: -0.5rem !important; }
+        .feature-card.bottom { bottom: 8rem !important; right: -0.5rem !important; }
         .feature-text h4 { font-size: 0.95rem; }
         .feature-text p { font-size: 0.8rem; }
     }
@@ -949,8 +1174,8 @@
     @media (max-width: 576px) {
         .hero-section {
             padding: 1rem 0.75rem;
-            gap: 2rem;
-            overflow: hidden;
+            gap: 3rem;
+            overflow: visible;
         }
 
         .hero-content {
@@ -973,7 +1198,7 @@
         }
         
         .main-card { 
-            min-height: 320px; 
+            min-height: 420px; 
             padding: 1rem 1rem 2rem;
             position: relative;
             overflow: visible;
@@ -981,17 +1206,18 @@
         }
         .main-card-image { 
             position: absolute;
-            top: 50%;
-            left: 5%;
-            transform: translate(0, -50%);
-            width: 135%;
+            top: 55%;
+            left: 55%;
+            transform: translate(-50%, -50%);
+            width: 120%;
             max-width: none;
             height: auto;
             min-height: 100%;
-            object-fit: cover;
+            object-fit: contain;
+            object-position: center bottom;
             opacity: 1;
             z-index: 1;
-            filter: brightness(1) contrast(1) drop-shadow(0 8px 24px rgba(128, 128, 128, 0.25));
+            filter: brightness(1.05) contrast(1.1) drop-shadow(0 10px 30px rgba(0, 0, 0, 0.3));
             pointer-events: none;
             mix-blend-mode: normal;
         }
@@ -1003,8 +1229,8 @@
             box-shadow: 0 8px 22px rgba(0,0,0,0.12);
             z-index: 10;
         }
-        .feature-card.top { top: 0.5rem !important; right: 0.5rem !important; max-width: calc(100% - 1rem) !important; }
-        .feature-card.bottom { bottom: 6rem !important; right: 0.5rem !important; max-width: calc(100% - 1rem) !important; }
+        .feature-card.top { top: 1.5rem !important; right: -0.5rem !important; }
+        .feature-card.bottom { bottom: 11rem !important; right: -0.5rem !important; }
         .feature-text h4 { font-size: 0.95rem; }
         .feature-text p { font-size: 0.8rem; }
 
@@ -1013,19 +1239,83 @@
             bottom: 1rem;
         }
 
+        /* Services Section - Editable Styles */
+        .services-section {
+            padding: 2.5rem 1rem;
+        }
+
         .services-title {
             font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .services-subtitle {
+            font-size: 0.85rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .services-carousel-wrapper {
+            padding: 0 12px;
+            height: clamp(300px, 40vh, 450px);
+            min-height: 300px;
+        }
+
+        .carousel-nav-btn.prev { 
+            left: 4px; 
+        }
+        
+        .carousel-nav-btn.next { 
+            right: 4px; 
+        }
+
+        .carousel-nav-btn {
+            width: 36px;
+            height: 36px;
+            font-size: 1rem;
+        }
+        
+        .service-card {
+            width: clamp(160px, 35vw, 200px);
+            height: clamp(160px, 35vw, 200px);
+            padding: 1rem;
+        }
+
+        .service-icon-box {
+            width: 50px;
+            height: 50px;
+            margin-bottom: 0.75rem;
+        }
+
+        .service-icon-box i {
+            font-size: 1.8rem;
+        }
+
+        .service-card h3 {
+            font-size: 0.9rem;
+            line-height: 1.3;
+        }
+
+        .services-empty-state {
+            padding: 1.5rem 0.75rem;
+        }
+
+        .services-empty-state i {
+            font-size: 2.5rem !important;
+        }
+
+        .services-empty-state p {
+            font-size: 0.85rem;
         }
     }
-
-    @media (min-width: 280px) and (max-width: 350px) {
+    @media (min-width: 250px) and (max-width: 350px) {
         .hero-section {
-            padding: 0.75rem 0.5rem;
+            padding: 0.5rem;
             gap: 1.5rem;
+            overflow: visible;
         }
 
         .hero-title {
-            font-size: 3.2rem;
+            font-size: 2.8rem;
             margin-bottom: 0.75rem;
             line-height: 1.2;
         }
@@ -1045,7 +1335,8 @@
         }
 
         .main-card-image {
-            left: -10%;
+            top: 10.5rem;
+            left: 55%;
         }
 
         .feature-card {
@@ -1061,12 +1352,412 @@
             font-size: 0.75rem;
         }
 
+        .feature-card.top { top: 1.5rem !important; right: -0.5rem !important; }
+        .feature-card.bottom { bottom: 5.8rem !important; right: -0.5rem !important; }
+        .feature-text h4 { font-size: 0.95rem; }
+        .feature-text p { font-size: 0.8rem; }
+
+        .feature-text h4 { font-size: 0.9rem; }
+        .feature-text p { bottom: 0; font-size: 0.6rem; }
+
         .card-title {
             font-size: 0.9rem;
         }
 
         .services-title {
             font-size: 1.3rem;
+        }
+
+        .service-card h3 {
+            font-size: 0.4rem;
+            line-height: 1.3;
+        }
+
+        .service-card.initialized h3 {
+            font-size: 0.85rem;
+            line-height: 1.3;
+        }
+
+    }
+
+    /* Navigation Bar Positioning Fixes */
+    .patient-header .header-container {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 1rem;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .patient-header .header-logo {
+        display: flex !important;
+        align-items: center !important;
+        gap: 1rem;
+        flex-shrink: 0;
+        min-width: 0;
+    }
+
+    .patient-header .header-nav {
+        flex: 1 !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        min-width: 0;
+    }
+
+    .patient-header .nav-menu {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        gap: 0.5rem;
+        flex-wrap: nowrap;
+    }
+
+    .patient-header .nav-item {
+        display: flex !important;
+        align-items: center !important;
+        position: relative;
+        flex-shrink: 0;
+        min-width: 0;
+    }
+
+    .patient-header .nav-item .nav-link {
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.5rem;
+        white-space: nowrap;
+        position: relative;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+    }
+
+    /* Fix nav-link::before size for desktop */
+    .patient-header .nav-item .nav-link::before {
+        content: '' !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%);
+        opacity: 0;
+        transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 12px;
+        z-index: 0;
+        box-sizing: border-box;
+    }
+
+    .patient-header .nav-item .nav-link:hover::before {
+        opacity: 1 !important;
+    }
+
+    .patient-header .nav-item .nav-link.active::before {
+        opacity: 0 !important;
+        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+    }
+
+    /* Ensure nav-link content appears above ::before */
+    .patient-header .nav-item .nav-link i,
+    .patient-header .nav-item .nav-link span {
+        position: relative;
+        z-index: 1;
+    }
+
+    .patient-header .header-container-right {
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.9rem;
+        flex-shrink: 0;
+        margin-left: auto;
+    }
+
+    .patient-header .header-actions {
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.9rem;
+    }
+
+    .patient-header .user-profile-btn {
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.75rem;
+    }
+
+    .patient-header .user-info {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        justify-content: center !important;
+    }
+
+    /* Desktop Navigation Bar Size Reduction */
+    @media (min-width: 992px) {
+        .patient-header .header-container {
+            padding: 0.6rem 2rem !important;
+        }
+
+        .patient-header .logo-img {
+            width: 48px !important;
+            height: 48px !important;
+        }
+
+        .patient-header .clinic-name {
+            font-size: 1.4rem !important;
+        }
+
+        .patient-header .nav-item .nav-link {
+            padding: 0.55rem 1rem !important;
+            font-size: 0.88rem !important;
+            gap: 0.4rem !important;
+        }
+
+        .patient-header .nav-item .nav-link i {
+            font-size: 1rem !important;
+        }
+
+        .patient-header .nav-menu {
+            gap: 0.4rem !important;
+        }
+
+        .patient-header .icon-btn {
+            width: 32px !important;
+            height: 32px !important;
+            font-size: 0.95rem !important;
+        }
+
+        .patient-header .profile-avatar {
+            width: 32px !important;
+            height: 32px !important;
+            min-width: 32px !important;
+            min-height: 32px !important;
+            font-size: 0.75rem !important;
+        }
+
+        .patient-header .user-name {
+            font-size: 0.85rem !important;
+        }
+
+        .patient-header .user-role {
+            font-size: 0.7rem !important;
+        }
+
+        .patient-header .user-profile-btn {
+            padding: 0.4rem 0.85rem !important;
+            gap: 0.6rem !important;
+        }
+
+        .patient-header .header-container-right {
+            gap: 0.7rem !important;
+        }
+
+        .patient-header .header-actions {
+            gap: 0.7rem !important;
+        }
+
+        .patient-header .header-logo {
+            gap: 0.75rem !important;
+        }
+    }
+
+    /* Navigation Menu Responsiveness */
+    @media (min-width: 1600px) {
+        .patient-header .header-container {
+            padding: 0.7rem 2.5rem !important;
+        }
+
+        .patient-header .logo-img {
+            width: 50px !important;
+            height: 50px !important;
+        }
+
+        .patient-header .clinic-name {
+            font-size: 1.5rem !important;
+        }
+
+        .patient-header .nav-item {
+            flex-shrink: 0;
+            min-width: 0;
+        }
+
+        .patient-header .nav-item .nav-link {
+            padding: 0.6rem 1.2rem !important;
+            font-size: 0.9rem !important;
+            min-width: fit-content;
+        }
+
+        .patient-header .nav-item .nav-link i {
+            font-size: 1.05rem !important;
+        }
+
+        .patient-header .nav-menu {
+            gap: 0.45rem !important;
+        }
+    }
+
+    @media (min-width: 1400px) and (max-width: 1599px) {
+        .patient-header .header-container {
+            padding: 0.7rem 2.25rem !important;
+        }
+
+        .patient-header .logo-img {
+            width: 50px !important;
+            height: 50px !important;
+        }
+
+        .patient-header .clinic-name {
+            font-size: 1.5rem !important;
+        }
+
+        .patient-header .nav-item {
+            flex-shrink: 0;
+            min-width: 0;
+        }
+
+        .patient-header .nav-item .nav-link {
+            padding: 0.6rem 1.15rem !important;
+            font-size: 0.9rem !important;
+            min-width: fit-content;
+        }
+
+        .patient-header .nav-item .nav-link i {
+            font-size: 1.05rem !important;
+        }
+
+        .patient-header .nav-menu {
+            gap: 0.45rem !important;
+        }
+    }
+
+    @media (min-width: 1200px) and (max-width: 1399px) {
+        .patient-header .header-container {
+            padding: 0.65rem 2rem !important;
+        }
+
+        .patient-header .logo-img {
+            width: 48px !important;
+            height: 48px !important;
+        }
+
+        .patient-header .clinic-name {
+            font-size: 1.4rem !important;
+        }
+
+        .patient-header .nav-item {
+            flex-shrink: 0;
+            min-width: 0;
+        }
+
+        .patient-header .nav-item .nav-link {
+            padding: 0.55rem 1.1rem !important;
+            font-size: 0.88rem !important;
+            min-width: fit-content;
+        }
+
+        .patient-header .nav-item .nav-link i {
+            font-size: 1rem !important;
+        }
+
+        .patient-header .nav-menu {
+            gap: 0.4rem !important;
+        }
+    }
+
+    @media (min-width: 992px) and (max-width: 1199px) {
+        .patient-header .header-container {
+            padding: 0.6rem 1.5rem !important;
+        }
+
+        .patient-header .logo-img {
+            width: 48px !important;
+            height: 48px !important;
+        }
+
+        .patient-header .clinic-name {
+            font-size: 1.4rem !important;
+        }
+
+        .patient-header .nav-item {
+            flex-shrink: 0;
+            min-width: 0;
+        }
+
+        .patient-header .nav-item .nav-link {
+            padding: 0.55rem 1rem !important;
+            font-size: 0.85rem !important;
+            min-width: fit-content;
+        }
+
+        .patient-header .nav-item .nav-link i {
+            font-size: 0.95rem !important;
+        }
+
+        .patient-header .nav-menu {
+            gap: 0.4rem !important;
+        }
+    }
+
+    @media (min-width: 768px) and (max-width: 991px) {
+        .patient-header .header-container {
+            padding: 0.7rem 1.5rem;
+        }
+
+        .patient-header .nav-item {
+            flex-shrink: 0;
+            min-width: 0;
+        }
+
+        .patient-header .nav-item .nav-link {
+            padding: 0.6rem 1rem;
+            font-size: 0.88rem;
+            min-width: fit-content;
+        }
+
+        .patient-header .nav-item .nav-link i {
+            font-size: 1.05rem;
+        }
+
+        .patient-header .nav-menu {
+            gap: 0.4rem;
+        }
+    }
+
+    @media (max-width: 1200px) {
+        .patient-header .header-nav {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .patient-header .nav-menu {
+            flex-wrap: nowrap;
+            overflow: visible;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .patient-header .nav-item {
+            flex-shrink: 0;
+            min-width: 0;
+            max-width: 100%;
+        }
+
+        .patient-header .nav-item .nav-link {
+            white-space: nowrap;
+            min-width: fit-content;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    }
+
+    @media (max-width: 992px) {
+        .patient-header .header-nav {
+            display: none !important;
         }
     }
 </style>
@@ -1081,7 +1772,7 @@
         </div>
 
         <h1 class="hero-title">
-            Have confidence<br>in your <span class="highlight">SMILE</span> in<br>no time!
+            Have confidence<br>in your <span class="highlight">SMILE</span><br>in no time!
         </h1>
 
         <p class="hero-description">
@@ -1187,6 +1878,7 @@
     let updateLoopId = null;
     let scrollTargetRotationAngle = null;
     let isScrollingAnimated = false;
+    let isSwipeProcessing = false; // Prevent multiple swipes from being processed simultaneously
     
     function getRadius() {
         // Responsive radius based on screen size
@@ -1210,11 +1902,95 @@
         const angleStep = 360 / totalCards;
         rotationAngle = 0; // Start with first card centered
         
-        // Add hover event listeners to each card
-        cards.forEach((card, index) => {
-            card.addEventListener('mouseenter', () => lockCardToCenter(index));
-            card.addEventListener('mouseleave', () => unlockCard());
-        });
+        // Check if mobile device
+        const isMobile = window.innerWidth <= 768 || 'ontouchstart' in window;
+        
+        // Add hover event listeners to each card (only on desktop)
+        if (!isMobile) {
+            cards.forEach((card, index) => {
+                card.addEventListener('mouseenter', () => lockCardToCenter(index));
+                card.addEventListener('mouseleave', () => unlockCard());
+            });
+        }
+        
+        // Add touch/swipe event listeners for mobile
+        if (isMobile) {
+            let touchStartX = 0;
+            let touchStartY = 0;
+            let touchEndX = 0;
+            let touchEndY = 0;
+            let isSwiping = false;
+            let swipeThreshold = 50; // Minimum distance for a swipe
+            
+            const carouselWrapper = carousel.closest('.services-carousel-wrapper') || carousel;
+            
+            carouselWrapper.addEventListener('touchstart', (e) => {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                isSwiping = true;
+            }, { passive: true });
+            
+            carouselWrapper.addEventListener('touchmove', (e) => {
+                if (!isSwiping) return;
+                touchEndX = e.touches[0].clientX;
+                touchEndY = e.touches[0].clientY;
+                
+                // Check if this is a horizontal swipe
+                const deltaX = Math.abs(touchEndX - touchStartX);
+                const deltaY = Math.abs(touchEndY - touchStartY);
+                
+                // If horizontal movement is greater than vertical, prevent default scrolling
+                if (deltaX > deltaY && deltaX > 10) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+            
+            carouselWrapper.addEventListener('touchend', (e) => {
+                if (!isSwiping) return;
+                isSwiping = false;
+                
+                // Prevent processing multiple swipes simultaneously or while animation is in progress
+                if (isSwipeProcessing || isScrollingAnimated) {
+                    touchStartX = 0;
+                    touchStartY = 0;
+                    touchEndX = 0;
+                    touchEndY = 0;
+                    return;
+                }
+                
+                const deltaX = touchEndX - touchStartX;
+                const deltaY = touchEndY - touchStartY;
+                const absDeltaX = Math.abs(deltaX);
+                const absDeltaY = Math.abs(deltaY);
+                
+                // Only process swipe if horizontal movement is greater than vertical
+                if (absDeltaX > absDeltaY && absDeltaX > swipeThreshold) {
+                    // Set flag to prevent multiple swipes
+                    isSwipeProcessing = true;
+                    
+                    // Determine swipe direction
+                    if (deltaX < 0) {
+                        // Swipe left - rotate left (counter-clockwise)
+                        scrollServices('prev');
+                    } else {
+                        // Swipe right - rotate right (clockwise)
+                        scrollServices('next');
+                    }
+                    
+                    // Reset flag after animation completes (fallback timeout)
+                    // The flag will also be reset when animation completes in updateCarouselPosition
+                    setTimeout(() => {
+                        isSwipeProcessing = false;
+                    }, 300); // Fallback timeout in case animation doesn't complete properly
+                }
+                
+                // Reset touch positions
+                touchStartX = 0;
+                touchStartY = 0;
+                touchEndX = 0;
+                touchEndY = 0;
+            });
+        }
         
         // Handle window resize
         let resizeTimeout;
@@ -1356,6 +2132,7 @@
                     // Scroll animation finished
                     isScrollingAnimated = false;
                     scrollTargetRotationAngle = null;
+                    isSwipeProcessing = false; // Reset swipe processing flag when animation completes
                 }
             }
         }
@@ -1795,22 +2572,22 @@
 <!-- Feedback Modal -->
 <div class="modal fade" id="feedbackModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header border-0">
-                <h5 class="modal-title fw-bold">Rate Your Appointment</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <div class="modal-content feedback-modal-content">
+            <div class="modal-header feedback-modal-header border-0">
+                <h5 class="modal-title feedback-modal-title fw-bold">Rate Your Appointment</h5>
+                <button type="button" class="btn-close feedback-modal-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body feedback-modal-body">
                 <div id="feedbackForm">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Select Appointment</label>
-                        <select class="form-select" id="appointmentSelect">
+                    <div class="mb-4">
+                        <label class="form-label feedback-form-label fw-bold">Select Appointment</label>
+                        <select class="form-select feedback-form-select" id="appointmentSelect">
                             <option value="">Loading appointments...</option>
                         </select>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Your Rating</label>
+                    <div class="mb-4">
+                        <label class="form-label feedback-form-label fw-bold">Your Rating</label>
                         <div class="star-rating" id="starRating">
                             <i class="bi bi-star" data-rating="1"></i>
                             <i class="bi bi-star" data-rating="2"></i>
@@ -1821,23 +2598,23 @@
                         <input type="hidden" id="ratingValue" value="0">
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Comments (Optional)</label>
-                        <textarea class="form-control" id="feedbackComment" rows="3"
+                    <div class="mb-4">
+                        <label class="form-label feedback-form-label fw-bold">Comments (Optional)</label>
+                        <textarea class="form-control feedback-form-textarea" id="feedbackComment" rows="3"
                             placeholder="Share your experience with us..."></textarea>
                     </div>
 
-                    <div class="d-grid">
-                        <button class="btn btn-primary" onclick="submitFeedback()">
+                    <div class="d-grid mt-4">
+                        <button class="btn feedback-submit-btn" onclick="submitFeedback()">
                             <i class="bi bi-send me-2"></i>Submit Feedback
                         </button>
                     </div>
                 </div>
 
-                    <div id="noAppointmentsMessage" style="display: none;" class="text-center py-4 no-appointments-message">
-                        <i class="bi bi-calendar-x" style="font-size: 3rem; opacity: 0.3;"></i>
-                        <p class="text-muted mt-3">No completed appointments to rate</p>
-                    </div>
+                <div id="noAppointmentsMessage" style="display: none;" class="text-center py-5 no-appointments-message">
+                    <i class="bi bi-calendar-x no-appointments-icon"></i>
+                    <p class="no-appointments-text mt-3">No completed appointments to rate</p>
+                </div>
             </div>
         </div>
     </div>
@@ -1846,12 +2623,12 @@
 <!-- History Modal -->
 <div class="modal fade" id="historyModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
-            <div class="modal-header border-0">
-                <h5 class="modal-title fw-bold">Feedback History</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <div class="modal-content feedback-modal-content">
+            <div class="modal-header feedback-modal-header border-0">
+                <h5 class="modal-title feedback-modal-title fw-bold">Feedback History</h5>
+                <button type="button" class="btn-close feedback-modal-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body feedback-modal-body">
                 <div id="feedbackHistory">
                     <div class="text-center py-4">
                         <div class="spinner-border text-primary" role="status">
@@ -2101,6 +2878,96 @@
         }
     }
 
+    /* Feedback Modal Styles */
+    .feedback-modal-content {
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 8px 24px rgba(0, 0, 0, 0.1);
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        overflow: hidden;
+    }
+
+    .feedback-modal-header {
+        padding: 1.5rem 2rem;
+        background: transparent;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .feedback-modal-title {
+        font-size: 1.5rem;
+        color: #1e293b;
+        margin: 0;
+    }
+
+    .feedback-modal-close {
+        opacity: 0.6;
+        transition: opacity 0.2s ease;
+    }
+
+    .feedback-modal-close:hover {
+        opacity: 1;
+    }
+
+    .feedback-modal-body {
+        padding: 2rem;
+    }
+
+    .feedback-form-label {
+        color: #37474f;
+        font-size: 0.95rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .feedback-form-select,
+    .feedback-form-textarea {
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        background: #ffffff;
+    }
+
+    .feedback-form-select:focus,
+    .feedback-form-textarea:focus {
+        border-color: #2196F3;
+        box-shadow: 0 0 0 4px rgba(33, 150, 243, 0.1);
+        outline: none;
+    }
+
+    .feedback-submit-btn {
+        background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+        color: white;
+        border: none;
+        padding: 0.875rem 2rem;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+    }
+
+    .feedback-submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+        background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+    }
+
+    .feedback-submit-btn:active {
+        transform: translateY(0);
+    }
+
+    .no-appointments-icon {
+        font-size: 3rem;
+        opacity: 0.3;
+        color: #64748b;
+    }
+
+    .no-appointments-text {
+        color: #64748b;
+        font-size: 1rem;
+    }
+
     /* Star Rating */
     .star-rating {
         display: flex;
@@ -2117,9 +2984,69 @@
     }
 
     .star-rating i:hover,
-    .star-rating i.active {
-        color: #ffd700;
+    .star-rating i.active,
+    .star-rating i.bi-star-fill {
+        color: #0a2a6b;
         transform: scale(1.1);
+        filter: drop-shadow(0 2px 4px rgba(10, 42, 107, 0.3));
+    }
+
+    /* Dark Mode Styles for Feedback Modal */
+    [data-theme="dark"] .feedback-modal-content {
+        background: linear-gradient(135deg, var(--dm-card-bg, #1e293b) 0%, var(--dm-bg-secondary, #0f172a) 100%) !important;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 8px 24px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    [data-theme="dark"] .feedback-modal-header {
+        border-bottom-color: var(--dm-border-color, #334155) !important;
+    }
+
+    [data-theme="dark"] .feedback-modal-title {
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    [data-theme="dark"] .feedback-form-label {
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    [data-theme="dark"] .feedback-form-select,
+    [data-theme="dark"] .feedback-form-textarea {
+        background: var(--dm-bg-secondary, #0f172a) !important;
+        border-color: var(--dm-border-color, #334155) !important;
+        color: var(--dm-text-primary, #f1f5f9) !important;
+    }
+
+    [data-theme="dark"] .feedback-form-select:focus,
+    [data-theme="dark"] .feedback-form-textarea:focus {
+        border-color: #00EAFF !important;
+        box-shadow: 0 0 0 4px rgba(0, 234, 255, 0.2) !important;
+    }
+
+    [data-theme="dark"] .feedback-form-select::placeholder,
+    [data-theme="dark"] .feedback-form-textarea::placeholder {
+        color: var(--dm-text-muted, #64748b) !important;
+    }
+
+    [data-theme="dark"] .no-appointments-icon {
+        color: var(--dm-text-muted, #64748b) !important;
+        opacity: 0.3 !important;
+    }
+
+    [data-theme="dark"] .no-appointments-text {
+        color: var(--dm-text-muted, #94a3b8) !important;
+    }
+
+    /* Star Rating Dark Mode */
+    [data-theme="dark"] .star-rating i {
+        color: #475569 !important;
+    }
+
+    [data-theme="dark"] .star-rating i:hover,
+    [data-theme="dark"] .star-rating i.active,
+    [data-theme="dark"] .star-rating i.bi-star-fill {
+        color: #00EAFF !important;
+        transform: scale(1.1);
+        filter: drop-shadow(0 0 8px rgba(0, 234, 255, 0.6)) drop-shadow(0 0 16px rgba(0, 234, 255, 0.3));
     }
 
     /* History Cards */

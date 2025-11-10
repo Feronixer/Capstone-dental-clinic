@@ -385,10 +385,12 @@
 
 /* Header Dark Mode */
 [data-theme="dark"] .about-main-title {
-    background: linear-gradient(135deg, #60a5fa 0%, #2dd4bf 100%);
+    background: linear-gradient(135deg, #00EAFF 0%, #00EAFF 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
+    text-shadow: none !important;
+    filter: none !important;
 }
 
 [data-theme="dark"] .about-clinic-title {

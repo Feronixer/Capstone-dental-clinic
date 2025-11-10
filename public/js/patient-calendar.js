@@ -276,10 +276,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 // Count patient's own appointments by status
                                 ownAppointmentsCount++;
                                 let status = apt.status ? apt.status.toLowerCase() : 'pending';
-                                // Map "missed" to "blocked" for styling consistency
-                                if (status === 'missed') {
-                                    status = 'blocked';
-                                }
+                                // Keep "missed" status as is for gray styling
                                 
                                 if (ownStatusCounts.hasOwnProperty(status)) {
                                     ownStatusCounts[status]++;
@@ -407,10 +404,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             }
                             
                             let status = apt.status ? apt.status.toLowerCase() : 'pending';
-                            // Map "missed" to "blocked" for styling consistency
-                            if (status === 'missed') {
-                                status = 'blocked';
-                            }
+                            // Keep "missed" status as is for gray styling
                             
                             // For other patients' appointments, use "booked" status for styling
                             // For patient's own appointments, keep their actual status (pending, confirmed, etc.)
@@ -806,7 +800,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 let status = (apt.status || 'pending').toLowerCase();
-                if (status === 'missed') status = 'blocked';
+                // Keep "missed" status as is for gray styling
                 if (!isOwnAppointment) status = 'booked';
                 
                 const isCompleted = status === 'completed';
@@ -1798,10 +1792,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     
                     let status = apt.status ? apt.status.toLowerCase() : 'pending';
-                    // Map "missed" to "blocked" for styling consistency
-                    if (status === 'missed') {
-                        status = 'blocked';
-                    }
+                    // Keep "missed" status as is for gray styling
                     
                     // For other patients' appointments, use "booked" status for styling
                     if (!isOwnAppointment) {
@@ -2002,10 +1993,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     
                     let status = apt.status ? apt.status.toLowerCase() : 'pending';
-                    // Map "missed" to "blocked" for styling consistency
-                    if (status === 'missed') {
-                        status = 'blocked';
-                    }
+                    // Keep "missed" status as is for gray styling
                     
                     // For other patients' appointments, use "booked" status for styling
                     if (!isOwnAppointment) {

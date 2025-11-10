@@ -6,7 +6,11 @@
                 <div class="footer-logo">
                     <h3 class="footer-brand">
                         <img src="{{ asset('images/logo7.png') }}" alt="ToothTalk" class="footer-logo-img">
-                        ToothTalk
+                        <div class="footer-brand-text">
+                            <span class="footer-brand-main">ToothTalk</span>
+                            <hr class="footer-brand-divider">
+                            <span class="footer-brand-sub">JValera Dental Clinic</span>
+                        </div>
                     </h3>
                 </div>
                 <p class="footer-description">
@@ -73,7 +77,7 @@
         <!-- Bottom Bar -->
         <div class="footer-bottom reveal-element reveal-fade">
             <p class="copyright">
-                &copy; {{ date('Y') }} Dental Clinic. All Rights Reserved.
+                &copy; {{ date('Y') }} ToothTalk for JValera Dental Clinic. All Rights Reserved.
             </p>
             <div class="footer-bottom-links">
                 <a href="#" data-bs-toggle="modal" data-bs-target="#privacyPolicyModal">Privacy Policy</a>
@@ -87,10 +91,35 @@
 </footer>
 
 <style>
+/* Ensure footer is always visible */
 .patient-footer {
     background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
     color: rgba(255,255,255,0.8);
     margin-top: 2.5rem;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+/* Override reveal animations for footer to ensure it's always visible */
+.patient-footer.reveal-element,
+.patient-footer .reveal-element {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+}
+
+.patient-footer.reveal-slide-up,
+.patient-footer .reveal-slide-up {
+    opacity: 1 !important;
+    transform: none !important;
+}
+
+.patient-footer.reveal-fade,
+.patient-footer .reveal-fade {
+    opacity: 1 !important;
 }
 
 .footer-content {
@@ -131,9 +160,45 @@
     color: white;
 }
 
+.footer-brand-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    align-items: flex-start;
+}
+
+.footer-brand-main {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: white;
+    line-height: 1.2;
+    margin-bottom: 0;
+}
+
+.footer-brand-divider {
+    width: 100%;
+    margin: 0.1rem 0;
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.3);
+    height: 0;
+}
+
+.footer-brand-sub {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #667eea;
+    line-height: 1.2;
+    letter-spacing: 0.02em;
+}
+
+/* Dark Mode Styles for Footer Brand Sub */
+[data-theme="dark"] .footer-brand-sub {
+    color: #00EAFF !important;
+}
+
 .footer-logo-img {
-    width: 40px;
-    height: 40px;
+    width: 55px;
+    height: 55px;
     object-fit: contain;
     display: inline-block;
 }
@@ -172,8 +237,12 @@
 }
 
 .social-link:hover {
-    background: #667eea;
+    background: rgba(0, 234, 255, 0.2);
+    color: #00EAFF !important;
     transform: translateY(-3px);
+    text-shadow: none !important;
+    filter: none !important;
+    box-shadow: none !important;
 }
 
 .footer-heading {
@@ -215,8 +284,11 @@
 }
 
 .footer-links a:hover {
-    color: white;
+    color: #00EAFF !important;
     padding-left: 0.5rem;
+    text-shadow: none !important;
+    filter: none !important;
+    box-shadow: none !important;
 }
 
 .footer-contact li {
@@ -231,6 +303,14 @@
     margin-top: 0.2rem;
     font-size: 0.85rem;
     flex-shrink: 0;
+}
+
+/* Dark Mode Styles for Footer Contact Icons */
+[data-theme="dark"] .footer-contact i {
+    color: #00EAFF !important;
+    text-shadow: none !important;
+    filter: none !important;
+    box-shadow: none !important;
 }
 
 .footer-contact span {
@@ -275,7 +355,10 @@
 }
 
 .footer-bottom-links a:hover {
-    color: white;
+    color: #00EAFF !important;
+    text-shadow: none !important;
+    filter: none !important;
+    box-shadow: none !important;
 }
 
 @media (max-width: 1024px) {
@@ -299,6 +382,19 @@
         grid-template-columns: 1fr 1fr;
         gap: 1rem;
         margin-bottom: 1rem;
+    }
+
+    .footer-brand-main {
+        font-size: 1.3rem;
+    }
+
+    .footer-brand-sub {
+        font-size: 0.75rem;
+    }
+
+    .footer-logo-img {
+        width: 50px;
+        height: 50px;
     }
     
     /* About Section - full width */

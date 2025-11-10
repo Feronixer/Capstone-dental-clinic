@@ -86,12 +86,12 @@
             align-items: center;
             gap: 0.5rem;
             font-size: 1.5rem;
-            font-weight: 700;
+            font-weight: 800;
             color: #2196F3;
         }
 
         .logo span {
-            font-weight: 700;
+            font-weight: 800;
         }
 
         .logo-img {
@@ -1241,7 +1241,7 @@
         .footer {
             background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
             color: white;
-            padding: 4rem 3rem 2rem;
+            padding: 1.5rem 2rem 0.75rem;
         }
 
         .footer-container {
@@ -1251,41 +1251,88 @@
 
         .footer-content {
             display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr;
-            gap: 3rem;
-            margin-bottom: 3rem;
+            grid-template-columns: 1.5fr 1fr 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .footer-about {
+            max-width: 320px;
         }
 
         .footer-about h3 {
             font-size: 1.5rem;
             font-weight: 700;
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
 
         .footer-about .footer-logo {
-            width: 50px;
-            height: 50px;
+            width: 55px;
+            height: 55px;
             object-fit: contain;
             display: inline-block;
         }
 
+        .footer-brand-text {
+            display: flex;
+            flex-direction: column;
+            gap: 0.1rem;
+            align-items: flex-start;
+        }
+
+        .footer-brand-main {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+            line-height: 1.2;
+            margin-bottom: 0;
+        }
+
+        .footer-brand-divider {
+            width: 100%;
+            margin: 0.1rem 0;
+            border: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            height: 0;
+        }
+
+        .footer-brand-sub {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #00EAFF;
+            line-height: 1.2;
+            letter-spacing: 0.02em;
+            text-shadow: none !important;
+            filter: none !important;
+            box-shadow: none !important;
+        }
+
+        /* Dark Mode Styles for Footer Brand Sub */
+        [data-theme="dark"] .footer-brand-sub {
+            color: #00EAFF !important;
+            text-shadow: none !important;
+            filter: none !important;
+            box-shadow: none !important;
+        }
+
         .footer-about p {
             color: rgba(255, 255, 255, 0.9);
-            line-height: 1.7;
-            margin-bottom: 1.5rem;
+            line-height: 1.3;
+            margin-bottom: 0.5rem;
+            font-size: 0.8rem;
         }
 
         .footer-social {
             display: flex;
-            gap: 1rem;
+            gap: 0.75rem;
         }
 
         .footer-social a {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 50%;
             display: flex;
@@ -1294,19 +1341,19 @@
             color: white;
             text-decoration: none;
             transition: all 0.3s ease;
-            font-size: 1.1rem;
+            font-size: 1rem;
         }
 
         .footer-social a:hover {
             background: white;
             color: #2196F3;
-            transform: translateY(-3px);
+            transform: translateY(-2px);
         }
 
         .footer-section h4 {
-            font-size: 1.1rem;
+            font-size: 0.95rem;
             font-weight: 700;
-            margin-bottom: 1.2rem;
+            margin-bottom: 0.75rem;
         }
 
         .footer-section ul {
@@ -1315,7 +1362,7 @@
         }
 
         .footer-section ul li {
-            margin-bottom: 0.8rem;
+            margin-bottom: 0.5rem;
         }
 
         .footer-section ul li a {
@@ -1325,6 +1372,7 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            font-size: 0.85rem;
         }
 
         /* Services bullets aligned with other lists */
@@ -1335,10 +1383,11 @@
         }
         .footer-section ul.services-bullets li {
             color: rgba(255, 255, 255, 0.85);
-            margin-bottom: 0.8rem;
-            padding-left: 1.4rem;
+            margin-bottom: 0.5rem;
+            padding-left: 1.2rem;
             position: relative;
             text-indent: 0;
+            font-size: 0.85rem;
         }
         .footer-section ul.services-bullets li::before {
             content: '\25CF';
@@ -1347,50 +1396,59 @@
             top: 50%;
             transform: translateY(-50%);
             color: #ffffff;
-            font-size: 0.9rem;
+            font-size: 0.75rem;
             line-height: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 0.9rem;
+            width: 0.75rem;
         }
 
         .footer-section ul li a:hover {
             color: white;
-            padding-left: 0.5rem;
+            padding-left: 0.4rem;
         }
 
         .footer-section ul li a i {
-            font-size: 0.9rem;
+            font-size: 0.8rem;
+        }
+
+        .footer-contact {
+            padding-right: 80px;
         }
 
         .footer-contact p {
             color: rgba(255, 255, 255, 1);
-            margin-bottom: 1.2rem;
+            margin-bottom: 0.75rem;
             display: flex;
             align-items: center;
-            gap: 1rem;
-            line-height: 1.5;
-            font-size: 0.95rem;
+            gap: 0.75rem;
+            line-height: 1.4;
+            font-size: 0.85rem;
         }
 
         .footer-contact p i {
-            font-size: 1.2rem;
+            font-size: 1rem;
             flex-shrink: 0;
-            width: 24px;
+            width: 20px;
             text-align: center;
-            color: #93c5fd;
+            color: #00EAFF;
+            text-shadow: none !important;
+            filter: none !important;
+            box-shadow: none !important;
         }
 
         .footer-contact p span {
             flex: 1;
+            white-space: nowrap;
         }
 
         .footer-bottom {
             border-top: 1px solid rgba(255, 255, 255, 0.2);
-            padding-top: 2rem;
+            padding-top: 0.75rem;
             text-align: center;
             color: rgba(255, 255, 255, 0.8);
+            font-size: 0.8rem;
         }
 
         .footer-bottom p {
@@ -1400,18 +1458,51 @@
         @media (max-width: 1024px) {
             .footer-content {
                 grid-template-columns: 1fr 1fr;
-                gap: 2rem;
+                gap: 0.75rem;
+            }
+
+            .footer-about {
+                max-width: 100%;
+            }
+
+            .footer-contact {
+                padding-right: 80px;
             }
         }
 
         @media (max-width: 768px) {
             .footer {
-                padding: 3rem 1.5rem 1.5rem;
+                padding: 1.25rem 1.5rem 0.75rem;
             }
 
             .footer-content {
                 grid-template-columns: 1fr;
-                gap: 2rem;
+                gap: 0.75rem;
+            }
+
+            .footer-about {
+                max-width: 100%;
+            }
+
+            .footer-contact {
+                padding-right: 0;
+            }
+
+            .footer-contact p span {
+                white-space: normal;
+            }
+
+            .footer-brand-main {
+                font-size: 1.5rem;
+            }
+
+            .footer-brand-sub {
+                font-size: 0.75rem;
+            }
+
+            .footer-about .footer-logo {
+                width: 50px;
+                height: 50px;
             }
 
             /* Responsive adjustments for services bullets */
@@ -2702,10 +2793,16 @@
                 <div class="footer-about reveal-element reveal-fade">
                     <h3>
                         <img src="{{ asset('images/logo7.png') }}" alt="ToothTalk" class="footer-logo">
-                        ToothTalk
+                        <div class="footer-brand-text">
+                            <span class="footer-brand-main">ToothTalk</span>
+                            <hr class="footer-brand-divider">
+                            <span class="footer-brand-sub">JValera Dental Clinic</span>
+                        </div>
                     </h3>
                     <p>
-                        We offer premium dental care services since 2024. We're committed to providing utmost care and attention to your dental needs.
+                        We offer premium dental care services since 2024.<br>
+                        We're committed to providing utmost care and<br>
+                        attention to your dental needs.
                     </p>
                     <div class="footer-social">
                         <a href="https://www.facebook.com/profile.php?id=61555389276989" aria-label="Facebook">
@@ -2764,7 +2861,7 @@
 
             <!-- Footer Bottom -->
             <div class="footer-bottom reveal-element reveal-fade">
-                <p>&copy; {{ date('Y') }} ToothTalk Appointment Scheduler for JValera Dental Clinic. All rights reserved. | Designed with <i class="bi bi-heart-fill" style="color: #ff5252;"></i> for healthy smiles</p>
+                <p>&copy; {{ date('Y') }} ToothTalk Appointment Scheduler for JValera Dental Clinic. All rights reserved. | Designed with <i class="bi bi-heart-fill" style="color: #00EAFF; text-shadow: none !important; filter: none !important; box-shadow: none !important;"></i> for healthy smiles</p>
             </div>
         </div>
     </footer>

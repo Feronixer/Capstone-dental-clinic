@@ -488,6 +488,21 @@ html, body {
         transition: none !important;
     }
 }
+
+/* Ensure footer is always visible on development team page */
+.patient-footer {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+.patient-footer .reveal-element {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+}
 </style>
 
 <div class="team-page">

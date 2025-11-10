@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>JValera Dental Clinic - Patient Portal</title>
+    <title>ToothTalk JValera - Patient Portal</title>
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="{{ asset('images/logo7.png') }}">
-    <link rel="shortcut icon" type="image/png" href="{{ asset('images/logo7.png') }}">
-    <link rel="apple-touch-icon" href="{{ asset('images/logo7.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/logo4.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ asset('images/logo4.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/logo4.png') }}">
     <script>
         // Initialize dark mode on page load
         (function() {

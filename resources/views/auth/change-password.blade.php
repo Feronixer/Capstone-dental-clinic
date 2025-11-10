@@ -250,6 +250,7 @@
 
     .btn-confirm-logout:hover {
         background: linear-gradient(135deg, #475569 0%, #334155 100%);
+        color: white !important;
         transform: translateY(-2px);
         box-shadow: 0 8px 20px rgba(100, 116, 139, 0.4);
     }

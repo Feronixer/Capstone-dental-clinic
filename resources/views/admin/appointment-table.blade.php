@@ -222,6 +222,7 @@
                                                     'confirmed' => 'primary',
                                                     'completed' => 'success',
                                                     'cancelled' => 'danger',
+                                                    'missed' => 'secondary',
                                                     default => 'secondary'
                                                 };
                                             @endphp

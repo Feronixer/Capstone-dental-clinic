@@ -8,6 +8,27 @@
             </div>
         </a>
 
+        <!-- Page Title (Mobile Only) -->
+        <div class="page-title-mobile">
+            @if(request()->routeIs('patient-dashboard') || request()->routeIs('patient-home'))
+                Dashboard
+            @elseif(request()->routeIs('patient-calendar'))
+                Calendar
+            @elseif(request()->routeIs('patient-announcement'))
+                Announcements
+            @elseif(request()->routeIs('patient-record'))
+                My Records
+            @elseif(request()->routeIs('patient-about'))
+                About Us
+            @elseif(request()->routeIs('patient-profile'))
+                Profile
+            @elseif(request()->routeIs('patient-notifications'))
+                Notifications
+            @else
+                {{ ucfirst(str_replace('patient-', '', request()->route()->getName() ?? 'Page')) }}
+            @endif
+        </div>
+
         <!-- Navigation Menu -->
         <nav class="header-nav">
             <ul class="nav-menu">
@@ -258,19 +279,22 @@
 }
 
 .header-container {
-    max-width: 1400px;
+    max-width: 1500px;
     margin: 0 auto;
     padding: 0.75rem 2rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .header-container-right {
     display: flex;
     align-items: center;
     gap: 0.9rem;
+    flex-shrink: 0;
 }
 
 .header-logo {
@@ -281,6 +305,8 @@
     transition: all 0.3s ease;
     padding: 0.25rem;
     border-radius: 8px;
+    flex-shrink: 0;
+    min-width: 0;
 }
 
 .header-logo:hover {
@@ -372,12 +398,37 @@
     text-shadow: 0 2px 12px rgba(255, 255, 255, 0.5) !important;
 }
 
+/* Dark Mode Page Title */
+[data-theme="dark"] .page-title-mobile {
+    color: #ffffff !important;
+    text-shadow: 0 1px 3px rgba(255, 255, 255, 0.2) !important;
+}
+
 .clinic-subtitle {
     font-size: 0.75rem;
     opacity: 0.9;
 }
 
-.header-nav { flex: 1; }
+/* Page Title (Mobile Only) */
+.page-title-mobile {
+    display: none;
+    color: white;
+    font-size: 1.25rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
+    flex: 1;
+    min-width: 0;
+    max-width: calc(100% - 200px);
+}
+
+.header-nav { 
+    flex: 1; 
+    display: flex;
+    justify-content: center;
+}
 
 .nav-menu {
     display: flex;
@@ -508,6 +559,37 @@
         width: 60%;
         opacity: 1;
     }
+}
+
+/* Dark Mode Styles for Navigation Links */
+[data-theme="dark"] .nav-item .nav-link i {
+    color: white !important;
+}
+
+[data-theme="dark"] .nav-item .nav-link.active {
+    color: #00EAFF !important;
+}
+
+[data-theme="dark"] .nav-item .nav-link.active i {
+    color: white !important;
+}
+
+[data-theme="dark"] .nav-item .nav-link.active span {
+    color: #00EAFF !important;
+    text-shadow: 0 0 8px rgba(0, 234, 255, 0.6), 0 0 16px rgba(0, 234, 255, 0.3);
+}
+
+[data-theme="dark"] .nav-item .nav-link:hover {
+    color: #00EAFF !important;
+}
+
+[data-theme="dark"] .nav-item .nav-link:hover i {
+    color: white !important;
+}
+
+[data-theme="dark"] .nav-item .nav-link:hover span {
+    color: #00EAFF !important;
+    text-shadow: 0 0 8px rgba(0, 234, 255, 0.6), 0 0 16px rgba(0, 234, 255, 0.3);
 }
 
 .header-actions {
@@ -1107,21 +1189,36 @@
 }
 
 [data-theme="dark"] .mobile-nav-link i {
-    color: #60a5fa !important;
+    color: white !important;
 }
 
 [data-theme="dark"] .mobile-nav-link:hover {
     background: var(--dm-bg-tertiary, #334155) !important;
+    color: #00EAFF !important;
+}
+
+[data-theme="dark"] .mobile-nav-link:hover i {
+    color: white !important;
+}
+
+[data-theme="dark"] .mobile-nav-link:hover span {
+    color: #00EAFF !important;
+    text-shadow: 0 0 8px rgba(0, 234, 255, 0.6), 0 0 16px rgba(0, 234, 255, 0.3);
 }
 
 [data-theme="dark"] .mobile-nav-link.active {
-    background: linear-gradient(to right, rgba(59, 130, 246, 0.2) 0%, var(--dm-bg-tertiary, #334155) 100%) !important;
-    border-left-color: #60a5fa !important;
-    color: #60a5fa !important;
+    background: linear-gradient(to right, rgba(0, 234, 255, 0.2) 0%, var(--dm-bg-tertiary, #334155) 100%) !important;
+    border-left-color: #00EAFF !important;
+    color: #00EAFF !important;
 }
 
 [data-theme="dark"] .mobile-nav-link.active i {
-    color: #60a5fa !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .mobile-nav-link.active span {
+    color: #00EAFF !important;
+    text-shadow: 0 0 8px rgba(0, 234, 255, 0.6), 0 0 16px rgba(0, 234, 255, 0.3);
 }
 
 [data-theme="dark"] .mobile-user-info-section {
@@ -1333,6 +1430,308 @@
     background: #fee2e2;
 }
 
+/* Desktop Navigation Bar Size Reduction - Applies to All Patient Pages */
+@media (min-width: 992px) {
+    .header-container {
+        padding: 0.6rem 2rem !important;
+    }
+
+    .logo-img {
+        width: 48px !important;
+        height: 48px !important;
+    }
+
+    .clinic-name {
+        font-size: 1.4rem !important;
+    }
+
+    .nav-item .nav-link {
+        padding: 0.55rem 1rem !important;
+        font-size: 0.88rem !important;
+        gap: 0.4rem !important;
+    }
+
+    .nav-item .nav-link i {
+        font-size: 1rem !important;
+    }
+
+    .nav-menu {
+        gap: 0.4rem !important;
+    }
+
+    .icon-btn {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 0.95rem !important;
+    }
+
+    .profile-avatar {
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+        min-height: 32px !important;
+        font-size: 0.75rem !important;
+    }
+
+    .user-name {
+        font-size: 0.85rem !important;
+    }
+
+    .user-role {
+        font-size: 0.7rem !important;
+    }
+
+    .user-profile-btn {
+        padding: 0.4rem 0.85rem !important;
+        gap: 0.6rem !important;
+    }
+
+    .header-container-right {
+        gap: 0.7rem !important;
+    }
+
+    .header-actions {
+        gap: 0.7rem !important;
+    }
+
+    .header-logo {
+        gap: 0.75rem !important;
+    }
+}
+
+/* Desktop Size Adjustments */
+@media (min-width: 1600px) {
+    .header-container {
+        padding: 0.7rem 2.5rem !important;
+    }
+
+    .logo-img {
+        width: 50px !important;
+        height: 50px !important;
+    }
+
+    .clinic-name {
+        font-size: 1.5rem !important;
+    }
+
+    .nav-item .nav-link {
+        padding: 0.6rem 1.2rem !important;
+        font-size: 0.9rem !important;
+        gap: 0.45rem !important;
+    }
+
+    .nav-item .nav-link i {
+        font-size: 1.05rem !important;
+    }
+
+    .nav-menu {
+        gap: 0.45rem !important;
+    }
+
+    .user-profile-btn {
+        padding: 0.5rem 1rem !important;
+    }
+
+    .user-name {
+        font-size: 0.9rem !important;
+    }
+
+    .user-role {
+        font-size: 0.75rem !important;
+    }
+
+    .header-container-right {
+        gap: 0.8rem !important;
+    }
+}
+
+@media (min-width: 1400px) and (max-width: 1599px) {
+    .header-container {
+        padding: 0.7rem 2.25rem !important;
+    }
+
+    .logo-img {
+        width: 50px !important;
+        height: 50px !important;
+    }
+
+    .clinic-name {
+        font-size: 1.5rem !important;
+    }
+
+    .nav-item .nav-link {
+        padding: 0.6rem 1.15rem !important;
+        font-size: 0.9rem !important;
+        gap: 0.45rem !important;
+    }
+
+    .nav-item .nav-link i {
+        font-size: 1.05rem !important;
+    }
+
+    .nav-menu {
+        gap: 0.45rem !important;
+    }
+
+    .user-profile-btn {
+        padding: 0.5rem 1rem !important;
+    }
+
+    .user-name {
+        font-size: 0.9rem !important;
+    }
+
+    .user-role {
+        font-size: 0.75rem !important;
+    }
+
+    .header-container-right {
+        gap: 0.75rem !important;
+    }
+}
+
+@media (min-width: 1200px) and (max-width: 1399px) {
+    .header-container {
+        padding: 0.65rem 2rem !important;
+    }
+
+    .logo-img {
+        width: 48px !important;
+        height: 48px !important;
+    }
+
+    .clinic-name {
+        font-size: 1.4rem !important;
+    }
+
+    .nav-item .nav-link {
+        padding: 0.55rem 1.1rem !important;
+        font-size: 0.88rem !important;
+        gap: 0.4rem !important;
+    }
+
+    .nav-item .nav-link i {
+        font-size: 1rem !important;
+    }
+
+    .nav-menu {
+        gap: 0.4rem !important;
+    }
+
+    .header-container-right {
+        gap: 0.7rem !important;
+    }
+}
+
+@media (min-width: 992px) and (max-width: 1199px) {
+    .header-container {
+        padding: 0.6rem 1.5rem !important;
+    }
+
+    .logo-img {
+        width: 48px !important;
+        height: 48px !important;
+    }
+
+    .clinic-name {
+        font-size: 1.4rem !important;
+    }
+
+    .nav-item .nav-link {
+        padding: 0.55rem 1rem !important;
+        font-size: 0.85rem !important;
+        gap: 0.4rem !important;
+    }
+
+    .nav-item .nav-link i {
+        font-size: 0.95rem !important;
+    }
+
+    .nav-menu {
+        gap: 0.4rem !important;
+    }
+
+    .user-profile-btn {
+        padding: 0.4rem 0.85rem !important;
+        gap: 0.6rem !important;
+    }
+
+    .user-name {
+        font-size: 0.85rem !important;
+    }
+
+    .user-role {
+        font-size: 0.7rem !important;
+    }
+
+    .profile-avatar {
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+        min-height: 32px !important;
+        font-size: 0.75rem !important;
+    }
+
+    .header-container-right {
+        gap: 0.7rem !important;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+    .header-container {
+        padding: 0.7rem 1.5rem;
+        gap: 0.8rem;
+    }
+
+    .nav-item .nav-link {
+        padding: 0.6rem 1rem;
+        font-size: 0.88rem;
+        gap: 0.45rem;
+    }
+
+    .nav-item .nav-link i {
+        font-size: 1.05rem;
+    }
+
+    .nav-menu {
+        gap: 0.4rem;
+    }
+
+    .user-profile-btn {
+        padding: 0.45rem 0.8rem;
+        gap: 0.6rem;
+    }
+
+    .user-name {
+        font-size: 0.85rem;
+    }
+
+    .user-role {
+        font-size: 0.7rem;
+    }
+
+    .profile-avatar {
+        width: 34px;
+        height: 34px;
+        min-width: 34px;
+        min-height: 34px;
+        font-size: 0.75rem;
+    }
+
+    .logo-img {
+        width: 52px;
+        height: 52px;
+    }
+
+    .clinic-name {
+        font-size: 1.5rem;
+    }
+
+    .header-container-right {
+        gap: 0.7rem;
+    }
+}
+
 @media (max-width: 992px) {
     .header-container {
         padding: 10px 14px;
@@ -1342,6 +1741,10 @@
 
     .header-nav {
         display: none;
+    }
+
+    .page-title-mobile {
+        display: block !important;
     }
 
     .header-container-right {
@@ -1402,6 +1805,11 @@
         display: none;
     }
 
+    /* Hide all dropdowns in header-actions on mobile (notifications and user profile) */
+    .header-actions .dropdown {
+        display: none !important;
+    }
+
     .user-profile-btn {
         display: none !important;
     }
@@ -1419,11 +1827,6 @@
 
     .header-actions {
         gap: 0.5rem;
-    }
-    
-    /* Hide notifications button on mobile - it's in hamburger menu */
-    .header-actions .dropdown:first-child {
-        display: none;
     }
 
     .icon-btn {
@@ -1462,6 +1865,12 @@
         line-height: 1.2;
         display: flex;
         align-items: center;
+    }
+
+    .page-title-mobile {
+        font-size: 1.15rem;
+        margin: 0;
+        max-width: calc(100% - 180px);
     }
 
     .mobile-menu-toggle {
@@ -1638,6 +2047,12 @@
         line-height: 1.2;
         display: flex;
         align-items: center;
+    }
+
+    .page-title-mobile {
+        font-size: 1.3rem;
+        margin: 0;
+        max-width: calc(100% - 160px);
     }
 
     .mobile-menu-toggle {
@@ -2327,6 +2742,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     .btn-confirm-logout:hover {
         background: linear-gradient(135deg, #475569 0%, #334155 100%);
+        color: white !important;
         transform: translateY(-2px);
         box-shadow: 0 8px 20px rgba(100, 116, 139, 0.4);
     }

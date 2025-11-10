@@ -629,6 +629,21 @@ html, body {
         transition: none !important;
     }
 }
+
+/* Ensure footer is always visible on profile page */
+.patient-footer {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+.patient-footer .reveal-element {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+}
 </style>
 
 <div class="profile-container">
@@ -716,8 +731,6 @@ html, body {
                     <div class="detail-block">
                         <span class="detail-block-label">Email *</span>
                         <input type="email" name="email" id="email" value="{{ $user->email }}" required>
-                        <input type="hidden" id="original_email" value="{{ $user->email }}">
-                        <input type="hidden" id="password" name="password">
                         <div class="invalid-feedback"></div>
                     </div>
                     <div class="edit-button-container">
@@ -726,39 +739,6 @@ html, body {
                     </div>
                 </form>
             </section>
-        </div>
-    </div>
-</div>
-
-<!-- Password Verification Modal -->
-<div class="modal fade" id="passwordModal" tabindex="-1" aria-labelledby="passwordModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header" style="background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%); color: white; border-bottom: none;">
-                <h5 class="modal-title" id="passwordModalLabel" style="color: white;">
-                    <i class="bi bi-shield-lock me-2"></i>Password Verification Required
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body" style="padding: 2rem;">
-                <p class="mb-3" style="color: #333;">You are changing your email address. Please enter your current password to confirm this change.</p>
-                <div class="mb-3">
-                    <label for="modalPassword" class="form-label fw-semibold" style="color: #333;">Current Password <span class="text-danger">*</span></label>
-                    <div style="display: flex; gap: 0.5rem; align-items: center;">
-                        <input type="password" class="form-control" id="modalPassword" placeholder="Enter your current password" autocomplete="current-password" style="flex: 1; padding: 0.875rem 1rem; border: 2px solid #1976D2; border-radius: 8px;">
-                        <button type="button" class="toggle-password-btn" data-target="#modalPassword" style="padding: 0.875rem 1rem; background: #1976D2; color: white; border: none; border-radius: 8px; cursor: pointer;">
-                            <i class="bi bi-eye"></i>
-                        </button>
-                    </div>
-                    <div class="invalid-feedback" id="passwordError" style="display: block; color: #ef5350; font-size: 0.875rem; margin-top: 0.25rem;"></div>
-                </div>
-            </div>
-            <div class="modal-footer" style="border-top: 1px solid #e3f2fd; padding: 1.5rem 2rem;">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="padding: 0.875rem 2rem; border-radius: 8px;">Cancel</button>
-                <button type="button" class="btn btn-primary" id="confirmPasswordBtn" style="background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%); border: none; padding: 0.875rem 2rem; border-radius: 8px;">
-                    <i class="bi bi-check-circle me-2"></i>Verify & Save
-                </button>
-            </div>
         </div>
     </div>
 </div>
@@ -794,29 +774,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const profileForm = document.getElementById('profileForm');
     const birthdayInput = document.getElementById('birthday');
     const ageInput = document.getElementById('age');
-    const emailInput = document.getElementById('email');
-    const originalEmailInput = document.getElementById('original_email');
-    const passwordInput = document.getElementById('password');
-    const passwordModal = new bootstrap.Modal(document.getElementById('passwordModal'));
-    const modalPasswordInput = document.getElementById('modalPassword');
-    const confirmPasswordBtn = document.getElementById('confirmPasswordBtn');
-    const passwordError = document.getElementById('passwordError');
-    let pendingFormSubmit = false;
-
-    // Toggle password visibility in modal
-    document.querySelectorAll('.toggle-password-btn').forEach(function(btn){
-        btn.addEventListener('click', function(){
-            const input = document.querySelector(this.getAttribute('data-target'));
-            if(!input) return;
-            const icon = this.querySelector('i');
-            const isPwd = input.getAttribute('type') === 'password';
-            input.setAttribute('type', isPwd ? 'text' : 'password');
-            if(icon){
-                icon.classList.toggle('bi-eye');
-                icon.classList.toggle('bi-eye-slash');
-            }
-        });
-    });
 
     // Calculate age from birthday (read-only, but calculate on load)
     function calculateAgeFromBirthday() {
@@ -842,60 +799,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle form submission
     profileForm.addEventListener('submit', function(e) {
         e.preventDefault();
-
-        const currentEmail = emailInput.value;
-        const originalEmail = originalEmailInput.value;
-
-        // Check if email changed - show modal if it did
-        if (currentEmail !== originalEmail && currentEmail.trim() !== '') {
-            pendingFormSubmit = true;
-            modalPasswordInput.value = '';
-            passwordError.textContent = '';
-            modalPasswordInput.classList.remove('is-invalid');
-            passwordModal.show();
-            modalPasswordInput.focus();
-            return;
-        }
-
-        // If email didn't change, submit directly
         updateProfile();
-    });
-
-    // Handle password confirmation
-    confirmPasswordBtn.addEventListener('click', function() {
-        const password = modalPasswordInput.value.trim();
-        
-        if (!password) {
-            modalPasswordInput.classList.add('is-invalid');
-            passwordError.textContent = 'Password is required';
-            passwordError.style.display = 'block';
-            return;
-        }
-
-        // Store password in hidden field
-        passwordInput.value = password;
-        
-        // Close modal and submit form
-        passwordModal.hide();
-        updateProfile();
-    });
-
-    // Clear error when typing in modal
-    modalPasswordInput.addEventListener('input', function() {
-        if (this.classList.contains('is-invalid')) {
-            this.classList.remove('is-invalid');
-            passwordError.textContent = '';
-            passwordError.style.display = 'none';
-        }
-    });
-
-    // Reset when modal is closed
-    document.getElementById('passwordModal').addEventListener('hidden.bs.modal', function() {
-        if (pendingFormSubmit) {
-            pendingFormSubmit = false;
-            modalPasswordInput.value = '';
-            passwordInput.value = '';
-        }
     });
 
     function updateProfile() {
@@ -929,16 +833,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     showValidationErrors(data.errors);
                 }
                 showMessage(data.message || 'Error updating profile', 'danger');
-                // If password error, show modal again
-                if (data.message && data.message.includes('password')) {
-                    pendingFormSubmit = true;
-                    modalPasswordInput.value = '';
-                    modalPasswordInput.classList.add('is-invalid');
-                    passwordError.textContent = data.message;
-                    passwordError.style.display = 'block';
-                    passwordModal.show();
-                    modalPasswordInput.focus();
-                }
             }
         })
         .catch(error => {
