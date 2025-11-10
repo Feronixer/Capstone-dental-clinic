@@ -44,6 +44,7 @@ class StaffAccessControl extends Model
         'can_edit_patient_records',
         'can_delete_patient_records',
         'can_respond_to_chat',
+        'can_attach_files',
         'can_export_data',
     ];
 
@@ -79,6 +80,7 @@ class StaffAccessControl extends Model
         'can_edit_patient_records' => 'boolean',
         'can_delete_patient_records' => 'boolean',
         'can_respond_to_chat' => 'boolean',
+        'can_attach_files' => 'boolean',
         'can_export_data' => 'boolean',
     ];
 

@@ -1,5 +1,8 @@
 @extends('layout.staff.app')
 @section('content')
+@php
+    $canAttachFiles = !$accessControl || $accessControl->can_attach_files;
+@endphp
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="mb-0 fw-bold text-primary"><i class="bi bi-chat-dots"></i> Live Chat Conversations</h2>
@@ -82,10 +85,12 @@
                     </div>
                     <div class="chat-input-section" id="chat-input-container" style="display: none;">
                         <div class="input-group input-group-lg chat-input-wrapper">
-                            <input type="file" id="chat-file-input" class="d-none" multiple accept="image/*,application/pdf,.doc,.docx,.txt" data-max-size="5242880">
+                            <input type="file" id="chat-file-input" class="d-none" multiple accept="image/*,application/pdf,.doc,.docx,.txt" data-max-size="5242880" @if(!$canAttachFiles) disabled @endif>
+                            @if($canAttachFiles)
                             <button class="btn btn-outline-secondary chat-attach-btn" type="button" title="Attach file" id="chat-attach-btn">
                                 <i class="bi bi-paperclip"></i>
                             </button>
+                            @endif
                             <input type="text" id="chat-input" class="form-control chat-message-input" placeholder="Type your message..." autocomplete="off">
                             <button class="btn btn-primary chat-send-btn" id="send-message-btn" type="button">
                                 <i class="bi bi-send-fill me-1"></i> Send
@@ -147,6 +152,7 @@ function escapeHtml(text) {
 let currentConversationId = null;
 let pollingInterval = null;
 let lastMessageId = null;
+const canAttachFiles = @json($canAttachFiles);
 
 async function loadConversations() {
     const status = document.getElementById('status-filter').value;
@@ -386,14 +392,14 @@ async function sendMessage() {
     if (!currentConversationId) return;
     
     // Store files before clearing input
-    const filesToSend = attachedFiles.slice(); // Deep copy
+    const filesToSend = canAttachFiles ? attachedFiles.slice() : [];
     const messageText = message || '';
     
     // Clear input immediately for better UX
     input.value = '';
     
     // Show message immediately with placeholder attachments
-    const placeholderAttachments = filesToSend.length > 0 ? filesToSend.map(f => ({
+    const placeholderAttachments = canAttachFiles && filesToSend.length > 0 ? filesToSend.map(f => ({
         name: f.name,
         url: '#',
         size: f.size,
@@ -415,7 +421,7 @@ async function sendMessage() {
         formData.append('_token', '{{ csrf_token() }}');
         
         // Add files - use numeric index for Laravel array handling
-        if (filesToSend.length > 0) {
+        if (canAttachFiles && filesToSend.length > 0) {
             console.log('Sending files:', filesToSend.length);
             filesToSend.forEach((file, index) => {
                 console.log(`Adding file ${index}:`, file.name, file.size, file.type);
@@ -454,7 +460,7 @@ async function sendMessage() {
             console.log('Message sent successfully:', data);
             
             // Update the message with actual attachments from server
-            if (data.message && data.message.attachments && data.message.attachments.length > 0) {
+            if (canAttachFiles && data.message && data.message.attachments && data.message.attachments.length > 0) {
                 const messagesEl = document.getElementById('chat-messages');
                 const messageWrappers = messagesEl.querySelectorAll('.message-wrapper');
                 if (messageWrappers.length > 0) {
@@ -533,37 +539,48 @@ function startPolling() {
 // File attachment handling
 let attachedFiles = [];
 
-document.getElementById('chat-attach-btn').addEventListener('click', function() {
-    document.getElementById('chat-file-input').click();
-});
+const chatAttachBtn = document.getElementById('chat-attach-btn');
+const chatFileInput = document.getElementById('chat-file-input');
 
-document.getElementById('chat-file-input').addEventListener('change', function(e) {
-    const files = Array.from(e.target.files);
-    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
-    const invalidFiles = [];
-    
-    files.forEach(file => {
-        // Check file size (5MB limit)
-        if (file.size > maxSize) {
-            invalidFiles.push(file.name);
-            return;
-        }
-        
-        // Check if file already exists
-        if (!attachedFiles.find(f => f.name === file.name && f.size === file.size)) {
-            attachedFiles.push(file);
-        }
+if (chatAttachBtn && canAttachFiles) {
+    chatAttachBtn.addEventListener('click', function() {
+        chatFileInput?.click();
     });
-    
-    // Show error for files that exceed size limit
-    if (invalidFiles.length > 0) {
-        showFileSizeWarningModal(invalidFiles);
+}
+
+if (chatFileInput) {
+    if (canAttachFiles) {
+        chatFileInput.addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+            const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+            const invalidFiles = [];
+            
+            files.forEach(file => {
+                // Check file size (5MB limit)
+                if (file.size > maxSize) {
+                    invalidFiles.push(file.name);
+                    return;
+                }
+                
+                // Check if file already exists
+                if (!attachedFiles.find(f => f.name === file.name && f.size === file.size)) {
+                    attachedFiles.push(file);
+                }
+            });
+            
+            // Show error for files that exceed size limit
+            if (invalidFiles.length > 0) {
+                showFileSizeWarningModal(invalidFiles);
+            }
+            
+            updateAttachedFilesDisplay();
+            // Reset file input to allow selecting the same file again
+            e.target.value = '';
+        });
+    } else {
+        chatFileInput.value = '';
     }
-    
-    updateAttachedFilesDisplay();
-    // Reset file input to allow selecting the same file again
-    e.target.value = '';
-});
+}
 
 // Initialize modals
 let fileSizeWarningModal = null;
@@ -608,6 +625,11 @@ function showErrorModal(message) {
 
 function updateAttachedFilesDisplay() {
     const container = document.getElementById('chat-attached-files');
+    if (!canAttachFiles) {
+        container.style.display = 'none';
+        container.innerHTML = '';
+        return;
+    }
     if (attachedFiles.length === 0) {
         container.style.display = 'none';
         return;

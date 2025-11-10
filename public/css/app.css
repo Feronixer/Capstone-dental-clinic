@@ -23,6 +23,86 @@
     --dm-input-border: #334155;
     --dm-navigation-bar: #0f172a;
     --dm-header-bg: #1e293b;
+    
+    /* Login CSS Variables - Edit these values to customize login page */
+    /* Container */
+    --login-container-padding: 1rem 1.5rem;
+    --login-container-gap: 0.2rem;
+    --login-container-bg-start: #F1F5FA;
+    --login-container-bg-end: #cffafe;
+    
+    /* Card */
+    --login-card-max-width: 56rem;
+    --login-card-border-radius: 0.75rem;
+    --login-card-max-height-offset: 6rem;
+    --login-card-margin: auto;
+    --login-card-transition: all 0.3s ease;
+    
+    /* Card Content */
+    --login-content-padding: 1.75rem;
+    --login-content-width: 50%;
+    --login-content-logo-height: 2.5rem;
+    
+    /* Form Elements */
+    --login-input-padding: 0.5rem;
+    --login-label-font-size: 0.9rem;
+    --login-label-margin-bottom: 0.4rem;
+    --login-input-group-min-width: 45px;
+    
+    /* Button */
+    --login-btn-padding: 0.6rem;
+    --login-btn-border-radius: 7px;
+    
+    /* Footer */
+    --login-footer-font-size: 0.875rem;
+    
+    /* Responsive - Tablet (992px) */
+    --login-tablet-content-padding: 2rem 1.5rem;
+    --login-tablet-image-height: 250px;
+    
+    /* Responsive - Mobile (768px) */
+    --login-mobile-container-padding: 0.5rem 0.75rem;
+    --login-mobile-container-padding-top: 0.75rem;
+    --login-mobile-card-max-height-offset: 1.5rem;
+    --login-mobile-card-margin: 0.25rem;
+    --login-mobile-content-padding: 1.25rem 1rem;
+    --login-mobile-input-padding: 0.6rem 0.5rem;
+    --login-mobile-input-group-min-width: 40px;
+    --login-mobile-input-group-padding: 0.6rem 0.4rem;
+    --login-mobile-toggle-btn-padding: 0.4rem 0.6rem;
+    --login-mobile-toggle-btn-min-width: 42px;
+    --login-mobile-h2-font-size: 1.35rem;
+    --login-mobile-logo-height: 2.25rem;
+    --login-mobile-label-font-size: 0.85rem;
+    --login-mobile-overlay-opacity: 0.9;
+    
+    /* Responsive - Small Mobile (480px) */
+    --login-small-container-padding: 0.4rem;
+    --login-small-container-padding-top: 0.5rem;
+    --login-small-card-border-radius: 0.5rem;
+    --login-small-card-max-height-offset: 0.8rem;
+    --login-small-card-margin: 0.2rem;
+    --login-small-content-padding: 1rem 0.875rem;
+    --login-small-logo-height: 2rem;
+    --login-small-h2-font-size: 1.15rem;
+    --login-small-label-font-size: 0.8rem;
+    --login-small-btn-padding: 0.6rem;
+    --login-small-btn-font-size: 0.9rem;
+    --login-small-footer-font-size: 0.7rem;
+    --login-small-footer-margin-top: 0.4rem;
+    --login-small-link-font-size: 0.8rem;
+    --login-small-link-mt-3: 0.6rem;
+    --login-small-link-mt-5: 1rem;
+    
+    /* Responsive - Landscape Mobile */
+    --login-landscape-container-padding: 0.4rem 0.75rem;
+    --login-landscape-card-max-height-offset: 0.8rem;
+    --login-landscape-content-padding: 0.875rem 1rem;
+    --login-landscape-header-margin-bottom: 0.5rem;
+    --login-landscape-logo-height: 1.75rem;
+    --login-landscape-h2-font-size: 1.15rem;
+    --login-landscape-h2-margin-bottom: 0.2rem;
+    --login-landscape-form-margin-bottom: 0.5rem;
 }
 
 /* Dark Mode */
@@ -999,7 +1079,7 @@ footer {
     flex-direction: row;
 }
 
-/* Login CSS */
+/* Login CSS - All sizes, margins, and spacing are controlled by CSS variables in :root above */
 .login-container {
     display: flex;
     flex-direction: column;
@@ -1007,55 +1087,54 @@ footer {
     min-height: 100dvh; /* Dynamic viewport height for mobile keyboards */
     align-items: center;
     justify-content: center;
-    background-image: linear-gradient(#F1F5FA, #cffafe);
-    padding: 1rem 1.5rem;
-    overflow-y: auto;
+    background-image: linear-gradient(var(--login-container-bg-start), var(--login-container-bg-end));
+    padding: var(--login-container-padding);
     overflow-x: hidden;
+    overflow-y: auto;
     box-sizing: border-box;
-    gap: 0.2rem;
+    gap: var(--login-container-gap);
     position: relative;
 }
 
 .login-card {
     display: flex;
     width: 100%;
-    max-width: 56rem;
+    max-width: var(--login-card-max-width);
     flex-direction: row;
     overflow: hidden;
-    border-radius: 0.75rem;
+    border-radius: var(--login-card-border-radius);
     opacity: 1;
     background-color: var(--background-color);
     box-shadow: none;
-    max-height: calc(100vh - 6rem);
-    max-height: calc(100dvh - 6rem); /* Dynamic viewport height for mobile keyboards */
+    max-height: calc(100vh - var(--login-card-max-height-offset));
+    max-height: calc(100dvh - var(--login-card-max-height-offset)); /* Dynamic viewport height for mobile keyboards */
     box-sizing: border-box;
     flex-shrink: 1;
     min-height: 0;
-    margin: auto;
+    margin: var(--login-card-margin);
+    transition: var(--login-card-transition);
 }
 
 .login-container > p {
     flex-shrink: 0;
-    font-size: 0.875rem;
+    font-size: var(--login-footer-font-size);
 }
 
 .login-card-content {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: 2rem;
-    width: 50%;
+    padding: var(--login-content-padding);
+    width: var(--login-content-width);
     box-shadow: none;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: hidden;
     box-sizing: border-box;
     max-height: 100%;
-    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 .login-card-content div img {
     width: auto;
-    height: 3rem;
+    height: var(--login-content-logo-height);
     margin: 0 auto;
 }
 
@@ -1075,7 +1154,50 @@ footer {
 }
 
 .login-card-content form div input {
-    padding: 0.6rem;
+    padding: var(--login-input-padding);
+}
+
+.login-card-content .form-label {
+    font-size: var(--login-label-font-size);
+    margin-bottom: var(--login-label-margin-bottom);
+}
+
+.login-card-content .input-group-text {
+    min-width: var(--login-input-group-min-width);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Optimize form spacing to prevent overflow */
+.login-card-content .mb-3 {
+    margin-bottom: 0.75rem !important;
+}
+
+.login-card-content .mb-4 {
+    margin-bottom: 1rem !important;
+}
+
+.login-card-content .mt-3 {
+    margin-top: 0.75rem !important;
+}
+
+.login-card-content .mt-5 {
+    margin-top: 1.5rem !important;
+}
+
+.login-card-content .text-center.mb-4 {
+    margin-bottom: 0.75rem !important;
+}
+
+.login-card-content h2 {
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+}
+
+.login-card-content p {
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
 }
 
 /* Fix input-group focus to include toggle button - applies to all input groups */
@@ -1122,12 +1244,12 @@ footer {
 
 .btn-custom-primary {
     width: 100%;
-    padding: 0.6rem;
+    padding: var(--login-btn-padding);
     color: var(--text-color);
     text-decoration: none;
     border: none;
     background-color: var(--btn-color);
-    border-radius: 7px;
+    border-radius: var(--login-btn-border-radius);
 }
 
 .btn-custom-primary:hover {
@@ -1551,31 +1673,70 @@ footer {
 }
 
 
-/* Resposive Design */
-@media screen and (max-width: 768px) {
-    .login-container {
-        min-height: 100vh;
-        min-height: 100dvh;
-        padding: 0.75rem 1rem;
-        justify-content: flex-start;
-        padding-top: 1rem;
-    }
-    
+/* Responsive Design */
+
+/* Medium screens (tablets in portrait) */
+@media screen and (max-width: 992px) and (min-width: 769px) {
     .login-card {
-        max-height: none;
-        max-height: calc(100dvh - 2rem);
-        margin-top: 0.5rem;
-        margin-bottom: 0.5rem;
+        max-width: 100%;
+        flex-direction: column;
     }
     
     .login-card-content {
         width: 100%;
-        padding: 1.5rem 1.25rem;
+        padding: var(--login-tablet-content-padding);
+    }
+    
+    .login-card-image {
+        width: 100%;
+        height: var(--login-tablet-image-height);
+        order: -1;
+    }
+    
+    .login-card-image img {
+        object-fit: cover;
+        height: 100%;
+    }
+}
+
+/* Tablet and smaller screens */
+@media screen and (max-width: 992px) {
+    .login-container {
+        padding: 1rem;
+    }
+    
+    .login-card {
+        max-width: 100%;
+    }
+}
+
+/* Mobile devices */
+@media screen and (max-width: 768px) {
+    .login-container {
+        min-height: 100vh;
+        min-height: 100dvh;
+        padding: var(--login-mobile-container-padding);
         justify-content: flex-start;
-        max-height: calc(100dvh - 2rem);
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
+        padding-top: var(--login-mobile-container-padding-top);
+    }
+    
+    .login-card {
+        max-height: none;
+        max-height: calc(100dvh - var(--login-mobile-card-max-height-offset));
+        margin-top: var(--login-mobile-card-margin);
+        margin-bottom: var(--login-mobile-card-margin);
+        background-color: #ffffff !important;
+        flex-direction: column;
+    }
+    
+    .login-card-content {
+        width: 100%;
+        padding: var(--login-mobile-content-padding);
+        justify-content: flex-start;
+        max-height: calc(100dvh - var(--login-mobile-card-max-height-offset));
+        overflow: hidden;
         position: relative;
+        background-color: transparent !important;
         background-image: url('../images/tooth.png');
         background-size: cover;
         background-position: center;
@@ -1589,7 +1750,7 @@ footer {
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(255, 255, 255, 0.85);
+        background: rgba(255, 255, 255, var(--login-mobile-overlay-opacity));
         z-index: 0;
     }
     
@@ -1612,36 +1773,178 @@ footer {
     .login-card-content input[type="password"],
     .login-card-content input[type="email"] {
         font-size: 16px; /* Prevents zoom on iOS */
+        padding: var(--login-mobile-input-padding);
+    }
+    
+    .login-card-content .input-group-text {
+        min-width: var(--login-mobile-input-group-min-width);
+        padding: var(--login-mobile-input-group-padding);
+    }
+    
+    .login-card-content .btn-outline-secondary {
+        padding: var(--login-mobile-toggle-btn-padding);
+        min-width: var(--login-mobile-toggle-btn-min-width);
+    }
+    
+    .login-card-content h2 {
+        font-size: var(--login-mobile-h2-font-size);
+    }
+    
+    .login-card-content div img {
+        height: var(--login-mobile-logo-height);
+    }
+    
+    .login-card-content .form-label {
+        font-size: var(--login-mobile-label-font-size);
+    }
+    
+    .login-card-content .mb-3 {
+        margin-bottom: 0.6rem !important;
+    }
+    
+    .login-card-content .mb-4 {
+        margin-bottom: 0.75rem !important;
+    }
+    
+    .login-card-content .mt-3 {
+        margin-top: 0.6rem !important;
+    }
+    
+    .login-card-content .mt-5 {
+        margin-top: 1rem !important;
+    }
+    
+    .login-card-content .text-center.mb-4 {
+        margin-bottom: 0.75rem !important;
+    }
+    
+    .login-card-content h2 {
+        margin-bottom: 0.4rem;
+        line-height: 1.2;
+    }
+    
+    .login-card-content p {
+        margin-bottom: 0.4rem;
+        line-height: 1.2;
     }
 }
 
 /* Extra small devices (phones in portrait) */
 @media screen and (max-width: 480px) {
     .login-container {
-        padding: 0.5rem;
-        padding-top: 0.75rem;
+        padding: var(--login-small-container-padding);
+        padding-top: var(--login-small-container-padding-top);
     }
     
     .login-card {
-        border-radius: 0.5rem;
-        max-height: calc(100dvh - 1rem);
+        border-radius: var(--login-small-card-border-radius);
+        max-height: calc(100dvh - var(--login-small-card-max-height-offset));
+        background-color: #ffffff !important;
+        margin-top: var(--login-small-card-margin);
+        margin-bottom: var(--login-small-card-margin);
     }
     
     .login-card-content {
-        padding: 1.25rem 1rem;
-        max-height: calc(100dvh - 1rem);
+        padding: var(--login-small-content-padding);
+        max-height: calc(100dvh - var(--login-small-card-max-height-offset));
+        overflow: hidden;
+        background-color: transparent !important;
     }
     
     .login-card-content > div:first-child {
-        margin-bottom: 1rem;
+        margin-bottom: 0.75rem !important;
     }
     
     .login-card-content > div:first-child img {
-        height: 2.5rem;
+        height: var(--login-small-logo-height);
+        margin-bottom: 0.5rem !important;
     }
     
     .login-card-content h2 {
-        font-size: 1.25rem;
+        font-size: var(--login-small-h2-font-size);
+    }
+    
+    .login-card-content .form-label {
+        font-size: var(--login-small-label-font-size);
+    }
+    
+    .login-card-content .btn-custom-primary {
+        padding: var(--login-small-btn-padding);
+        font-size: var(--login-small-btn-font-size);
+    }
+    
+    .login-container > p {
+        font-size: var(--login-small-footer-font-size);
+        margin-top: var(--login-small-footer-margin-top);
+    }
+    
+    .login-card-content .text-center a {
+        font-size: var(--login-small-link-font-size);
+    }
+    
+    .login-card-content .text-center.mt-3 {
+        margin-top: var(--login-small-link-mt-3) !important;
+    }
+    
+    .login-card-content .text-center.mt-5 {
+        margin-top: var(--login-small-link-mt-5) !important;
+    }
+    
+    .login-card-content .mb-3 {
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .login-card-content .mb-4 {
+        margin-bottom: 0.6rem !important;
+    }
+    
+    .login-card-content .text-center.mb-4 {
+        margin-bottom: 0.6rem !important;
+    }
+    
+    .login-card-content h2 {
+        margin-bottom: 0.3rem;
+        line-height: 1.1;
+    }
+    
+    .login-card-content p {
+        margin-bottom: 0.3rem;
+        line-height: 1.1;
+    }
+}
+
+/* Landscape orientation on mobile */
+@media screen and (max-width: 768px) and (orientation: landscape) {
+    .login-container {
+        padding: var(--login-landscape-container-padding);
+    }
+    
+    .login-card {
+        max-height: calc(100dvh - var(--login-landscape-card-max-height-offset));
+    }
+    
+    .login-card-content {
+        padding: var(--login-landscape-content-padding);
+        max-height: calc(100dvh - var(--login-landscape-card-max-height-offset));
+        overflow: hidden;
+    }
+    
+    .login-card-content > div:first-child {
+        margin-bottom: var(--login-landscape-header-margin-bottom);
+    }
+    
+    .login-card-content > div:first-child img {
+        height: var(--login-landscape-logo-height);
+    }
+    
+    .login-card-content h2 {
+        font-size: var(--login-landscape-h2-font-size);
+        margin-bottom: var(--login-landscape-h2-margin-bottom);
+    }
+    
+    .login-card-content .mb-3,
+    .login-card-content .mb-4 {
+        margin-bottom: var(--login-landscape-form-margin-bottom) !important;
     }
 }
 

@@ -789,7 +789,7 @@
         }
 
         .hero-title {
-            font-size: 52px;
+            font-size: 72px;
             margin-bottom: 1rem;
         }
 

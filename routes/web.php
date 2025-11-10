@@ -276,6 +276,10 @@ Route::middleware(['auth:staff', \App\Http\Middleware\LogStaffActivity::class])-
 
     // Staff ToothTalk Routes
     Route::get('/staff/toothtalk', [App\Http\Controllers\Staff\ToothTalkController::class, 'index'])->name('staff-toothtalk');
+    Route::post('/staff/toothtalk/settings', [App\Http\Controllers\Staff\ToothTalkController::class,'saveSettings'])->name('staff-toothtalk.settings.save');
+    Route::post('/staff/toothtalk/faq', [App\Http\Controllers\Staff\ToothTalkController::class,'storeFaq'])->name('staff-toothtalk.faq.store');
+    Route::put('/staff/toothtalk/faq/{id}', [App\Http\Controllers\Staff\ToothTalkController::class,'updateFaq'])->name('staff-toothtalk.faq.update');
+    Route::delete('/staff/toothtalk/faq/{id}', [App\Http\Controllers\Staff\ToothTalkController::class,'destroyFaq'])->name('staff-toothtalk.faq.delete');
 
     // Staff Account Management Routes (Patient accounts only)
     Route::get('/staff/account-management', [StaffAccountManagementController::class,'index'])->name('staff-account-management');

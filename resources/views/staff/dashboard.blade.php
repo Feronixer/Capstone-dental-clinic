@@ -78,6 +78,7 @@
         margin-bottom: 0.5rem;
         border-left: 3px solid transparent;
         background-color: white !important;
+        color:rgb(0, 0, 0) !important; /* ensure readable text in light mode */
     }
 
     .appointment-item:hover {
@@ -90,6 +91,13 @@
     .patient-list-item {
         background-color: white !important;
         color: #212529 !important;
+    }
+    /* Ensure muted text maintains contrast on white cards (light mode) */
+    .appointment-item .text-muted,
+    .patient-list-item .text-muted,
+    .card.bg-white .text-muted,
+    .card-body.bg-white .text-muted {
+        color: #6c757d !important;
     }
 
     .patient-avatar-circle {
@@ -110,6 +118,10 @@
         background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
         border-bottom: 2px solid #e9ecef;
         padding: 1.25rem 1.5rem;
+    }
+    .enhanced-card-header h5,
+    .enhanced-card-header .fw-bold {
+        color: #212529 !important;
     }
 
     /* Empty State Enhancements */
@@ -665,7 +677,7 @@
                         <h5 class="mb-0 fw-bold text-dark">
                             <i class="bi bi-people me-2 text-dark"></i>Recent Patients
                         </h5>
-                        <a href="{{ route('staff-patient-records') }}" class="btn btn-sm btn-outline-primary">
+                        <a href="{{ route('staff-account-management') }}" class="btn btn-sm btn-outline-primary">
                             View All <i class="bi bi-arrow-right ms-1"></i>
                         </a>
                     </div>

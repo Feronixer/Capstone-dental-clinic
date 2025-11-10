@@ -98,12 +98,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const passwordInput = document.getElementById('patientPassword');
     const toggleIcon = document.getElementById('togglePatientIcon');
 
-    if (togglePassword) {
-        togglePassword.addEventListener('click', function() {
+    if (togglePassword && passwordInput && toggleIcon) {
+        togglePassword.addEventListener('click', function(e) {
+            e.preventDefault();
             const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
             passwordInput.setAttribute('type', type);
-            toggleIcon.classList.toggle('bi-eye');
-            toggleIcon.classList.toggle('bi-eye-slash');
+            
+            // Toggle icon classes
+            if (type === 'text') {
+                toggleIcon.classList.remove('bi-eye');
+                toggleIcon.classList.add('bi-eye-slash');
+            } else {
+                toggleIcon.classList.remove('bi-eye-slash');
+                toggleIcon.classList.add('bi-eye');
+            }
         });
     }
 

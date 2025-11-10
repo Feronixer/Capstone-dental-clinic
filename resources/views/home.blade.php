@@ -736,7 +736,7 @@
             }
 
             .hero-title {
-                font-size: 35px;
+                font-size: 72px;
             }
 
             .patient-login-btn {
@@ -878,7 +878,7 @@
             }
             
             .hero-title {
-                font-size: 29px;
+                font-size: 52px;
             }
             
             .main-card { 

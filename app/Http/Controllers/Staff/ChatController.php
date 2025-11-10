@@ -140,6 +140,8 @@ class ChatController extends Controller
             ], 403);
         }
 
+        $canAttachFiles = $this->can('attach_files');
+
         try {
             // Debug: Log what we're receiving
             Log::info('Staff sendMessage request', [
@@ -148,10 +150,17 @@ class ChatController extends Controller
                 'message' => $request->input('message'),
             ]);
 
-            $request->validate([
+            $validationRules = [
                 'message' => 'nullable|string|max:2000',
-                'files.*' => 'file|max:5120|mimes:jpg,jpeg,png,gif,pdf,doc,docx,txt',
-            ]);
+            ];
+
+            if ($canAttachFiles) {
+                $validationRules['files.*'] = 'file|max:5120|mimes:jpg,jpeg,png,gif,pdf,doc,docx,txt';
+            } else {
+                $validationRules['files'] = 'prohibited';
+            }
+
+            $request->validate($validationRules);
 
             // Ensure at least message or files are provided
             if (empty($request->message) && !$request->hasFile('files')) {
@@ -172,7 +181,7 @@ class ChatController extends Controller
 
             // Handle file uploads
             $attachments = [];
-            if ($request->hasFile('files')) {
+            if ($canAttachFiles && $request->hasFile('files')) {
                 Log::info('Processing files', ['count' => count($request->file('files'))]);
                 foreach ($request->file('files') as $index => $file) {
                     try {
@@ -216,7 +225,7 @@ class ChatController extends Controller
                 'sender_id' => $staffId,
                 'sender_type' => 'staff',
                 'message' => $request->message ?? '',
-                'attachments' => !empty($attachments) ? $attachments : null,
+                'attachments' => $canAttachFiles && !empty($attachments) ? $attachments : null,
                 'is_read' => true, // Staff messages are auto-read
                 'read_at' => now(),
             ]);
@@ -269,9 +278,14 @@ class ChatController extends Controller
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Staff sendMessage validation error', ['errors' => $e->errors()]);
+            $messages = [];
+            foreach ($e->errors() as $fieldErrors) {
+                $messages = array_merge($messages, $fieldErrors);
+            }
+            $errorMessage = !empty($messages) ? implode(', ', $messages) : 'Invalid input.';
             return response()->json([
                 'success' => false,
-                'message' => 'Validation failed: ' . implode(', ', $e->errors()['files.*'] ?? ['Invalid file'])
+                'message' => 'Validation failed: ' . $errorMessage
             ], 422);
         } catch (\Exception $e) {
             Log::error('Staff sendMessage error', [

@@ -837,6 +837,15 @@
                             </div>
                             <div class="control-item">
                                 <label class="control-label">
+                                    <i class="bi bi-paperclip"></i>
+                                    <span>Can Attach Files</span>
+                                </label>
+                                <div class="toggle-switch {{ $accessControl && $accessControl->can_attach_files ? 'active' : '' }}" 
+                                     data-control="can_attach_files" 
+                                     onclick="toggleControl(this, {{ $staff->id }}, event)"></div>
+                            </div>
+                            <div class="control-item">
+                                <label class="control-label">
                                     <i class="bi bi-download"></i>
                                     <span>Export Data</span>
                                 </label>

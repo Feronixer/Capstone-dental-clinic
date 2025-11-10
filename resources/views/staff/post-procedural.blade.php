@@ -555,8 +555,6 @@
 <script>
 // Access control from PHP
 const canEditPatientRecord = @json($accessControl && $accessControl->can_edit_patient_records !== false);
-let isPasswordVerified = false;
-let passwordVerifiedRecordId = null;
 
 // Debounce utility function
 function debounce(func, wait) {
@@ -576,21 +574,29 @@ function debounce(func, wait) {
 let recordToDelete = null;
 
 // Load Patient Records Function
-let allRecords = []; // Store all records for sorting
+let allRecords = @json($initialRecords ?? []); // Store all records for sorting
 
 function loadPatientRecords() {
     fetch('/staff/post-procedural/records')
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Server responded with status ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
                 allRecords = data.records; // Store records globally
                 renderPatientRecords(allRecords);
             } else {
                 console.error('Failed to load records:', data.message);
+                showNotification(data.message || 'Failed to load records.', 'error');
             }
         })
         .catch(error => {
             console.error('Error loading records:', error);
+            showNotification('Unable to refresh records. Displaying last known data.', 'warning');
+            renderPatientRecords(allRecords || []);
         });
 }
 
@@ -598,6 +604,10 @@ function loadPatientRecords() {
 function renderPatientRecords(records) {
     const tbody = document.getElementById('recordsTableBody');
     if (!tbody) return;
+
+    if (!Array.isArray(records)) {
+        records = [];
+    }
 
     if (records.length === 0) {
         tbody.innerHTML = `
@@ -2364,6 +2374,13 @@ function initializePatientRecordSearch() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Render initial records passed from the server
+    if (Array.isArray(allRecords) && allRecords.length > 0) {
+        renderPatientRecords(allRecords);
+    } else {
+        renderPatientRecords([]);
+    }
+
     // Date of birth is read-only and auto-filled from user management
     // Age is automatically calculated when birthdate is set
     const dateOfBirthInput = document.getElementById('dateOfBirth');

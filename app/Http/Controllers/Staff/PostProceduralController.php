@@ -34,7 +34,9 @@ class PostProceduralController extends Controller
 
         $accessControl = $user->accessControl ?? null;
 
-        return view("staff.post-procedural", compact('records', 'accessControl'));
+        $initialRecords = $this->prepareRecordsCollection()->values()->toArray();
+
+        return view("staff.post-procedural", compact('records', 'accessControl', 'initialRecords'));
     }
 
     /**
@@ -43,43 +45,51 @@ class PostProceduralController extends Controller
     public function getRecords()
     {
         try {
-            $patientRecords = PatientRecord::with(['user.info', 'appointment.service'])
-                ->whereHas('user') // Only get records with valid user
-                ->orderBy('created_at', 'desc')
-                ->get()
-                ->map(function($record) {
-                    return $this->mapPatientRecord($record);
-                });
+            $allRecords = $this->prepareRecordsCollection();
 
-            $patientHistories = PatientHistory::with(['patientRecord.user.info'])
-                ->whereHas('patientRecord.user') // Only get histories with valid patient record and user
-                ->orderBy('created_at', 'desc')
-                ->get()
-                ->map(function($history) {
-                    return $this->mapPatientHistory($history);
-                })
-                ->filter(function($history) {
-                    return $history['user_id'] !== null; // Filter out records without user_id
-                });
-
-            $progressNotes = ProgressNote::with(['patientRecord.user.info'])
-                ->whereHas('patientRecord.user') // Only get notes with valid patient record and user
-                ->orderBy('created_at', 'desc')
-                ->get()
-                ->map(function($note) {
-                    return $this->mapProgressNote($note);
-                })
-                ->filter(function($note) {
-                    return $note['user_id'] !== null; // Filter out records without user_id
-                });
-
-            $allRecords = $patientRecords->concat($patientHistories)->concat($progressNotes)->sortByDesc('created_at')->values();
-
-            return response()->json(['success' => true, 'records' => $allRecords]);
+            return response()->json(['success' => true, 'records' => $allRecords->values()]);
         } catch (\Exception $e) {
             \Log::error('Error fetching records', ['error' => $e->getMessage()]);
             return response()->json(['success' => false, 'message' => 'Error loading records'], 500);
         }
+    }
+
+    private function prepareRecordsCollection(): \Illuminate\Support\Collection
+    {
+        $patientRecords = PatientRecord::with(['user.info', 'appointment.service'])
+            ->whereHas('user')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function($record) {
+                return $this->mapPatientRecord($record);
+            });
+
+        $patientHistories = PatientHistory::with(['patientRecord.user.info'])
+            ->whereHas('patientRecord.user')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function($history) {
+                return $this->mapPatientHistory($history);
+            })
+            ->filter(function($history) {
+                return $history['user_id'] !== null;
+            });
+
+        $progressNotes = ProgressNote::with(['patientRecord.user.info'])
+            ->whereHas('patientRecord.user')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function($note) {
+                return $this->mapProgressNote($note);
+            })
+            ->filter(function($note) {
+                return $note['user_id'] !== null;
+            });
+
+        return $patientRecords
+            ->concat($patientHistories)
+            ->concat($progressNotes)
+            ->sortByDesc('created_at');
     }
 
     /**
@@ -112,22 +122,29 @@ class PostProceduralController extends Controller
                 ->limit(10)
                 ->get()
                 ->map(function ($user) {
+                    $info = $user->info;
+                    $rawBirthdate = null;
+                    if ($info) {
+                        $rawBirthdate = $info->birthdate ?? $info->birthday ?? null;
+                    }
+
+                    $formattedBirthdate = $rawBirthdate ? \Carbon\Carbon::parse($rawBirthdate)->format('Y-m-d') : '';
+                    $computedAge = $rawBirthdate ? \Carbon\Carbon::parse($rawBirthdate)->age : '';
+
                     return [
                         'id' => $user->id,
                         'username' => $user->username,
-                        'name' => $user->info ? $user->info->first_name . ' ' . $user->info->last_name : $user->username,
-                        'first_name' => $user->info ? $user->info->first_name : '',
-                        'last_name' => $user->info ? $user->info->last_name : '',
-                        'birthdate' => $user->info && $user->info->birthdate ? \Carbon\Carbon::parse($user->info->birthdate)->format('Y-m-d') : '',
-                        'age' => $user->info && $user->info->birthdate
-                            ? \Carbon\Carbon::parse($user->info->birthdate)->age
-                            : '',
-                        'sex' => $user->info ? ($user->info->sex ?? $user->info->gender ?? '') : '',
-                        'religion' => $user->info ? $user->info->religion : '',
-                        'nationality' => $user->info ? $user->info->nationality : '',
-                        'contact_number' => $user->info ? $user->info->contact_number : '',
-                        'home_address' => $user->info ? $user->info->home_address : '',
-                        'occupation' => $user->info ? $user->info->occupation : '',
+                        'name' => $info ? $info->first_name . ' ' . $info->last_name : $user->username,
+                        'first_name' => $info->first_name ?? '',
+                        'last_name' => $info->last_name ?? '',
+                        'birthdate' => $formattedBirthdate,
+                        'age' => $computedAge,
+                        'sex' => $info ? ($info->sex ?? $info->gender ?? '') : '',
+                        'religion' => $info->religion ?? '',
+                        'nationality' => $info->nationality ?? '',
+                        'contact_number' => $info->contact_number ?? $info->phone ?? '',
+                        'home_address' => $info->home_address ?? '',
+                        'occupation' => $info->occupation ?? '',
                     ];
                 });
 
