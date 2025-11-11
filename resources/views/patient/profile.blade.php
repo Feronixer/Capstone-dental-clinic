@@ -6,21 +6,44 @@
 .profile-container {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 2rem;
+    padding: 1.5rem;
+    min-height: calc(100vh - 200px);
+    display: flex;
+    flex-direction: column;
+}
+
+.calendar-header {
+    margin-bottom: 1rem;
+    flex-shrink: 0;
+}
+
+.calendar-header .page-title {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    margin-bottom: 0.25rem;
+}
+
+.calendar-header .page-subtitle {
+    font-size: clamp(0.85rem, 1.5vw, 0.95rem);
+    margin-bottom: 0;
 }
 
 .profile-page-padding {
     background: white;
     border-radius: 16px;
     box-shadow: 0 4px 20px rgba(33, 150, 243, 0.1);
-    padding: 2.5rem;
+    padding: 1.5rem;
     border: 1px solid #e3f2fd;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .account-container {
     display: grid;
-    grid-template-columns: 320px 1fr;
-    gap: 2.5rem;
+    grid-template-columns: 280px 1fr;
+    gap: 1.5rem;
+    flex: 1;
+    min-height: 0;
 }
 
 /* Sidebar */
@@ -28,29 +51,32 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1.5rem;
-    padding: 2.5rem 2rem;
+    gap: 1.25rem;
+    padding: 2rem 1.5rem;
     background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
     border-radius: 16px;
     box-shadow: 0 8px 24px rgba(25, 118, 210, 0.25);
+    min-height: fit-content;
+    align-self: stretch;
 }
 
 .sidebar-avatar {
-    width: 160px;
-    height: 160px;
+    width: 140px;
+    height: 140px;
     border-radius: 50%;
     background: white;
-    border: 5px solid rgba(255, 255, 255, 0.3);
+    border: 4px solid rgba(255, 255, 255, 0.3);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 3.5rem;
+    font-size: 3rem;
     font-weight: 700;
     color: #1976D2;
     text-transform: uppercase;
-    letter-spacing: 2px;
+    letter-spacing: 1.5px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
     transition: transform 0.3s ease;
+    flex-shrink: 0;
 }
 
 .sidebar-avatar:hover {
@@ -58,12 +84,15 @@
 }
 
 .profile-name {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
     font-weight: 700;
     color: white;
     text-align: center;
     margin: 0.5rem 0;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    line-height: 1.3;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .profile-action-btn {
@@ -78,6 +107,7 @@
     background: rgba(255, 255, 255, 0.15);
     color: white;
     backdrop-filter: blur(10px);
+    flex-shrink: 0;
 }
 
 .profile-action-btn:hover {
@@ -99,28 +129,54 @@
 
 /* Profile Details */
 .profile-details-area {
-    padding: 1.5rem;
+    padding: 1.25rem;
     background: linear-gradient(to bottom, #ffffff 0%, #f8fbff 100%);
     border-radius: 12px;
     border: 1px solid #e3f2fd;
+    overflow: visible;
+    min-height: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .details-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 1.75rem;
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+    min-width: 0;
+}
+
+.details-row:last-of-type {
+    margin-bottom: 0;
 }
 
 .detail-block {
     display: flex;
     flex-direction: column;
-    gap: 0.625rem;
     padding: 1rem;
     background: white;
     border-radius: 8px;
     border: 2px solid #1976D2;
     transition: all 0.3s ease;
+    min-width: 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+#profileForm {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow: visible;
+}
+
+.profile-form-fields {
+    flex: 1;
+    min-height: 0;
+    overflow: visible;
 }
 
 .detail-block:hover {
@@ -134,7 +190,7 @@
     font-size: 0.875rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.5rem;
 }
 
 .detail-block input,
@@ -142,10 +198,12 @@
     padding: 0.875rem 1rem;
     border: 2px solid #1976D2;
     border-radius: 8px;
-    font-size: 1rem;
+    font-size: 0.95rem;
     background: #f8fbff;
     transition: all 0.3s ease;
     color: #000000;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .detail-block input:hover,
@@ -181,9 +239,10 @@
     display: flex;
     justify-content: flex-end;
     gap: 1rem;
-    margin-top: 2.5rem;
-    padding-top: 2rem;
-    border-top: 2px solid #e3f2fd;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid #2196F3;
+    flex-shrink: 0;
 }
 
 .btn-update {
@@ -257,17 +316,284 @@
     font-weight: 500;
 }
 
+/* Responsive Styles */
+@media (max-width: 1200px) {
+    .account-container {
+        grid-template-columns: 250px 1fr;
+        gap: 1.25rem;
+    }
+    
+    .sidebar-avatar {
+        width: 100px;
+        height: 100px;
+        font-size: 2rem;
+    }
+    
+    .profile-name {
+        font-size: 1.1rem;
+    }
+    
+    .details-row {
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0.875rem;
+    }
+}
+
+@media (max-width: 992px) {
+    .profile-container {
+        padding: 0.75rem;
+    }
+    
+    .profile-page-padding {
+        padding: 1.25rem;
+    }
+    
+    .account-container {
+        grid-template-columns: 220px 1fr;
+        gap: 1rem;
+    }
+    
+    .profile-sidebar {
+        padding: 1.25rem 1rem;
+        gap: 0.875rem;
+    }
+    
+    .sidebar-avatar {
+        width: 90px;
+        height: 90px;
+        font-size: 1.75rem;
+    }
+    
+    .profile-name {
+        font-size: 1rem;
+    }
+    
+    .profile-action-btn {
+        padding: 0.65rem 1rem;
+        font-size: 0.8rem;
+    }
+    
+    .profile-details-area {
+        padding: 1rem;
+    }
+    
+    .details-row {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+    
+    .detail-block {
+        padding: 0.75rem;
+    }
+    
+    .detail-block-label {
+        font-size: 0.75rem;
+    }
+    
+    .detail-block input,
+    .detail-block select {
+        padding: 0.65rem 0.75rem;
+        font-size: 0.85rem;
+    }
+}
+
 @media (max-width: 768px) {
     .profile-container {
         padding: 1rem;
     }
+    
+    .profile-page-padding {
+        padding: 1.5rem;
+    }
+    
+    .calendar-header {
+        margin-bottom: 0.75rem;
+    }
+    
+    .calendar-header .page-title {
+        font-size: 1.5rem;
+    }
+    
+    .calendar-header .page-subtitle {
+        font-size: 0.85rem;
+    }
 
     .account-container {
         grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    .profile-sidebar {
+        padding: 1.5rem 1.25rem;
+        gap: 1rem;
+    }
+    
+    .sidebar-avatar {
+        width: 120px;
+        height: 120px;
+        font-size: 2.5rem;
+    }
+    
+    .profile-name {
+        font-size: 1.25rem;
+    }
+    
+    .profile-action-btn {
+        padding: 0.75rem 1.25rem;
+        font-size: 0.9rem;
+    }
+    
+    .profile-details-area {
+        padding: 1.25rem;
     }
 
     .details-row {
         grid-template-columns: 1fr;
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+    }
+    
+    .detail-block {
+        padding: 1rem;
+    }
+    
+    .edit-button-container {
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+        padding-top: 1.25rem;
+    }
+    
+    .btn-update,
+    .btn-cancel {
+        width: 100%;
+        padding: 0.875rem 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-container {
+        padding: 0.75rem;
+    }
+    
+    .profile-page-padding {
+        padding: 1.25rem;
+    }
+    
+    .calendar-header {
+        margin-bottom: 0.75rem;
+    }
+    
+    .calendar-header .page-title {
+        font-size: clamp(1.1rem, 4vw, 1.25rem);
+    }
+    
+    .calendar-header .page-subtitle {
+        font-size: clamp(0.75rem, 2vw, 0.8rem);
+    }
+    
+    .profile-sidebar {
+        padding: 1.25rem 1rem;
+        gap: 1rem;
+    }
+
+    .sidebar-avatar {
+        width: 100px;
+        height: 100px;
+        font-size: 2rem;
+    }
+
+    .profile-name {
+        font-size: 1.1rem;
+    }
+
+    .profile-action-btn {
+        padding: 0.7rem 1rem;
+        font-size: 0.85rem;
+        width: 100%;
+        min-height: 44px;
+    }
+
+    .profile-details-area {
+        padding: 1rem;
+    }
+
+    .detail-block {
+        padding: 0.875rem;
+    }
+
+    .detail-block-label {
+        font-size: 0.8rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .detail-block input,
+    .detail-block select {
+        padding: 0.6rem 0.75rem;
+        font-size: 0.9rem;
+        min-height: 44px;
+    }
+
+    .detail-block input[type="date"] {
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+
+    .edit-button-container {
+        gap: 0.625rem;
+        margin-top: 1.25rem;
+        padding-top: 1rem;
+    }
+
+    .btn-update,
+    .btn-cancel {
+        padding: 0.8rem 1.5rem;
+        font-size: 0.9rem;
+        min-height: 44px;
+    }
+}
+    
+    .profile-name {
+        font-size: 1.1rem;
+    }
+    
+    .profile-action-btn {
+        padding: 0.75rem 1.25rem;
+        font-size: 0.875rem;
+    }
+    
+    .profile-details-area {
+        padding: 1rem;
+    }
+    
+    .details-row {
+        gap: 0.875rem;
+        margin-bottom: 1rem;
+    }
+    
+    .detail-block {
+        padding: 0.875rem;
+    }
+    
+    .detail-block-label {
+        font-size: 0.8rem;
+    }
+    
+    .detail-block input,
+    .detail-block select {
+        padding: 0.75rem 0.875rem;
+        font-size: 0.875rem;
+    }
+    
+    .edit-button-container {
+        margin-top: 1.25rem;
+        padding-top: 1rem;
+    }
+    
+    .btn-update,
+    .btn-cancel {
+        padding: 0.75rem 1.5rem;
+        font-size: 0.9rem;
     }
 }
 
@@ -440,6 +766,11 @@
 [data-theme="dark"] .btn-cancel:hover {
     background: var(--dm-bg-primary, #0f172a) !important;
     border-color: #3b82f6 !important;
+}
+
+/* Edit Button Container Dark Mode - Divider Line */
+[data-theme="dark"] .edit-button-container {
+    border-top-color: var(--dm-border-color, #334155) !important;
 }
 
 /* Alert Dark Mode */
@@ -684,54 +1015,56 @@ html, body {
             <section class="profile-details-area">
                 <form id="profileForm">
                     @csrf
-                    <div class="details-row">
+                    <div class="profile-form-fields">
+                        <div class="details-row">
+                            <div class="detail-block">
+                                <span class="detail-block-label">First Name *</span>
+                                <input type="text" name="first_name" id="first_name" value="{{ $userInfo->first_name ?? '' }}" required>
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="detail-block">
+                                <span class="detail-block-label">Middle Name</span>
+                                <input type="text" name="middle_name" id="middle_name" value="{{ $userInfo->middle_name ?? '' }}">
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="detail-block">
+                                <span class="detail-block-label">Last Name *</span>
+                                <input type="text" name="last_name" id="last_name" value="{{ $userInfo->last_name ?? '' }}" required>
+                                <div class="invalid-feedback"></div>
+                            </div>
+                        </div>
+                        <div class="details-row">
+                            <div class="detail-block">
+                                <span class="detail-block-label">Phone Number *</span>
+                                <input type="text" name="phone" id="phone" value="{{ $userInfo->phone ?? '' }}" required>
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="detail-block">
+                                <span class="detail-block-label">Birthday *</span>
+                                <input type="date" name="birthday" id="birthday" value="{{ $userInfo->birthday ?? '' }}" readonly style="background: #e3f2fd; border-color: #1976D2; color: #000000; cursor: not-allowed;">
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="detail-block">
+                                <span class="detail-block-label">Age</span>
+                                <input type="number" id="age" value="{{ $userInfo->age ?? '' }}" readonly style="background: #e3f2fd; border-color: #1976D2; color: #000000; cursor: not-allowed;">
+                            </div>
+                            <div class="detail-block">
+                                <span class="detail-block-label">Sex *</span>
+                                <select name="gender" id="gender" disabled style="background: #e3f2fd; border-color: #1976D2; color: #000000; cursor: not-allowed;">
+                                    <option value="">Select...</option>
+                                    <option value="Male" {{ ($userInfo->gender ?? '') === 'Male' ? 'selected' : '' }}>Male</option>
+                                    <option value="Female" {{ ($userInfo->gender ?? '') === 'Female' ? 'selected' : '' }}>Female</option>
+                                </select>
+                                <!-- Hidden input to preserve value when disabled -->
+                                <input type="hidden" name="gender" value="{{ $userInfo->gender ?? '' }}">
+                                <div class="invalid-feedback"></div>
+                            </div>
+                        </div>
                         <div class="detail-block">
-                            <span class="detail-block-label">First Name *</span>
-                            <input type="text" name="first_name" id="first_name" value="{{ $userInfo->first_name ?? '' }}" required>
+                            <span class="detail-block-label">Email *</span>
+                            <input type="email" name="email" id="email" value="{{ $user->email }}" required>
                             <div class="invalid-feedback"></div>
                         </div>
-                        <div class="detail-block">
-                            <span class="detail-block-label">Middle Name</span>
-                            <input type="text" name="middle_name" id="middle_name" value="{{ $userInfo->middle_name ?? '' }}">
-                            <div class="invalid-feedback"></div>
-                        </div>
-                        <div class="detail-block">
-                            <span class="detail-block-label">Last Name *</span>
-                            <input type="text" name="last_name" id="last_name" value="{{ $userInfo->last_name ?? '' }}" required>
-                            <div class="invalid-feedback"></div>
-                        </div>
-                    </div>
-                    <div class="details-row">
-                        <div class="detail-block">
-                            <span class="detail-block-label">Phone Number *</span>
-                            <input type="text" name="phone" id="phone" value="{{ $userInfo->phone ?? '' }}" required>
-                            <div class="invalid-feedback"></div>
-                        </div>
-                        <div class="detail-block">
-                            <span class="detail-block-label">Birthday *</span>
-                            <input type="date" name="birthday" id="birthday" value="{{ $userInfo->birthday ?? '' }}" readonly style="background: #e3f2fd; border-color: #1976D2; color: #000000; cursor: not-allowed;">
-                            <div class="invalid-feedback"></div>
-                        </div>
-                        <div class="detail-block">
-                            <span class="detail-block-label">Age</span>
-                            <input type="number" id="age" value="{{ $userInfo->age ?? '' }}" readonly style="background: #e3f2fd; border-color: #1976D2; color: #000000; cursor: not-allowed;">
-                        </div>
-                        <div class="detail-block">
-                            <span class="detail-block-label">Sex *</span>
-                            <select name="gender" id="gender" disabled style="background: #e3f2fd; border-color: #1976D2; color: #000000; cursor: not-allowed;">
-                                <option value="">Select...</option>
-                                <option value="Male" {{ ($userInfo->gender ?? '') === 'Male' ? 'selected' : '' }}>Male</option>
-                                <option value="Female" {{ ($userInfo->gender ?? '') === 'Female' ? 'selected' : '' }}>Female</option>
-                            </select>
-                            <!-- Hidden input to preserve value when disabled -->
-                            <input type="hidden" name="gender" value="{{ $userInfo->gender ?? '' }}">
-                            <div class="invalid-feedback"></div>
-                        </div>
-                    </div>
-                    <div class="detail-block">
-                        <span class="detail-block-label">Email *</span>
-                        <input type="email" name="email" id="email" value="{{ $user->email }}" required>
-                        <div class="invalid-feedback"></div>
                     </div>
                     <div class="edit-button-container">
                         <button type="button" class="btn-cancel" onclick="window.location.reload()">Cancel</button>

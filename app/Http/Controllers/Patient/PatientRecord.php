@@ -63,6 +63,45 @@ class PatientRecord extends Controller
         try {
             $userId = Auth::id();
 
+            // Check if access is verified
+            $verified = session('record_access_verified', false);
+            $verifiedAt = session('record_access_verified_at');
+            
+            if (!$verified || !$verifiedAt) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Access not verified. Please verify your password first.',
+                    'requires_auth' => true
+                ], 403);
+            }
+
+            // Ensure $verifiedAt is a Carbon instance
+            if (!$verifiedAt instanceof \Carbon\Carbon) {
+                try {
+                    $verifiedAt = \Carbon\Carbon::parse($verifiedAt);
+                } catch (\Exception $e) {
+                    // If parsing fails, clear session and return not verified
+                    session()->forget(['record_access_verified', 'record_access_verified_at']);
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Access not verified. Please verify your password first.',
+                        'requires_auth' => true
+                    ], 403);
+                }
+            }
+            
+            // Check if verification is still valid (30 minutes)
+            $expiresAt = $verifiedAt->copy()->addMinutes(30);
+            if (now()->gt($expiresAt)) {
+                // Expired, clear session
+                session()->forget(['record_access_verified', 'record_access_verified_at']);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Access expired. Please verify your password again.',
+                    'requires_auth' => true
+                ], 403);
+            }
+
             // Get the record and ensure it belongs to the authenticated patient
             $record = PatientRecordModel::where('id', $id)
                 ->where('user_id', $userId)
@@ -317,6 +356,13 @@ class PatientRecord extends Controller
 
         // Verify password
         if (Hash::check($request->password, $user->password)) {
+            // Store verification in session (valid for 1 minute or until logout)
+            // Use Carbon instance to ensure proper date handling
+            $now = \Carbon\Carbon::now();
+            session(['record_access_verified' => true]);
+            session(['record_access_verified_at' => $now]);
+            session()->save(); // Explicitly save session
+            
             return response()->json([
                 'success' => true,
                 'message' => 'Password verified successfully.'
@@ -327,5 +373,61 @@ class PatientRecord extends Controller
             'success' => false,
             'message' => 'Incorrect password. Please try again.'
         ], 422);
+    }
+
+    /**
+     * Check if record access is verified
+     */
+    public function checkAccess()
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'verified' => false,
+                'message' => 'User not authenticated.'
+            ], 401);
+        }
+
+        // Check if verification exists and is still valid (30 minutes)
+        $verified = session('record_access_verified', false);
+        $verifiedAt = session('record_access_verified_at');
+        
+        if ($verified && $verifiedAt) {
+            // Ensure $verifiedAt is a Carbon instance
+            if (!$verifiedAt instanceof \Carbon\Carbon) {
+                try {
+                    $verifiedAt = \Carbon\Carbon::parse($verifiedAt);
+                } catch (\Exception $e) {
+                    // If parsing fails, clear session and return not verified
+                    session()->forget(['record_access_verified', 'record_access_verified_at']);
+                    return response()->json([
+                        'success' => true,
+                        'verified' => false,
+                        'message' => 'Access not verified.'
+                    ]);
+                }
+            }
+            
+            // Use copy() to avoid mutating the original Carbon instance
+            $expiresAt = $verifiedAt->copy()->addMinutes(30);
+            if (now()->lt($expiresAt)) {
+                return response()->json([
+                    'success' => true,
+                    'verified' => true,
+                    'message' => 'Access verified.'
+                ]);
+            } else {
+                // Expired, clear session
+                session()->forget(['record_access_verified', 'record_access_verified_at']);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'verified' => false,
+            'message' => 'Access not verified.'
+        ]);
     }
 }

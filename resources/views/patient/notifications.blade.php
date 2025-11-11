@@ -476,23 +476,127 @@
         height: calc(100vh - 70px);
     }
 
+    .notifications-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
     .notifications-title {
-        font-size: 1.25rem;
+        font-size: clamp(1.1rem, 4vw, 1.25rem);
+        width: 100%;
+    }
+
+    .header-actions-group {
+        width: 100%;
+        flex-direction: column;
+        gap: 0.5rem;
     }
 
     .btn-mark-all-read,
     .btn-clear-read {
-        padding: 0.45rem 0.875rem;
-        font-size: 0.8rem;
+        padding: 0.6rem 1rem;
+        font-size: 0.85rem;
+        width: 100%;
+        justify-content: center;
+        min-height: 44px;
+    }
+
+    .notifications-filters {
+        flex-wrap: wrap;
+        gap: 0.375rem;
     }
 
     .filter-btn {
-        padding: 0.4rem 0.75rem;
+        padding: 0.5rem 0.875rem;
         font-size: 0.85rem;
+        min-height: 40px;
+        flex: 1;
+        min-width: calc(50% - 0.1875rem);
     }
 
     .notification-card {
         padding: 0.875rem;
+        gap: 0.625rem;
+    }
+
+    .notification-icon-wrapper {
+        width: 40px;
+        height: 40px;
+        flex-shrink: 0;
+    }
+
+    .notification-icon-wrapper i {
+        font-size: 1.1rem;
+    }
+
+    .notification-content {
+        min-width: 0;
+        flex: 1;
+    }
+
+    .notification-title {
+        font-size: 0.9rem;
+        line-height: 1.3;
+    }
+
+    .notification-message {
+        font-size: 0.8rem;
+        -webkit-line-clamp: 2;
+    }
+
+    .notification-actions {
+        flex-direction: column;
+        gap: 0.375rem;
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+
+    .btn-action {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+        min-height: 40px;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .pagination-wrapper {
+        padding: 0.75rem 0.875rem;
+    }
+
+    .pagination .page-link {
+        padding: 0.4rem 0.6rem;
+        min-width: 36px;
+        min-height: 36px;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .notifications-container {
+        padding: 0.75rem;
+        height: calc(100vh - 60px);
+    }
+
+    .notifications-title {
+        font-size: 1.1rem;
+    }
+
+    .btn-mark-all-read,
+    .btn-clear-read {
+        padding: 0.55rem 0.875rem;
+        font-size: 0.8rem;
+    }
+
+    .filter-btn {
+        font-size: 0.8rem;
+        padding: 0.45rem 0.75rem;
+        min-width: calc(50% - 0.15rem);
+    }
+
+    .notification-card {
+        padding: 0.75rem;
     }
 
     .notification-icon-wrapper {
@@ -504,9 +608,28 @@
         font-size: 1rem;
     }
 
-    .btn-action {
-        padding: 0.3rem 0.5rem;
+    .notification-title {
+        font-size: 0.85rem;
+    }
+
+    .notification-message {
         font-size: 0.75rem;
+    }
+
+    .notification-time {
+        font-size: 0.7rem;
+    }
+
+    .btn-action {
+        padding: 0.45rem 0.65rem;
+        font-size: 0.75rem;
+    }
+
+    .pagination .page-link {
+        padding: 0.35rem 0.5rem;
+        min-width: 32px;
+        min-height: 32px;
+        font-size: 0.8rem;
     }
 }
 
@@ -1062,6 +1185,119 @@
 .modern-modal .modal-footer {
     padding: 1.5rem;
     background: #f8fafc;
+}
+
+/* Responsive Modal Styles */
+@media (max-width: 768px) {
+    .modal-dialog {
+        margin: 0.5rem;
+        max-width: calc(100% - 1rem);
+    }
+
+    .modal-dialog-centered {
+        min-height: calc(100% - 1rem);
+    }
+
+    .modern-modal .modal-header {
+        padding: 1.25rem 1rem;
+    }
+
+    .modern-modal .modal-title {
+        font-size: 1.1rem;
+    }
+
+    .modern-modal .modal-body {
+        padding: 1.5rem 1rem;
+        font-size: 0.95rem;
+    }
+
+    .modern-modal .modal-footer {
+        padding: 1.25rem 1rem;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .modern-modal .modal-footer .btn {
+        width: 100%;
+        margin: 0;
+        min-height: 44px;
+    }
+
+    .notification-modal-content {
+        max-width: 100%;
+    }
+
+    .notification-modal-header {
+        padding: 1.25rem 1rem !important;
+    }
+
+    .notification-modal-body {
+        padding: 1.5rem 1rem !important;
+        max-height: calc(100vh - 200px);
+        overflow-y: auto;
+    }
+
+    .notification-modal-footer {
+        padding: 1.25rem 1rem !important;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .notification-modal-footer .btn {
+        width: 100%;
+        margin: 0;
+        min-height: 44px;
+    }
+}
+
+@media (max-width: 480px) {
+    .modal-dialog {
+        margin: 0.25rem;
+        max-width: calc(100% - 0.5rem);
+    }
+
+    .modal-dialog-centered {
+        min-height: calc(100% - 0.5rem);
+    }
+
+    .modern-modal .modal-header {
+        padding: 1rem 0.875rem;
+    }
+
+    .modern-modal .modal-title {
+        font-size: 1rem;
+    }
+
+    .modern-modal .modal-body {
+        padding: 1.25rem 0.875rem;
+        font-size: 0.9rem;
+    }
+
+    .modern-modal .modal-footer {
+        padding: 1rem 0.875rem;
+    }
+
+    .notification-modal-header {
+        padding: 1rem 0.875rem !important;
+    }
+
+    .notification-modal-body {
+        padding: 1.25rem 0.875rem !important;
+        max-height: calc(100vh - 180px);
+    }
+
+    .notification-modal-footer {
+        padding: 1rem 0.875rem !important;
+    }
+
+    .confirm-icon {
+        width: 60px !important;
+        height: 60px !important;
+    }
+
+    .confirm-icon i {
+        font-size: 2rem !important;
+    }
 }
 
 .confirm-icon {

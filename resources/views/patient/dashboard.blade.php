@@ -608,7 +608,8 @@
     }
 
     [data-theme="dark"] .service-modal-duration-value {
-        color: #10b981 !important;
+        color: #00EAFF !important;
+        filter: drop-shadow(0 0 8px rgba(0, 234, 255, 0.6)) drop-shadow(0 0 16px rgba(0, 234, 255, 0.3));
     }
 
     .service-modal-close {
@@ -638,7 +639,7 @@
 
     .service-modal-icon i {
         font-size: 3rem;
-        color: #0d9488;
+        color: #2196F3;
     }
     
     [data-theme="dark"] .service-modal-icon i {
@@ -681,7 +682,7 @@
     .service-modal-duration-value {
         font-size: 1.5rem;
         font-weight: 700;
-        color: #0d9488;
+        color: #2196F3;
     }
 
     @media (max-width: 1200px) {
@@ -1805,7 +1806,7 @@
                 </div>
             </div>
 
-            <h2 class="card-title">JValera Dental Clinic <i class="bi bi-arrow-right"></i></h2>
+            <h2 class="card-title">JValera Dental Clinic</h2>
         </div>
     </div>
 </section>
@@ -2622,13 +2623,13 @@
 
 <!-- History Modal -->
 <div class="modal fade" id="historyModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-lg history-modal-dialog">
         <div class="modal-content feedback-modal-content">
             <div class="modal-header feedback-modal-header border-0">
                 <h5 class="modal-title feedback-modal-title fw-bold">Feedback History</h5>
                 <button type="button" class="btn-close feedback-modal-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body feedback-modal-body">
+            <div class="modal-body feedback-modal-body history-modal-body">
                 <div id="feedbackHistory">
                     <div class="text-center py-4">
                         <div class="spinner-border text-primary" role="status">
@@ -2644,15 +2645,15 @@
 <!-- Success Modal -->
 <div class="modal fade" id="successModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border: none; border-radius: 20px; overflow: hidden;">
+        <div class="modal-content success-modal-content" style="border: none; border-radius: 20px; overflow: hidden;">
             <div class="modal-body p-0">
-                <div style="background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%); padding: 2.5rem; text-align: center;">
-                    <div style="width: 80px; height: 80px; background: white; border-radius: 50%; margin: 0 auto 1.5rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
-                        <i class="bi bi-check-circle-fill" style="color: #4caf50; font-size: 3rem;"></i>
+                <div class="success-modal-body" style="background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%); padding: 2.5rem; text-align: center;">
+                    <div class="success-modal-icon-wrapper" style="width: 80px; height: 80px; background: white; border-radius: 50%; margin: 0 auto 1.5rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+                        <i class="bi bi-check-circle-fill success-modal-icon" style="color: #10b981; font-size: 3rem;"></i>
                     </div>
                     <h4 class="text-white fw-bold mb-2">Success!</h4>
                     <p class="text-white mb-4" id="successMessage">Thank you for your feedback!</p>
-                    <button type="button" class="btn btn-light fw-bold px-4 py-2" data-bs-dismiss="modal" style="border-radius: 25px;">
+                    <button type="button" class="btn btn-light success-modal-btn fw-bold px-4 py-2" data-bs-dismiss="modal" style="border-radius: 25px;">
                         OK
                     </button>
                 </div>
@@ -3049,6 +3050,51 @@
         filter: drop-shadow(0 0 8px rgba(0, 234, 255, 0.6)) drop-shadow(0 0 16px rgba(0, 234, 255, 0.3));
     }
 
+    /* History Modal - Fit Screen with Scroll */
+    .history-modal-dialog {
+        max-width: 90vw;
+        max-height: 90vh;
+        margin: 1rem auto;
+    }
+
+    .history-modal-body {
+        max-height: calc(90vh - 120px);
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 1.5rem;
+    }
+
+    /* Custom scrollbar for history modal */
+    .history-modal-body::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .history-modal-body::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 4px;
+    }
+
+    .history-modal-body::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+    }
+
+    .history-modal-body::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+
+    [data-theme="dark"] .history-modal-body::-webkit-scrollbar-track {
+        background: var(--dm-bg-secondary, #0f172a) !important;
+    }
+
+    [data-theme="dark"] .history-modal-body::-webkit-scrollbar-thumb {
+        background: var(--dm-border-color, #334155) !important;
+    }
+
+    [data-theme="dark"] .history-modal-body::-webkit-scrollbar-thumb:hover {
+        background: #475569 !important;
+    }
+
     /* History Cards */
     .history-card {
         background: white;
@@ -3056,6 +3102,52 @@
         border-radius: 12px;
         padding: 1.5rem;
         margin-bottom: 1rem;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
+    }
+
+    .history-card-header {
+        gap: 1rem;
+        min-width: 0;
+    }
+
+    .history-card-info {
+        flex: 1;
+        min-width: 0;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+
+    .history-card h6 {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        max-width: 100%;
+        margin: 0;
+    }
+
+    .history-card-comment {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: pre-wrap;
+        max-width: 100%;
+        overflow: hidden;
+        line-height: 1.6;
+    }
+
+    .history-card p {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: pre-wrap;
+        max-width: 100%;
+        overflow: hidden;
+        line-height: 1.6;
+    }
+
+    .history-card small {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        max-width: 100%;
     }
 
     [data-theme="dark"] .history-card {
@@ -3078,6 +3170,8 @@
     .history-stars {
         color: #ffd700;
         font-size: 1.2rem;
+        flex-shrink: 0;
+        white-space: nowrap;
     }
 
     @media (max-width: 992px) {
@@ -3142,6 +3236,17 @@
 
         .star-rating {
             font-size: 2rem;
+        }
+
+        .history-modal-dialog {
+            max-width: 95vw;
+            max-height: 95vh;
+            margin: 0.5rem auto;
+        }
+
+        .history-modal-body {
+            max-height: calc(95vh - 100px);
+            padding: 1rem;
         }
     }
 
@@ -3260,17 +3365,21 @@ function openHistoryModal() {
                 historyDiv.innerHTML = '';
                 data.forEach(feedback => {
                     const stars = '★'.repeat(feedback.rating) + '☆'.repeat(5 - feedback.rating);
+                    const serviceName = feedback.service_name || 'Unknown Service';
+                    const appointmentDate = feedback.appointment_date || 'N/A';
+                    const comment = feedback.comment || '';
+                    const submittedAt = feedback.submitted_at || 'N/A';
                     historyDiv.innerHTML += `
                         <div class="history-card">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <div>
-                                    <h6 class="fw-bold mb-1">${feedback.service_name}</h6>
-                                    <small class="text-muted">Appointment: ${feedback.appointment_date}</small>
+                            <div class="d-flex justify-content-between align-items-start mb-2 history-card-header">
+                                <div class="history-card-info">
+                                    <h6 class="fw-bold mb-1">${serviceName}</h6>
+                                    <small class="text-muted">Appointment: ${appointmentDate}</small>
                                 </div>
                                 <div class="history-stars">${stars}</div>
                             </div>
-                            ${feedback.comment ? `<p class="text-muted mb-0 mt-2">"${feedback.comment}"</p>` : ''}
-                            <small class="text-muted d-block mt-2">Submitted: ${feedback.submitted_at}</small>
+                            ${comment ? `<p class="text-muted mb-0 mt-2 history-card-comment">"${comment}"</p>` : ''}
+                            <small class="text-muted d-block mt-2">Submitted: ${submittedAt}</small>
                         </div>
                     `;
                 });
@@ -4290,6 +4399,48 @@ function loadPendingFeedbackCount() {
     [data-theme="dark"] #feedbackHistory .text-center i {
         opacity: 0.3 !important;
         color: var(--dm-text-muted, #64748b) !important;
+    }
+
+    /* Success Modal Icon - Ensure visibility */
+    .success-modal-icon {
+        color: #10b981 !important;
+        filter: drop-shadow(0 2px 4px rgba(16, 185, 129, 0.3));
+    }
+
+    /* Dark Mode for Success Modal */
+    [data-theme="dark"] .success-modal-content {
+        background: var(--dm-card-bg, #1e293b) !important;
+        border-color: var(--dm-border-color, #334155) !important;
+    }
+
+    [data-theme="dark"] .success-modal-body {
+        background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%) !important;
+    }
+
+    [data-theme="dark"] .success-modal-icon-wrapper {
+        background: rgba(255, 255, 255, 0.95) !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    [data-theme="dark"] .success-modal-icon {
+        color: #10b981 !important;
+        filter: drop-shadow(0 2px 4px rgba(16, 185, 129, 0.4));
+    }
+
+    [data-theme="dark"] .success-modal-body h4,
+    [data-theme="dark"] .success-modal-body p {
+        color: #ffffff !important;
+    }
+
+    [data-theme="dark"] .success-modal-btn {
+        background: rgba(255, 255, 255, 0.95) !important;
+        color: #1e293b !important;
+        border: none !important;
+    }
+
+    [data-theme="dark"] .success-modal-btn:hover {
+        background: #ffffff !important;
+        color: #0f172a !important;
     }
 
     /* ========================================

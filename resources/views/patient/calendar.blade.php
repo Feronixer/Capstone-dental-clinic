@@ -31,6 +31,231 @@
 }
 </style>
 
+<style>
+.mobile-event-count {
+    display: none;
+}
+
+/* Mobile overrides: rectangular event boxes that fit within grid cells, vertical stacking */
+/* Appointments adjust to fit grid, grid stays fixed */
+@media (max-width: 768px) {
+    /* 1) Rectangular event boxes that fit within grid cells */
+    .day-events {
+        display: flex;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        justify-content: flex-start !important;
+        gap: 0.25rem !important;
+        margin-top: 1.5rem !important;
+        padding: 0.2rem 0 !important;
+        position: relative !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        align-self: stretch !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+    }
+    
+    .day-events .event-item {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-height: 2rem !important;
+        padding: 0.35rem 0.4rem !important;
+        margin: 0 !important;
+        border-radius: 4px !important;
+        border-left: 2px solid !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        justify-content: flex-start !important;
+        font-size: 0.7rem !important;
+        font-weight: normal !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        overflow: hidden !important;
+        position: relative !important;
+        transform: none !important;
+        box-sizing: border-box !important;
+        gap: 0.05rem !important;
+        line-height: 1.3 !important;
+    }
+    
+    /* Show all event content - time must be fully visible */
+    .day-events .event-item .event-time {
+        display: block !important;
+        font-size: 0.65rem !important;
+        font-weight: 600 !important;
+        margin-bottom: 0.05rem !important;
+        white-space: nowrap !important;
+        overflow: visible !important; /* Allow time to be fully visible */
+        text-overflow: clip !important; /* Don't truncate time */
+        width: 100% !important; /* Take full width but don't truncate */
+        max-width: 100% !important;
+        flex-shrink: 0 !important; /* Prevent time from shrinking */
+        min-width: 0 !important; /* Allow flexbox to work properly */
+        word-break: keep-all !important; /* Keep time together */
+    }
+    
+    .day-events .event-item .event-title {
+        display: block !important;
+        font-size: 0.65rem !important;
+        line-height: 1.2 !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        flex-shrink: 1 !important; /* Allow title to shrink to make room for time */
+        min-width: 0 !important; /* Allow title to shrink below its content size */
+    }
+    
+    .day-events .event-item .event-notes {
+        display: -webkit-box !important;
+        font-size: 0.6rem !important;
+        -webkit-line-clamp: 1 !important;
+        -webkit-box-orient: vertical !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        margin-top: 0.05rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    
+    .day-events .event-item .event-patient {
+        display: none !important;
+    }
+    
+    .day-events .event-item .mobile-event-count {
+        display: none !important;
+    }
+    
+    /* Event item colors */
+    .day-events .event-item.booked {
+        background: #f3e8ff !important;
+        border-left-color: #9333ea !important;
+        color: #6b21a8 !important;
+    }
+    .day-events .event-item.pending {
+        background: #fef3c7 !important;
+        border-left-color: #fbbf24 !important;
+        color: #92400e !important;
+    }
+    .day-events .event-item.confirmed {
+        background: #dbeafe !important;
+        border-left-color: #3b82f6 !important;
+        color: #1e40af !important;
+    }
+    .day-events .event-item.completed {
+        background: #d1fae5 !important;
+        border-left-color: #10b981 !important;
+        color: #065f46 !important;
+    }
+    .day-events .event-item.cancelled {
+        background: #fef3c7 !important;
+        border-left-color: #92400e !important;
+        color: #78350f !important;
+        opacity: 0.7 !important;
+    }
+    .day-events .event-item.missed {
+        background: #e5e7eb !important;
+        border-left-color: #6b7280 !important;
+        color: #374151 !important;
+    }
+    .day-events .event-item.blocked {
+        background: #fff1f2 !important;
+        border-left-color: rgb(255, 0, 0) !important;
+        color: rgb(255, 0, 0) !important;
+    }
+    
+    .calendar-day.fully-booked .day-events {
+        margin-top: 1.5rem !important;
+        padding-top: 0.2rem !important;
+    }
+
+    /* 2) Hide legacy "X more" indicator on mobile */
+    .event-more-indicator {
+        display: none !important;
+    }
+
+    /* 3) Fully booked indicator as a small icon near the top-right corner */
+    .fully-booked-indicator {
+        position: absolute !important;
+        top: 0.25rem !important;
+        right: 0.25rem !important;
+        left: auto !important;
+        width: 20px !important;
+        height: 20px !important;
+        padding: 0 !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+        box-shadow: 0 2px 4px rgba(220, 38, 38, 0.35) !important;
+        color: #fff !important;
+        font-size: 0 !important; /* hide any text inside */
+        z-index: 35 !important;
+    }
+    .fully-booked-indicator::after {
+        content: '\00D7' !important; /* icon-like marker */
+        font-size: 0.75rem !important;
+        font-weight: 800 !important;
+        line-height: 1 !important;
+    }
+    .calendar-day.fully-booked .day-number {
+        max-width: calc(100% - 2.5rem) !important;
+    }
+
+    /* Dark mode adjustments - proper dark mode colors */
+    [data-theme="dark"] .calendar-day .day-events .event-item {
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+    }
+    [data-theme="dark"] .calendar-day .day-events .event-item.pending {
+        background: rgba(251, 191, 36, 0.2) !important;
+        border-left-color: #fbbf24 !important;
+        color: #fef3c7 !important;
+    }
+    [data-theme="dark"] .calendar-day .day-events .event-item.confirmed {
+        background: rgba(59, 130, 246, 0.2) !important;
+        border-left-color: #3b82f6 !important;
+        color: #dbeafe !important;
+    }
+    [data-theme="dark"] .calendar-day .day-events .event-item.completed {
+        background: rgba(16, 185, 129, 0.2) !important;
+        border-left-color: #10b981 !important;
+        color: #d1fae5 !important;
+    }
+    [data-theme="dark"] .calendar-day .day-events .event-item.cancelled {
+        background: rgba(146, 64, 14, 0.3) !important;
+        border-left-color: #a16207 !important;
+        color: #fef3c7 !important;
+        opacity: 0.7 !important;
+    }
+    [data-theme="dark"] .calendar-day .day-events .event-item.blocked {
+        background: rgba(239, 68, 68, 0.2) !important;
+        border-left-color: #ef4444 !important;
+        color: #fee2e2 !important;
+    }
+    [data-theme="dark"] .calendar-day .day-events .event-item.blocked.full-day-closure {
+        background: linear-gradient(135deg, rgba(252, 165, 165, 0.9) 0%, rgba(248, 113, 113, 0.9) 100%) !important;
+        border-left-color: #fca5a5 !important;
+        color: #7f1d1d !important;
+        font-weight: 600 !important;
+    }
+    [data-theme="dark"] .calendar-day .day-events .event-item.missed {
+        background: rgba(107, 114, 128, 0.2) !important;
+        border-left-color: #6b7280 !important;
+        color: #e5e7eb !important;
+    }
+    [data-theme="dark"] .calendar-day .day-events .event-item.booked {
+        background: rgba(147, 51, 234, 0.3) !important;
+        border-left-color: #9333ea !important;
+        color: #e9d5ff !important;
+    }
+}
+</style>
+
 <div class="calendar-container">
     <!-- Main Content -->
     <div class="calendar-layout">
@@ -40,15 +265,15 @@
             <div class="sidebar-card tabbed-section reveal-element reveal-slide-left">
                 <!-- Tab Buttons -->
                 <div class="tab-buttons">
-                    <button class="tab-btn active" data-tab="upcoming" onclick="switchTab('upcoming')">
+                    <button class="tab-btn active" data-tab="upcoming" onclick="switchTab('upcoming')" data-tooltip="Upcoming Appointments">
                         <i class="bi bi-clock-history"></i>
                         <span>Upcoming</span>
                     </button>
-                    <button class="tab-btn" data-tab="pending" onclick="switchTab('pending')">
+                    <button class="tab-btn" data-tab="pending" onclick="switchTab('pending')" data-tooltip="Pending Request">
                         <i class="bi bi-hourglass-split"></i>
                         <span>Pending Request</span>
                     </button>
-                    <button class="tab-btn" data-tab="history" onclick="switchTab('history')">
+                    <button class="tab-btn" data-tab="history" onclick="switchTab('history')" data-tooltip="Appointment History">
                         <i class="bi bi-archive"></i>
                         <span>Medical History</span>
                     </button>
@@ -160,13 +385,13 @@
                                     <div class="history-time">
                                         <i class="bi bi-clock me-1"></i>{{ $appointment->start_datetime->format('g:i A') }}
                                     </div>
-                                    <span class="status-badge history {{ $status }}">{{ $appointment->status }}</span>
-                                </div>
-                                @if(($status === 'cancelled' || $status === 'missed') && $appointment->notes)
-                                    <div class="history-notes text-muted small mt-1">
-                                        <i class="bi bi-info-circle me-1"></i>{{ $appointment->notes }}
+                                    <div class="history-badges">
+                                        <span class="status-badge history {{ $status }}">{{ $appointment->status }}</span>
+                                        @if(($status === 'cancelled' || $status === 'missed') && $appointment->notes && (stripos($appointment->notes, 'automatic') !== false || stripos($appointment->notes, 'automatically') !== false))
+                                            <span class="status-badge automatic-status">Automatic Status</span>
+                                        @endif
                                     </div>
-                                @endif
+                                </div>
                             </div>
                         </div>
                     @empty
@@ -390,8 +615,19 @@
                 </label>
                                 <select id="rescheduleAppointmentSelect" name="appointment_id" class="form-select">
                     <option value="">-- Select an appointment --</option>
-                    @foreach($upcomingAppointments as $appointment)
-                        @if(in_array($appointment->status, ['Pending', 'Confirmed']))
+                    @php
+                        $displayedIds = [];
+                    @endphp
+                    @foreach($reschedulableAppointments as $appointment)
+                        @php
+                            $status = $appointment->status ?? 'Pending';
+                            $optionLabel = ($appointment->service ? $appointment->service->service_name : ($appointment->reason_for_visit ?? 'Appointment')) .
+                                ' - ' . $appointment->start_datetime->format('M d, Y') . ' at ' . $appointment->start_datetime->format('g:i A');
+                            if (!in_array($status, ['Pending', 'Confirmed'])) {
+                                $optionLabel .= ' [' . $status . ']';
+                            }
+                        @endphp
+                        @if(!in_array($appointment->id, $displayedIds))
                             <option value="{{ $appointment->id }}"
                                     data-service="{{ $appointment->service ? $appointment->service->service_name : $appointment->reason_for_visit }}"
                                     data-date="{{ $appointment->start_datetime->format('Y-m-d') }}"
@@ -401,10 +637,9 @@
                                     data-duration="{{ $appointment->duration_minutes }}"
                                     data-reason-for-visit="{{ $appointment->reason_for_visit ?? '' }}"
                                     data-status="{{ $appointment->status ?? 'Pending' }}">
-                                {{ $appointment->service ? $appointment->service->service_name : $appointment->reason_for_visit }} -
-                                {{ $appointment->start_datetime->format('M d, Y') }} at
-                                {{ $appointment->start_datetime->format('g:i A') }}
+                                {{ $optionLabel }}
                             </option>
+                            @php $displayedIds[] = $appointment->id; @endphp
                         @endif
                     @endforeach
                 </select>
@@ -719,6 +954,7 @@
     top: 0.75rem;
     max-height: calc(100vh - 80px);
     overflow-y: auto;
+    overflow-x: visible;
 }
 
 .sidebar-card {
@@ -732,6 +968,9 @@
     flex-direction: column;
     min-height: 0;
     min-width: 0;
+    position: relative;
+    overflow: visible;
+    z-index: 1;
 }
 
 
@@ -793,6 +1032,9 @@
     flex-direction: column;
     min-height: 0;
     height: 100%;
+    position: relative;
+    overflow: visible;
+    z-index: 1;
 }
 
 .tabbed-section .tab-content-wrapper {
@@ -806,6 +1048,10 @@
     margin-bottom: 0.875rem;
     border-bottom: 2px solid rgba(33, 150, 243, 0.1);
     padding-bottom: 0.5rem;
+    position: relative;
+    overflow: visible;
+    z-index: 1000;
+    isolation: isolate;
 }
 
 .tab-btn {
@@ -864,6 +1110,71 @@
 
 .tab-btn.active i {
     color: #2196F3;
+}
+
+/* Tab Button Tooltips */
+.tab-btn[data-tooltip] {
+    position: relative;
+    z-index: 100;
+}
+
+.tab-btn[data-tooltip]:hover::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    color: white;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    z-index: 99999 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 2px 6px rgba(0, 0, 0, 0.2);
+    pointer-events: none;
+    opacity: 0;
+    animation: tooltipFadeInBottom 0.2s ease forwards;
+}
+
+.tab-btn[data-tooltip]:hover::after {
+    content: '';
+    position: absolute;
+    top: calc(100% + 2px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 6px solid #1e293b;
+    z-index: 100000 !important;
+    pointer-events: none;
+    opacity: 0;
+    animation: tooltipFadeInBottom 0.2s ease forwards;
+}
+
+@keyframes tooltipFadeInBottom {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* Dark Mode Tooltips */
+[data-theme="dark"] .tab-btn[data-tooltip]:hover::before {
+    background: linear-gradient(135deg, #334155 0%, #1e293b 100%) !important;
+    color: #f1f5f9 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .tab-btn[data-tooltip]:hover::after {
+    border-bottom-color: #334155 !important;
 }
 
 .tab-content-wrapper {
@@ -1087,6 +1398,11 @@
     padding: 0.4rem 0.75rem;
     font-size: 0.8rem;
     transition: all 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    line-height: 1; /* keeps icon and label vertically centered */
 }
 
 .view-btn.active {
@@ -1100,6 +1416,13 @@
     background: rgba(33, 150, 243, 0.05);
     border-color: #2196F3;
     color: #2196F3;
+}
+
+/* Ensure icon and text are aligned nicely inside view buttons */
+.view-btn i {
+    display: inline-block;
+    vertical-align: middle;
+    font-size: 1em;
 }
 
 .btn-today {
@@ -1173,7 +1496,7 @@
 }
 
 .legend-dot.blocked {
-    background: #ef4444;
+    background: #fca5a5;
 }
 
 .legend-dot.missed {
@@ -1220,6 +1543,8 @@
     background: #e2e8f0;
     border-radius: 8px 8px 0 0;
     overflow: hidden;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .calendar-header-cell {
@@ -1236,12 +1561,17 @@
     flex-direction: column;
     gap: 1px;
     background: #e2e8f0;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
 }
 
 .calendar-week {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 1px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .calendar-day {
@@ -1254,6 +1584,8 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .calendar-day:hover {
@@ -1318,7 +1650,7 @@
     font-size: 0.7rem;
     cursor: pointer;
     transition: all 0.2s;
-    overflow: hidden;
+    overflow: hidden; /* Hide overflow for container, but time will be visible */
     text-overflow: ellipsis;
     white-space: normal;
     position: relative;
@@ -1326,7 +1658,9 @@
     flex-shrink: 0;
     line-height: 1.4;
     word-wrap: break-word;
-    display: block;
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
     margin-bottom: 0;
     width: 100%;
     box-sizing: border-box;
@@ -1364,15 +1698,29 @@
 }
 
 .event-item.blocked {
-    background: #fee2e2;
-    border-left-color: #ef4444;
-    color: #991b1b;
+    background: #fff1f2 !important;
+    border-left-color:rgb(255, 0, 0) !important;
+    color:rgb(255, 0, 0) !important;
     cursor: pointer;
+}
+
+.event-item.blocked.full-day-closure {
+    background: linear-gradient(135deg, #fca5a5 0%, #f87171 100%) !important;
+    border-left-color: #ef4444 !important;
+    color: #7f1d1d !important;
+    font-weight: 600 !important;
+}
+
+.event-item.blocked.full-day-closure:hover {
+    background: linear-gradient(135deg, #f87171 0%, #f87171 100%) !important;
+    transform: translateX(2px);
+    box-shadow: 0 2px 6px rgba(248, 113, 113, 0.4);
+    opacity: 1;
 }
 
 .event-item.blocked:hover {
     transform: translateX(2px);
-    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);
+    box-shadow: 0 2px 6px rgba(252, 165, 165, 0.3);
     opacity: 1;
 }
 
@@ -1401,39 +1749,49 @@
     font-weight: 600;
     color: #1e293b;
     font-size: 0.7rem;
-    margin-bottom: 0.2rem;
-    line-height: 1.3;
+    margin-bottom: 0.1rem;
+    line-height: 1.2;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow: visible; /* Allow time to be fully visible */
+    text-overflow: clip; /* Don't truncate time */
     display: block;
-    width: 100%;
+    width: 100%; /* Take full width but don't truncate */
+    max-width: 100%;
+    flex-shrink: 0; /* Prevent time from shrinking */
+    min-width: 0; /* Allow flexbox to work properly */
+    word-break: keep-all; /* Keep time together */
 }
 
 .event-title {
     color: #64748b;
     font-size: 0.65rem;
-    line-height: 1.4;
+    line-height: 1.3;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     word-wrap: normal;
     display: block;
     width: 100%;
+    max-width: 100%;
+    margin: 0;
+    flex-shrink: 1; /* Allow title to shrink to make room for time */
+    min-width: 0; /* Allow title to shrink below its content size */
 }
 
 .event-notes {
     font-size: 0.65rem;
     color: #64748b;
-    margin-top: 0.125rem;
+    margin-top: 0.1rem;
     opacity: 0.9;
     line-height: 1.2;
     word-wrap: break-word;
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
+    width: 100%;
+    max-width: 100%;
 }
 
 /* Upcoming Info - More Compact */
@@ -1575,6 +1933,12 @@
     color: white;
 }
 
+.badge.status-badge-brown {
+    background: linear-gradient(135deg, #a16207 0%, #854d0e 100%) !important;
+    color: #fff !important;
+    box-shadow: 0 4px 12px rgba(133, 77, 14, 0.35);
+}
+
 .status-badge.cancelled {
     background: linear-gradient(135deg, #92400e 0%, #78350f 100%);
     color: white;
@@ -1588,6 +1952,26 @@
 .status-badge.blocked {
     background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
     color: white;
+}
+
+/* History Badges Container */
+.history-badges {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+/* Automatic Status Badge */
+.status-badge.automatic-status {
+    background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+    color: white;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.6rem;
+    font-weight: 600;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    white-space: nowrap;
 }
 
 /* Pending Request Items */
@@ -1669,6 +2053,10 @@
     .event-time {
         font-size: 0.7rem !important;
         margin-bottom: 0.2rem !important;
+        overflow: visible !important; /* Allow time to be fully visible */
+        text-overflow: clip !important; /* Don't truncate time */
+        white-space: nowrap !important; /* Keep time on one line */
+        word-break: keep-all !important; /* Keep time together */
     }
     
     .event-title {
@@ -1764,20 +2152,35 @@
         min-height: 75px;
         padding: 0.35rem;
         position: relative;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
     }
     
     .day-number {
-        font-size: 0.8rem;
-        top: 0.3rem;
-        left: 0.3rem;
+        font-size: 0.75rem;
+        top: 0.25rem;
+        left: 0.25rem;
         font-weight: 700;
         color: #1e293b;
         z-index: 3;
         position: absolute;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: transparent;
     }
     
     .calendar-day.today .day-number {
         color: white;
+        background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+        width: 18px;
+        height: 18px;
+        font-size: 0.65rem;
     }
     
     /* Event count badges - Make them more visible on mobile */
@@ -1813,6 +2216,9 @@
         margin-top: 1.5rem;
         gap: 0.25rem;
         padding-top: 0.2rem;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
     }
     
     .event-item {
@@ -1820,43 +2226,72 @@
         font-size: 0.7rem;
         min-height: 2rem;
         line-height: 1.3;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        gap: 0.05rem;
     }
     
-    /* Mobile: Booked event items as overlapping circular indicators */
+    .event-time {
+        font-size: 0.65rem;
+        margin-bottom: 0.05rem;
+        max-width: 100%;
+        overflow: visible; /* Allow time to be fully visible */
+        text-overflow: clip; /* Don't truncate time */
+        width: 100%; /* Take full width but don't truncate */
+        flex-shrink: 0; /* Prevent time from shrinking */
+        min-width: 0; /* Allow flexbox to work properly */
+        word-break: keep-all; /* Keep time together */
+        white-space: nowrap; /* Keep time on one line */
+    }
+    
+    .event-title {
+        font-size: 0.65rem;
+        line-height: 1.2;
+        max-width: 100%;
+    }
+    
+    .event-notes {
+        font-size: 0.6rem;
+        -webkit-line-clamp: 1;
+        margin-top: 0.05rem;
+        max-width: 100%;
+    }
+    
+    /* Mobile: Booked event items as rectangular boxes that fit within grid */
     .event-item.booked {
-        width: 24px;
-        height: 24px;
-        min-height: 24px;
-        padding: 0;
-        border-radius: 50%;
-        border: none;
-        background: #3b82f6;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-height: 2rem;
+        padding: 0.35rem 0.4rem;
+        border-radius: 4px;
+        border-left: 2px solid #9333ea;
+        background: #f3e8ff;
+        color: #6b21a8;
         position: relative;
-        display: inline-block;
+        display: flex;
+        flex-direction: column;
         flex-shrink: 0;
-        margin-left: -8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        opacity: 0.95;
+        margin-left: 0;
+        margin-bottom: 0.25rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        opacity: 1;
+        box-sizing: border-box;
+        gap: 0.05rem;
     }
     
     .event-item.booked:first-of-type {
         margin-left: 0;
     }
     
-    /* Different colors for multiple booked items - blue, purple, red */
-    .event-item.booked:nth-of-type(1) {
-        background: #3b82f6;
-        z-index: 1;
-    }
-    
-    .event-item.booked:nth-of-type(2) {
-        background: #9333ea;
-        z-index: 2;
-    }
-    
+    /* All booked items use the same style - rectangular boxes */
+    .event-item.booked:nth-of-type(1),
+    .event-item.booked:nth-of-type(2),
     .event-item.booked:nth-of-type(3) {
-        background: #ef4444;
-        z-index: 3;
+        background: #f3e8ff;
+        border-left-color: #9333ea;
+        color: #6b21a8;
+        z-index: 1;
     }
     
     .event-item.booked:nth-of-type(4) {
@@ -2203,9 +2638,9 @@
     .calendar-header-cell:nth-child(7)::before { content: 'Sat'; }
     
     .calendar-day.today .day-number {
-        width: 32px;
-        height: 32px;
-        font-size: 0.875rem;
+        width: 18px;
+        height: 18px;
+        font-size: 0.65rem;
     }
     
     /* Better spacing for calendar grid on mobile */
@@ -2223,6 +2658,358 @@
         min-height: 44px;
         padding: 0.5rem 0.75rem;
         font-size: 0.85rem;
+    }
+    
+    /* Mobile modals: fit screen, reduce padding/typography, scroll body only */
+    .modal-dialog {
+        margin: 0.75rem auto;
+        max-width: calc(100% - 1.5rem);
+        width: calc(100% - 1.5rem);
+        box-sizing: border-box;
+    }
+    #appointmentRequestModal .modal-dialog,
+    #appointmentDetailsModal .modal-dialog,
+    #successModal .modal-dialog,
+    #cancelConfirmationModal .modal-dialog,
+    #cancelRescheduleModal .modal-dialog,
+    #ratingModal .modal-dialog,
+    #patientAppointmentConflictModal .modal-dialog,
+    #patientClinicClosedModal .modal-dialog,
+    #dayAppointmentsModal .modal-dialog {
+        width: calc(100% - 1.5rem);
+        max-width: calc(100% - 1.5rem);
+        margin: 0.75rem;
+        box-sizing: border-box;
+    }
+    #appointmentRequestModal .modal-content,
+    #appointmentDetailsModal .modal-content,
+    #successModal .modal-content,
+    #cancelConfirmationModal .modal-content,
+    #cancelRescheduleModal .modal-content,
+    #ratingModal .modal-content,
+    #patientAppointmentConflictModal .modal-content,
+    #patientClinicClosedModal .modal-content,
+    #dayAppointmentsModal .modal-content {
+        max-height: 92vh;
+        display: flex;
+        flex-direction: column;
+        border-radius: 12px;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        margin: 0;
+    }
+    #appointmentRequestModal .modal-header,
+    #appointmentDetailsModal .modal-header,
+    #successModal .modal-header,
+    #cancelConfirmationModal .modal-header,
+    #cancelRescheduleModal .modal-header,
+    #ratingModal .modal-header,
+    #patientAppointmentConflictModal .modal-header,
+    #patientClinicClosedModal .modal-header,
+    #dayAppointmentsModal .modal-header {
+        padding: 0.75rem 0.9rem !important;
+        flex-shrink: 0;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        overflow: hidden;
+    }
+    #appointmentRequestModal .modal-title,
+    #appointmentDetailsModal .modal-title,
+    #successModal .modal-title,
+    #cancelConfirmationModal .modal-title,
+    #cancelRescheduleModal .modal-title,
+    #ratingModal .modal-title,
+    #patientAppointmentConflictModal .modal-title,
+    #patientClinicClosedModal .modal-title,
+    #dayAppointmentsModal .modal-title {
+        font-size: 1rem !important;
+        margin: 0;
+        padding: 0;
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    #appointmentRequestModal .modal-body,
+    #appointmentDetailsModal .modal-body,
+    #successModal .modal-body,
+    #cancelConfirmationModal .modal-body,
+    #cancelRescheduleModal .modal-body,
+    #ratingModal .modal-body,
+    #patientAppointmentConflictModal .modal-body,
+    #patientClinicClosedModal .modal-body,
+    #dayAppointmentsModal .modal-body {
+        padding: 0.8rem !important;
+        overflow-y: auto;
+        overflow-x: hidden;
+        flex: 1 1 auto;
+        -webkit-overflow-scrolling: touch;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    #appointmentRequestModal .modal-footer,
+    #appointmentDetailsModal .modal-footer,
+    #successModal .modal-footer,
+    #cancelConfirmationModal .modal-footer,
+    #cancelRescheduleModal .modal-footer,
+    #ratingModal .modal-footer,
+    #patientAppointmentConflictModal .modal-footer,
+    #patientClinicClosedModal .modal-footer,
+    #dayAppointmentsModal .modal-footer {
+        padding: 0.6rem 0.8rem !important;
+        flex-shrink: 0;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    /* Form elements inside modals */
+    #appointmentRequestModal .form-label,
+    #appointmentDetailsModal .form-label {
+        font-size: 0.85rem !important;
+        margin-bottom: 0.25rem !important;
+    }
+    #appointmentRequestModal .form-select,
+    #appointmentRequestModal .form-control,
+    #appointmentRequestModal .form-textarea,
+    #appointmentDetailsModal .form-select,
+    #appointmentDetailsModal .form-control {
+        font-size: 0.875rem !important;
+        padding: 0.5rem 0.6rem !important;
+    }
+    #appointmentRequestModal .appointment-action-btn,
+    #appointmentRequestModal .btn,
+    #appointmentDetailsModal .btn,
+    #successModal .btn,
+    #cancelConfirmationModal .btn,
+    #cancelRescheduleModal .btn,
+    #ratingModal .btn,
+    #patientAppointmentConflictModal .btn,
+    #patientClinicClosedModal .btn,
+    #dayAppointmentsModal .btn {
+        padding: 0.5rem 0.75rem !important;
+        font-size: 0.85rem !important;
+        min-height: 44px;
+    }
+    
+    /* Ensure modal buttons stack on mobile */
+    #cancelConfirmationModal .modal-footer,
+    #cancelRescheduleModal .modal-footer,
+    #patientAppointmentConflictModal .modal-footer,
+    #patientClinicClosedModal .modal-footer {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    #cancelConfirmationModal .modal-footer .btn,
+    #cancelRescheduleModal .modal-footer .btn,
+    #patientAppointmentConflictModal .modal-footer .btn,
+    #patientClinicClosedModal .modal-footer .btn {
+        width: 100%;
+        margin: 0 !important;
+    }
+    
+    /* Ensure close button is easily tappable on mobile */
+    .modal-header .btn-close {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        min-height: 44px;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 1;
+    }
+    
+    /* Prevent horizontal overflow on mobile */
+    .modal {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+    
+    /* Ensure modal content doesn't overflow */
+    .modal-content {
+        max-width: 100%;
+        width: 100%;
+        box-sizing: border-box;
+        margin: 0;
+    }
+    
+    /* Ensure all modal children respect width */
+    .modal-content > * {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    
+    /* Ensure modal footer respects width */
+    .modal-footer {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    
+    /* Prevent any content inside modals from overflowing */
+    .modal-body *,
+    .modal-header *,
+    .modal-footer * {
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    
+    /* Ensure images and other media don't overflow */
+    .modal-body img,
+    .modal-body video,
+    .modal-body iframe {
+        max-width: 100%;
+        height: auto;
+    }
+    
+    /* Ensure modal header content doesn't overflow */
+    .modal-header {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
+    }
+    
+    .modal-header .modal-title {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .modal-header .btn-close {
+        flex-shrink: 0;
+        margin-left: 0.5rem;
+    }
+    
+    /* Appointment Details Modal - Compact mobile version */
+    #appointmentDetailsModal .modal-body {
+        padding: 0.6rem !important;
+        max-height: calc(92vh - 140px);
+    }
+    
+    #appointmentDetailsModal .appointment-details-grid {
+        gap: 0.75rem;
+    }
+    
+    #appointmentDetailsModal .detail-card {
+        padding: 0.75rem !important;
+        gap: 0.625rem !important;
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+    }
+    
+    #appointmentDetailsModal .detail-icon {
+        width: 36px !important;
+        height: 36px !important;
+        border-radius: 8px;
+    }
+    
+    #appointmentDetailsModal .detail-icon i {
+        font-size: 1.1rem !important;
+    }
+    
+    #appointmentDetailsModal .detail-label {
+        font-size: 0.7rem !important;
+        margin-bottom: 0.25rem !important;
+        letter-spacing: 0.3px;
+    }
+    
+    #appointmentDetailsModal .detail-value {
+        font-size: 0.875rem !important;
+        line-height: 1.3 !important;
+    }
+    
+    #appointmentDetailsModal .modal-footer {
+        padding: 0.5rem 0.6rem !important;
+        gap: 0.5rem;
+    }
+    
+    #appointmentDetailsModal .modal-footer .btn {
+        padding: 0.5rem 0.75rem !important;
+        font-size: 0.8rem !important;
+        min-height: 40px;
+    }
+    
+    /* Mobile-specific modal content adjustments */
+    .modal-body h4,
+    .modal-body h5 {
+        font-size: 1rem !important;
+        line-height: 1.4 !important;
+    }
+    
+    .modal-body p {
+        font-size: 0.875rem !important;
+        line-height: 1.5 !important;
+    }
+    
+    /* Rating modal stars - make them larger and more touch-friendly */
+    #ratingModal .star-rating {
+        font-size: 2rem !important;
+        gap: 0.5rem;
+    }
+    
+    #ratingModal .star {
+        cursor: pointer;
+        min-width: 44px;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Icon wrappers in modals - responsive sizing */
+    .modal-body [style*="width: 80px"][style*="height: 80px"] {
+        width: 60px !important;
+        height: 60px !important;
+    }
+    
+    .modal-body [style*="font-size: 2.5rem"],
+    .modal-body [style*="font-size: 3rem"] {
+        font-size: 2rem !important;
+    }
+    
+    /* Cancel icon wrapper */
+    .cancel-icon-wrapper {
+        width: 60px !important;
+        height: 60px !important;
+    }
+    
+    .cancel-icon-wrapper i {
+        font-size: 2rem !important;
+    }
+    
+    /* Alert boxes in modals */
+    .modal-body .alert {
+        font-size: 0.85rem !important;
+        padding: 0.75rem !important;
+    }
+    
+    /* Cancel details box */
+    .cancel-details-box {
+        font-size: 0.875rem !important;
+    }
+    
+    /* Time slot grid tighter */
+    .time-slot-grid {
+        gap: 0.35rem !important;
+    }
+    .time-slot-btn {
+        padding: 0.4rem 0.5rem !important;
+        font-size: 0.8rem !important;
+        min-width: 66px !important;
     }
     
     /* Improve scrollability on mobile */
@@ -2277,17 +3064,26 @@
     .calendar-day {
         min-height: 70px;
         padding: 0.3rem;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
     }
     
     .day-number {
-        font-size: 0.75rem;
-        top: 0.25rem;
-        left: 0.25rem;
+        font-size: 0.7rem;
+        top: 0.2rem;
+        left: 0.2rem;
         color: #1e293b;
+        width: 22px;
+        height: 22px;
     }
     
     .calendar-day.today .day-number {
         color: white;
+        width: 16px;
+        height: 16px;
+        font-size: 0.6rem;
     }
     
     /* Event count badges - Smaller on very small screens */
@@ -2307,18 +3103,53 @@
         right: 2.55rem;
     }
     
+    .day-events {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    
     .event-item {
         padding: 0.3rem 0.35rem;
         font-size: 0.65rem;
         min-height: 1.75rem;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        gap: 0.05rem;
     }
     
     .event-time {
         font-size: 0.6rem;
+        margin-bottom: 0.05rem;
+        max-width: 100%;
     }
     
     .event-title {
         font-size: 0.6rem;
+        line-height: 1.15;
+        max-width: 100%;
+    }
+    
+    .event-notes {
+        font-size: 0.55rem;
+        -webkit-line-clamp: 1;
+        margin-top: 0.05rem;
+        max-width: 100%;
+    }
+    
+    .calendar-header-row,
+    .calendar-week {
+        grid-template-columns: repeat(7, 1fr);
+        gap: 1px;
+        width: 100%;
+        min-width: 100%;
+    }
+    
+    .calendar-body {
+        gap: 1px;
+        width: 100%;
+        overflow-x: hidden;
     }
     
     .fully-booked-indicator {
@@ -2436,6 +3267,238 @@
     
     .day-events {
         max-height: calc(85px - 2.25rem);
+    }
+}
+
+/* Ultra-small devices (250px - 320px) */
+@media (min-width: 250px) and (max-width: 320px) {
+    .calendar-container {
+        padding: 0.25rem;
+    }
+    
+    .calendar-main,
+    .sidebar-card {
+        padding: 0.4rem;
+    }
+    
+    .period-header {
+        gap: 0.5rem;
+        padding: 0.6rem;
+    }
+    
+    .period-title {
+        font-size: 1rem;
+    }
+    
+    .calendar-header {
+        padding: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .calendar-day {
+        min-height: 64px;
+        padding: 0.25rem;
+    }
+    
+    .day-number {
+        font-size: 0.65rem;
+        top: 0.2rem;
+        left: 0.2rem;
+        width: 18px;
+        height: 18px;
+    }
+    
+    .calendar-day.today .day-number {
+        width: 14px;
+        height: 14px;
+        font-size: 0.55rem;
+    }
+    
+    .day-events {
+        margin-top: 1.3rem;
+        padding-bottom: 0.15rem;
+    }
+    
+    .day-events .event-item {
+        width: 20px !important;
+        height: 20px !important;
+        min-height: 20px !important;
+        border-width: 1.5px !important;
+        font-size: 0.55rem !important;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.25) !important;
+    }
+    
+    .day-events .event-item:not(:first-child) {
+        margin-top: -10px !important;
+    }
+    
+    .mobile-event-count {
+        font-size: 0.6rem;
+    }
+    
+    .fully-booked-indicator {
+        width: 16px !important;
+        height: 16px !important;
+        top: 0.2rem !important;
+        right: 0.2rem !important;
+    }
+    
+    .calendar-header-cell {
+        padding: 0.35rem 0.2rem;
+    }
+    
+    .calendar-header-cell::before {
+        font-size: 0.6rem;
+    }
+    
+    .event-count-badge {
+        width: 16px;
+        height: 16px;
+        font-size: 0.55rem;
+        top: 0.2rem;
+        right: 0.2rem;
+    }
+    
+    .calendar-day .event-count-badge:nth-of-type(2) {
+        right: 1.2rem;
+    }
+    
+    .calendar-day .event-count-badge:nth-of-type(3) {
+        right: 2.25rem;
+    }
+    
+    .calendar-nav {
+        gap: 0.5rem;
+    }
+    
+    .calendar-nav .nav-btn,
+    .view-btn {
+        min-height: 40px;
+        font-size: 0.7rem;
+    }
+    
+    .tab-btn {
+        min-height: 40px;
+        font-size: 0.75rem;
+    }
+    
+    .legend-item {
+        padding: 0.35rem 0.5rem;
+        font-size: 0.7rem;
+    }
+    
+    /* Ultra-small: modals tighter */
+    #appointmentRequestModal .modal-content,
+    #appointmentDetailsModal .modal-content,
+    #successModal .modal-content,
+    #cancelConfirmationModal .modal-content,
+    #cancelRescheduleModal .modal-content,
+    #ratingModal .modal-content,
+    #patientAppointmentConflictModal .modal-content,
+    #patientClinicClosedModal .modal-content,
+    #dayAppointmentsModal .modal-content {
+        max-height: 94vh;
+        border-radius: 10px;
+    }
+    #appointmentRequestModal .modal-header,
+    #appointmentDetailsModal .modal-header,
+    #successModal .modal-header,
+    #cancelConfirmationModal .modal-header,
+    #cancelRescheduleModal .modal-header,
+    #ratingModal .modal-header,
+    #patientAppointmentConflictModal .modal-header,
+    #patientClinicClosedModal .modal-header,
+    #dayAppointmentsModal .modal-header {
+        padding: 0.6rem 0.7rem !important;
+    }
+    #appointmentRequestModal .modal-title,
+    #appointmentDetailsModal .modal-title,
+    #successModal .modal-title,
+    #cancelConfirmationModal .modal-title,
+    #cancelRescheduleModal .modal-title,
+    #ratingModal .modal-title,
+    #patientAppointmentConflictModal .modal-title,
+    #patientClinicClosedModal .modal-title,
+    #dayAppointmentsModal .modal-title {
+        font-size: 0.95rem !important;
+    }
+    #appointmentRequestModal .modal-body,
+    #appointmentDetailsModal .modal-body,
+    #successModal .modal-body,
+    #cancelConfirmationModal .modal-body,
+    #cancelRescheduleModal .modal-body,
+    #ratingModal .modal-body,
+    #patientAppointmentConflictModal .modal-body,
+    #patientClinicClosedModal .modal-body,
+    #dayAppointmentsModal .modal-body {
+        padding: 0.6rem !important;
+    }
+    
+    /* Ultra-small: Appointment Details Modal - Even more compact */
+    #appointmentDetailsModal .modal-body {
+        padding: 0.5rem !important;
+        max-height: calc(94vh - 120px);
+    }
+    
+    #appointmentDetailsModal .detail-card {
+        padding: 0.625rem !important;
+        gap: 0.5rem !important;
+    }
+    
+    #appointmentDetailsModal .detail-icon {
+        width: 32px !important;
+        height: 32px !important;
+    }
+    
+    #appointmentDetailsModal .detail-icon i {
+        font-size: 1rem !important;
+    }
+    
+    #appointmentDetailsModal .detail-label {
+        font-size: 0.65rem !important;
+        margin-bottom: 0.2rem !important;
+    }
+    
+    #appointmentDetailsModal .detail-value {
+        font-size: 0.8rem !important;
+    }
+    
+    #appointmentDetailsModal .appointment-details-grid {
+        gap: 0.5rem;
+    }
+    
+    #appointmentDetailsModal .modal-footer {
+        padding: 0.4rem 0.5rem !important;
+    }
+    
+    #appointmentDetailsModal .modal-footer .btn {
+        padding: 0.45rem 0.65rem !important;
+        font-size: 0.75rem !important;
+        min-height: 38px;
+    }
+    #appointmentRequestModal .form-select,
+    #appointmentRequestModal .form-control,
+    #appointmentRequestModal .form-textarea,
+    #appointmentDetailsModal .form-select,
+    #appointmentDetailsModal .form-control {
+        font-size: 0.8rem !important;
+        padding: 0.45rem 0.5rem !important;
+    }
+    .time-slot-btn {
+        padding: 0.35rem 0.45rem !important;
+        font-size: 0.75rem !important;
+        min-width: 60px !important;
+    }
+    
+    /* Day appointments modal list - better scrolling */
+    #dayAppointmentsModal .day-appointments-list {
+        max-height: 50vh !important;
+    }
+    
+    /* Modal fully booked indicator */
+    .modal-fully-booked-indicator {
+        font-size: 0.75rem !important;
+        padding: 0.4rem 0.75rem !important;
     }
 }
 
@@ -3334,6 +4397,64 @@
 @media (max-width: 768px) {
     .appointment-details-grid {
         grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+    
+    /* Reduce appointment details modal content sizes on mobile */
+    #appointmentDetailsModal .modal-body {
+        padding: 0.6rem !important;
+        max-height: calc(92vh - 140px);
+        overflow-y: auto;
+    }
+    
+    #appointmentDetailsModal .detail-card {
+        padding: 0.75rem !important;
+        gap: 0.625rem !important;
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+    }
+    
+    #appointmentDetailsModal .detail-icon {
+        width: 36px !important;
+        height: 36px !important;
+        border-radius: 8px;
+        flex-shrink: 0;
+    }
+    
+    #appointmentDetailsModal .detail-icon i {
+        font-size: 1.1rem !important;
+    }
+    
+    #appointmentDetailsModal .detail-label {
+        font-size: 0.7rem !important;
+        margin-bottom: 0.25rem !important;
+        letter-spacing: 0.3px;
+    }
+    
+    #appointmentDetailsModal .detail-value {
+        font-size: 0.875rem !important;
+        line-height: 1.3 !important;
+    }
+    
+    #appointmentDetailsModal .detail-content {
+        min-width: 0;
+        flex: 1;
+    }
+    
+    /* Reduce modal footer padding */
+    #appointmentDetailsModal .modal-footer {
+        padding: 0.5rem 0.6rem !important;
+        gap: 0.5rem;
+    }
+    
+    #appointmentDetailsModal .modal-footer .btn {
+        padding: 0.5rem 0.75rem !important;
+        font-size: 0.8rem !important;
+        min-height: 40px;
+    }
+    
+    #appointmentDetailsModal .modal-footer .btn i {
+        font-size: 0.85rem !important;
     }
 }
 
@@ -3342,8 +4463,15 @@
     width: 100%;
     max-height: calc(100vh - 280px);
     overflow-y: auto;
-    overflow-x: auto;
+    overflow-x: hidden; /* Prevent horizontal scroll - all days should fit */
     border-radius: 12px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.week-view-container {
+    width: 100%;
+    overflow-x: hidden; /* Prevent horizontal scroll */
+    -webkit-overflow-scrolling: touch;
 }
 
 /* Custom Scrollbar for Week View */
@@ -3375,6 +4503,8 @@
     position: sticky;
     top: 0;
     z-index: 10;
+    width: 100%;
+    min-width: 100%;
 }
 
 .time-column-header {
@@ -3423,12 +4553,16 @@
     flex-direction: column;
     gap: 1px;
     background: #e2e8f0;
+    width: 100%;
+    min-width: 100%;
 }
 
 .week-row {
     display: grid;
     grid-template-columns: 75px repeat(7, 1fr);
     gap: 1px;
+    width: 100%;
+    min-width: 100%;
 }
 
 .time-slot {
@@ -3449,6 +4583,11 @@
     padding: 0.375rem;
     min-height: 38px;
     position: relative;
+    overflow: hidden; /* Prevent content from overflowing */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .week-appointment {
@@ -3459,6 +4598,16 @@
     margin-bottom: 0.2rem;
     cursor: pointer;
     transition: all 0.2s;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+    overflow: hidden;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
 }
 
 .week-appointment:hover {
@@ -3488,11 +4637,39 @@
     opacity: 0.7;
 }
 
-.week-appointment.blocked {
-    background: #ffebee;
-    border-left-color: #f44336;
-    color: #991b1b;
+.week-appointment.blocked,
+.week-view .week-appointment.blocked,
+.week-body .week-appointment.blocked {
+    background: #fff1f2 !important;
+    border-left-color: rgb(255, 0, 0) !important;
+    color: rgb(255, 0, 0) !important;
     cursor: pointer;
+}
+
+.week-appointment.blocked.full-day-closure,
+.week-view .week-appointment.blocked.full-day-closure {
+    background: linear-gradient(135deg, #fca5a5 0%, #f87171 100%) !important;
+    border-left-color: #ef4444 !important;
+    color: #7f1d1d !important;
+    font-weight: 600 !important;
+}
+
+.week-appointment.blocked:not(.full-day-closure) .week-apt-time,
+.week-appointment.blocked:not(.full-day-closure) .week-apt-title,
+.week-appointment.blocked:not(.full-day-closure) .week-apt-notes,
+.week-view .week-appointment.blocked:not(.full-day-closure) .week-apt-time,
+.week-view .week-appointment.blocked:not(.full-day-closure) .week-apt-title,
+.week-view .week-appointment.blocked:not(.full-day-closure) .week-apt-notes {
+    color: rgb(255, 0, 0) !important;
+}
+
+.week-appointment.blocked.full-day-closure .week-apt-time,
+.week-appointment.blocked.full-day-closure .week-apt-title,
+.week-appointment.blocked.full-day-closure .week-apt-notes,
+.week-view .week-appointment.blocked.full-day-closure .week-apt-time,
+.week-view .week-appointment.blocked.full-day-closure .week-apt-title,
+.week-view .week-appointment.blocked.full-day-closure .week-apt-notes {
+    color: #7f1d1d !important;
 }
 
 .week-appointment.missed {
@@ -3504,7 +4681,15 @@
 
 .week-appointment.blocked:hover {
     transform: translateX(2px);
-    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+    box-shadow: 0 2px 8px rgba(252, 165, 165, 0.3);
+    opacity: 1;
+}
+
+.week-appointment.blocked.full-day-closure:hover,
+.week-view .week-appointment.blocked.full-day-closure:hover {
+    background: linear-gradient(135deg, #f87171 0%, #f87171 100%) !important;
+    transform: translateX(2px);
+    box-shadow: 0 2px 8px rgba(248, 113, 113, 0.4);
     opacity: 1;
 }
 
@@ -3531,27 +4716,45 @@
     font-size: 0.65rem;
     font-weight: 600;
     color: #1e293b;
-    margin-bottom: 0.15rem;
+    margin-bottom: 0.1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    max-width: 100%;
+    line-height: 1.2;
 }
 
 .week-apt-title {
     font-size: 0.7rem;
     color: #64748b;
     line-height: 1.2;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
 }
 
 .week-apt-notes {
     font-size: 0.7rem;
     color: #64748b;
-    margin-top: 0.25rem;
+    margin-top: 0.15rem;
     opacity: 0.85;
     line-height: 1.2;
     word-wrap: break-word;
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
+    width: 100%;
+    max-width: 100%;
 }
 
 /* Day View Styles - Compact to Fit Screen */
@@ -3559,6 +4762,8 @@
     width: 100%;
     max-height: calc(100vh - 300px);
     overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
 }
 
 .day-view-header {
@@ -3626,7 +4831,7 @@
 
 .day-time-row {
     display: grid;
-    grid-template-columns: 90px 1fr;
+    grid-template-columns: minmax(90px, auto) 1fr;
     gap: 1px;
     background: #e2e8f0;
 }
@@ -3651,6 +4856,10 @@
     flex-direction: column;
     gap: 0.4rem;
     justify-content: center;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 .day-appointment {
@@ -3661,6 +4870,11 @@
     cursor: pointer;
     transition: all 0.3s;
     box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .day-appointment:hover {
@@ -3690,11 +4904,45 @@
     opacity: 0.8;
 }
 
-.day-appointment.blocked {
-    background: linear-gradient(135deg, #fff5f5 0%, #ffebee 100%);
-    border-left-color: #f44336;
-    color: #991b1b;
+.day-appointment.blocked,
+.day-view .day-appointment.blocked,
+.day-view-body .day-appointment.blocked {
+    background: #fff1f2 !important;
+    border-left-color: rgb(255, 0, 0) !important;
+    color: rgb(255, 0, 0) !important;
     cursor: pointer;
+}
+
+.day-appointment.blocked.full-day-closure,
+.day-view .day-appointment.blocked.full-day-closure {
+    background: linear-gradient(135deg, #fca5a5 0%, #f87171 100%) !important;
+    border-left-color: #ef4444 !important;
+    color: #7f1d1d !important;
+    font-weight: 600 !important;
+}
+
+.day-appointment.blocked:not(.full-day-closure) .day-apt-time,
+.day-appointment.blocked:not(.full-day-closure) .day-apt-title,
+.day-appointment.blocked:not(.full-day-closure) .day-apt-notes,
+.day-view .day-appointment.blocked:not(.full-day-closure) .day-apt-time,
+.day-view .day-appointment.blocked:not(.full-day-closure) .day-apt-title,
+.day-view .day-appointment.blocked:not(.full-day-closure) .day-apt-notes {
+    color: rgb(255, 0, 0) !important;
+}
+
+.day-appointment.blocked.full-day-closure .day-apt-time,
+.day-appointment.blocked.full-day-closure .day-apt-title,
+.day-appointment.blocked.full-day-closure .day-apt-notes,
+.day-view .day-appointment.blocked.full-day-closure .day-apt-time,
+.day-view .day-appointment.blocked.full-day-closure .day-apt-title,
+.day-view .day-appointment.blocked.full-day-closure .day-apt-notes {
+    color: #7f1d1d !important;
+}
+
+.day-appointment.blocked.full-day-closure .day-apt-badge.blocked {
+    background: rgba(127, 29, 29, 0.2) !important;
+    color: #7f1d1d !important;
+    border: 1px solid rgba(127, 29, 29, 0.3) !important;
 }
 
 .day-appointment.missed {
@@ -3706,7 +4954,14 @@
 
 .day-appointment.blocked:hover {
     transform: translateX(4px);
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+    box-shadow: 0 4px 12px rgba(252, 165, 165, 0.2);
+}
+
+.day-appointment.blocked.full-day-closure:hover,
+.day-view .day-appointment.blocked.full-day-closure:hover {
+    background: linear-gradient(135deg, #f87171 0%, #f87171 100%) !important;
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(248, 113, 113, 0.4);
 }
 
 .day-appointment.missed:hover {
@@ -3734,6 +4989,9 @@
     align-items: center;
     margin-bottom: 0.4rem;
     gap: 0.5rem;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .day-apt-time {
@@ -3743,6 +5001,10 @@
     display: flex;
     align-items: center;
     flex-shrink: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
 }
 
 .day-apt-time i {
@@ -3756,6 +5018,9 @@
     font-weight: 700;
     white-space: nowrap;
     flex-shrink: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .day-apt-badge.pending {
@@ -3779,7 +5044,7 @@
 }
 
 .day-apt-badge.blocked {
-    background: #fee2e2;
+    background: #fff1f2;
     color: #991b1b;
 }
 
@@ -3799,15 +5064,33 @@
     color: #1e293b;
     margin-bottom: 0.3rem;
     line-height: 1.3;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    width: 100%;
+    max-width: 100%;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .day-apt-notes {
     font-size: 0.75rem;
     color: #64748b;
-    display: flex;
+    display: -webkit-box;
     align-items: center;
     padding-top: 0.375rem;
     border-top: 1px solid rgba(0,0,0,0.05);
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
 
 .day-apt-notes i {
@@ -3838,26 +5121,200 @@
 }
 
 /* Responsive adjustments for week and day views */
-@media (max-width: 768px) {
+/* Appointments adjust to fit grid, grid stays fixed */
+@media (max-width: 992px) {
     .week-header, .week-row {
-        grid-template-columns: 60px repeat(7, minmax(80px, 1fr));
-        gap: 2px;
+        grid-template-columns: 60px repeat(7, 1fr);
+        gap: 1px;
+        width: 100%;
+        min-width: 100%;
     }
     
-    .week-header-cell,
-    .week-day-cell {
-        padding: 0.5rem 0.25rem;
+    .time-column-header {
+        padding: 0.4rem 0.3rem;
+        font-size: 0.65rem;
+    }
+    
+    .week-day-header {
+        padding: 0.45rem 0.3rem;
+    }
+    
+    .day-name {
+        font-size: 0.65rem;
+    }
+    
+    .day-date {
+        font-size: 0.85rem;
+    }
+    
+    .time-slot {
+        padding: 0.3rem 0.2rem;
+        font-size: 0.65rem;
+        min-height: 35px;
+    }
+    
+    .week-cell {
+        min-height: 40px;
+        padding: 0.3rem 0.25rem;
+        overflow: hidden;
+    }
+    
+    .week-appointment {
+        padding: 0.25rem 0.3rem;
+        font-size: 0.65rem;
+        margin-bottom: 0.2rem;
+        max-width: 100%;
+    }
+    
+    .week-apt-time {
+        font-size: 0.6rem;
+        margin-bottom: 0.1rem;
+    }
+    
+    .week-apt-title {
+        font-size: 0.65rem;
+        -webkit-line-clamp: 2;
+        line-height: 1.2;
+    }
+    
+    .week-apt-notes {
+        font-size: 0.6rem;
+        -webkit-line-clamp: 1;
+        margin-top: 0.1rem;
+    }
+    
+    .day-time-row {
+        grid-template-columns: 70px 1fr;
+    }
+    
+    .day-time-label {
+        padding: 0.5rem 0.4rem;
         font-size: 0.7rem;
+    }
+    
+    .day-time-content {
+        padding: 0.45rem;
+    }
+    
+    .day-appointment {
+        padding: 0.55rem;
+    }
+    
+    .day-apt-title {
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .week-header, .week-row {
+        /* All 7 days fit on one screen */
+        grid-template-columns: 50px repeat(7, 1fr);
+        gap: 1px;
+        width: 100%;
+        min-width: 100%;
+    }
+    
+    /* Make the actual week view scrollable on mobile */
+    .week-view {
+        overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        width: 100%;
+    }
+    
+    .time-column-header {
+        padding: 0.35rem 0.2rem;
+        font-size: 0.6rem;
+    }
+    
+    .week-day-header {
+        padding: 0.4rem 0.25rem;
+    }
+    
+    .day-name {
+        font-size: 0.6rem;
+        margin-bottom: 0.1rem;
+    }
+    
+    .day-date {
+        font-size: 0.75rem;
+    }
+    
+    .time-slot {
+        padding: 0.25rem 0.15rem;
+        font-size: 0.6rem;
+        min-height: 35px;
+    }
+    
+    /* Improve individual week cells on mobile - appointments adjust to fit */
+    .week-cell {
+        min-height: 45px;
+        padding: 0.3rem 0.2rem;
+        overflow: hidden; /* Prevent overflow */
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .week-appointment {
+        margin-bottom: 0.25rem;
+        padding: 0.25rem 0.2rem;
+        font-size: 0.6rem;
+        line-height: 1.2;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: normal;
+        max-width: 100%;
+        width: 100%;
+        box-sizing: border-box;
+        gap: 0.05rem;
+    }
+    
+    .week-apt-time {
+        font-size: 0.55rem;
+        font-weight: 700;
+        margin-bottom: 0.1rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    .week-apt-title {
+        font-size: 0.6rem;
+        line-height: 1.2;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+    }
+    
+    .week-apt-notes {
+        font-size: 0.55rem;
+        -webkit-line-clamp: 1;
+        display: none; /* Hide notes on mobile to save space */
+        width: 100%;
+        max-width: 100%;
     }
 
     .day-time-row {
-        grid-template-columns: 70px 1fr;
+        grid-template-columns: 65px 1fr;
         gap: 2px;
     }
 
     .day-view-title {
-        font-size: 1.15rem;
+        font-size: clamp(1rem, 3vw, 1.15rem);
         text-align: center;
+    }
+
+    .day-view-date {
+        font-size: clamp(0.8rem, 2vw, 0.9rem);
     }
 
     .day-view-header {
@@ -3876,40 +5333,320 @@
     }
 
     .day-time-label {
-        padding: 0.5rem 0.4rem;
+        padding: 0.5rem 0.35rem;
         font-size: 0.7rem;
         font-weight: 600;
+        min-width: 65px;
     }
 
     .day-time-content {
         min-height: 50px;
         padding: 0.5rem;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .day-appointment {
         padding: 0.6rem;
         min-height: 60px;
         margin-bottom: 0.5rem;
+        max-width: 100%;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .day-apt-title {
-        font-size: 0.8rem;
+        font-size: clamp(0.75rem, 2vw, 0.8rem);
         line-height: 1.3;
+        max-width: 100%;
     }
 
     .day-apt-time {
         font-size: 0.7rem;
+        max-width: 100%;
     }
     
     .day-apt-badge {
         font-size: 0.65rem;
         padding: 0.25rem 0.5rem;
+        max-width: 100%;
     }
     
-    /* Improve week view scrollability on mobile */
+    .day-apt-header {
+        max-width: 100%;
+        gap: 0.4rem;
+    }
+    
+    .day-apt-notes {
+        font-size: 0.7rem;
+        -webkit-line-clamp: 2;
+    }
+    
+    /* Week view container - no horizontal scroll, all days fit */
     .week-view-container {
-        overflow-x: auto;
+        overflow-x: hidden; /* Prevent horizontal scroll */
         -webkit-overflow-scrolling: touch;
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .week-header, .week-row {
+        /* All 7 days fit on one screen - even smaller */
+        grid-template-columns: 45px repeat(7, 1fr);
+        gap: 1px;
+        width: 100%;
+        min-width: 100%;
+    }
+    
+    .time-column-header {
+        padding: 0.3rem 0.15rem;
+        font-size: 0.55rem;
+    }
+    
+    .week-day-header {
+        padding: 0.35rem 0.2rem;
+    }
+    
+    .day-name {
+        font-size: 0.55rem;
+        margin-bottom: 0.05rem;
+    }
+    
+    .day-date {
+        font-size: 0.7rem;
+    }
+    
+    .time-slot {
+        padding: 0.2rem 0.1rem;
+        font-size: 0.55rem;
+        min-height: 32px;
+    }
+    
+    .week-cell {
+        min-height: 40px;
+        padding: 0.25rem 0.15rem;
+        overflow: hidden;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .week-appointment {
+        padding: 0.2rem 0.15rem;
+        font-size: 0.55rem;
+        margin-bottom: 0.2rem;
+        max-width: 100%;
+        width: 100%;
+        box-sizing: border-box;
+        gap: 0.05rem;
+    }
+    
+    .week-apt-time {
+        font-size: 0.5rem;
+        margin-bottom: 0.05rem;
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    .week-apt-title {
+        font-size: 0.55rem;
+        -webkit-line-clamp: 2;
+        line-height: 1.15;
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+    }
+    
+    .week-apt-notes {
+        display: none; /* Hide notes on very small screens */
+    }
+
+    .day-time-row {
+        grid-template-columns: 60px 1fr;
+        gap: 1px;
+    }
+
+    .day-view-title {
+        font-size: 0.95rem;
+    }
+
+    .day-view-date {
+        font-size: 0.75rem;
+    }
+
+    .day-view-header {
+        padding: 0.625rem 0.625rem;
+        margin-bottom: 0.625rem;
+    }
+
+    .day-time-label {
+        padding: 0.4rem 0.3rem;
+        font-size: 0.65rem;
+        min-width: 60px;
+    }
+
+    .day-time-content {
+        min-height: 45px;
+        padding: 0.4rem;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .day-appointment {
+        padding: 0.5rem;
+        min-height: 55px;
+        margin-bottom: 0.4rem;
+        max-width: 100%;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .day-apt-title {
+        font-size: 0.75rem;
+        -webkit-line-clamp: 2;
+        max-width: 100%;
+    }
+
+    .day-apt-time {
+        font-size: 0.65rem;
+        max-width: 100%;
+    }
+    
+    .day-apt-badge {
+        font-size: 0.6rem;
+        padding: 0.2rem 0.4rem;
+        max-width: 100%;
+    }
+    
+    .day-apt-header {
+        max-width: 100%;
+        gap: 0.3rem;
+        margin-bottom: 0.3rem;
+    }
+    
+    .day-apt-notes {
+        font-size: 0.65rem;
+        -webkit-line-clamp: 1;
+    }
+}
+
+@media (max-width: 360px) {
+    .week-header, .week-row {
+        /* All 7 days fit on one screen - smallest phones */
+        grid-template-columns: 40px repeat(7, 1fr);
+        gap: 1px;
+        width: 100%;
+        min-width: 100%;
+    }
+    
+    .time-column-header {
+        font-size: 0.5rem;
+        padding: 0.25rem 0.1rem;
+    }
+    
+    .week-day-header {
+        padding: 0.3rem 0.15rem;
+    }
+    
+    .day-name {
+        font-size: 0.5rem;
+        margin-bottom: 0.05rem;
+    }
+    
+    .day-date {
+        font-size: 0.65rem;
+    }
+    
+    .time-slot {
+        font-size: 0.5rem;
+        min-height: 30px;
+        padding: 0.2rem 0.1rem;
+    }
+    
+    .week-cell {
+        min-height: 35px;
+        padding: 0.2rem 0.15rem;
+        overflow: hidden;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .week-appointment {
+        padding: 0.15rem 0.1rem;
+        font-size: 0.5rem;
+        margin-bottom: 0.15rem;
+        max-width: 100%;
+        width: 100%;
+        box-sizing: border-box;
+        gap: 0.05rem;
+    }
+    
+    .week-apt-time {
+        font-size: 0.45rem;
+        margin-bottom: 0.05rem;
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    .week-apt-title {
+        font-size: 0.5rem;
+        -webkit-line-clamp: 2;
+        line-height: 1.1;
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+    }
+
+    .day-time-row {
+        grid-template-columns: 55px 1fr;
+    }
+
+    .day-time-label {
+        min-width: 55px;
+        font-size: 0.6rem;
+        padding: 0.35rem 0.25rem;
+    }
+
+    .day-time-content {
+        padding: 0.35rem;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .day-appointment {
+        padding: 0.45rem;
+        min-height: 50px;
+        max-width: 100%;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .day-apt-title {
+        font-size: 0.7rem;
+        -webkit-line-clamp: 2;
+        max-width: 100%;
+    }
+    
+    .day-apt-time {
+        font-size: 0.6rem;
+        max-width: 100%;
+    }
+    
+    .day-apt-badge {
+        font-size: 0.55rem;
+        padding: 0.15rem 0.35rem;
+        max-width: 100%;
+    }
+    
+    .day-apt-header {
+        max-width: 100%;
+        gap: 0.25rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .day-apt-notes {
+        font-size: 0.6rem;
+        -webkit-line-clamp: 1;
     }
 }
 
@@ -4336,43 +6073,57 @@
 }
 
 [data-theme="dark"] .event-item {
-    color: white !important;
+    background: rgba(59, 130, 246, 0.15) !important;
+    border-left-color: #3b82f6 !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
 }
 
 [data-theme="dark"] .event-item.pending {
-    background: #fbbf24 !important;
-    border-left-color: #f59e0b !important;
+    background: rgba(251, 191, 36, 0.2) !important;
+    border-left-color: #fbbf24 !important;
+    color: #fef3c7 !important;
 }
 
 [data-theme="dark"] .event-item.confirmed {
-    background: #3b82f6 !important;
-    border-left-color: #2563eb !important;
+    background: rgba(59, 130, 246, 0.2) !important;
+    border-left-color: #3b82f6 !important;
+    color: #dbeafe !important;
 }
 
 [data-theme="dark"] .event-item.completed {
-    background: #10b981 !important;
-    border-left-color: #059669 !important;
+    background: rgba(16, 185, 129, 0.2) !important;
+    border-left-color: #10b981 !important;
+    color: #d1fae5 !important;
 }
 
 [data-theme="dark"] .event-item.cancelled {
     background: rgba(146, 64, 14, 0.3) !important;
     border-left-color: #a16207 !important;
     color: #fef3c7 !important;
+    opacity: 0.7 !important;
 }
 
 [data-theme="dark"] .event-item.blocked {
-    background: #ef4444 !important;
-    border-left-color: #dc2626 !important;
+    background: rgba(239, 68, 68, 0.2) !important;
+    border-left-color: #ef4444 !important;
+    color: #fee2e2 !important;
+}
+
+[data-theme="dark"] .event-item.blocked.full-day-closure {
+    background: linear-gradient(135deg, rgba(252, 165, 165, 0.9) 0%, rgba(248, 113, 113, 0.9) 100%) !important;
+    border-left-color: #fca5a5 !important;
+    color: #7f1d1d !important;
+    font-weight: 600 !important;
 }
 
 [data-theme="dark"] .event-item.missed {
-    background: rgba(107, 114, 128, 0.3) !important;
+    background: rgba(107, 114, 128, 0.2) !important;
     border-left-color: #6b7280 !important;
     color: #e5e7eb !important;
 }
 
 [data-theme="dark"] .event-item.booked {
-    background: rgba(147, 51, 234, 0.5) !important;
+    background: rgba(147, 51, 234, 0.3) !important;
     border-left-color: #9333ea !important;
     color: #e9d5ff !important;
     cursor: pointer !important;
@@ -4384,9 +6135,16 @@
     box-shadow: 0 2px 8px rgba(147, 51, 234, 0.4) !important;
 }
 
-[data-theme="dark"] .event-time,
+[data-theme="dark"] .event-time {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
 [data-theme="dark"] .event-title {
-    color: white !important;
+    color: var(--dm-text-muted, #94a3b8) !important;
+}
+
+[data-theme="dark"] .event-notes {
+    color: var(--dm-text-muted, #94a3b8) !important;
 }
 
 /* Appointment Form Section Dark Mode */
@@ -4702,7 +6460,7 @@
     background: rgba(239, 68, 68, 0.2) !important;
     border-left-color: #ef4444 !important;
     color: #fee2e2 !important;
-    cursor: not-allowed !important;
+    cursor: pointer !important;
 }
 
 [data-theme="dark"] .week-appointment.missed {
@@ -4712,7 +6470,35 @@
     cursor: not-allowed !important;
 }
 
-[data-theme="dark"] .week-appointment.blocked:hover,
+[data-theme="dark"] .week-appointment.blocked:hover {
+    background: rgba(239, 68, 68, 0.3) !important;
+    transform: translateX(2px) !important;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3) !important;
+}
+
+[data-theme="dark"] .week-appointment.blocked.full-day-closure,
+[data-theme="dark"] .week-view .week-appointment.blocked.full-day-closure {
+    background: linear-gradient(135deg, rgba(252, 165, 165, 0.9) 0%, rgba(248, 113, 113, 0.9) 100%) !important;
+    border-left-color: #fca5a5 !important;
+    color: #7f1d1d !important;
+    font-weight: 600 !important;
+}
+
+[data-theme="dark"] .week-appointment.blocked.full-day-closure .week-apt-time,
+[data-theme="dark"] .week-appointment.blocked.full-day-closure .week-apt-title,
+[data-theme="dark"] .week-appointment.blocked.full-day-closure .week-apt-notes,
+[data-theme="dark"] .week-view .week-appointment.blocked.full-day-closure .week-apt-time,
+[data-theme="dark"] .week-view .week-appointment.blocked.full-day-closure .week-apt-title,
+[data-theme="dark"] .week-view .week-appointment.blocked.full-day-closure .week-apt-notes {
+    color: #7f1d1d !important;
+}
+
+[data-theme="dark"] .week-appointment.blocked.full-day-closure:hover {
+    background: linear-gradient(135deg, rgba(248, 113, 113, 1) 0%, rgba(248, 113, 113, 1) 100%) !important;
+    transform: translateX(2px) !important;
+    box-shadow: 0 2px 8px rgba(248, 113, 113, 0.4) !important;
+}
+
 [data-theme="dark"] .week-appointment.missed:hover {
     transform: none !important;
     box-shadow: none !important;
@@ -4734,6 +6520,12 @@
 [data-theme="dark"] .week-apt-time,
 [data-theme="dark"] .week-apt-title {
     color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .week-appointment.blocked .week-apt-time,
+[data-theme="dark"] .week-appointment.blocked .week-apt-title,
+[data-theme="dark"] .week-appointment.blocked .week-apt-notes {
+    color: #fee2e2 !important;
 }
 
 /* Day View Dark Mode */
@@ -4795,10 +6587,10 @@
 }
 
 [data-theme="dark"] .day-appointment.blocked {
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.1) 100%) !important;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.15) 100%) !important;
     border-left-color: #ef4444 !important;
     color: #fee2e2 !important;
-    cursor: not-allowed !important;
+    cursor: pointer !important;
 }
 
 [data-theme="dark"] .day-appointment.missed {
@@ -4808,7 +6600,41 @@
     cursor: not-allowed !important;
 }
 
-[data-theme="dark"] .day-appointment.blocked:hover,
+[data-theme="dark"] .day-appointment.blocked:hover {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.3) 0%, rgba(220, 38, 38, 0.2) 100%) !important;
+    transform: translateX(4px) !important;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3) !important;
+}
+
+[data-theme="dark"] .day-appointment.blocked.full-day-closure,
+[data-theme="dark"] .day-view .day-appointment.blocked.full-day-closure {
+    background: linear-gradient(135deg, rgba(252, 165, 165, 0.9) 0%, rgba(248, 113, 113, 0.9) 100%) !important;
+    border-left-color: #fca5a5 !important;
+    color: #7f1d1d !important;
+    font-weight: 600 !important;
+}
+
+[data-theme="dark"] .day-appointment.blocked.full-day-closure .day-apt-time,
+[data-theme="dark"] .day-appointment.blocked.full-day-closure .day-apt-title,
+[data-theme="dark"] .day-appointment.blocked.full-day-closure .day-apt-notes,
+[data-theme="dark"] .day-view .day-appointment.blocked.full-day-closure .day-apt-time,
+[data-theme="dark"] .day-view .day-appointment.blocked.full-day-closure .day-apt-title,
+[data-theme="dark"] .day-view .day-appointment.blocked.full-day-closure .day-apt-notes {
+    color: #7f1d1d !important;
+}
+
+[data-theme="dark"] .day-appointment.blocked.full-day-closure .day-apt-badge.blocked {
+    background: rgba(127, 29, 29, 0.3) !important;
+    color: #7f1d1d !important;
+    border: 1px solid rgba(127, 29, 29, 0.4) !important;
+}
+
+[data-theme="dark"] .day-appointment.blocked.full-day-closure:hover {
+    background: linear-gradient(135deg, rgba(248, 113, 113, 1) 0%, rgba(248, 113, 113, 1) 100%) !important;
+    transform: translateX(4px) !important;
+    box-shadow: 0 4px 12px rgba(248, 113, 113, 0.4) !important;
+}
+
 [data-theme="dark"] .day-appointment.missed:hover {
     transform: none !important;
     box-shadow: 0 2px 6px rgba(0,0,0,0.08) !important;
@@ -4857,6 +6683,12 @@
     color: var(--dm-text-primary, #f1f5f9) !important;
 }
 
+[data-theme="dark"] .day-appointment.blocked .day-apt-time,
+[data-theme="dark"] .day-appointment.blocked .day-apt-title,
+[data-theme="dark"] .day-appointment.blocked .day-apt-notes {
+    color: #fee2e2 !important;
+}
+
 [data-theme="dark"] .day-apt-notes {
     color: var(--dm-text-muted, #94a3b8) !important;
     border-top-color: var(--dm-border-color, #334155) !important;
@@ -4881,6 +6713,15 @@
         0 0 8px rgba(16, 185, 129, 0.3) !important;
 }
 
+[data-theme="dark"] .badge.status-badge-brown {
+    background: linear-gradient(135deg, #d97706 0%, #a16207 100%) !important;
+    color: #fff8e7 !important;
+    box-shadow:
+        0 4px 12px rgba(217, 119, 6, 0.45),
+        0 2px 6px rgba(217, 119, 6, 0.35),
+        0 0 8px rgba(217, 119, 6, 0.25) !important;
+}
+
 [data-theme="dark"] .status-badge.cancelled {
     background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;
     color: white !important;
@@ -4897,6 +6738,14 @@
         0 4px 12px rgba(107, 114, 128, 0.5),
         0 2px 6px rgba(107, 114, 128, 0.4),
         0 0 8px rgba(107, 114, 128, 0.3) !important;
+}
+
+[data-theme="dark"] .status-badge.automatic-status {
+    background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%) !important;
+    color: white !important;
+    box-shadow: 
+        0 2px 6px rgba(100, 116, 139, 0.4),
+        0 1px 3px rgba(100, 116, 139, 0.3) !important;
 }
 
 /* Request Type Badge Dark Mode - Same Colors as Light Mode with Status-Specific Shadows */
@@ -7050,16 +8899,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const modal = document.getElementById('appointmentDetailsModal');
             const appointmentId = modal.dataset.appointmentId;
 
-            // Check if appointment is missed - prevent rescheduling
-            const appointment = window.patientAppointments ? window.patientAppointments.find(function(apt) {
-                return apt.id == appointmentId;
-            }) : null;
-
-            if (appointment && appointment.status && appointment.status.toLowerCase() === 'missed') {
-                alert('Cannot reschedule missed appointments. Please book a new appointment instead.');
-                return;
-            }
-
             // Close the details modal
             const modalInstance = bootstrap.Modal.getInstance(modal);
             modalInstance.hide();
@@ -7075,9 +8914,35 @@ document.addEventListener('DOMContentLoaded', function() {
             // Select the appointment in the dropdown
             const rescheduleAppointmentSelect = document.getElementById('rescheduleAppointmentSelect');
             if (rescheduleAppointmentSelect && appointmentId) {
-                rescheduleAppointmentSelect.value = appointmentId;
-                // Trigger change event to show appointment info
-                rescheduleAppointmentSelect.dispatchEvent(new Event('change'));
+                // Ensure an option exists for this appointment; if missing (e.g., Cancelled), create it on the fly
+                let opt = rescheduleAppointmentSelect.querySelector(`option[value="${appointmentId}"]`);
+                if (!opt) {
+                    const apt = (window.patientAppointments || []).find(function(a){ return String(a.id) === String(appointmentId); });
+                    if (apt) {
+                        const start = new Date(apt.start_datetime);
+                        const dateStr = start.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                        const timeStr = start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+                        const serviceName = (apt.service && apt.service.service_name) ? apt.service.service_name : (apt.reason_for_visit || 'Appointment');
+                        opt = document.createElement('option');
+                        opt.value = appointmentId;
+                        opt.textContent = `${serviceName} - ${dateStr} at ${timeStr}`;
+                        opt.setAttribute('data-service', serviceName);
+                        opt.setAttribute('data-date', start.toISOString().split('T')[0]);
+                        opt.setAttribute('data-time', String(start.getHours()).padStart(2,'0') + ':' + String(start.getMinutes()).padStart(2,'0'));
+                        opt.setAttribute('data-datetime', start.toLocaleString('en-US', { month: 'long', day: '2-digit', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }));
+                        if (apt.service_id) opt.setAttribute('data-service-id', apt.service_id);
+                        if (apt.duration_minutes) opt.setAttribute('data-duration', apt.duration_minutes);
+                        if (apt.reason_for_visit) opt.setAttribute('data-reason-for-visit', apt.reason_for_visit);
+                        opt.setAttribute('data-status', apt.status || 'Cancelled');
+                        // Prepend so user can see it at top
+                        rescheduleAppointmentSelect.insertBefore(opt, rescheduleAppointmentSelect.firstChild);
+                    }
+                }
+                if (opt) {
+                    rescheduleAppointmentSelect.value = appointmentId;
+                    // Trigger change event to show appointment info
+                    rescheduleAppointmentSelect.dispatchEvent(new Event('change'));
+                }
             }
         });
     }
@@ -7766,6 +9631,516 @@ document.addEventListener('DOMContentLoaded', function() {
     padding-right: 0.5rem;
 }
 
+/* Desktop Styles (default - 1025px and above) */
+@media (min-width: 1025px) {
+    #dayAppointmentsModal .modal-dialog {
+        max-width: 800px;
+    }
+    
+    .day-appointments-header {
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+    }
+    
+    .day-appointments-header .modal-title {
+        font-size: 1.5rem;
+    }
+    
+    .day-appointments-list {
+        max-height: 500px;
+    }
+    
+    .day-appointment-item {
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .appointment-time {
+        font-size: 0.9rem;
+    }
+    
+    .appointment-title {
+        font-size: 1.05rem;
+    }
+    
+    .appointment-notes {
+        font-size: 0.85rem;
+    }
+}
+
+/* Tablet Styles (768px - 1024px) */
+@media (min-width: 768px) and (max-width: 1024px) {
+    #dayAppointmentsModal .modal-dialog {
+        max-width: 90%;
+    }
+    
+    .day-appointments-header {
+        margin-bottom: 1.25rem;
+        padding-bottom: 0.875rem;
+    }
+    
+    .day-appointments-header .modal-title {
+        font-size: 1.35rem;
+    }
+    
+    .day-appointments-list {
+        max-height: 450px;
+    }
+    
+    .day-appointment-item {
+        padding: 0.875rem;
+        margin-bottom: 0.875rem;
+        min-height: 60px;
+    }
+    
+    .appointment-time {
+        font-size: 0.875rem;
+    }
+    
+    .appointment-title {
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+    
+    .appointment-notes {
+        font-size: 0.825rem;
+        line-height: 1.5;
+    }
+}
+
+/* Blocked Time Details Modal Styles */
+.blocked-time-modal {
+    border-radius: 16px;
+    overflow: hidden;
+    border: none;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.blocked-time-modal-header {
+    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+    border: none;
+    padding: 1.25rem 1.5rem;
+}
+
+.blocked-time-modal-title {
+    color: white;
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.blocked-time-modal-close {
+    filter: brightness(0) invert(1);
+    opacity: 0.9;
+}
+
+.blocked-time-modal-close:hover {
+    opacity: 1;
+}
+
+.blocked-time-modal-body {
+    padding: 2rem 1.5rem;
+    background: white;
+}
+
+.blocked-time-modal-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.blocked-time-icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.5rem;
+}
+
+.blocked-time-icon-circle {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.2);
+    border: 3px solid #fca5a5;
+}
+
+.blocked-time-icon {
+    font-size: 3rem;
+    color: #ef4444;
+}
+
+.blocked-time-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+    text-align: center;
+}
+
+.blocked-time-details {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.blocked-time-detail-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
+}
+
+.blocked-time-detail-item:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    transform: translateX(2px);
+}
+
+.blocked-time-detail-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.2);
+}
+
+.blocked-time-detail-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+}
+
+.blocked-time-detail-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.blocked-time-detail-value {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1e293b;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+}
+
+/* Dark Mode Styles for Blocked Time Details Modal */
+[data-theme="dark"] .blocked-time-modal {
+    background: var(--dm-card-bg, #1e293b) !important;
+    border: 1px solid var(--dm-border-color, #334155) !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 8px 24px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .blocked-time-modal-header {
+    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%) !important;
+}
+
+[data-theme="dark"] .blocked-time-modal-body {
+    background: var(--dm-card-bg, #1e293b) !important;
+}
+
+[data-theme="dark"] .blocked-time-icon-circle {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.15) 100%) !important;
+    border-color: #fca5a5 !important;
+    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.3) !important;
+}
+
+[data-theme="dark"] .blocked-time-icon {
+    color: white !important;
+}
+
+[data-theme="dark"] .blocked-time-title {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .blocked-time-detail-item {
+    background: var(--dm-bg-tertiary, #334155) !important;
+    border-color: var(--dm-border-color, #475569) !important;
+}
+
+[data-theme="dark"] .blocked-time-detail-item:hover {
+    background: var(--dm-bg-primary, #0f172a) !important;
+    border-color: #3b82f6 !important;
+}
+
+[data-theme="dark"] .blocked-time-detail-icon {
+    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%) !important;
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3) !important;
+}
+
+[data-theme="dark"] .blocked-time-detail-label {
+    color: var(--dm-text-muted, #94a3b8) !important;
+}
+
+[data-theme="dark"] .blocked-time-detail-value {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+/* Responsive Styles for Blocked Time Details Modal */
+@media (max-width: 768px) {
+    /* Blocked time modal dialog - mobile sizing */
+    .blocked-time-modal {
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .blocked-time-modal .modal-dialog {
+        width: calc(100% - 1.5rem);
+        max-width: calc(100% - 1.5rem);
+        margin: 0.75rem;
+        box-sizing: border-box;
+        max-height: 90vh;
+    }
+    
+    .blocked-time-modal-header {
+        padding: 0.6rem 0.75rem !important;
+        flex-shrink: 0;
+    }
+    
+    .blocked-time-modal-title {
+        font-size: 0.9rem !important;
+    }
+    
+    .blocked-time-modal-body {
+        padding: 0.5rem 0.5rem !important;
+        max-height: calc(90vh - 100px);
+        overflow-y: auto;
+        overflow-x: hidden;
+        flex: 1 1 auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .blocked-time-modal-content {
+        gap: 0.5rem;
+    }
+    
+    .blocked-time-icon-wrapper {
+        margin-bottom: 0.15rem;
+    }
+    
+    .blocked-time-icon-circle {
+        width: 50px !important;
+        height: 50px !important;
+        border-width: 2px;
+    }
+    
+    .blocked-time-icon {
+        font-size: 1.75rem !important;
+    }
+    
+    .blocked-time-title {
+        font-size: 0.9rem !important;
+        margin-bottom: 0.35rem;
+        line-height: 1.2;
+    }
+    
+    .blocked-time-details {
+        gap: 0.4rem;
+        margin-top: 0.15rem;
+    }
+    
+    .blocked-time-detail-item {
+        padding: 0.5rem !important;
+        gap: 0.5rem !important;
+        border-radius: 6px;
+        margin-bottom: 0.25rem;
+    }
+    
+    .blocked-time-detail-icon {
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 0.8rem !important;
+        border-radius: 6px;
+        flex-shrink: 0;
+    }
+    
+    .blocked-time-detail-label {
+        font-size: 0.6rem !important;
+        letter-spacing: 0.2px;
+        margin-bottom: 0.15rem;
+    }
+    
+    .blocked-time-detail-value {
+        font-size: 0.75rem !important;
+        line-height: 1.3;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+}
+
+@media (max-width: 480px) {
+    .blocked-time-modal {
+        max-height: 88vh;
+    }
+    
+    .blocked-time-modal .modal-dialog {
+        width: calc(100% - 1rem);
+        max-width: calc(100% - 1rem);
+        margin: 0.5rem;
+        max-height: 88vh;
+    }
+    
+    .blocked-time-modal-header {
+        padding: 0.5rem 0.625rem !important;
+    }
+    
+    .blocked-time-modal-title {
+        font-size: 0.85rem !important;
+    }
+    
+    .blocked-time-modal-body {
+        padding: 0.4rem 0.4rem !important;
+        max-height: calc(88vh - 90px);
+    }
+    
+    .blocked-time-modal-content {
+        gap: 0.4rem;
+    }
+    
+    .blocked-time-icon-wrapper {
+        margin-bottom: 0.1rem;
+    }
+    
+    .blocked-time-icon-circle {
+        width: 45px !important;
+        height: 45px !important;
+        border-width: 2px;
+    }
+    
+    .blocked-time-icon {
+        font-size: 1.5rem !important;
+    }
+    
+    .blocked-time-title {
+        font-size: 0.85rem !important;
+        margin-bottom: 0.25rem;
+        line-height: 1.2;
+    }
+    
+    .blocked-time-details {
+        gap: 0.35rem;
+        margin-top: 0.1rem;
+    }
+    
+    .blocked-time-detail-item {
+        padding: 0.4rem !important;
+        gap: 0.4rem !important;
+        margin-bottom: 0.2rem;
+    }
+    
+    .blocked-time-detail-icon {
+        width: 26px !important;
+        height: 26px !important;
+        font-size: 0.75rem !important;
+    }
+    
+    .blocked-time-detail-label {
+        font-size: 0.55rem !important;
+        margin-bottom: 0.1rem;
+    }
+    
+    .blocked-time-detail-value {
+        font-size: 0.7rem !important;
+        line-height: 1.25;
+    }
+}
+
+/* Ultra-small screens for blocked time modal */
+@media (max-width: 320px) {
+    .blocked-time-modal {
+        max-height: 86vh;
+    }
+    
+    .blocked-time-modal .modal-dialog {
+        width: calc(100% - 0.75rem);
+        max-width: calc(100% - 0.75rem);
+        margin: 0.375rem;
+        max-height: 86vh;
+    }
+    
+    .blocked-time-modal-header {
+        padding: 0.45rem 0.5rem !important;
+    }
+    
+    .blocked-time-modal-title {
+        font-size: 0.8rem !important;
+    }
+    
+    .blocked-time-modal-body {
+        padding: 0.35rem 0.3rem !important;
+        max-height: calc(86vh - 80px);
+    }
+    
+    .blocked-time-modal-content {
+        gap: 0.3rem;
+    }
+    
+    .blocked-time-icon-circle {
+        width: 40px !important;
+        height: 40px !important;
+        border-width: 1.5px;
+    }
+    
+    .blocked-time-icon {
+        font-size: 1.25rem !important;
+    }
+    
+    .blocked-time-title {
+        font-size: 0.8rem !important;
+        margin-bottom: 0.2rem;
+    }
+    
+    .blocked-time-details {
+        gap: 0.3rem;
+        margin-top: 0.05rem;
+    }
+    
+    .blocked-time-detail-item {
+        padding: 0.35rem !important;
+        gap: 0.35rem !important;
+        margin-bottom: 0.15rem;
+    }
+    
+    .blocked-time-detail-icon {
+        width: 24px !important;
+        height: 24px !important;
+        font-size: 0.7rem !important;
+    }
+    
+    .blocked-time-detail-label {
+        font-size: 0.5rem !important;
+        margin-bottom: 0.08rem;
+    }
+    
+    .blocked-time-detail-value {
+        font-size: 0.65rem !important;
+        line-height: 1.2;
+    }
+}
+
 .day-appointment-item {
     padding: 0.875rem;
     border-radius: 8px;
@@ -7773,6 +10148,10 @@ document.addEventListener('DOMContentLoaded', function() {
     border-left: 3px solid;
     transition: all 0.2s ease;
     cursor: pointer;
+    width: 100%;
+    box-sizing: border-box;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .day-appointment-item:hover {
@@ -7788,6 +10167,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .day-appointment-item.clickable-appointment {
     transition: all 0.2s ease;
+}
+
+.day-appointment-item.clickable-blocked {
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.day-appointment-item.clickable-blocked:hover {
+    transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    background: #fee2e2;
+    opacity: 1;
 }
 
 .day-appointment-item.pending {
@@ -8088,6 +10479,13 @@ document.addEventListener('DOMContentLoaded', function() {
     border-left-color: #ef4444;
 }
 
+[data-theme="dark"] .day-appointment-item.clickable-blocked:hover {
+    transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+    background: rgba(239, 68, 68, 0.25);
+    opacity: 1;
+}
+
 [data-theme="dark"] .day-appointment-item.missed {
     background: rgba(107, 114, 128, 0.15);
     border-left-color: #6b7280;
@@ -8136,28 +10534,240 @@ document.addEventListener('DOMContentLoaded', function() {
     box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
 }
 
-/* Responsive Styles */
+/* Mobile Styles (max-width: 768px) */
 @media (max-width: 768px) {
+    #dayAppointmentsModal .modal-dialog {
+        max-width: calc(100% - 1.5rem);
+        width: calc(100% - 1.5rem);
+        margin: 0.75rem;
+        box-sizing: border-box;
+    }
+    
+    #dayAppointmentsModal .modal-content {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        margin: 0;
+    }
+    
+    #dayAppointmentsModal .modal-header {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
+    }
+    
+    #dayAppointmentsModal .modal-body {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .day-appointments-header {
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+    }
+    
+    .day-appointments-header .modal-title {
+        font-size: 1.1rem;
+        margin-bottom: 0.375rem;
+    }
+    
     .day-appointments-list {
-        max-height: 300px;
+        max-height: calc(92vh - 200px);
+        padding-right: 0.25rem;
     }
     
     .day-appointment-item {
         padding: 0.75rem;
+        margin-bottom: 0.625rem;
+        border-left-width: 3px;
+        min-height: 50px;
     }
     
-    .fully-booked-indicator {
-        font-size: 0.6rem;
-        padding: 0.2rem 0.4rem;
+    .appointment-time {
+        font-size: 0.8rem;
+        margin-bottom: 0.25rem;
+        gap: 0.375rem;
+    }
+    
+    .appointment-title {
+        font-size: 0.9rem;
+        margin-bottom: 0.2rem;
+        line-height: 1.4;
+    }
+    
+    .appointment-notes {
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+        padding-top: 0.25rem;
     }
     
     .modal-fully-booked-indicator {
-        font-size: 0.75rem;
-        padding: 0.375rem 0.75rem;
+        padding: 0.4rem 0.75rem;
+        font-size: 0.8rem;
     }
     
     .modal-fully-booked-indicator i {
-        font-size: 0.875rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* Small Mobile Styles (max-width: 480px) */
+@media (max-width: 480px) {
+    #dayAppointmentsModal .modal-dialog {
+        max-width: calc(100% - 1rem);
+        width: calc(100% - 1rem);
+        margin: 0.5rem;
+        box-sizing: border-box;
+    }
+    
+    #dayAppointmentsModal .modal-content {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        margin: 0;
+    }
+    
+    #dayAppointmentsModal .modal-header {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
+    }
+    
+    #dayAppointmentsModal .modal-body {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .day-appointments-header {
+        margin-bottom: 0.875rem;
+        padding-bottom: 0.625rem;
+    }
+    
+    .day-appointments-header .modal-title {
+        font-size: 1rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .day-appointments-list {
+        max-height: calc(94vh - 180px);
+        padding-right: 0.125rem;
+    }
+    
+    .day-appointment-item {
+        padding: 0.625rem;
+        margin-bottom: 0.5rem;
+        border-left-width: 2.5px;
+        min-height: 45px;
+    }
+    
+    .appointment-time {
+        font-size: 0.75rem;
+        margin-bottom: 0.2rem;
+        gap: 0.25rem;
+    }
+    
+    .appointment-title {
+        font-size: 0.85rem;
+        margin-bottom: 0.15rem;
+        line-height: 1.35;
+    }
+    
+    .appointment-notes {
+        font-size: 0.7rem;
+        margin-top: 0.2rem;
+        padding-top: 0.2rem;
+    }
+    
+    .modal-fully-booked-indicator {
+        padding: 0.35rem 0.625rem;
+        font-size: 0.75rem;
+        gap: 0.375rem;
+    }
+    
+    .modal-fully-booked-indicator i {
+        font-size: 0.85rem;
+    }
+}
+
+/* Ultra-small Mobile Styles (max-width: 320px) */
+@media (max-width: 320px) {
+    #dayAppointmentsModal .modal-dialog {
+        max-width: calc(100% - 0.75rem);
+        width: calc(100% - 0.75rem);
+        margin: 0.375rem;
+        box-sizing: border-box;
+    }
+    
+    #dayAppointmentsModal .modal-content {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        margin: 0;
+    }
+    
+    #dayAppointmentsModal .modal-header {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
+    }
+    
+    #dayAppointmentsModal .modal-body {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .day-appointments-header {
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.5rem;
+    }
+    
+    .day-appointments-header .modal-title {
+        font-size: 0.95rem;
+        margin-bottom: 0.2rem;
+    }
+    
+    .day-appointments-list {
+        max-height: calc(96vh - 160px);
+    }
+    
+    .day-appointment-item {
+        padding: 0.5rem;
+        margin-bottom: 0.4rem;
+        border-left-width: 2px;
+        min-height: 40px;
+    }
+    
+    .appointment-time {
+        font-size: 0.7rem;
+        margin-bottom: 0.15rem;
+    }
+    
+    .appointment-title {
+        font-size: 0.8rem;
+        margin-bottom: 0.1rem;
+        line-height: 1.3;
+    }
+    
+    .appointment-notes {
+        font-size: 0.65rem;
+        margin-top: 0.15rem;
+        padding-top: 0.15rem;
+    }
+    
+    .modal-fully-booked-indicator {
+        padding: 0.3rem 0.5rem;
+        font-size: 0.7rem;
+        gap: 0.25rem;
+    }
+    
+    .modal-fully-booked-indicator i {
+        font-size: 0.8rem;
     }
 }
 </style>

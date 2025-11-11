@@ -993,6 +993,7 @@
             align-items: center;
             gap: 0.5rem;
             justify-content: center;
+            overflow-wrap: anywhere;
         }
 
         .submission-info {

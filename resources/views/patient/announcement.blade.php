@@ -1186,9 +1186,68 @@ document.addEventListener('keydown', function(e) {
 }
 
 @media (max-width: 768px) {
+    .announcement-content-wrapper {
+        padding: 0 clamp(0.75rem, 2vw, 1rem);
+    }
+
+    .page-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .page-header p {
+        font-size: 0.85rem;
+    }
+
+    .announcement-card {
+        margin-bottom: 1.5rem;
+    }
+
+    .announcement-banner {
+        padding: clamp(0.875rem, 2vw, 1rem) clamp(0.75rem, 2vw, 1rem);
+        min-height: clamp(60px, 12vw, 70px);
+    }
+
+    .banner-title {
+        font-size: 1.25rem;
+        padding: 0.25rem;
+    }
+
+    .announcement-content-section {
+        padding: clamp(0.875rem, 2vw, 1rem) clamp(0.75rem, 2vw, 1rem);
+    }
+
+    .announcement-image-wrapper {
+        margin-bottom: 0.875rem;
+    }
+
+    .announcement-message {
+        padding: 0.875rem 1rem;
+        font-size: 0.875rem;
+    }
+
+    .announcement-details {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .detail-item {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .archive-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+
+    .archive-card {
+        min-height: 400px;
+    }
+
     .image-modal-content {
         max-width: 95vw;
         max-height: 95vh;
+        padding: 1rem;
     }
 
     .image-modal-close {
@@ -1204,6 +1263,82 @@ document.addEventListener('keydown', function(e) {
 
     .image-modal-title {
         font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .announcement-content-wrapper {
+        padding: 0 0.75rem;
+    }
+
+    .page-header h1 {
+        font-size: 1.3rem;
+    }
+
+    .page-header p {
+        font-size: 0.8rem;
+    }
+
+    .announcement-banner {
+        padding: 0.75rem 0.875rem;
+        min-height: 60px;
+    }
+
+    .banner-title {
+        font-size: 1.1rem;
+    }
+
+    .announcement-content-section {
+        padding: 0.875rem 0.75rem;
+    }
+
+    .announcement-message {
+        padding: 0.75rem 0.875rem;
+        font-size: 0.85rem;
+    }
+
+    .announcement-details {
+        gap: 0.4rem;
+    }
+
+    .detail-item {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.75rem;
+    }
+
+    .archive-grid {
+        grid-template-columns: 1fr;
+        gap: 0.625rem;
+    }
+
+    .archive-card {
+        min-height: 380px;
+    }
+
+    .archive-image {
+        height: 100px;
+    }
+
+    .image-modal-content {
+        max-width: 98vw;
+        max-height: 98vh;
+        padding: 0.75rem;
+    }
+
+    .image-modal-close {
+        top: -35px;
+        width: 32px;
+        height: 32px;
+        font-size: 1.1rem;
+    }
+
+    .image-modal-img {
+        max-height: 70vh;
+    }
+
+    .image-modal-title {
+        font-size: 0.9rem;
+        margin-top: 0.75rem;
     }
 }
 

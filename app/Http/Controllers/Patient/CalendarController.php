@@ -21,9 +21,11 @@ class CalendarController extends Controller
      */
     public function index()
     {
+        $this->autoCancelStalePendingAppointments();
         $patientId = auth()->id();
         $appointments = $this->getPatientAppointments($patientId);
         $upcomingAppointments = $this->getUpcomingAppointments();
+        $reschedulableAppointments = $this->getReschedulableAppointments($patientId);
         $pendingRequests = $this->getPendingRequests();
         $appointmentHistory = $this->getAppointmentHistory();
         $allAppointments = $this->getAllAppointmentsForConflicts();
@@ -47,6 +49,7 @@ class CalendarController extends Controller
         return view('patient.calendar', [
             'appointments' => $appointments,
             'upcomingAppointments' => $upcomingAppointments,
+            'reschedulableAppointments' => $reschedulableAppointments,
             'pendingRequests' => $pendingRequests,
             'appointmentHistory' => $appointmentHistory,
             'services' => $services,
@@ -96,6 +99,44 @@ class CalendarController extends Controller
         })->values()->toArray();
     }
 
+    /**
+     * Automatically cancel pending appointments whose appointment date has passed
+     */
+    private function autoCancelStalePendingAppointments(): void
+    {
+        try {
+            $now = Carbon::now('Asia/Manila');
+            $todayStart = $now->copy()->startOfDay();
+
+            $pendingAppointments = Appointment::where('status', 'Pending')
+                ->whereDate('start_datetime', '<', $todayStart)
+                ->get();
+
+            foreach ($pendingAppointments as $appointment) {
+                $existingNotes = trim((string) $appointment->notes);
+                $autoNote = '[' . $now->format('Y-m-d H:i') . '] Automatically cancelled because the appointment remained pending past its date.';
+
+                if (stripos($existingNotes, 'Automatically cancelled because the appointment remained pending past its date.') === false) {
+                    $existingNotes = $existingNotes !== ''
+                        ? $existingNotes . "\n\n" . $autoNote
+                        : $autoNote;
+                }
+
+                $appointment->update([
+                    'status' => 'Cancelled',
+                    'notes' => $existingNotes,
+                ]);
+
+                \Log::info('Auto-cancelled pending appointment past date (patient calendar)', [
+                    'appointment_id' => $appointment->id,
+                    'start_datetime' => $appointment->start_datetime,
+                ]);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error auto-cancelling stale pending appointments (patient calendar):', ['error' => $e->getMessage()]);
+        }
+    }
+
     private function getUpcomingAppointments()
     {
         // Get future appointments (from today onwards) that are not cancelled, completed, or missed
@@ -114,6 +155,36 @@ class CalendarController extends Controller
             ->orderBy('start_datetime', 'asc')
             ->limit(15)
             ->get();
+    }
+
+    private function getReschedulableAppointments(int $patientId)
+    {
+        $autoCancelPhrase = 'automatically cancelled because the appointment remained pending past its date.';
+
+        return Appointment::where('patient_id', $patientId)
+            ->with(['service'])
+            ->orderBy('start_datetime', 'desc')
+            ->limit(40)
+            ->get()
+            ->filter(function ($appointment) use ($autoCancelPhrase) {
+                $status = strtolower($appointment->status ?? 'pending');
+                $notes = strtolower((string) $appointment->notes);
+
+                if (in_array($status, ['pending', 'confirmed'])) {
+                    return true;
+                }
+
+                if ($status === 'missed') {
+                    return true;
+                }
+
+                if ($status === 'cancelled' && str_contains($notes, strtolower($autoCancelPhrase))) {
+                    return true;
+                }
+
+                return false;
+            })
+            ->values();
     }
 
     private function getPendingRequests()
@@ -287,19 +358,20 @@ class CalendarController extends Controller
             // Check if rescheduling a missed or cancelled appointment (prevent this)
             if ($request->type === 'reschedule' && $request->existing_appointment_id) {
                 $existingAppointment = Appointment::find($request->existing_appointment_id);
-                if ($existingAppointment && $existingAppointment->status === 'Missed') {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Cannot reschedule missed appointments. Please book a new appointment instead.',
-                        'errors' => ['existing_appointment_id' => ['Cannot reschedule missed appointments']]
-                    ], 422);
-                }
-                if ($existingAppointment && $existingAppointment->status === 'Cancelled') {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Cannot reschedule cancelled appointments. Please book a new appointment instead.',
-                        'errors' => ['existing_appointment_id' => ['Cannot reschedule cancelled appointments']]
-                    ], 422);
+                if ($existingAppointment) {
+                    $status = $existingAppointment->status ?? 'Pending';
+                    $notes = strtolower((string) $existingAppointment->notes);
+                    $isAutoCancelled = $status === 'Cancelled' && str_contains($notes, 'automatically cancelled because the appointment remained pending past its date.');
+                    $isMissed = $status === 'Missed';
+
+                    if ($status === 'Cancelled' && !$isAutoCancelled) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Cannot reschedule cancelled appointments unless they were automatically cancelled by the system.',
+                            'errors' => ['existing_appointment_id' => ['Cannot reschedule cancelled appointments']]
+                        ], 422);
+                    }
+
                 }
                 // Also verify the appointment belongs to the current patient
                 if ($existingAppointment && $existingAppointment->patient_id !== auth()->id()) {

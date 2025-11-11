@@ -246,6 +246,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const prioritizedAppointments = patientOwnAppointments.concat(otherAppointments);
                     
                     let appointmentsHtml = '';
+                    const eventItems = [];
                     
                     // Count booked appointments (other patients' appointments) separately
                     let bookedCount = 0;
@@ -315,7 +316,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // });
                     
                     // Show event items - limit visible items and show "X more" if needed
-                    const maxVisible = 2; // Show only first 2 appointments
+                    const maxVisible = 3; // Show only first 3 appointments
                     const visibleAppointments = prioritizedAppointments.slice(0, maxVisible);
                     const hiddenCount = Math.max(0, prioritizedAppointments.length - maxVisible);
                     
@@ -421,26 +422,17 @@ document.addEventListener('DOMContentLoaded', function() {
                             const editableAttr = isOwnAppointment ? '' : 'data-read-only="true"';
 
                             // Show event items
-                            appointmentsHtml += `
+                            eventItems.push(`
                                 <div class="event-item ${status}" data-appointment-id="${apt.id}" ${editableAttr} ${strikethrough}>
                                     <div class="event-time">${displayTime}</div>
                                     <div class="event-title">${title}</div>
                                     ${notes ? `<div class="event-notes">${notes}</div>` : ''}
                                 </div>
-                            `;
+                            `);
                         } catch (error) {
                             console.error('Error rendering appointment:', apt, error);
                         }
                     });
-                    
-                    // Show "X more" indicator if there are hidden appointments
-                    if (hiddenCount > 0) {
-                        appointmentsHtml += `
-                            <div class="event-more-indicator" data-date="${dateStr}">
-                                <span class="more-text">${hiddenCount} more</span>
-                            </div>
-                        `;
-                    }
                     
                     // Blocked times are still shown as event items (not hidden) for visibility
                     dayBlockedTimes.forEach(function(blocked) {
@@ -456,12 +448,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         const notes = blocked.notes || '';
                         if (isFullDayClosure) {
                             // Full day closure - show as event item (not hidden)
-                            appointmentsHtml += `
+                            eventItems.push(`
                                 <div class="event-item blocked" data-blocked-time-id="${blocked.id}">
                                     <div class="event-title">${displayTitle}</div>
                                     ${notes ? `<div class="event-notes">${notes}</div>` : ''}
                                 </div>
-                            `;
+                            `);
                         } else {
                             // Partial day block - show time
                             const time = startTime.toLocaleTimeString('en-US', {
@@ -469,15 +461,31 @@ document.addEventListener('DOMContentLoaded', function() {
                                 minute: '2-digit',
                                 hour12: true
                             });
-                            appointmentsHtml += `
+                            eventItems.push(`
                                 <div class="event-item blocked" data-blocked-time-id="${blocked.id}">
                                     <div class="event-time">${time}</div>
                                     <div class="event-title">${displayTitle}</div>
                                     ${notes ? `<div class="event-notes">${notes}</div>` : ''}
                                 </div>
-                            `;
+                            `);
                         }
                     });
+
+                    const totalEventsForDay = prioritizedAppointments.length + dayBlockedTimes.length;
+                    if (eventItems.length > 0 && totalEventsForDay > 0) {
+                        eventItems[0] = eventItems[0].replace(/>/, ` data-mobile-count="${totalEventsForDay}">\n                                    <span class="mobile-event-count" aria-hidden="true">${totalEventsForDay}</span>`);
+                    }
+
+                    appointmentsHtml = eventItems.join('');
+
+                    // Show "X more" indicator if there are hidden appointments
+                    if (hiddenCount > 0) {
+                        appointmentsHtml += `
+                            <div class="event-more-indicator" data-date="${dateStr}">
+                                <span class="more-text">${hiddenCount} more</span>
+                            </div>
+                        `;
+                    }
 
                     // Add fully booked indicator only if fully booked AND not closed (no full day closure)
                     if (isFullyBooked && !hasFullDayClosure) {
@@ -854,7 +862,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 modalContent += `
-                    <div class="day-appointment-item blocked">
+                    <div class="day-appointment-item blocked clickable-blocked" data-blocked-time-id="${blocked.id}" style="cursor: pointer;">
                         <div class="appointment-time">
                             <i class="bi bi-x-circle"></i>
                             ${isFullDayClosure ? 'All Day' : timeStr}
@@ -894,6 +902,23 @@ document.addEventListener('DOMContentLoaded', function() {
                                 // Show read-only modal for booked time (other patients' appointments)
                                 showOtherAppointmentDetails(parseInt(appointmentId));
                             }
+                        });
+                    }
+                });
+                
+                // Add click event listeners to blocked time items
+                modalBody.querySelectorAll('.day-appointment-item.blocked[data-blocked-time-id]').forEach(function(item) {
+                    const blockedTimeId = item.dataset.blockedTimeId;
+                    if (blockedTimeId) {
+                        item.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            // Close the day appointments modal first
+                            const bsModal = bootstrap.Modal.getInstance(modal);
+                            if (bsModal) {
+                                bsModal.hide();
+                            }
+                            // Then open the blocked time details modal
+                            showBlockedTimeDetails(parseInt(blockedTimeId));
                         });
                     }
                 });
@@ -1043,7 +1068,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const durationMinutes = Math.floor(durationMs / (1000 * 60));
         let durationStr = '';
         if (isFullDayClosure) {
-            durationStr = 'All Day';
+            durationStr = '24 Hrs.';
         } else if (durationMinutes < 60) {
             durationStr = `${durationMinutes} minutes`;
         } else {
@@ -1063,34 +1088,50 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Create modal content
         const modalContent = `
-            <div class="text-center mb-4">
-                <div class="mx-auto mb-3" style="width: 80px; height: 80px; background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                    <i class="bi bi-x-circle text-warning" style="font-size: 2.5rem; color: #92400e !important;"></i>
+            <div class="blocked-time-modal-content">
+                <div class="blocked-time-icon-wrapper">
+                    <div class="blocked-time-icon-circle">
+                        <i class="bi bi-x-circle-fill blocked-time-icon"></i>
+                    </div>
                 </div>
-                <h5 class="fw-bold text-dark mb-2">${displayTitle}</h5>
-            </div>
-            
-            <div class="mb-3">
-                <div class="d-flex align-items-center mb-2">
-                    <i class="bi bi-calendar3 me-2 text-primary"></i>
-                    <strong>Date:</strong>
-                    <span class="ms-2">${dateStr}</span>
-                </div>
-                <div class="d-flex align-items-center mb-2">
-                    <i class="bi bi-clock me-2 text-primary"></i>
-                    <strong>Time:</strong>
-                    <span class="ms-2">${timeStr}</span>
-                </div>
-                <div class="d-flex align-items-center mb-2">
-                    <i class="bi bi-hourglass-split me-2 text-primary"></i>
-                    <strong>Duration:</strong>
-                    <span class="ms-2">${durationStr}</span>
-                </div>
-                <div class="d-flex align-items-start">
-                    <i class="bi bi-info-circle me-2 text-primary mt-1"></i>
-                    <div>
-                        <strong>Reason:</strong>
-                        <p class="mb-0 ms-2">${reason}</p>
+                <h5 class="blocked-time-title">${displayTitle}</h5>
+                
+                <div class="blocked-time-details">
+                    <div class="blocked-time-detail-item">
+                        <div class="blocked-time-detail-icon">
+                            <i class="bi bi-calendar3"></i>
+                        </div>
+                        <div class="blocked-time-detail-content">
+                            <span class="blocked-time-detail-label">Date</span>
+                            <span class="blocked-time-detail-value">${dateStr}</span>
+                        </div>
+                    </div>
+                    <div class="blocked-time-detail-item">
+                        <div class="blocked-time-detail-icon">
+                            <i class="bi bi-clock"></i>
+                        </div>
+                        <div class="blocked-time-detail-content">
+                            <span class="blocked-time-detail-label">Time</span>
+                            <span class="blocked-time-detail-value">${timeStr}</span>
+                        </div>
+                    </div>
+                    <div class="blocked-time-detail-item">
+                        <div class="blocked-time-detail-icon">
+                            <i class="bi bi-hourglass-split"></i>
+                        </div>
+                        <div class="blocked-time-detail-content">
+                            <span class="blocked-time-detail-label">Duration</span>
+                            <span class="blocked-time-detail-value">${durationStr}</span>
+                        </div>
+                    </div>
+                    <div class="blocked-time-detail-item">
+                        <div class="blocked-time-detail-icon">
+                            <i class="bi bi-info-circle"></i>
+                        </div>
+                        <div class="blocked-time-detail-content">
+                            <span class="blocked-time-detail-label">Reason</span>
+                            <span class="blocked-time-detail-value">${reason}</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1102,16 +1143,13 @@ document.addEventListener('DOMContentLoaded', function() {
         modal.id = 'blockedTimeDetailsModal';
         modal.innerHTML = `
             <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Blocked Time Details</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-content blocked-time-modal">
+                    <div class="modal-header blocked-time-modal-header">
+                        <h5 class="modal-title blocked-time-modal-title">Blocked Time Details</h5>
+                        <button type="button" class="btn-close blocked-time-modal-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="modal-body">
+                    <div class="modal-body blocked-time-modal-body">
                         ${modalContent}
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     </div>
                 </div>
             </div>
@@ -1202,7 +1240,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 statusBadgeClass = 'bg-primary';
                 break;
             case 'cancelled':
-                statusBadgeClass = 'bg-danger';
+                statusBadgeClass = 'status-badge-brown text-white';
                 break;
             case 'missed':
             case 'blocked':
@@ -1302,20 +1340,25 @@ document.addEventListener('DOMContentLoaded', function() {
         const rescheduleBtn = document.getElementById('modalRescheduleBtn');
         if (rescheduleBtn) {
             rescheduleBtn.style.display = 'block'; // Show button for patient's own appointments
-            if (statusClass === 'completed' || statusClass === 'cancelled' || statusClass === 'missed' || statusClass === 'blocked') {
+
+            const notesText = typeof notes === 'string' ? notes.toLowerCase() : '';
+            const isAutoCancelled = statusClass === 'cancelled' && notesText.includes('automatically cancelled');
+            const shouldDisable = (statusClass === 'completed' || statusClass === 'cancelled' || statusClass === 'blocked') && !isAutoCancelled;
+
+            if (shouldDisable) {
                 rescheduleBtn.disabled = true;
                 rescheduleBtn.style.opacity = '0.5';
                 rescheduleBtn.style.cursor = 'not-allowed';
-                if (statusClass === 'missed' || statusClass === 'blocked') {
-                    rescheduleBtn.title = 'Cannot reschedule missed appointments. Please book a new appointment instead.';
-                } else {
-                    rescheduleBtn.title = `Cannot reschedule ${statusClass} appointments`;
-                }
+                rescheduleBtn.title = statusClass === 'blocked'
+                    ? 'Cannot reschedule blocked appointments.'
+                    : `Cannot reschedule ${statusClass} appointments`;
             } else {
                 rescheduleBtn.disabled = false;
                 rescheduleBtn.style.opacity = '1';
                 rescheduleBtn.style.cursor = 'pointer';
-                rescheduleBtn.title = 'Request to reschedule this appointment';
+                rescheduleBtn.title = isAutoCancelled
+                    ? 'Request to reschedule this automatically cancelled appointment'
+                    : 'Request to reschedule this appointment';
             }
         }
 
@@ -1409,7 +1452,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 statusBadgeClass = 'bg-success';
                 break;
             case 'cancelled':
-                statusBadgeClass = 'bg-danger';
+                statusBadgeClass = 'status-badge-brown text-white';
                 break;
             case 'missed':
             case 'blocked':

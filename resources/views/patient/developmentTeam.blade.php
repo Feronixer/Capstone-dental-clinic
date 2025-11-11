@@ -257,9 +257,42 @@
 }
 
 @media (max-width: 992px) {
+    .team-page {
+        padding: 3rem 1.5rem;
+    }
+
+    .team-container {
+        max-width: 100%;
+    }
+
+    .team-title {
+        font-size: clamp(2rem, 5vw, 2.5rem);
+    }
+
+    .team-subtitle {
+        font-size: clamp(1rem, 2.5vw, 1.1rem);
+    }
+
     .team-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 1.5rem;
+    }
+
+    .team-card {
+        min-height: 320px;
+    }
+
+    .team-image {
+        width: 120px;
+        height: 120px;
+    }
+
+    .team-name {
+        font-size: 1.3rem;
+    }
+
+    .team-role {
+        font-size: 0.95rem;
     }
 }
 
@@ -268,28 +301,139 @@
         padding: 2rem 1rem;
     }
 
+    .team-badge {
+        font-size: 0.8rem;
+        padding: 0.4rem 1rem;
+    }
+
     .team-title {
-        font-size: 2.25rem;
+        font-size: clamp(1.75rem, 6vw, 2.25rem);
+        margin-bottom: 0.75rem;
     }
 
     .team-subtitle {
-        font-size: 1rem;
+        font-size: clamp(0.95rem, 2.5vw, 1rem);
+        margin-bottom: 2rem;
     }
 
     .team-grid {
         grid-template-columns: repeat(2, 1fr);
-        gap: 1.5rem;
+        gap: 1.25rem;
     }
 
-    .team-page {
-        padding: 3rem 1.5rem;
+    .team-card {
+        min-height: 300px;
+    }
+
+    .team-card-inner {
+        min-height: 300px;
+    }
+
+    .team-image {
+        width: 100px;
+        height: 100px;
+    }
+
+    .team-name {
+        font-size: 1.2rem;
+    }
+
+    .team-role {
+        font-size: 0.9rem;
+    }
+
+    .team-description {
+        font-size: 0.9rem;
+        line-height: 1.6;
     }
 }
 
 @media (max-width: 576px) {
+    .team-page {
+        padding: 1.5rem 0.75rem;
+    }
+
+    .team-badge {
+        font-size: 0.75rem;
+        padding: 0.35rem 0.875rem;
+        margin-bottom: 1rem;
+    }
+
+    .team-title {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .team-subtitle {
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+        padding: 0 0.5rem;
+    }
+
     .team-grid {
         grid-template-columns: 1fr;
-        gap: 1.5rem;
+        gap: 1.25rem;
+    }
+
+    .team-card {
+        min-height: 280px;
+    }
+
+    .team-card-inner {
+        min-height: 280px;
+    }
+
+    .team-image {
+        width: 90px;
+        height: 90px;
+    }
+
+    .team-name {
+        font-size: 1.1rem;
+    }
+
+    .team-role {
+        font-size: 0.85rem;
+    }
+
+    .team-description {
+        font-size: 0.85rem;
+        padding: 0 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .team-page {
+        padding: 1rem 0.5rem;
+    }
+
+    .team-title {
+        font-size: 1.3rem;
+    }
+
+    .team-subtitle {
+        font-size: 0.85rem;
+    }
+
+    .team-card {
+        min-height: 260px;
+    }
+
+    .team-card-inner {
+        min-height: 260px;
+    }
+
+    .team-image {
+        width: 80px;
+        height: 80px;
+    }
+
+    .team-name {
+        font-size: 1rem;
+    }
+
+    .team-role {
+        font-size: 0.8rem;
     }
 }
 

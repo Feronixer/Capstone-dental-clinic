@@ -545,38 +545,38 @@ const chatFileInput = document.getElementById('chat-file-input');
 if (chatAttachBtn && canAttachFiles) {
     chatAttachBtn.addEventListener('click', function() {
         chatFileInput?.click();
-    });
+});
 }
 
 if (chatFileInput) {
     if (canAttachFiles) {
         chatFileInput.addEventListener('change', function(e) {
-            const files = Array.from(e.target.files);
-            const maxSize = 5 * 1024 * 1024; // 5MB in bytes
-            const invalidFiles = [];
-            
-            files.forEach(file => {
-                // Check file size (5MB limit)
-                if (file.size > maxSize) {
-                    invalidFiles.push(file.name);
-                    return;
-                }
-                
-                // Check if file already exists
-                if (!attachedFiles.find(f => f.name === file.name && f.size === file.size)) {
-                    attachedFiles.push(file);
-                }
-            });
-            
-            // Show error for files that exceed size limit
-            if (invalidFiles.length > 0) {
-                showFileSizeWarningModal(invalidFiles);
-            }
-            
-            updateAttachedFilesDisplay();
-            // Reset file input to allow selecting the same file again
-            e.target.value = '';
-        });
+    const files = Array.from(e.target.files);
+    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+    const invalidFiles = [];
+    
+    files.forEach(file => {
+        // Check file size (5MB limit)
+        if (file.size > maxSize) {
+            invalidFiles.push(file.name);
+            return;
+        }
+        
+        // Check if file already exists
+        if (!attachedFiles.find(f => f.name === file.name && f.size === file.size)) {
+            attachedFiles.push(file);
+        }
+    });
+    
+    // Show error for files that exceed size limit
+    if (invalidFiles.length > 0) {
+        showFileSizeWarningModal(invalidFiles);
+    }
+    
+    updateAttachedFilesDisplay();
+    // Reset file input to allow selecting the same file again
+    e.target.value = '';
+});
     } else {
         chatFileInput.value = '';
     }

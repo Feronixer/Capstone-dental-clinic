@@ -366,6 +366,9 @@ Route::middleware(['auth:web'])->group(function(): void{
     Route::post('/patient/calendar/submit-request', [CalendarController::class, 'submitRequest'])->name('patient-calendar.submit-request');
     Route::get('/patient/profile', [PatientProfileController::class, 'index'])->name('patient-profile');
     Route::get('/patient/record', [PatientRecord::class, 'index'])->name('patient-record');
+    // These routes must come BEFORE /patient/record/{id} to avoid route conflicts
+    Route::post('/patient/record/verify-password', [PatientRecord::class, 'verifyPassword'])->name('patient-record.verify-password');
+    Route::get('/patient/record/check-access', [PatientRecord::class, 'checkAccess'])->name('patient-record.check-access');
     Route::get('/patient/record/{id}', [PatientRecord::class, 'show'])->name('patient-record.show');
     Route::get('/patient/record/{id}/download', [PatientRecord::class, 'download'])->name('patient-record.download');
     Route::get('/patient/records/all', [PatientRecord::class, 'getRecords'])->name('patient-records.all');
@@ -375,7 +378,6 @@ Route::middleware(['auth:web'])->group(function(): void{
     Route::get('/patient/progress-note/{id}', [PatientRecord::class, 'showProgressNote'])->name('patient-progress-note.show');
     Route::get('/patient/progress-note/{id}/download', [PatientRecord::class, 'downloadProgressNote'])->name('patient-progress-note.download');
     Route::get('/patient/record/{recordId}/progress-notes/download', [PatientRecord::class, 'downloadAllProgressNotes'])->name('patient-progress-notes-all.download');
-    Route::post('/patient/record/verify-password', [PatientRecord::class, 'verifyPassword'])->name('patient-record.verify-password');
     Route::get('/patient/announcement', [AnnouncementController::class, 'index'])->name('patient-announcement');
     Route::get('/patient/about', function() {
         $chatbotSetting = App\Models\ChatbotSetting::first() ?? App\Models\ChatbotSetting::create([

@@ -68,7 +68,7 @@ class ContentManagementController extends Controller
             ActivityLog::log(
                 'deleted',
                 'announcement_archive',
-                'Deleted archive: ' . $archive->title,
+                'Deleted announcement archive: ' . $archive->title,
                 $archive->id,
                 'AnnouncementArchive',
                 $archive->toArray(),
@@ -191,7 +191,7 @@ class ContentManagementController extends Controller
             ActivityLog::log(
                 'created',
                 'announcement',
-                'Created new announcement: ' . $announcement->title,
+                'Added announcement: ' . $announcement->title,
                 $announcement->id,
                 'Announcement',
                 null,
@@ -304,7 +304,7 @@ class ContentManagementController extends Controller
             ActivityLog::log(
                 $isNew ? 'created' : 'updated',
                 'announcement',
-                ($isNew ? 'Created' : 'Updated') . ' announcement: ' . $announcement->title,
+                ($isNew ? 'Added' : 'Updated') . ' announcement: ' . $announcement->title,
                 $announcement->id,
                 'Announcement',
                 $oldValues,
@@ -363,7 +363,7 @@ class ContentManagementController extends Controller
         ActivityLog::log(
             'updated',
             'ticker',
-            'Updated ticker notification: ' . substr($request->input('ticker_text'), 0, 50) . '...',
+            'Updated ticker notification',
             $announcement->id,
             'Announcement',
             ['ticker_text' => $oldTicker],
@@ -404,7 +404,7 @@ class ContentManagementController extends Controller
         ActivityLog::log(
             'created',
             'service',
-            'Created service: ' . $service->service_name,
+            'Added service: ' . $service->service_name,
             $service->id,
             'Service',
             null,
@@ -518,7 +518,7 @@ class ContentManagementController extends Controller
         ActivityLog::log(
             $isNew ? 'created' : 'updated',
             'mail_template',
-            ($isNew ? 'Created' : 'Updated') . ' mail template: ' . ucfirst(str_replace('_', ' ', $type)),
+            ($isNew ? 'Added' : 'Updated') . ' email template: ' . ucfirst(str_replace('_', ' ', $type)),
             $template->id,
             'MailTemplate',
             $oldValues,

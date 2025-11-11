@@ -56,35 +56,35 @@ class PostProceduralController extends Controller
 
     private function prepareRecordsCollection(): \Illuminate\Support\Collection
     {
-        $patientRecords = PatientRecord::with(['user.info', 'appointment.service'])
+            $patientRecords = PatientRecord::with(['user.info', 'appointment.service'])
             ->whereHas('user')
-            ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(function($record) {
-                return $this->mapPatientRecord($record);
-            });
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function($record) {
+                    return $this->mapPatientRecord($record);
+                });
 
-        $patientHistories = PatientHistory::with(['patientRecord.user.info'])
+            $patientHistories = PatientHistory::with(['patientRecord.user.info'])
             ->whereHas('patientRecord.user')
-            ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(function($history) {
-                return $this->mapPatientHistory($history);
-            })
-            ->filter(function($history) {
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function($history) {
+                    return $this->mapPatientHistory($history);
+                })
+                ->filter(function($history) {
                 return $history['user_id'] !== null;
-            });
+                });
 
-        $progressNotes = ProgressNote::with(['patientRecord.user.info'])
+            $progressNotes = ProgressNote::with(['patientRecord.user.info'])
             ->whereHas('patientRecord.user')
-            ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(function($note) {
-                return $this->mapProgressNote($note);
-            })
-            ->filter(function($note) {
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function($note) {
+                    return $this->mapProgressNote($note);
+                })
+                ->filter(function($note) {
                 return $note['user_id'] !== null;
-            });
+                });
 
         return $patientRecords
             ->concat($patientHistories)

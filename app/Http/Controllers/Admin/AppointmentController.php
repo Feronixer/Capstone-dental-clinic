@@ -23,6 +23,7 @@ class AppointmentController extends Controller
      */
     public function index()
     {
+        $this->autoCancelStalePendingAppointments();
         $this->autoMarkMissedAppointments();
         $this->cleanupExpiredBlockedTimes();
 
@@ -206,6 +207,8 @@ class AppointmentController extends Controller
      */
     public function getAppointments(Request $request): JsonResponse
     {
+        $this->autoCancelStalePendingAppointments();
+
         // Parse in Asia/Manila timezone to avoid UTC conversion
         $start = Carbon::parse($request->start, 'Asia/Manila');
         $end = Carbon::parse($request->end, 'Asia/Manila');
@@ -1394,6 +1397,44 @@ class AppointmentController extends Controller
             }
         } catch (\Exception $e) {
             \Log::error('Error auto-marking missed appointments:', ['error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Automatically cancel pending appointments whose appointment date has passed
+     */
+    private function autoCancelStalePendingAppointments(): void
+    {
+        try {
+            $now = Carbon::now('Asia/Manila');
+            $todayStart = $now->copy()->startOfDay();
+
+            $pendingAppointments = Appointment::where('status', 'Pending')
+                ->whereDate('start_datetime', '<', $todayStart)
+                ->get();
+
+            foreach ($pendingAppointments as $appointment) {
+                $existingNotes = trim((string) $appointment->notes);
+                $autoNote = '[' . $now->format('Y-m-d H:i') . '] Automatically cancelled because the appointment remained pending past its date.';
+
+                if (stripos($existingNotes, 'Automatically cancelled because the appointment remained pending past its date.') === false) {
+                    $existingNotes = $existingNotes !== ''
+                        ? $existingNotes . "\n\n" . $autoNote
+                        : $autoNote;
+                }
+
+                $appointment->update([
+                    'status' => 'Cancelled',
+                    'notes' => $existingNotes,
+                ]);
+
+                \Log::info('Admin auto-cancelled pending appointment past date', [
+                    'appointment_id' => $appointment->id,
+                    'start_datetime' => $appointment->start_datetime,
+                ]);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error auto-cancelling stale pending appointments (admin):', ['error' => $e->getMessage()]);
         }
     }
 }

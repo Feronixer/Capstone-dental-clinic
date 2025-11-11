@@ -2304,7 +2304,7 @@
                     </div>
                 </div>
 
-                <h2 class="card-title">JValera Dental Clinic <i class="bi bi-arrow-right"></i></h2>
+                <h2 class="card-title">JValera Dental Clinic</h2>
             </div>
         </div>
 </section>

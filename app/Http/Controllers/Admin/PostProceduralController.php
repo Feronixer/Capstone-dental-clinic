@@ -458,7 +458,7 @@ class PostProceduralController extends Controller
                     ActivityLog::log(
                         'created',
                         'patient_record',
-                        'Created patient record for ' . ($record->user->info->first_name ?? '') . ' ' . ($record->user->info->last_name ?? ''),
+                        'Added patient record for ' . ($record->user->info->first_name ?? '') . ' ' . ($record->user->info->last_name ?? ''),
                         $record->id,
                         'PatientRecord',
                         null,
@@ -476,7 +476,7 @@ class PostProceduralController extends Controller
                 ActivityLog::log(
                     'created',
                     'patient_record',
-                    'Created patient record for ' . ($record->user->info->first_name ?? '') . ' ' . ($record->user->info->last_name ?? ''),
+                    'Added patient record for ' . ($record->user->info->first_name ?? '') . ' ' . ($record->user->info->last_name ?? ''),
                     $record->id,
                     'PatientRecord',
                     null,

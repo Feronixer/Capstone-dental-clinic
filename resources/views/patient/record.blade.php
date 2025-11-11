@@ -680,6 +680,75 @@
     }
 }
 
+/* Responsive Modal Styles */
+@media (max-width: 768px) {
+    .password-modal .modal-dialog {
+        margin: 0.5rem;
+        max-width: calc(100% - 1rem);
+    }
+
+    .password-modal .modal-header {
+        padding: 1.25rem 1rem;
+    }
+
+    .password-modal .modal-header .modal-title {
+        font-size: 1.1rem;
+    }
+
+    .password-modal .modal-body {
+        padding: 1.5rem 1rem;
+    }
+
+    .password-modal .modal-footer {
+        padding: 1.25rem 1rem;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .password-modal .modal-footer .btn {
+        width: 100%;
+        margin: 0;
+        min-height: 44px;
+    }
+
+    .password-modal .form-label {
+        font-size: 0.95rem;
+    }
+
+    .password-modal .form-control {
+        font-size: 0.95rem;
+        padding: 0.75rem 1rem;
+        min-height: 44px;
+    }
+}
+
+@media (max-width: 480px) {
+    .password-modal .modal-dialog {
+        margin: 0.25rem;
+        max-width: calc(100% - 0.5rem);
+    }
+
+    .password-modal .modal-header {
+        padding: 1rem 0.875rem;
+    }
+
+    .password-modal .modal-header .modal-title {
+        font-size: 1rem;
+    }
+
+    .password-modal .modal-body {
+        padding: 1.25rem 0.875rem;
+    }
+
+    .password-modal .modal-footer {
+        padding: 1rem 0.875rem;
+    }
+
+    .password-modal .form-control {
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+}
+
 @media (max-width: 768px) {
     .records-container {
         padding: 0.75rem 1rem;
@@ -1352,14 +1421,22 @@ html, body {
 <script>
 let currentRecordId = null;
 let isAuthenticated = false;
-let authTimer = null;
 let pendingAction = null; // Store the action to execute after password verification
-const AUTH_DURATION = 15000; // 15 seconds in milliseconds
+let authCheckInterval = null; // Store interval ID for periodic auth checks
+let isPasswordModalVisible = false; // Track if password modal is currently visible
 
-// Initialize: Lock all buttons on page load
+// Initialize: Lock all buttons on page load and check access status
 document.addEventListener('DOMContentLoaded', function() {
     lockAllButtons();
     hidePreviewMask(); // Hide mask initially when no record is selected
+    
+    // Check access status from server on page load
+    checkAccessStatus();
+    
+    // Set up periodic authentication check (every 5 minutes)
+    authCheckInterval = setInterval(async () => {
+        await checkAccessStatus();
+    }, 5 * 60 * 1000); // Check every 5 minutes
     
     // Password modal event listeners
     // Verify password button click
@@ -1382,14 +1459,40 @@ document.addEventListener('DOMContentLoaded', function() {
     // Clear pending action when modal is closed
     const passwordModal = document.getElementById('passwordModal');
     if (passwordModal) {
+        passwordModal.addEventListener('show.bs.modal', function() {
+            // Mark modal as visible when it starts to show
+            isPasswordModalVisible = true;
+            // Hide preview mask when modal is about to be shown
+            hidePreviewMask();
+        });
+        
+        passwordModal.addEventListener('shown.bs.modal', function() {
+            // Ensure mask stays hidden when modal is fully shown
+            hidePreviewMask();
+            
+            // Focus on password input
+            const passwordInput = document.getElementById('passwordInput');
+            if (passwordInput) {
+                passwordInput.focus();
+            }
+        });
+        
+        passwordModal.addEventListener('hide.bs.modal', function() {
+            // Mark modal as not visible when it starts to hide
+            isPasswordModalVisible = false;
+        });
+        
         passwordModal.addEventListener('hidden.bs.modal', function() {
+            // Mark modal as not visible
+            isPasswordModalVisible = false;
+            
             // Only clear if authentication failed (user closed modal without verifying)
             if (!isAuthenticated) {
                 pendingAction = null;
             }
             
-            // Only show mask if authentication expired and there's content
-            if (!isAuthenticated) {
+            // Only show mask if authentication expired and there's content (and modal is not visible)
+            if (!isAuthenticated && !isPasswordModalVisible) {
                 const previewPanel = document.getElementById('recordPreviewPanel');
                 if (previewPanel) {
                     const hasContent = previewPanel.querySelector('.preview-header, .record-detail-view, .progress-notes-table-container, .form-grid, .section-title');
@@ -1397,18 +1500,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         showPreviewMask();
                     }
                 }
-            }
-        });
-        
-        // Ensure modal is visible when shown
-        passwordModal.addEventListener('shown.bs.modal', function() {
-            // Hide preview mask when modal is shown
-            hidePreviewMask();
-            
-            // Focus on password input
-            const passwordInput = document.getElementById('passwordInput');
-            if (passwordInput) {
-                passwordInput.focus();
             }
         });
     }
@@ -1451,6 +1542,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Listen for page unload (navigation to different page or browser close)
     window.addEventListener('beforeunload', function() {
+        // Clear interval when leaving the page
+        if (authCheckInterval) {
+            clearInterval(authCheckInterval);
+        }
         // Expire authentication when leaving the page
         expireAuthentication();
     });
@@ -1474,12 +1569,6 @@ function unlockAllButtons() {
 function expireAuthentication() {
     isAuthenticated = false;
     
-    // Clear authentication timer
-    if (authTimer) {
-        clearTimeout(authTimer);
-        authTimer = null;
-    }
-    
     // Lock all buttons
     lockAllButtons();
     
@@ -1492,6 +1581,11 @@ function expireAuthentication() {
 
 // Show preview mask
 function showPreviewMask() {
+    // Don't show mask if password modal is visible
+    if (isPasswordModalVisible) {
+        return;
+    }
+    
     const mask = document.getElementById('previewMask');
     const previewPanel = document.getElementById('recordPreviewPanel');
     
@@ -1532,6 +1626,9 @@ function hidePreviewMask() {
 function showPasswordModal(actionCallback) {
     pendingAction = actionCallback;
     
+    // Mark modal as visible
+    isPasswordModalVisible = true;
+    
     // Hide preview mask when showing password modal
     hidePreviewMask();
     
@@ -1558,6 +1655,8 @@ function showPasswordModal(actionCallback) {
         if (backdrop) {
             backdrop.style.zIndex = '10000';
         }
+        // Ensure mask stays hidden
+        hidePreviewMask();
     }, 100);
 }
 
@@ -1593,9 +1692,12 @@ async function verifyPassword() {
         const data = await response.json();
         
         if (data.success) {
-            // Password verified successfully
+            // Password verified successfully - session is now set on server
             isAuthenticated = true;
             unlockAllButtons();
+            
+            // Mark modal as not visible
+            isPasswordModalVisible = false;
             
             // Close modal
             const modal = bootstrap.Modal.getInstance(document.getElementById('passwordModal'));
@@ -1607,11 +1709,8 @@ async function verifyPassword() {
                 pendingAction = null;
             }
             
-            // Start 15-second timer
-            startAuthTimer();
-            
             // Show success notification
-            showNotification('Password verified successfully. Access granted for 15 seconds.', 'success');
+            showNotification('Password verified successfully. Access granted for 30 minutes.', 'success');
         } else {
             // Password incorrect
             passwordError.textContent = data.message || 'Incorrect password. Please try again.';
@@ -1629,53 +1728,99 @@ async function verifyPassword() {
     }
 }
 
-// Start authentication timer (15 seconds)
-function startAuthTimer() {
-    // Clear existing timer
-    if (authTimer) {
-        clearTimeout(authTimer);
-    }
-    
-    // Set new timer
-    authTimer = setTimeout(() => {
+// Check access status from server
+async function checkAccessStatus() {
+    try {
+        const response = await fetch('/patient/record/check-access', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                'Accept': 'application/json'
+            },
+            credentials: 'same-origin'
+        });
+        
+        // Check if response is ok
+        if (!response.ok) {
+            // If 404, 403, or other errors, access is not verified
+            const wasAuthenticated = isAuthenticated;
+            isAuthenticated = false;
+            lockAllButtons();
+            
+            // If authentication just expired (was authenticated, now not), show mask if there's content
+            if (wasAuthenticated) {
+                const previewPanel = document.getElementById('recordPreviewPanel');
+                if (previewPanel && !isPasswordModalVisible) {
+                    const hasContent = previewPanel.querySelector('.preview-header, .record-detail-view, .progress-notes-table-container, .form-grid, .section-title');
+                    if (hasContent) {
+                        showPreviewMask();
+                    }
+                }
+            }
+            return;
+        }
+        
+        const data = await response.json();
+        
+        if (data.success && data.verified) {
+            // Access is verified
+            const wasNotAuthenticated = !isAuthenticated;
+            isAuthenticated = true;
+            unlockAllButtons();
+            
+            // If just authenticated, hide mask
+            if (wasNotAuthenticated) {
+                hidePreviewMask();
+            }
+        } else {
+            // Access not verified
+            const wasAuthenticated = isAuthenticated;
+            isAuthenticated = false;
+            lockAllButtons();
+            
+            // If authentication just expired (was authenticated, now not), show mask if there's content
+            if (wasAuthenticated && !isPasswordModalVisible) {
+                const previewPanel = document.getElementById('recordPreviewPanel');
+                if (previewPanel) {
+                    const hasContent = previewPanel.querySelector('.preview-header, .record-detail-view, .progress-notes-table-container, .form-grid, .section-title');
+                    if (hasContent) {
+                        showPreviewMask();
+                    }
+                }
+            }
+        }
+    } catch (error) {
+        // Silently handle errors - don't log to console to avoid noise
+        // On error, assume not authenticated
+        const wasAuthenticated = isAuthenticated;
         isAuthenticated = false;
         lockAllButtons();
         
-        // Force show mask to cover all content when authentication expires
-        const previewPanel = document.getElementById('recordPreviewPanel');
-        if (previewPanel) {
-            // Always show mask when authentication expires to protect content
-            // Check if there's any content in the preview panel
-            const hasContent = previewPanel.querySelector('.preview-header, .record-detail-view, .progress-notes-table-container, .form-grid, .section-title, .progress-notes-info, .progress-notes-table');
-            
-            // Always show mask if there's content, or if the panel is not empty
-            if (hasContent || previewPanel.innerHTML.trim() !== '') {
-                // Force show mask to cover all content
-                showPreviewMask();
-                
-                // Double-check mask is visible by setting styles directly
-                setTimeout(() => {
-                    const mask = document.getElementById('previewMask');
-                    if (mask) {
-                        mask.classList.remove('hidden');
-                        mask.style.opacity = '1';
-                        mask.style.zIndex = '100';
-                        mask.style.pointerEvents = 'auto';
-                        mask.style.display = 'flex';
-                    }
-                }, 100);
+        // If authentication just expired, show mask if there's content
+        if (wasAuthenticated && !isPasswordModalVisible) {
+            const previewPanel = document.getElementById('recordPreviewPanel');
+            if (previewPanel) {
+                const hasContent = previewPanel.querySelector('.preview-header, .record-detail-view, .progress-notes-table-container, .form-grid, .section-title');
+                if (hasContent) {
+                    showPreviewMask();
+                }
             }
         }
-        
-        // Always try to show mask as a safety measure
-        showPreviewMask();
-        
-        showNotification('Access expired. Please verify your password again.', 'warning');
-    }, AUTH_DURATION);
+    }
 }
 
 // Check if authenticated before executing action
-function requireAuth(actionCallback) {
+async function requireAuth(actionCallback) {
+    // First check access status from server
+    try {
+        await checkAccessStatus();
+    } catch (error) {
+        console.error('Error in requireAuth check:', error);
+        // If check fails, assume not authenticated
+        isAuthenticated = false;
+    }
+    
     if (isAuthenticated) {
         // Already authenticated, execute action immediately
         actionCallback();
@@ -1719,10 +1864,6 @@ async function executeViewRecord(recordId) {
             }
         });
 
-        if (!response.ok) {
-            throw new Error('Failed to load record');
-        }
-
         const data = await response.json();
 
         if (data.success) {
@@ -1730,6 +1871,18 @@ async function executeViewRecord(recordId) {
             // Hide mask after successful load
             hidePreviewMask();
         } else {
+            // Check if access verification is required
+            if (data.requires_auth || response.status === 403) {
+                // Access not verified, show password modal
+                isAuthenticated = false;
+                lockAllButtons();
+                showPasswordModal(() => {
+                    // Retry viewing the record after password verification
+                    executeViewRecord(recordId);
+                });
+                return;
+            }
+            
             // If record not found or access denied, show appropriate message
             if (data.message && (data.message.includes('access denied') || data.message.includes('not found'))) {
                 previewPanel.innerHTML = `
@@ -1740,7 +1893,7 @@ async function executeViewRecord(recordId) {
                 `;
                 hidePreviewMask();
             } else {
-                throw new Error('Invalid response');
+                throw new Error(data.message || 'Failed to load record');
             }
         }
     } catch (error) {

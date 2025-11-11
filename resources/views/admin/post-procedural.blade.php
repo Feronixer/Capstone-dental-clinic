@@ -74,8 +74,13 @@
 
                 <!-- Pagination -->
                 <div class="d-flex justify-content-between align-items-center mt-3">
-                    <div class="text-muted">
-                        Showing {{ $records->firstItem() ?? 0 }} to {{ $records->lastItem() ?? 0 }} of {{ $records->total() }} entries
+                    <div class="text-muted" id="recordsSummary">
+                        Showing <span id="recordsShowingStart">{{ $records->firstItem() ?? 0 }}</span>
+                        to <span id="recordsShowingEnd">{{ $records->lastItem() ?? 0 }}</span>
+                        of <span id="recordsTotal">{{ $records->total() }}</span> entries
+                        <span id="recordsFilteredInfo" class="ms-1 text-muted small d-none">
+                            (filtered from <span id="recordsFilteredTotal">{{ $records->total() }}</span> total)
+                        </span>
                     </div>
                     <nav>
                         {{ $records->links('pagination::bootstrap-5') }}
@@ -587,6 +592,7 @@ let recordToDelete = null;
 
 // Load Patient Records Function
 let allRecords = []; // Store all records for sorting
+let allGroupedPatientRecords = [];
 
 function loadPatientRecords() {
     fetch('/admin/post-procedural/records')
@@ -606,18 +612,12 @@ function loadPatientRecords() {
 
 // Render patient records in table
 function renderPatientRecords(records) {
-    const tbody = document.getElementById('recordsTableBody');
-    if (!tbody) return;
+    const hasTableBody = !!document.getElementById('recordsTableBody');
+    if (!hasTableBody) return;
 
-    if (records.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="7" class="text-center text-muted py-5">
-                    <i class="bi bi-inbox" style="font-size: 3rem;"></i>
-                    <p class="mt-2">No patient records found</p>
-                </td>
-            </tr>
-        `;
+    if (!Array.isArray(records) || records.length === 0) {
+        allGroupedPatientRecords = [];
+        displayPatientGroups([]);
         return;
     }
 
@@ -706,23 +706,40 @@ function renderPatientRecords(records) {
         new Date(b.created_at) - new Date(a.created_at)
     );
 
+    allGroupedPatientRecords = patientGroups;
+    displayPatientGroups(patientGroups);
+}
+
+function displayPatientGroups(patientGroups) {
+    const tbody = document.getElementById('recordsTableBody');
+    if (!tbody) return;
+
+    const totalRecords = allGroupedPatientRecords.length;
+    const hasFilter = totalRecords > 0 && patientGroups.length < totalRecords;
+
+    if (!Array.isArray(patientGroups) || patientGroups.length === 0) {
+        const message = hasFilter ? 'No matching patient records found' : 'No patient records found';
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center text-muted py-5">
+                    <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                    <p class="mt-2">${message}</p>
+                </td>
+            </tr>
+        `;
+        updateRecordsSummary(0, totalRecords, hasFilter);
+        return;
+    }
+
     tbody.innerHTML = patientGroups.map((group, index) => {
         const patientName = group.patient_name || '<span class="text-muted">N/A</span>';
         const username = group.username || '<span class="text-muted">N/A</span>';
         const treatment = group.treatment || '<span class="text-muted">N/A</span>';
-        const patientNumber = group.patient_number || '<span class="text-muted">N/A</span>';
 
         // Get record IDs for each type - use the main patient record ID for all views
         const recordId = group.patient_record?.id || group.patient_record?.patient_record_id || group.user_id || 'N/A';
         const historyId = recordId; // Use same ID for history
         const notesId = recordId; // Use same ID for notes
-
-        const createdDate = new Date(group.created_at).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
-
         return `
             <tr>
                 <td class="text-center">${index + 1}</td>
@@ -775,6 +792,34 @@ function renderPatientRecords(records) {
             </tr>
         `;
     }).join('');
+
+    updateRecordsSummary(patientGroups.length, totalRecords, hasFilter);
+}
+
+function updateRecordsSummary(visibleCount, totalCount, isFiltered = false) {
+    const startEl = document.getElementById('recordsShowingStart');
+    const endEl = document.getElementById('recordsShowingEnd');
+    const totalEl = document.getElementById('recordsTotal');
+    const filteredInfoEl = document.getElementById('recordsFilteredInfo');
+    const filteredTotalEl = document.getElementById('recordsFilteredTotal');
+
+    const hasRecords = visibleCount > 0;
+    const startValue = hasRecords ? 1 : 0;
+    const endValue = hasRecords ? visibleCount : 0;
+    const totalValue = isFiltered ? visibleCount : (typeof totalCount === 'number' ? totalCount : visibleCount);
+
+    if (startEl) startEl.textContent = startValue;
+    if (endEl) endEl.textContent = endValue;
+    if (totalEl) totalEl.textContent = totalValue;
+
+    if (filteredInfoEl && filteredTotalEl) {
+        if (isFiltered && typeof totalCount === 'number' && totalCount > 0) {
+            filteredInfoEl.classList.remove('d-none');
+            filteredTotalEl.textContent = totalCount;
+        } else {
+            filteredInfoEl.classList.add('d-none');
+        }
+    }
 }
 
 
@@ -2388,13 +2433,30 @@ function printModalContent() {
 }
 
 // Search functionality
-document.getElementById('searchInput').addEventListener('input', function() {
-    const searchTerm = this.value.toLowerCase();
-    document.querySelectorAll('#recordsTableBody tr').forEach(row => {
-        const text = row.textContent.toLowerCase();
-        row.style.display = text.includes(searchTerm) ? '' : 'none';
-    });
-});
+const tableSearchInput = document.getElementById('searchInput');
+if (tableSearchInput) {
+    tableSearchInput.addEventListener('input', debounce(function() {
+        const searchTerm = this.value.trim().toLowerCase();
+
+        if (!searchTerm) {
+            displayPatientGroups(allGroupedPatientRecords);
+            return;
+        }
+
+        const filteredRecords = allGroupedPatientRecords.filter(group => {
+            const combined = [
+                group.patient_name || '',
+                group.username || '',
+                group.patient_number || '',
+                group.treatment || ''
+            ].join(' ').toLowerCase();
+
+            return combined.includes(searchTerm);
+        });
+
+        displayPatientGroups(filteredRecords);
+    }, 200));
+}
 
 // Print form function
 function printForm() {
@@ -3394,47 +3456,182 @@ function selectPatientForRecord(patientData) {
         if (contactElement) contactElement.value = contact;
     }
 
-    // Set currentPatientRecord for save functions
-    currentPatientRecord = {
-        id: null, // New record
-        user_id: patientData.id,
-        user: {
-            id: patientData.id,
-            username: username,
-            info: {
-                first_name: firstName,
-                last_name: lastName,
-                middle_name: '',
-                home_address: patientData.home_address || '',
-                birthdate: patientData.birthdate || '',
-                sex: patientData.sex || '',
-                religion: patientData.religion || '',
-                occupation: patientData.occupation || '',
-                phone: patientData.contact_number || patientData.phone || ''
-            }
-        }
-    };
-
-    // Auto-populate "Sent to" section
-    const patientSearchInput = document.getElementById('patientSearchInput');
-    if (patientSearchInput) patientSearchInput.value = `${username} - ${firstName} ${lastName}`;
-    
+    // Set selected patient ID
     const selectedPatientId = document.getElementById('selectedPatientId');
     if (selectedPatientId) selectedPatientId.value = patientData.id;
-    
-    const selectedPatientDisplay = document.getElementById('selectedPatientDisplay');
-    if (selectedPatientDisplay) selectedPatientDisplay.classList.remove('d-none');
-    
-    const selectedPatientText = document.getElementById('selectedPatientText');
-    if (selectedPatientText) selectedPatientText.textContent = `${username} - ${firstName} ${lastName}`;
 
-    // Show success message
-    showNotification('Patient information auto-filled successfully!', 'success');
+    // Fetch existing patient record
+    fetch(`/admin/post-procedural/patient-record-by-user/${patientData.id}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.data && data.data.id) {
+                // Existing record found - populate form with record data
+                const record = data.data;
+                currentPatientRecord = record;
 
-    // Scroll to form fields smoothly
-    setTimeout(() => {
-        document.getElementById('homeAddress').scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 300);
+                // Populate form fields with existing record data
+                populatePatientRecordForm(record);
+
+                // Show notification
+                showNotification('Existing patient record loaded successfully!', 'success');
+            } else {
+                // No existing record - set up for new record
+                currentPatientRecord = {
+                    id: null, // New record
+                    user_id: patientData.id,
+                    user: {
+                        id: patientData.id,
+                        username: username,
+                        info: {
+                            first_name: firstName,
+                            last_name: lastName,
+                            middle_name: '',
+                            home_address: patientData.home_address || '',
+                            birthdate: patientData.birthdate || '',
+                            sex: patientData.sex || '',
+                            religion: patientData.religion || '',
+                            occupation: patientData.occupation || '',
+                            phone: patientData.contact_number || patientData.phone || ''
+                        }
+                    }
+                };
+
+                // Show notification
+                showNotification('Patient information auto-filled successfully! You can now create a new record.', 'info');
+            }
+
+            // Auto-populate "Sent to" section
+            const patientSearchInput = document.getElementById('patientSearchInput');
+            if (patientSearchInput) patientSearchInput.value = `${username} - ${firstName} ${lastName}`;
+            
+            const selectedPatientDisplay = document.getElementById('selectedPatientDisplay');
+            if (selectedPatientDisplay) selectedPatientDisplay.classList.remove('d-none');
+            
+            const selectedPatientText = document.getElementById('selectedPatientText');
+            if (selectedPatientText) selectedPatientText.textContent = `${username} - ${firstName} ${lastName}`;
+
+            // Scroll to form fields smoothly
+            setTimeout(() => {
+                const homeAddressEl = document.getElementById('homeAddress');
+                if (homeAddressEl) {
+                    homeAddressEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 300);
+        })
+        .catch(error => {
+            console.error('Error fetching patient record:', error);
+            // Fallback to new record setup
+            currentPatientRecord = {
+                id: null,
+                user_id: patientData.id,
+                user: {
+                    id: patientData.id,
+                    username: username,
+                    info: {
+                        first_name: firstName,
+                        last_name: lastName,
+                        middle_name: '',
+                        home_address: patientData.home_address || '',
+                        birthdate: patientData.birthdate || '',
+                        sex: patientData.sex || '',
+                        religion: patientData.religion || '',
+                        occupation: patientData.occupation || '',
+                        phone: patientData.contact_number || patientData.phone || ''
+                    }
+                }
+            };
+            showNotification('Patient information auto-filled. Error loading existing record - you can create a new one.', 'warning');
+        });
+}
+
+// Populate patient record form with existing record data
+function populatePatientRecordForm(record) {
+    // Populate home address
+    const homeAddressEl = document.getElementById('homeAddress');
+    if (homeAddressEl) {
+        homeAddressEl.value = record.home_address || '';
+    }
+
+    // Populate date of birth
+    const dateOfBirthEl = document.getElementById('dateOfBirth');
+    if (dateOfBirthEl && record.date_of_birth) {
+        const formattedDate = formatDateForInput(record.date_of_birth);
+        if (formattedDate) {
+            dateOfBirthEl.value = formattedDate;
+        }
+    }
+
+    // Populate age
+    const ageEl = document.getElementById('age');
+    if (ageEl) {
+        ageEl.value = record.age || '';
+    }
+
+    // Populate sex
+    const sexEl = document.getElementById('sex');
+    const sexHiddenEl = document.getElementById('sex_hidden');
+    if (sexEl && record.sex) {
+        sexEl.value = record.sex;
+        if (sexHiddenEl) {
+            sexHiddenEl.value = record.sex;
+        }
+    }
+
+    // Populate nickname
+    const nicknameEl = document.getElementById('nickname');
+    if (nicknameEl) {
+        nicknameEl.value = record.nickname || '';
+    }
+
+    // Populate religion
+    const religionEl = document.getElementById('religion');
+    if (religionEl) {
+        religionEl.value = record.religion || '';
+    }
+
+    // Populate occupation
+    const occupationEl = document.getElementById('occupation');
+    if (occupationEl) {
+        occupationEl.value = record.occupation || '';
+    }
+
+    // Populate contact
+    const contactEl = document.getElementById('contact');
+    if (contactEl) {
+        contactEl.value = record.contact || '';
+    }
+
+    // Populate guardian fields
+    const guardianNameEl = document.getElementById('guardianName');
+    if (guardianNameEl) {
+        guardianNameEl.value = record.guardian_name || '';
+    }
+
+    const guardianContactEl = document.getElementById('guardianContact');
+    if (guardianContactEl) {
+        guardianContactEl.value = record.guardian_contact || '';
+    }
+
+    const guardianOccupationEl = document.getElementById('guardianOccupation');
+    if (guardianOccupationEl) {
+        guardianOccupationEl.value = record.guardian_occupation || '';
+    }
+
+    // Populate other notes
+    const otherNotesEl = document.getElementById('otherNotes');
+    if (otherNotesEl) {
+        otherNotesEl.value = record.other_notes || record.notes || '';
+    }
+
+    // Handle minor checkbox if guardian fields are filled
+    if (record.guardian_name || record.guardian_contact || record.guardian_occupation) {
+        const isMinorCheckbox = document.getElementById('isMinorCheckbox');
+        const minorFormContainer = document.getElementById('minorFormContainer');
+        if (isMinorCheckbox && minorFormContainer) {
+            isMinorCheckbox.checked = true;
+            minorFormContainer.style.display = 'block';
+        }
+    }
 }
 
 // Search patients for "Send To" functionality

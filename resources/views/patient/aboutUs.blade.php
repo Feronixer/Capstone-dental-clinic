@@ -293,28 +293,53 @@
 
 @media (max-width: 768px) {
     .about-page {
-        padding: 2rem 1rem;
+        padding: 1.5rem 1rem;
+    }
+
+    .about-container {
+        max-width: 100%;
+    }
+
+    .about-header {
+        margin-bottom: 2rem;
     }
 
     .about-main-title {
-        font-size: 2rem;
+        font-size: clamp(1.75rem, 5vw, 2rem);
+        line-height: 1.2;
     }
 
     .about-clinic-title {
-        font-size: 1.3rem;
+        font-size: clamp(1.2rem, 4vw, 1.3rem);
     }
 
     .about-description {
-        font-size: 1rem;
+        font-size: clamp(0.95rem, 2.5vw, 1rem);
         text-align: left;
+        line-height: 1.7;
+    }
+
+    .about-image-section {
+        min-height: 280px;
+        padding: 2rem 1.5rem;
+    }
+
+    .dentist-icon {
+        width: 100px;
+        height: 100px;
+        margin-bottom: 1rem;
+    }
+
+    .dentist-icon i {
+        font-size: 3rem;
     }
 
     .dentist-name {
-        font-size: 1.5rem;
+        font-size: clamp(1.3rem, 4vw, 1.5rem);
     }
 
     .dentist-role {
-        font-size: 1rem;
+        font-size: clamp(0.9rem, 2.5vw, 1rem);
     }
 
     .location-section {
@@ -323,18 +348,23 @@
     }
 
     .location-title {
-        font-size: 1.75rem;
+        font-size: clamp(1.5rem, 5vw, 1.75rem);
     }
 
     .location-address {
-        font-size: 0.95rem;
+        font-size: clamp(0.85rem, 2.5vw, 0.95rem);
         flex-direction: column;
         text-align: center;
+        gap: 0.5rem;
+    }
+
+    .location-address i {
+        font-size: 1.25rem;
     }
 
     .map-container {
-        height: 300px;
-        min-height: 300px;
+        height: 280px;
+        min-height: 280px;
     }
     
     .map-container iframe {
@@ -343,7 +373,89 @@
 
     .features-grid {
         grid-template-columns: 1fr;
-        gap: 0.625rem;
+        gap: 0.75rem;
+    }
+
+    .feature-card {
+        padding: 0.75rem;
+        min-height: auto;
+    }
+
+    .feature-icon-wrapper {
+        width: 36px;
+        height: 36px;
+        margin-bottom: 0.5rem;
+    }
+
+    .feature-icon-wrapper i {
+        font-size: 1.1rem;
+    }
+
+    .feature-title {
+        font-size: clamp(0.85rem, 2.5vw, 0.9rem);
+    }
+
+    .feature-description {
+        font-size: clamp(0.75rem, 2vw, 0.8rem);
+        line-height: 1.5;
+    }
+}
+
+@media (max-width: 480px) {
+    .about-page {
+        padding: 1rem 0.75rem;
+    }
+
+    .about-main-title {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .about-clinic-title {
+        font-size: 1.1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .about-description {
+        font-size: 0.9rem;
+    }
+
+    .about-image-section {
+        min-height: 250px;
+        padding: 1.5rem 1rem;
+    }
+
+    .dentist-icon {
+        width: 80px;
+        height: 80px;
+        margin-bottom: 0.75rem;
+    }
+
+    .dentist-icon i {
+        font-size: 2.5rem;
+    }
+
+    .dentist-name {
+        font-size: 1.2rem;
+    }
+
+    .dentist-role {
+        font-size: 0.9rem;
+    }
+
+    .location-title {
+        font-size: 1.4rem;
+        margin-bottom: 1rem;
+    }
+
+    .location-address {
+        font-size: 0.8rem;
+        padding: 0 0.5rem;
+    }
+
+    .map-container {
+        height: 250px;
+        min-height: 250px;
     }
 
     .feature-card {
@@ -353,7 +465,6 @@
     .feature-icon-wrapper {
         width: 32px;
         height: 32px;
-        margin-bottom: 0.5rem;
     }
 
     .feature-icon-wrapper i {
@@ -367,7 +478,6 @@
     .feature-description {
         font-size: 0.7rem;
     }
-
 }
 
 /* ============================================

@@ -19,6 +19,182 @@ html, body {
     max-width: 100%;
 }
 
+/* Responsive Styles */
+@media (max-width: 992px) {
+    .container {
+        padding: 1rem;
+    }
+
+    .col-lg-8 {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 0.75rem;
+    }
+
+    .py-5 {
+        padding-top: 2rem !important;
+        padding-bottom: 2rem !important;
+    }
+
+    .mb-5 {
+        margin-bottom: 2rem !important;
+    }
+
+    h1 {
+        font-size: 1.75rem !important;
+    }
+
+    .text-muted {
+        font-size: 0.9rem !important;
+    }
+
+    .card {
+        margin-bottom: 1.5rem;
+    }
+
+    .card-body {
+        padding: 1.5rem !important;
+    }
+
+    .col-md-6 {
+        margin-bottom: 1rem;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        font-size: 0.9rem;
+        min-height: 44px;
+        min-width: 120px;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .table {
+        font-size: 0.85rem;
+    }
+
+    .table th,
+    .table td {
+        padding: 0.5rem 0.75rem;
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 0.5rem;
+    }
+
+    .py-5 {
+        padding-top: 1.5rem !important;
+        padding-bottom: 1.5rem !important;
+    }
+
+    h1 {
+        font-size: 1.5rem !important;
+        margin-bottom: 0.75rem !important;
+    }
+
+    .text-muted {
+        font-size: 0.85rem !important;
+    }
+
+    .card-body {
+        padding: 1.25rem !important;
+    }
+
+    .rounded-circle {
+        width: 60px !important;
+        height: 60px !important;
+    }
+
+    .rounded-circle i {
+        font-size: 1.5rem !important;
+    }
+
+    .h5 {
+        font-size: 1.1rem !important;
+    }
+
+    .btn {
+        padding: 0.7rem 1.25rem;
+        font-size: 0.85rem;
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+
+    .table {
+        font-size: 0.8rem;
+    }
+
+    .table th,
+    .table td {
+        padding: 0.4rem 0.5rem;
+    }
+
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.35rem 0.65rem;
+    }
+
+    .alert {
+        font-size: 0.85rem;
+        padding: 0.75rem 1rem;
+    }
+
+    ul {
+        padding-left: 1.25rem;
+    }
+
+    ul li {
+        font-size: 0.85rem;
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* Dark Mode Responsive */
+[data-theme="dark"] .card {
+    background: var(--dm-card-bg, #1e293b) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] .card-body {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .text-muted {
+    color: var(--dm-text-muted, #94a3b8) !important;
+}
+
+[data-theme="dark"] .table {
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .table th {
+    background: var(--dm-bg-secondary, #0f172a) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] .table td {
+    border-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] .table tbody tr {
+    background: var(--dm-card-bg, #1e293b) !important;
+}
+
+[data-theme="dark"] .table tbody tr:hover {
+    background: var(--dm-bg-tertiary, #334155) !important;
+}
+
 </style>
 
 <div class="container py-5">

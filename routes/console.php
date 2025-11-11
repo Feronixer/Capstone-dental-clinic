@@ -13,3 +13,8 @@ Schedule::command('appointments:send-reminders')
     ->everyFiveMinutes()
     ->withoutOverlapping()
     ->runInBackground();
+
+Schedule::command('appointments:expire-pending')
+    ->hourly()
+    ->withoutOverlapping()
+    ->runInBackground();

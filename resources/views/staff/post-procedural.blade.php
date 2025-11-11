@@ -3315,47 +3315,182 @@ function selectPatientForRecord(patientData) {
         if (contactElement) contactElement.value = patientData.contact_number;
     }
 
-    // Set currentPatientRecord for save functions
-    currentPatientRecord = {
-        id: null, // New record
-        user_id: patientData.id,
-        user: {
-            id: patientData.id,
-            username: username,
-            info: {
-                first_name: firstName,
-                last_name: lastName,
-                middle_name: '',
-                home_address: patientData.home_address || '',
-                birthdate: patientData.birthdate || '',
-                sex: patientData.sex || '',
-                religion: patientData.religion || '',
-                occupation: patientData.occupation || '',
-                phone: patientData.contact_number || ''
-            }
-        }
-    };
-
-    // Auto-populate "Sent to" section
-    const patientSearchInput = document.getElementById('patientSearchInput');
-    if (patientSearchInput) patientSearchInput.value = `${username} - ${firstName} ${lastName}`;
-    
+    // Set selected patient ID
     const selectedPatientId = document.getElementById('selectedPatientId');
     if (selectedPatientId) selectedPatientId.value = patientData.id;
-    
-    const selectedPatientDisplay = document.getElementById('selectedPatientDisplay');
-    if (selectedPatientDisplay) selectedPatientDisplay.classList.remove('d-none');
-    
-    const selectedPatientText = document.getElementById('selectedPatientText');
-    if (selectedPatientText) selectedPatientText.textContent = `${username} - ${firstName} ${lastName}`;
 
-    // Show success message
-    showNotification('Patient information auto-filled successfully!', 'success');
+    // Fetch existing patient record
+    fetch(`/staff/post-procedural/patient-record-by-user/${patientData.id}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.data && data.data.id) {
+                // Existing record found - populate form with record data
+                const record = data.data;
+                currentPatientRecord = record;
 
-    // Scroll to form fields smoothly
-    setTimeout(() => {
-        document.getElementById('homeAddress').scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 300);
+                // Populate form fields with existing record data
+                populatePatientRecordForm(record);
+
+                // Show notification
+                showNotification('Existing patient record loaded successfully!', 'success');
+            } else {
+                // No existing record - set up for new record
+                currentPatientRecord = {
+                    id: null, // New record
+                    user_id: patientData.id,
+                    user: {
+                        id: patientData.id,
+                        username: username,
+                        info: {
+                            first_name: firstName,
+                            last_name: lastName,
+                            middle_name: '',
+                            home_address: patientData.home_address || '',
+                            birthdate: patientData.birthdate || '',
+                            sex: patientData.sex || '',
+                            religion: patientData.religion || '',
+                            occupation: patientData.occupation || '',
+                            phone: patientData.contact_number || ''
+                        }
+                    }
+                };
+
+                // Show notification
+                showNotification('Patient information auto-filled successfully! You can now create a new record.', 'info');
+            }
+
+            // Auto-populate "Sent to" section
+            const patientSearchInput = document.getElementById('patientSearchInput');
+            if (patientSearchInput) patientSearchInput.value = `${username} - ${firstName} ${lastName}`;
+            
+            const selectedPatientDisplay = document.getElementById('selectedPatientDisplay');
+            if (selectedPatientDisplay) selectedPatientDisplay.classList.remove('d-none');
+            
+            const selectedPatientText = document.getElementById('selectedPatientText');
+            if (selectedPatientText) selectedPatientText.textContent = `${username} - ${firstName} ${lastName}`;
+
+            // Scroll to form fields smoothly
+            setTimeout(() => {
+                const homeAddressEl = document.getElementById('homeAddress');
+                if (homeAddressEl) {
+                    homeAddressEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 300);
+        })
+        .catch(error => {
+            console.error('Error fetching patient record:', error);
+            // Fallback to new record setup
+            currentPatientRecord = {
+                id: null,
+                user_id: patientData.id,
+                user: {
+                    id: patientData.id,
+                    username: username,
+                    info: {
+                        first_name: firstName,
+                        last_name: lastName,
+                        middle_name: '',
+                        home_address: patientData.home_address || '',
+                        birthdate: patientData.birthdate || '',
+                        sex: patientData.sex || '',
+                        religion: patientData.religion || '',
+                        occupation: patientData.occupation || '',
+                        phone: patientData.contact_number || ''
+                    }
+                }
+            };
+            showNotification('Patient information auto-filled. Error loading existing record - you can create a new one.', 'warning');
+        });
+}
+
+// Populate patient record form with existing record data
+function populatePatientRecordForm(record) {
+    // Populate home address
+    const homeAddressEl = document.getElementById('homeAddress');
+    if (homeAddressEl) {
+        homeAddressEl.value = record.home_address || '';
+    }
+
+    // Populate date of birth
+    const dateOfBirthEl = document.getElementById('dateOfBirth');
+    if (dateOfBirthEl && record.date_of_birth) {
+        const formattedDate = formatDateForInput(record.date_of_birth);
+        if (formattedDate) {
+            dateOfBirthEl.value = formattedDate;
+        }
+    }
+
+    // Populate age
+    const ageEl = document.getElementById('age');
+    if (ageEl) {
+        ageEl.value = record.age || '';
+    }
+
+    // Populate sex
+    const sexEl = document.getElementById('sex');
+    const sexHiddenEl = document.getElementById('sex_hidden');
+    if (sexEl && record.sex) {
+        sexEl.value = record.sex;
+        if (sexHiddenEl) {
+            sexHiddenEl.value = record.sex;
+        }
+    }
+
+    // Populate nickname
+    const nicknameEl = document.getElementById('nickname');
+    if (nicknameEl) {
+        nicknameEl.value = record.nickname || '';
+    }
+
+    // Populate religion
+    const religionEl = document.getElementById('religion');
+    if (religionEl) {
+        religionEl.value = record.religion || '';
+    }
+
+    // Populate occupation
+    const occupationEl = document.getElementById('occupation');
+    if (occupationEl) {
+        occupationEl.value = record.occupation || '';
+    }
+
+    // Populate contact
+    const contactEl = document.getElementById('contact');
+    if (contactEl) {
+        contactEl.value = record.contact || '';
+    }
+
+    // Populate guardian fields
+    const guardianNameEl = document.getElementById('guardianName');
+    if (guardianNameEl) {
+        guardianNameEl.value = record.guardian_name || '';
+    }
+
+    const guardianContactEl = document.getElementById('guardianContact');
+    if (guardianContactEl) {
+        guardianContactEl.value = record.guardian_contact || '';
+    }
+
+    const guardianOccupationEl = document.getElementById('guardianOccupation');
+    if (guardianOccupationEl) {
+        guardianOccupationEl.value = record.guardian_occupation || '';
+    }
+
+    // Populate other notes
+    const otherNotesEl = document.getElementById('otherNotes');
+    if (otherNotesEl) {
+        otherNotesEl.value = record.other_notes || record.notes || '';
+    }
+
+    // Handle minor checkbox if guardian fields are filled
+    if (record.guardian_name || record.guardian_contact || record.guardian_occupation) {
+        const isMinorCheckbox = document.getElementById('isMinorCheckbox');
+        const minorFormContainer = document.getElementById('minorFormContainer');
+        if (isMinorCheckbox && minorFormContainer) {
+            isMinorCheckbox.checked = true;
+            minorFormContainer.style.display = 'block';
+        }
+    }
 }
 
 // Search patients for "Send To" functionality

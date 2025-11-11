@@ -505,6 +505,15 @@
     </div>
 </div>
 
+@php
+    $clinicStart = \Carbon\Carbon::createFromTime(11, 0);
+    $clinicEnd = \Carbon\Carbon::createFromTime(18, 0);
+    $blockTimeSelectOptions = [];
+    for ($time = $clinicStart->copy(); $time->lte($clinicEnd); $time->addMinutes(15)) {
+        $blockTimeSelectOptions[$time->format('H:i')] = $time->format('g:i A');
+    }
+@endphp
+
 <!-- Block Time Modal -->
 <div class="modal fade" id="blockTimeModal" tabindex="-1">
     <div class="modal-dialog modal-lg" style="max-width: 700px;">
@@ -546,13 +555,23 @@
                                 <label for="block_start_time" class="form-label fw-medium">
                                     <i class="bi bi-clock me-1"></i>Start Time
                                 </label>
-                            <input type="time" class="form-control" id="block_start_time" name="start_time" required>
+                            <select class="form-select block-time-select" id="block_start_time" name="start_time" required>
+                                <option value="" disabled selected>Select start time</option>
+                                @foreach($blockTimeSelectOptions as $value => $label)
+                                    <option value="{{ $value }}">{{ $label }}</option>
+                                @endforeach
+                            </select>
                         </div>
                         <div class="col-6">
                                 <label for="block_end_time" class="form-label fw-medium">
                                     <i class="bi bi-clock-fill me-1"></i>End Time
                                 </label>
-                            <input type="time" class="form-control" id="block_end_time" name="end_time" required>
+                            <select class="form-select block-time-select" id="block_end_time" name="end_time" required>
+                                <option value="" disabled selected>Select end time</option>
+                                @foreach($blockTimeSelectOptions as $value => $label)
+                                    <option value="{{ $value }}">{{ $label }}</option>
+                                @endforeach
+                            </select>
                     </div>
                     </div>
 
@@ -669,35 +688,31 @@
                     <input type="hidden" name="status" value="blocked">
                     <input type="hidden" name="color" value="#DC2626">
 
-                    <!-- Action Buttons (Create/Cancel) - Directly under Notes -->
-                    <div class="d-flex justify-content-end gap-2 pt-2 border-top mt-3">
-                        <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">
-                            <i class="bi bi-x-circle me-1"></i>Cancel
-                        </button>
-                    <button type="submit" class="btn btn-success px-4" id="save-block-time-btn">
-                            <i class="bi bi-check-circle me-1"></i><span id="save-block-btn-text">Create</span>
-                    </button>
-                        <button type="button" class="btn btn-danger px-4" id="delete-block-time-btn" style="display: none;">
-                        <i class="bi bi-trash me-1"></i>Remove Blocked Time
-                    </button>
-                    </div>
                 </div>
 
-                <!-- Clear Buttons Section (Separate from main form) -->
-                <div class="modal-footer border-top bg-light px-4 py-3">
-                    <div class="w-100">
+                <!-- Footer with Quick Actions and Primary Buttons -->
+                <div class="modal-footer border-top bg-light flex-row align-items-center justify-content-between gap-3 px-4 py-3">
+                    <div class="quick-actions-wrapper flex-grow-1">
                         <div class="d-flex align-items-center mb-2">
                             <i class="bi bi-info-circle text-muted me-2"></i>
                             <small class="text-muted fw-semibold">Quick Actions:</small>
                         </div>
-                        <div class="d-flex gap-2">
-                            <button type="button" class="btn btn-orange px-4" id="clear-block-off-time-btn" title="Clear all future block off times (partial time blocks only)">
+                        <div class="d-flex flex-row flex-nowrap gap-2">
+                            <button type="button" class="btn btn-orange btn-sm px-3" id="clear-block-off-time-btn" title="Clear all future block off times (partial time blocks only)">
                                 <i class="bi bi-clock-history me-1"></i>Clear Specific Time
                             </button>
-                            <button type="button" class="btn btn-danger px-4" id="clear-clinic-closed-btn" title="Clear all future clinic closed days (full day closures only)">
+                            <button type="button" class="btn btn-danger btn-sm px-3" id="clear-clinic-closed-btn" title="Clear all future clinic closed days (full day closures only)">
                                 <i class="bi bi-calendar-x me-1"></i>Clear Clinic Closed
                             </button>
                         </div>
+                    </div>
+                    <div class="d-flex gap-2 ms-auto">
+                        <button type="submit" class="btn btn-success px-4 align-self-start" id="save-block-time-btn" style="margin-top: 30px;">
+                            <i class="bi bi-check-circle me-1"></i><span id="save-block-btn-text">Create</span>
+                        </button>
+                        <button type="button" class="btn btn-danger px-4" id="delete-block-time-btn" style="display: none;">
+                            <i class="bi bi-trash me-1"></i>Remove Blocked Time
+                        </button>
                     </div>
                 </div>
             </form>
@@ -2565,6 +2580,33 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                 }
                 
+                let status = (apt.status || 'pending').toLowerCase();
+                const isBlocked = status === 'blocked';
+                const isFullDayClosure = isBlocked && aptStart && aptEnd &&
+                    aptStart.getHours() === 0 && aptStart.getMinutes() === 0 &&
+                    aptEnd.getHours() === 23 && aptEnd.getMinutes() === 59;
+
+                if (isBlocked) {
+                    const blockLabel = isFullDayClosure
+                        ? 'Clinic Closed'
+                        : (apt.reason_for_visit || 'Blocked Time');
+                    const timeDisplay = isFullDayClosure
+                        ? 'All Day'
+                        : `${timeStr}${endTimeStr ? ' - ' + endTimeStr : ''}`;
+                    modalContent += `
+                    <div class="day-appointment-item blocked" data-appointment-id="${apt.id}" style="cursor: pointer;">
+                        <div class="appointment-time">
+                            <i class="${isFullDayClosure ? 'bi bi-calendar-x' : 'bi bi-clock'}"></i>
+                            ${timeDisplay}
+                        </div>
+                        <div class="appointment-title">${blockLabel}</div>
+                        <div class="appointment-status">Status: ${isFullDayClosure ? 'Clinic Closed' : 'Blocked Time'}</div>
+                        ${apt.notes ? `<div class="appointment-notes text-muted small">${apt.notes}</div>` : ''}
+                    </div>
+                    `;
+                    return;
+                }
+                
                 let patientName = 'Unknown Patient';
                 if (apt.patient && apt.patient.info) {
                     const info = apt.patient.info;
@@ -2574,7 +2616,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 let serviceName = apt.service ? apt.service.service_name : 'No Service';
-                let status = (apt.status || 'pending').toLowerCase();
                 const isCompleted = status === 'completed';
                 const isCancelled = status === 'cancelled';
                 
@@ -3330,58 +3371,92 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (isMultipleDays) {
-            // Multi-day blocking (automatic whole day - 00:00 to 23:59)
-            const startDate = document.getElementById('block_start_date_input').value;
-            const endDate = document.getElementById('block_end_date_input').value;
+            const startDateRaw = document.getElementById('block_start_date_input').value || document.getElementById('block_date').value;
+            const endDateRaw = document.getElementById('block_end_date_input').value || startDateRaw;
 
-            if (!startDate || !endDate) {
-                showValidationMessage('Please select both start and end dates', 'error');
+            if (!startDateRaw) {
+                showValidationMessage('Please select a start date', 'error');
                 return;
             }
 
-            // Validate that end date is after start date
-            const startDateObj = new Date(startDate);
-            const endDateObj = new Date(endDate);
+            const startDateObj = new Date(startDateRaw);
+            const endDateObj = new Date(endDateRaw);
 
             if (endDateObj < startDateObj) {
                 showValidationMessage('End date must be after start date', 'error');
                 return;
             }
 
-            // Create array of dates for each day in the range
-            const dates = [];
-            const start = new Date(startDateObj);
-            const end = new Date(endDateObj);
-            const currentDate = new Date(start);
+            const startDateStr = startDateRaw;
+            const endDateStr = endDateRaw;
 
-            while (currentDate <= end) {
-                dates.push(new Date(currentDate));
-                currentDate.setDate(currentDate.getDate() + 1);
-            }
-
-            console.log('Creating blocks for', dates.length, 'days:', dates);
-
-            // Show loading state
             const submitBtn = document.getElementById('save-block-time-btn');
             const btnText = document.getElementById('save-block-btn-text');
             const originalText = btnText.textContent;
             submitBtn.disabled = true;
             btnText.textContent = 'Saving...';
 
-            // Create each blocked time entry (whole day: 00:00 to 23:59) - Clinic Closed
-            let createPromises = dates.map(date => {
-                const dateStr = date.toISOString().split('T')[0];
-                const startDateTimeStr = `${dateStr} 00:00:00`;
-                const endDateTimeStr = `${dateStr} 23:59:00`;
-
+            if (isUpdate) {
                 const blockData = {
                     title: 'Clinic Closed',
-                    start_time: startDateTimeStr,
-                    end_time: endDateTimeStr,
-                    description: description || 'Clinic closed for the day'
+                    start_time: `${startDateStr} 00:00:00`,
+                    end_time: `${endDateStr} 23:59:00`,
+                    description: description || 'Clinic closed for the day',
+                    _method: 'PUT'
                 };
 
-                console.log('Creating block for:', blockData);
+                fetch(`/admin/blocked-time/${blockId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(blockData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        bootstrap.Modal.getInstance(document.getElementById('blockTimeModal')).hide();
+                        document.getElementById('blockSuccessTitle').textContent = 'Clinic Closed Updated!';
+                        document.getElementById('blockSuccessMessage').textContent =
+                            'The clinic closure has been updated successfully.';
+                        new bootstrap.Modal(document.getElementById('blockTimeSuccessModal')).show();
+                        setTimeout(() => {
+                            reloadWithCurrentMonth();
+                        }, 2000);
+                    } else {
+                        const message = data.message || 'Failed to update clinic closure. Please try again.';
+                        document.getElementById('blockErrorMessage').textContent = message;
+                        new bootstrap.Modal(document.getElementById('blockTimeErrorModal')).show();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating clinic closure:', error);
+                    document.getElementById('blockErrorMessage').textContent = 'Error updating clinic closure. Please try again.';
+                    new bootstrap.Modal(document.getElementById('blockTimeErrorModal')).show();
+                })
+                .finally(() => {
+                    btnText.textContent = originalText;
+                    submitBtn.disabled = false;
+                });
+            } else {
+                const dates = [];
+                const currentDate = new Date(startDateObj);
+                const end = new Date(endDateObj);
+                while (currentDate <= end) {
+                    dates.push(new Date(currentDate));
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+
+                const createPromises = dates.map(date => {
+                    const dateStr = date.toISOString().split('T')[0];
+                const blockData = {
+                    title: 'Clinic Closed',
+                        start_time: `${dateStr} 00:00:00`,
+                        end_time: `${dateStr} 23:59:00`,
+                    description: description || 'Clinic closed for the day'
+                };
 
                 return fetch('/admin/blocked-time', {
                     method: 'POST',
@@ -3394,7 +3469,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }).then(response => response.json());
             });
 
-            // Wait for all blocks to be created
             Promise.all(createPromises)
                 .then(results => {
                     const successCount = results.filter(r => r.success).length;
@@ -3403,7 +3477,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (successCount > 0) {
                         bootstrap.Modal.getInstance(document.getElementById('blockTimeModal')).hide();
 
-                        // Show success modal
                         document.getElementById('blockSuccessTitle').textContent = 'Clinic Closed Successfully!';
                         document.getElementById('blockSuccessMessage').textContent =
                             `${successCount} day(s) marked as closed${failCount > 0 ? ` (${failCount} failed)` : ''}. The clinic will be unavailable for appointments during this period.`;
@@ -3413,14 +3486,12 @@ document.addEventListener('DOMContentLoaded', function() {
                             reloadWithCurrentMonth();
                         }, 2000);
                     } else {
-                        // Show error modal
                         document.getElementById('blockErrorMessage').textContent = 'Failed to block any days. Please try again.';
                         new bootstrap.Modal(document.getElementById('blockTimeErrorModal')).show();
                     }
                 })
                 .catch(error => {
                     console.error('Error blocking time:', error);
-                    // Show error modal
                     document.getElementById('blockErrorMessage').textContent = 'Error blocking time. Please try again.';
                     new bootstrap.Modal(document.getElementById('blockTimeErrorModal')).show();
                 })
@@ -3428,10 +3499,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     btnText.textContent = originalText;
                     submitBtn.disabled = false;
                 });
+            }
         } else {
             // Single day blocking (existing logic)
             const formData = new FormData(document.getElementById('blockTimeForm'));
             const blockData = Object.fromEntries(formData.entries());
+            blockData.title = 'Blocked Time';
 
             console.log('Block time data (before combining):', blockData);
 
@@ -3896,9 +3969,102 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    function getBlockTimeActionRow() {
+        return document.querySelector('#blockTimeModal .d-flex.gap-2.ms-auto');
+    }
+
+    function applyEditFooterLayout() {
+        const actionRow = getBlockTimeActionRow();
+        if (!actionRow) return;
+
+        const saveBtn = document.getElementById('save-block-time-btn');
+        const deleteBtn = document.getElementById('delete-block-time-btn');
+        if (!saveBtn || !deleteBtn) return;
+
+        if (!actionRow.dataset.editLayoutPrepared) {
+            actionRow.dataset.editLayoutPrepared = 'true';
+            saveBtn.dataset.originalMarginTop = saveBtn.style.marginTop || '';
+            saveBtn.dataset.originalAlignSelf = saveBtn.classList.contains('align-self-start')
+                ? 'align-self-start'
+                : saveBtn.classList.contains('align-self-center')
+                    ? 'align-self-center'
+                    : '';
+        }
+
+        actionRow.dataset.editLayoutActive = 'true';
+        actionRow.classList.add('flex-nowrap', 'align-items-center');
+        if (deleteBtn.parentNode === actionRow && deleteBtn.nextSibling !== saveBtn) {
+            actionRow.insertBefore(deleteBtn, saveBtn);
+        }
+
+        saveBtn.classList.remove('align-self-start');
+        saveBtn.classList.add('align-self-center');
+        saveBtn.style.marginTop = '0';
+        deleteBtn.style.display = 'inline-block';
+    }
+
+    function restoreEditFooterLayout() {
+        const actionRow = getBlockTimeActionRow();
+        if (!actionRow) return;
+
+        const saveBtn = document.getElementById('save-block-time-btn');
+        const deleteBtn = document.getElementById('delete-block-time-btn');
+        if (!saveBtn || !deleteBtn) return;
+
+        actionRow.classList.remove('align-items-center');
+        actionRow.classList.remove('flex-nowrap');
+
+        actionRow.appendChild(saveBtn);
+        actionRow.appendChild(deleteBtn);
+
+        const originalMargin = saveBtn.dataset.originalMarginTop;
+        if (typeof originalMargin !== 'undefined') {
+            saveBtn.style.marginTop = originalMargin;
+        } else {
+            saveBtn.style.marginTop = '';
+        }
+
+        const originalAlign = saveBtn.dataset.originalAlignSelf;
+        saveBtn.classList.remove('align-self-center', 'align-self-start');
+        if (originalAlign) {
+            saveBtn.classList.add(originalAlign);
+        }
+
+        deleteBtn.style.display = 'none';
+        deleteBtn.removeAttribute('data-block-id');
+
+        delete actionRow.dataset.editLayoutActive;
+
+        const dateField = document.getElementById('block_date');
+        const startTimeField = document.getElementById('block_start_time');
+        const endTimeField = document.getElementById('block_end_time');
+        const startDateInput = document.getElementById('block_start_date_input');
+        const endDateInput = document.getElementById('block_end_date_input');
+
+        if (dateField) {
+            dateField.removeAttribute('readonly');
+            dateField.classList.remove('bg-light');
+        }
+        if (startTimeField) {
+            startTimeField.removeAttribute('disabled');
+        }
+        if (endTimeField) {
+            endTimeField.removeAttribute('disabled');
+        }
+        if (startDateInput) {
+            startDateInput.removeAttribute('readonly');
+            startDateInput.classList.remove('bg-light');
+        }
+        if (endDateInput) {
+            endDateInput.removeAttribute('readonly');
+            endDateInput.classList.remove('bg-light');
+        }
+    }
+
     // Reset the editing flag when modal is closed
     document.getElementById('blockTimeModal').addEventListener('hidden.bs.modal', function() {
         isEditingBlockedTime = false;
+        restoreEditFooterLayout();
 
         // Dispose tooltip when modal is hidden to prevent memory leaks
         const infoIcon = this.querySelector('[data-bs-toggle="tooltip"]');
@@ -3998,12 +4164,60 @@ document.addEventListener('DOMContentLoaded', function() {
             return `${hours}:${minutes}`;
         };
 
-        document.getElementById('block_date').value = formatDate(startDate);
-        document.getElementById('block_start_time').value = formatTime(startDate);
-        document.getElementById('block_end_time').value = formatTime(endDate);
-
-        // Keep date field visible but readonly when editing, hide other elements
+        const blockOffTab = document.getElementById('block_off_time_tab');
+        const clinicClosedTab = document.getElementById('clinic_closed_tab');
         const dateField = document.getElementById('block_date');
+        const startTimeField = document.getElementById('block_start_time');
+        const endTimeField = document.getElementById('block_end_time');
+        const startDateInput = document.getElementById('block_start_date_input');
+        const endDateInput = document.getElementById('block_end_date_input');
+
+        const isFullDayClosure = startDate && endDate &&
+            startDate.getHours() === 0 && startDate.getMinutes() === 0 &&
+            endDate.getHours() === 23 && endDate.getMinutes() === 59;
+
+        if (isFullDayClosure) {
+            clinicClosedTab.checked = true;
+            blockOffTab.checked = false;
+        } else {
+            blockOffTab.checked = true;
+            clinicClosedTab.checked = false;
+        }
+
+        const changeEvent = new Event('change', { bubbles: true });
+        if (isFullDayClosure) {
+            clinicClosedTab.dispatchEvent(changeEvent);
+            const startDateStr = formatDate(startDate);
+            const endDateStr = formatDate(endDate);
+            startDateInput.value = startDateStr;
+            endDateInput.value = endDateStr;
+            dateField.value = startDateStr;
+            startDateInput.setAttribute('readonly', true);
+            startDateInput.classList.add('bg-light');
+            endDateInput.setAttribute('readonly', true);
+            endDateInput.classList.add('bg-light');
+            dateField.setAttribute('readonly', true);
+            dateField.classList.add('bg-light');
+            startTimeField.setAttribute('disabled', true);
+            endTimeField.setAttribute('disabled', true);
+        } else {
+            blockOffTab.dispatchEvent(changeEvent);
+            const dateStr = formatDate(startDate);
+            dateField.value = dateStr;
+            startTimeField.value = formatTime(startDate);
+            endTimeField.value = formatTime(endDate);
+            startDateInput.value = dateStr;
+            endDateInput.value = formatDate(endDate);
+            dateField.setAttribute('readonly', true);
+            dateField.classList.add('bg-light');
+            startTimeField.removeAttribute('disabled');
+            endTimeField.removeAttribute('disabled');
+            startDateInput.setAttribute('readonly', true);
+            startDateInput.classList.add('bg-light');
+            endDateInput.setAttribute('readonly', true);
+            endDateInput.classList.add('bg-light');
+        }
+
         dateField.setAttribute('readonly', true);
         dateField.classList.add('bg-light');
         document.querySelector('.d-flex.justify-content-between.align-items-center').style.display = 'none';
@@ -4018,6 +4232,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Show the modal
         console.log('Opening modal in EDIT mode for blocked time ID:', blockTime.id);
         new bootstrap.Modal(document.getElementById('blockTimeModal')).show();
+        applyEditFooterLayout();
     }
 
     function showAppointmentDetails(appointment) {
@@ -5230,6 +5445,17 @@ document.addEventListener('DOMContentLoaded', function() {
     color: var(--dm-text-primary, #f1f5f9) !important;
 }
 
+/* Time Select styling */
+#blockTimeModal .block-time-select {
+    font-size: 0.9rem;
+    padding: 0.45rem 0.75rem;
+    border-radius: 8px;
+}
+
+#blockTimeModal .block-time-select option {
+    font-size: 0.9rem;
+}
+
 /* Dark Mode Fix for Clock and Calendar Icons in Block Time Modal */
 [data-theme="dark"] #blockTimeModal .form-label i,
 [data-theme="dark"] #blockTimeModal .form-label .bi-clock,
@@ -5240,22 +5466,36 @@ document.addEventListener('DOMContentLoaded', function() {
     color: var(--dm-text-primary, #f1f5f9) !important;
 }
 
-/* Dark Mode Fix for Native Date/Time Input Icons */
-[data-theme="dark"] #blockTimeModal input[type="date"]::-webkit-calendar-picker-indicator,
-[data-theme="dark"] #blockTimeModal input[type="time"]::-webkit-calendar-picker-indicator {
+/* Dark Mode Fix for Native Date Input Icons */
+[data-theme="dark"] #blockTimeModal input[type="date"]::-webkit-calendar-picker-indicator {
     filter: invert(1) brightness(2) !important;
     cursor: pointer;
     opacity: 0.8;
 }
 
-[data-theme="dark"] #blockTimeModal input[type="date"]::-webkit-calendar-picker-indicator:hover,
-[data-theme="dark"] #blockTimeModal input[type="time"]::-webkit-calendar-picker-indicator:hover {
+[data-theme="dark"] #blockTimeModal input[type="date"]::-webkit-calendar-picker-indicator:hover {
     opacity: 1;
 }
 
-/* Firefox dark mode fix for date/time inputs */
-[data-theme="dark"] #blockTimeModal input[type="date"],
-[data-theme="dark"] #blockTimeModal input[type="time"] {
+/* Dark mode select styling */
+[data-theme="dark"] #blockTimeModal .block-time-select {
+    background-color: var(--dm-bg-secondary, #1e293b) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] #blockTimeModal .block-time-select:focus {
+    border-color: #00EAFF !important;
+    box-shadow: 0 0 0 0.25rem rgba(0, 234, 255, 0.25) !important;
+}
+
+[data-theme="dark"] #blockTimeModal .block-time-select option {
+    background-color: var(--dm-bg-secondary, #1e293b) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+}
+
+/* Firefox dark mode fix for date inputs */
+[data-theme="dark"] #blockTimeModal input[type="date"] {
     color-scheme: dark;
 }
 

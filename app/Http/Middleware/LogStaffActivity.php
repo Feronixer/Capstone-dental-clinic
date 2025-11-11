@@ -43,21 +43,21 @@ class LogStaffActivity
 
             $displayName = $this->formatStaffName($staff);
 
-            // Human message defaults
-            $message = 'Staff ' . $displayName . " $action " . $entity;
+            // Human message defaults - simplified format
+            $entityName = $this->simplifyEntityName($entity);
+            $message = $this->formatSimpleDescription($displayName, $action, $entityName);
             $module = 'staff';
             $recordType = $entity;
             $recordId = null;
 
-            if ($routeName) {
-                $custom = $this->buildCustomLogEntry($routeName, $payload, $staff, $action, $request);
-                if ($custom) {
-                    $module = $custom['module'] ?? $module;
-                    $message = $custom['description'] ?? $message;
-                    $recordType = $custom['record_type'] ?? $recordType;
-                    if (array_key_exists('record_id', $custom)) {
-                        $recordId = $custom['record_id'];
-                    }
+            // Try route-specific/custom messages using route name or path entity
+            $custom = $this->buildCustomLogEntry($routeName ?: $entity, $payload, $staff, $action, $request);
+            if ($custom) {
+                $module = $custom['module'] ?? $module;
+                $message = $custom['description'] ?? $message;
+                $recordType = $custom['record_type'] ?? $recordType;
+                if (array_key_exists('record_id', $custom)) {
+                    $recordId = $custom['record_id'];
                 }
             }
 
@@ -162,7 +162,170 @@ class LogStaffActivity
                 ];
         }
 
+        // Handle un-named post-procedural routes using the request path signature
+        $path = $routeName; // may be a route name or the raw URI path provided by caller
+        if (is_string($path) && (str_starts_with($path, 'staff/post-procedural') || str_starts_with($path, 'admin/post-procedural'))) {
+            // Progress Notes - bulk store
+            if (str_contains($path, '/store-progress-notes') && $request->isMethod('post')) {
+                return [
+                    'module' => 'post_procedural',
+                    'record_type' => 'progress_notes',
+                    'description' => "Staff {$name} added progress notes",
+                ];
+            }
+            // Progress Note - single create/update/delete
+            if (str_contains($path, '/progress-notes') && $request->isMethod('post')) {
+                return [
+                    'module' => 'post_procedural',
+                    'record_type' => 'progress_note',
+                    'description' => "Staff {$name} added a progress note",
+                ];
+            }
+            if (str_contains($path, '/progress-notes/') && $request->isMethod('put')) {
+                $id = $request->route('id');
+                return [
+                    'module' => 'post_procedural',
+                    'record_type' => 'progress_note',
+                    'record_id' => $id,
+                    'description' => "Staff {$name} updated progress note #{$id}",
+                ];
+            }
+            if (str_contains($path, '/progress-notes/') && $request->isMethod('delete')) {
+                $id = $request->route('id');
+                return [
+                    'module' => 'post_procedural',
+                    'record_type' => 'progress_note',
+                    'record_id' => $id,
+                    'description' => "Staff {$name} deleted progress note #{$id}",
+                ];
+            }
+
+            // Patient Record create/delete
+            if (str_contains($path, '/patient-record/store') && $request->isMethod('post')) {
+                return [
+                    'module' => 'post_procedural',
+                    'record_type' => 'patient_record',
+                    'description' => "Staff {$name} created a post-procedural patient record",
+                ];
+            }
+            if (preg_match('#/patient-record/(\d+)$#', $path) && $request->isMethod('delete')) {
+                $id = $request->route('id');
+                return [
+                    'module' => 'post_procedural',
+                    'record_type' => 'patient_record',
+                    'record_id' => $id,
+                    'description' => "Staff {$name} deleted patient record #{$id}",
+                ];
+            }
+
+            // Patient History create/update/delete
+            if (str_ends_with($path, '/patient-history') && $request->isMethod('post')) {
+                return [
+                    'module' => 'post_procedural',
+                    'record_type' => 'patient_history',
+                    'description' => "Staff {$name} added patient history",
+                ];
+            }
+            if (preg_match('#/patient-history/(\d+)$#', $path) && $request->isMethod('put')) {
+                $id = $request->route('id');
+                return [
+                    'module' => 'post_procedural',
+                    'record_type' => 'patient_history',
+                    'record_id' => $id,
+                    'description' => "Staff {$name} updated patient history #{$id}",
+                ];
+            }
+            if (preg_match('#/patient-history/(\d+)$#', $path) && $request->isMethod('delete')) {
+                $id = $request->route('id');
+                return [
+                    'module' => 'post_procedural',
+                    'record_type' => 'patient_history',
+                    'record_id' => $id,
+                    'description' => "Staff {$name} deleted patient history #{$id}",
+                ];
+            }
+        }
+
+        // Handle verify-password routes
+        if (str_contains($routeName, 'verify-password') || str_contains($routeName, 'verifyPassword')) {
+            return [
+                'module' => 'security',
+                'record_type' => 'password_verification',
+                'description' => "Staff {$name} verified password",
+            ];
+        }
+
         return null;
+    }
+
+    /**
+     * Simplify entity name for user-friendly descriptions
+     */
+    protected function simplifyEntityName(string $entity): string
+    {
+        // Remove common prefixes
+        $entity = str_replace(['staff.', 'admin.', 'patient.'], '', $entity);
+        
+        // Convert route names to readable format
+        $entity = str_replace(['-', '_'], ' ', $entity);
+        
+        // Handle common patterns
+        $patterns = [
+            '/verify-inactivity-password/' => 'password verification',
+            '/verify-password/' => 'password verification',
+            '/verifyPassword/' => 'password verification',
+            '/post-procedural/' => 'post-procedural record',
+            '/patient-record/' => 'patient record',
+            '/patient-history/' => 'patient history',
+            '/progress-notes/' => 'progress notes',
+            '/progress-note/' => 'progress note',
+            '/appointment/' => 'appointment',
+            '/account-management/' => 'account',
+            '/staff-access-control/' => 'staff access',
+            '/toothtalk/' => 'ToothTalk',
+            '/content-management/' => 'content',
+            '/announcement/' => 'announcement',
+            '/service/' => 'service',
+            '/mail-template/' => 'mail template',
+            '/blocked-time/' => 'blocked time',
+            '/chat/' => 'chat',
+        ];
+        
+        foreach ($patterns as $pattern => $replacement) {
+            if (str_contains($entity, $pattern)) {
+                $entity = str_replace($pattern, $replacement . ' ', $entity);
+            }
+        }
+        
+        // Capitalize first letter
+        $entity = ucfirst(trim($entity));
+        
+        // If still looks like a route name, extract the last meaningful part
+        if (str_contains($entity, '/')) {
+            $parts = explode('/', $entity);
+            $entity = end($parts);
+            $entity = str_replace(['-', '_'], ' ', $entity);
+            $entity = ucwords($entity);
+        }
+        
+        return $entity ?: 'item';
+    }
+
+    /**
+     * Format simple, user-friendly description
+     */
+    protected function formatSimpleDescription(string $name, string $action, string $entityName): string
+    {
+        $actionMap = [
+            'created' => 'created',
+            'updated' => 'updated',
+            'deleted' => 'deleted',
+            'verified' => 'verified',
+        ];
+        
+        $actionText = $actionMap[$action] ?? $action;
+        
+        return "Staff {$name} {$actionText} {$entityName}";
     }
 
 }
