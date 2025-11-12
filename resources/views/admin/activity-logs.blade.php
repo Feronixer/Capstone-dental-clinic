@@ -230,7 +230,78 @@
                             Showing <strong>{{ $logs->firstItem() ?? 0 }}</strong> to <strong>{{ $logs->lastItem() ?? 0 }}</strong> of <strong>{{ $logs->total() }}</strong> entries
                         </div>
                         <div class="pagination-links">
-                            {{ $logs->links() }}
+                            @php
+                                $logs->appends(request()->query());
+                            @endphp
+                            @if ($logs->hasPages())
+                                <nav class="modern-pagination-wrapper" aria-label="Activity logs pagination">
+                                    <ul class="modern-pagination">
+                                        <li class="page-item {{ $logs->onFirstPage() ? 'disabled' : '' }}">
+                                            <a
+                                                class="page-link"
+                                                href="{{ $logs->previousPageUrl() }}"
+                                                rel="prev"
+                                                aria-label="Previous page"
+                                                tabindex="{{ $logs->onFirstPage() ? '-1' : '0' }}"
+                                            >
+                                                <i class="bi bi-chevron-left" aria-hidden="true"></i>
+                                                <span class="visually-hidden">Previous</span>
+                                            </a>
+                                        </li>
+
+                                        @php
+                                            $current = $logs->currentPage();
+                                            $last = $logs->lastPage();
+                                            $start = max(1, $current - 2);
+                                            $end = min($last, $current + 2);
+                                        @endphp
+
+                                        {{-- First page and leading dots --}}
+                                        @if ($start > 1)
+                                            <li class="page-item">
+                                                <a class="page-link" href="{{ $logs->url(1) }}" aria-label="Go to page 1">1</a>
+                                            </li>
+                                            @if ($start > 2)
+                                                <li class="page-item disabled">
+                                                    <span class="page-link dots" aria-hidden="true">…</span>
+                                                </li>
+                                            @endif
+                                        @endif
+
+                                        {{-- Main window --}}
+                                        @for ($page = $start; $page <= $end; $page++)
+                                            <li class="page-item {{ $page == $current ? 'active' : '' }}">
+                                                <a class="page-link" href="{{ $logs->url($page) }}" aria-label="Go to page {{ $page }}">{{ $page }}</a>
+                                            </li>
+                                        @endfor
+
+                                        {{-- Trailing dots and last page --}}
+                                        @if ($end < $last)
+                                            @if ($end < $last - 1)
+                                                <li class="page-item disabled">
+                                                    <span class="page-link dots" aria-hidden="true">…</span>
+                                                </li>
+                                            @endif
+                                            <li class="page-item">
+                                                <a class="page-link" href="{{ $logs->url($last) }}" aria-label="Go to page {{ $last }}">{{ $last }}</a>
+                                            </li>
+                                        @endif
+
+                                        <li class="page-item {{ $logs->hasMorePages() ? '' : 'disabled' }}">
+                                            <a
+                                                class="page-link"
+                                                href="{{ $logs->nextPageUrl() }}"
+                                                rel="next"
+                                                aria-label="Next page"
+                                                tabindex="{{ $logs->hasMorePages() ? '0' : '-1' }}"
+                                            >
+                                                <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                                                <span class="visually-hidden">Next</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -254,7 +325,6 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -644,6 +714,74 @@
     color: #111827;
 }
 
+.pagination-links {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.modern-pagination {
+    list-style: none;
+    display: flex;
+    gap: 0.5rem;
+    padding: 0;
+    margin: 0;
+    align-items: center;
+}
+
+.modern-pagination .page-item {
+    display: flex;
+}
+
+.modern-pagination .page-link {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    border: 1.5px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: #1f2937;
+    background: #ffffff;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);
+}
+
+.modern-pagination .page-link i {
+    font-size: 1rem;
+}
+
+.modern-pagination .page-link:hover {
+    border-color: #3b82f6;
+    color: #3b82f6;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+    transform: translateY(-1px);
+}
+
+.modern-pagination .page-item.active .page-link {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: #ffffff;
+    border-color: transparent;
+    box-shadow: 0 6px 18px rgba(59, 130, 246, 0.35);
+}
+
+.modern-pagination .page-item.disabled .page-link {
+    background: #f3f4f6;
+    border-color: #e5e7eb;
+    color: #9ca3af;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.modern-pagination .page-link.dots {
+    width: auto;
+    padding: 0 0.8rem;
+    cursor: default;
+    border-style: dashed;
+    color: #9ca3af;
+    box-shadow: none;
+}
+
 /* Modal Improvements */
 .modal-content {
     border-radius: 20px;
@@ -698,6 +836,10 @@
     .pagination-container {
         flex-direction: column;
         gap: 1rem;
+    }
+
+    .pagination-links {
+        justify-content: center;
     }
 }
 
@@ -1056,6 +1198,46 @@
 
 [data-theme="dark"] .pagination-info strong {
     color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .pagination-links {
+    justify-content: center !important;
+}
+
+[data-theme="dark"] .modern-pagination .page-link {
+    background: var(--dm-card-bg) !important;
+    border-color: var(--dm-border-color) !important;
+    color: var(--dm-text-primary) !important;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.25) !important;
+}
+
+[data-theme="dark"] .modern-pagination .page-link:hover {
+    border-color: #3b82f6 !important;
+    color: #60a5fa !important;
+    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4) !important;
+}
+
+[data-theme="dark"] .modern-pagination .page-item.active .page-link {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    border-color: transparent !important;
+    color: #ffffff !important;
+    box-shadow: 0 6px 18px rgba(59, 130, 246, 0.5) !important;
+}
+
+[data-theme="dark"] .modern-pagination .page-item.disabled .page-link {
+    background: var(--dm-bg-secondary) !important;
+    border-color: var(--dm-border-color) !important;
+    color: var(--dm-text-muted) !important;
+    box-shadow: none !important;
+}
+
+[data-theme="dark"] .modern-pagination .page-link.dots {
+    border-color: var(--dm-border-color) !important;
+    color: var(--dm-text-muted) !important;
+}
+
+[data-theme="dark"] .modern-pagination .page-link i {
+    color: inherit !important;
 }
 
 [data-theme="dark"] .pagination .page-link {

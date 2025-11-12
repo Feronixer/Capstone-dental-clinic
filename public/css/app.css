@@ -292,7 +292,6 @@
 
 [data-theme="dark"] .modal-header .btn-close,
 [data-theme="dark"] .modal-header .btn-close-white {
-    filter: brightness(0) invert(1) !important;
     opacity: 0.8;
 }
 

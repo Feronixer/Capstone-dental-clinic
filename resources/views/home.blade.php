@@ -343,10 +343,10 @@
         /* Hero Section */
         .hero-section {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
             padding: 3rem 3rem;
-            gap: 10px;
+            gap: 4rem;
             max-width: 1400px;
             margin: 0 auto;
             margin-bottom: 2rem; /* spacing before next section */
@@ -396,6 +396,11 @@
             color: #ffffff;
             text-shadow: 0 6px 18px rgba(10, 42, 107, 0.65), 0 0 10px rgba(10,42,107,0.35);
             filter: saturate(1.2);
+        }
+
+        .hero-title .no-time {
+            white-space: nowrap;
+            display: inline-block;
         }
 
         .hero-description {
@@ -644,6 +649,7 @@
                 padding: 2rem;
                 margin-bottom: 1.5rem;
                 gap: 2rem;
+                justify-content: center;
             }
 
             .hero-content {
@@ -714,6 +720,7 @@
                 padding: 1.5rem 1rem;
                 gap: 1.5rem;
                 align-items: flex-start;
+                justify-content: center;
             }
 
             .hero-content {
@@ -1619,18 +1626,99 @@
         }
 
         .chatbot-widget {
-            position: fixed;
-            right: 24px;
-            bottom: 92px;
-            width: 340px;
-            max-width: calc(100vw - 32px);
-            border-radius: 16px;
-            background: #ffffff;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-            overflow: hidden;
-            display: none;
-            flex-direction: column;
-            z-index: 1000;
+        position: fixed !important;
+        right: 24px !important;
+        left: auto !important;
+        bottom: 92px !important;
+        width: 20vw;
+        min-width: 300px;
+        max-width: calc(85vw - 24px);
+        height: 500px;
+        min-height: 400px;
+        max-height: calc(100vh - 120px);
+        border-radius: 20px;
+        background: #ffffff;
+        box-shadow: 0 25px 70px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.05);
+        overflow: hidden;
+        display: none;
+        flex-direction: column;
+        z-index: 1000;
+        resize: both;
+        cursor: default;
+        opacity: 0;
+        transform: translateY(20px) scale(0.9);
+        transition: opacity 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+                    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        .chatbot-widget.resizing {
+            transition: none !important;
+        }
+        
+        /* Opening animation */
+        .chatbot-widget.opening {
+            display: flex !important;
+            animation: chatbotOpen 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        
+        @keyframes chatbotOpen {
+            0% {
+                opacity: 0;
+                transform: translateY(20px) scale(0.9);
+            }
+            50% {
+                transform: translateY(-5px) scale(1.02);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        /* Closing animation */
+        .chatbot-widget.closing {
+            animation: chatbotClose 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        
+        @keyframes chatbotClose {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(20px) scale(0.9);
+            }
+        }
+        
+        /* Open state - no animation, just visible */
+        .chatbot-widget.open {
+            display: flex;
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        
+        /* Resize handle styling */
+        .chatbot-widget::-webkit-resizer {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            border-radius: 0 0 20px 0;
+        }
+        
+        .chatbot-widget::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, rgba(33, 150, 243, 0.3) 0%, rgba(25, 118, 210, 0.3) 100%);
+            border-radius: 0 0 20px 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .chatbot-widget:hover::after {
+            background: linear-gradient(135deg, rgba(33, 150, 243, 0.5) 0%, rgba(25, 118, 210, 0.5) 100%);
         }
 
         .chatbot-widget.open { display: flex; }
@@ -1642,6 +1730,19 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            cursor: move;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        
+        .chatbot-header:active {
+            cursor: grabbing;
+        }
+        
+        .chatbot-header.dragging {
+            cursor: grabbing !important;
         }
 
         .chatbot-title {
@@ -1820,6 +1921,7 @@
                 width: auto !important;
                 max-width: calc(100vw - 32px);
                 bottom: 88px !important;
+                resize: both;
             }
             
             .chatbot-toggle-btn {
@@ -2254,7 +2356,7 @@
             </div>
 
             <h1 class="hero-title">
-                Have confidence<br>in your <span class="highlight">SMILE</span> in<br>no time!
+                Have confidence<br>in your <span class="highlight">SMILE</span><br><span class="no-time">in no time!</span>
             </h1>
 
             <p class="hero-description">
@@ -2920,12 +3022,23 @@
             const tabLiveChat = document.getElementById('tab-live-chat');
             const tabFaqs = document.getElementById('tab-faqs');
             const titleEl = document.getElementById('chatbotTitle');
+            let headerEl = null;
 
             let currentMode = 'faqs'; // Start with FAQs for guests
             let conversationId = null;
             let pollingInterval = null;
             let lastMessageId = null;
             let faqInitialized = false;
+            
+            // Drag functionality
+            let isDragging = false;
+            let isResizing = false;
+            let dragStartX = 0;
+            let dragStartY = 0;
+            let initialLeft = 0;
+            let initialTop = 0;
+            let initialRight = 0;
+            let initialBottom = 0;
 
             // FAQ data
             const quickIntents = {!! json_encode($chatbotSetting->quick_intents ?? []) !!};
@@ -3153,8 +3266,28 @@
             }
 
             async function openChat() {
-                widget.classList.add('open');
+                // Remove closing class if present
+                widget.classList.remove('closing');
+                widget.classList.remove('open');
+                
+                // Show widget and start opening animation
+                widget.style.display = 'flex';
                 widget.setAttribute('aria-hidden', 'false');
+                widget.classList.add('opening');
+                
+                // After animation completes, switch to open state
+                setTimeout(() => {
+                    widget.classList.remove('opening');
+                    widget.classList.add('open');
+                }, 400); // Match animation duration
+                
+                // Ensure drag is initialized when widget opens
+                if (!headerEl && widget) {
+                    headerEl = widget.querySelector('.chatbot-header');
+                    if (headerEl) {
+                        initDrag();
+                    }
+                }
                 
                 if (!messagesEl.dataset.checked) {
                     if (currentMode === 'faqs') {
@@ -3279,8 +3412,18 @@
             }
 
             function closeChat() {
+                // Remove open and opening classes, add closing class
                 widget.classList.remove('open');
+                widget.classList.remove('opening');
+                widget.classList.add('closing');
                 widget.setAttribute('aria-hidden', 'true');
+                
+                // Wait for closing animation to complete before hiding
+                setTimeout(() => {
+                    widget.classList.remove('closing');
+                    widget.style.display = 'none';
+                }, 300); // Match animation duration
+                
                 if (pollingInterval) {
                     clearInterval(pollingInterval);
                     pollingInterval = null;
@@ -3355,6 +3498,141 @@
                     }, 800);
                 }
             }
+
+            // Drag functionality
+            function initDrag() {
+                if (!widget || !headerEl) return;
+                
+                // Prevent dragging on buttons and interactive elements
+                function shouldAllowDrag(target) {
+                    const interactiveElements = ['button', 'input', 'textarea', 'a', 'select'];
+                    let element = target;
+                    while (element && element !== headerEl) {
+                        if (interactiveElements.includes(element.tagName.toLowerCase()) || 
+                            element.classList.contains('chatbot-tab') ||
+                            element.closest('button')) {
+                            return false;
+                        }
+                        element = element.parentElement;
+                    }
+                    return true;
+                }
+                
+                function startDrag(clientX, clientY) {
+                    isDragging = true;
+                    widget.classList.add('resizing');
+                    headerEl.classList.add('dragging');
+                    
+                    const rect = widget.getBoundingClientRect();
+                    dragStartX = clientX;
+                    dragStartY = clientY;
+                    
+                    // Get current position
+                    const computedStyle = window.getComputedStyle(widget);
+                    initialRight = parseFloat(computedStyle.right) || 0;
+                    initialBottom = parseFloat(computedStyle.bottom) || 0;
+                    initialLeft = parseFloat(computedStyle.left) || 0;
+                    initialTop = parseFloat(computedStyle.top) || 0;
+                    
+                    // Switch to left/top positioning for dragging
+                    if (computedStyle.right !== 'auto') {
+                        widget.style.right = 'auto';
+                        widget.style.left = rect.left + 'px';
+                    }
+                    if (computedStyle.bottom !== 'auto') {
+                        widget.style.bottom = 'auto';
+                        widget.style.top = rect.top + 'px';
+                    }
+                }
+                
+                function handleDrag(clientX, clientY) {
+                    if (!isDragging) return;
+                    
+                    const deltaX = clientX - dragStartX;
+                    const deltaY = clientY - dragStartY;
+                    
+                    const newLeft = initialLeft + deltaX;
+                    const newTop = initialTop + deltaY;
+                    
+                    // Constrain to viewport
+                    const maxLeft = window.innerWidth - widget.offsetWidth;
+                    const maxTop = window.innerHeight - widget.offsetHeight;
+                    
+                    widget.style.left = Math.max(0, Math.min(newLeft, maxLeft)) + 'px';
+                    widget.style.top = Math.max(0, Math.min(newTop, maxTop)) + 'px';
+                    widget.style.right = 'auto';
+                    widget.style.bottom = 'auto';
+                }
+                
+                function stopDrag() {
+                    if (isDragging) {
+                        isDragging = false;
+                        widget.classList.remove('resizing');
+                        headerEl.classList.remove('dragging');
+                    }
+                }
+                
+                // Mouse events
+                headerEl.addEventListener('mousedown', (e) => {
+                    if (!shouldAllowDrag(e.target)) return;
+                    startDrag(e.clientX, e.clientY);
+                    e.preventDefault();
+                });
+                
+                document.addEventListener('mousemove', (e) => {
+                    handleDrag(e.clientX, e.clientY);
+                });
+                
+                document.addEventListener('mouseup', stopDrag);
+                
+                // Touch events for mobile
+                headerEl.addEventListener('touchstart', (e) => {
+                    if (!shouldAllowDrag(e.target)) return;
+                    const touch = e.touches[0];
+                    startDrag(touch.clientX, touch.clientY);
+                    e.preventDefault();
+                }, { passive: false });
+                
+                document.addEventListener('touchmove', (e) => {
+                    if (!isDragging) return;
+                    const touch = e.touches[0];
+                    handleDrag(touch.clientX, touch.clientY);
+                    e.preventDefault();
+                }, { passive: false });
+                
+                document.addEventListener('touchend', stopDrag);
+                
+                // Handle resize detection
+                let resizeObserver = null;
+                if (window.ResizeObserver) {
+                    resizeObserver = new ResizeObserver(() => {
+                        if (!isDragging) {
+                            widget.classList.add('resizing');
+                            setTimeout(() => {
+                                widget.classList.remove('resizing');
+                            }, 300);
+                        }
+                    });
+                    resizeObserver.observe(widget);
+                }
+            }
+            
+            // Initialize drag when widget is available
+            function setupDrag() {
+                if (widget) {
+                    headerEl = widget.querySelector('.chatbot-header');
+                    if (headerEl) {
+                        initDrag();
+                    }
+                }
+            }
+            
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', setupDrag);
+            } else {
+                setupDrag();
+            }
+            
 
             toggleBtn.addEventListener('click', () => {
                 if (widget.classList.contains('open')) closeChat(); else openChat();

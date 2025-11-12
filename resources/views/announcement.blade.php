@@ -1037,20 +1037,25 @@ document.addEventListener('keydown', function(e) {
 }
 
 .chatbot-widget {
-    position: fixed;
-    right: 24px;
-    left: auto;
-    bottom: 92px;
-    width: 380px;
-    max-width: calc(100vw - 32px);
-    border-radius: 16px;
-    background: #ffffff;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-    overflow: hidden;
-    display: none;
-    flex-direction: column;
-    z-index: 1000;
-    max-height: calc(100vh - 120px);
+    position: fixed !important;
+        right: 24px !important;
+        left: auto !important;
+        bottom: 92px !important;
+        width: 20vw;
+        min-width: 300px;
+        max-width: calc(85vw - 24px);
+        height: 500px;
+        min-height: 400px;
+        max-height: calc(100vh - 120px);
+        border-radius: 20px;
+        background: #ffffff;
+        box-shadow: 0 25px 70px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.05);
+        overflow: hidden;
+        display: none;
+        flex-direction: column;
+        z-index: 1000;
+        resize: both;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .chatbot-widget.open { 

@@ -234,7 +234,6 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary" id="confirmPasswordBtn">
                     <i class="bi bi-check-circle me-2"></i>Verify & Save
                 </button>
@@ -282,7 +281,6 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary" id="verifyCodeBtn" style="display: none;">
                     <i class="bi bi-check-circle me-2"></i>Verify & Continue
                 </button>

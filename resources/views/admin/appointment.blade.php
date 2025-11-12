@@ -29,26 +29,30 @@
                 </div>
 
                 <!-- Status Legend -->
-                <div class="d-flex gap-4 align-items-center">
+                <div class="d-flex gap-2 align-items-center flex-wrap">
                     <div class="d-flex align-items-center gap-1">
                         <div class="status-dot bg-warning"></div>
-                        <small class="text-muted">Pending</small>
+                        <small class="text-muted" style="font-size: 0.75rem;">Pending</small>
                     </div>
                     <div class="d-flex align-items-center gap-1">
                         <div class="status-dot bg-primary"></div>
-                        <small class="text-muted">Confirmed</small>
+                        <small class="text-muted" style="font-size: 0.75rem;">Confirmed</small>
                     </div>
                     <div class="d-flex align-items-center gap-1">
                         <div class="status-dot bg-success"></div>
-                        <small class="text-muted">Completed</small>
+                        <small class="text-muted" style="font-size: 0.75rem;">Completed</small>
+                    </div>
+                    <div class="d-flex align-items-center gap-1">
+                        <div class="status-dot bg-brown"></div>
+                        <small class="text-muted" style="font-size: 0.75rem;">Cancelled</small>
                     </div>
                     <div class="d-flex align-items-center gap-1">
                         <div class="status-dot bg-secondary"></div>
-                        <small class="text-muted">Missed</small>
+                        <small class="text-muted" style="font-size: 0.75rem;">Missed</small>
                     </div>
                     <div class="d-flex align-items-center gap-1">
                         <div class="status-dot bg-danger"></div>
-                        <small class="text-muted">Blocked</small>
+                        <small class="text-muted" style="font-size: 0.75rem;">Blocked</small>
                     </div>
                 </div>
 
@@ -228,7 +232,6 @@
                     </div> --}}
                 </div>
                 <div class="modal-footer py-2">
-                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary btn-sm">Schedule</button>
                 </div>
             </form>
@@ -250,11 +253,10 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-info" id="change-status-btn">
+                <button type="button" class="btn btn-purple" id="change-status-btn">
                     <i class="bi bi-arrow-repeat me-1"></i>Change Status
                 </button>
-                <button type="button" class="btn btn-warning" id="reschedule-appointment-btn">
+                <button type="button" class="btn btn-yellow" id="reschedule-appointment-btn">
                     <i class="bi bi-calendar3 me-1"></i>Reschedule
                 </button>
             </div>
@@ -322,9 +324,6 @@
                 <div id="status-validation-message" class="alert" style="display: none;" role="alert"></div>
             </div>
             <div class="modal-footer bg-light" style="gap: 0.75rem; padding: 1.25rem 1.5rem;">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="padding: 0.65rem 1.5rem; border-radius: 10px; font-weight: 600;">
-                    <i class="bi bi-x-circle me-1"></i>Cancel
-                </button>
                 <button type="button" class="btn btn-primary" id="confirm-status-change-btn" style="padding: 0.65rem 1.5rem; border-radius: 10px; font-weight: 600; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border: none;">
                     <i class="bi bi-check-circle me-1"></i>Update Status
                 </button>
@@ -495,7 +494,6 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-warning">
                         <i class="bi bi-calendar3 me-1"></i>Reschedule Appointment
                     </button>
@@ -703,7 +701,7 @@
                             </button>
                             <button type="button" class="btn btn-danger btn-sm px-3" id="clear-clinic-closed-btn" title="Clear all future clinic closed days (full day closures only)">
                                 <i class="bi bi-calendar-x me-1"></i>Clear Clinic Closed
-                            </button>
+                             </button>
                         </div>
                     </div>
                     <div class="d-flex gap-2 ms-auto">
@@ -743,9 +741,6 @@
                 </div>
             </div>
             <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">
-                    <i class="bi bi-x-circle me-1"></i>Cancel
-                </button>
                 <button type="button" class="btn btn-danger" id="confirm-delete-block-btn">
                     <i class="bi bi-trash me-1"></i>Remove Blocked Time
                 </button>
@@ -831,9 +826,6 @@
                 </div>
             </div>
             <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">
-                    <i class="bi bi-x-circle me-1"></i>Cancel
-                </button>
                 <button type="button" class="btn btn-danger" id="confirm-clear-clinic-closed-btn">
                     <i class="bi bi-calendar-x me-1"></i>Clear Clinic Closed
                 </button>
@@ -868,9 +860,6 @@
                 </div>
             </div>
             <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">
-                    <i class="bi bi-x-circle me-1"></i>Cancel
-                </button>
                 <button type="button" class="btn btn-orange" id="confirm-clear-block-off-time-btn">
                     <i class="bi bi-clock-history me-1"></i>Clear Specific Time
                 </button>
@@ -2270,9 +2259,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 aptElement.textContent = `${timeString}-${endTimeString} ${patientName}`;
                 aptElement.title = `${patientName} - ${apt.service ? apt.service.service_name : 'No Service'} - ${apt.status || 'Pending'}`;
 
-                // Add strikethrough for completed or cancelled appointments
+                // Add strikethrough for completed, cancelled, or missed appointments
                 const statusLower = (apt.status || 'pending').toLowerCase();
-                if (statusLower === 'completed' || statusLower === 'cancelled') {
+                if (statusLower === 'completed' || statusLower === 'cancelled' || statusLower === 'missed') {
                     aptElement.style.textDecoration = 'line-through';
                     aptElement.style.opacity = '0.7';
                 }
@@ -2408,9 +2397,9 @@ document.addEventListener('DOMContentLoaded', function() {
             aptElement.textContent = `${timeString}-${endTimeString} ${patientName}`;
             aptElement.title = `${patientName} - ${apt.service ? apt.service.service_name : 'No Service'} - ${apt.status || 'Pending'}`;
 
-            // Add strikethrough for completed or cancelled appointments
+            // Add strikethrough for completed, cancelled, or missed appointments
             const statusLower = (apt.status || 'pending').toLowerCase();
-            if (statusLower === 'completed' || statusLower === 'cancelled') {
+            if (statusLower === 'completed' || statusLower === 'cancelled' || statusLower === 'missed') {
                 aptElement.style.textDecoration = 'line-through';
                 aptElement.style.opacity = '0.7';
             }
@@ -2538,6 +2527,12 @@ document.addEventListener('DOMContentLoaded', function() {
             day: 'numeric'
         });
         
+        // Filter out blocked/closed appointments from count (they are break/vacation times, not appointments)
+        const actualAppointments = appointments.filter(apt => {
+            const status = (apt.status || '').toLowerCase();
+            return status !== 'blocked';
+        });
+        
         // Sort appointments by time
         appointments.sort((a, b) => {
             const timeA = parseLocalDateTime(a.start_datetime);
@@ -2551,7 +2546,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <h5 class="modal-title">
                     <i class="bi bi-calendar-event me-2"></i>${formattedDate}
                 </h5>
-                <p class="text-muted mb-0">${appointments.length} appointment${appointments.length !== 1 ? 's' : ''}</p>
+                <p class="text-muted mb-0">${actualAppointments.length} appointment${actualAppointments.length !== 1 ? 's' : ''}</p>
             </div>
             <div class="day-appointments-list">
         `;
@@ -2618,6 +2613,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 let serviceName = apt.service ? apt.service.service_name : 'No Service';
                 const isCompleted = status === 'completed';
                 const isCancelled = status === 'cancelled';
+                const isMissed = status === 'missed';
                 
                 modalContent += `
                     <div class="day-appointment-item ${status}" data-appointment-id="${apt.id}" style="cursor: pointer;">
@@ -2625,7 +2621,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <i class="bi bi-clock"></i>
                             ${timeStr}${endTimeStr ? ' - ' + endTimeStr : ''}
                         </div>
-                        <div class="appointment-title ${isCompleted || isCancelled ? 'text-decoration-line-through' : ''}">${patientName} - ${serviceName}</div>
+                        <div class="appointment-title ${isCompleted || isCancelled || isMissed ? 'text-decoration-line-through' : ''}">${patientName} - ${serviceName}</div>
                         <div class="appointment-status">Status: ${apt.status || 'Pending'}</div>
                         ${apt.notes && isCancelled ? `<div class="appointment-notes text-muted small">${apt.notes}</div>` : ''}
                     </div>
@@ -4288,7 +4284,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const statusBadgeClass = statusClass === 'pending' ? 'bg-warning' :
                                 statusClass === 'confirmed' ? 'bg-primary' :
                                 statusClass === 'completed' ? 'bg-success' :
-                                statusClass === 'cancelled' ? 'bg-danger' : 'bg-secondary';
+                                statusClass === 'cancelled' ? 'bg-brown' : 'bg-secondary';
 
         // Create appointment details HTML
         const detailsHTML = `
@@ -4361,18 +4357,36 @@ document.addEventListener('DOMContentLoaded', function() {
             rescheduleBtn.title = 'Reschedule this appointment';
         }
 
-        // Disable change status button if appointment is cancelled
+        // Disable change status button unless appointment is Pending OR (Confirmed AND date is today)
         const changeStatusBtn = document.getElementById('change-status-btn');
-        if (changeStatusBtn && statusLower === 'cancelled') {
-            changeStatusBtn.disabled = true;
-            changeStatusBtn.style.opacity = '0.5';
-            changeStatusBtn.style.cursor = 'not-allowed';
-            changeStatusBtn.title = 'Cannot change status of cancelled appointments.';
-        } else if (changeStatusBtn) {
-            changeStatusBtn.disabled = false;
-            changeStatusBtn.style.opacity = '1';
-            changeStatusBtn.style.cursor = 'pointer';
-            changeStatusBtn.title = '';
+        if (changeStatusBtn) {
+            // Check if appointment is today
+            const today = new Date();
+            const appointmentDate = new Date(startDateTime);
+            const isToday = appointmentDate.toDateString() === today.toDateString();
+            
+            // Enable if status is Pending OR (status is Confirmed AND appointment is today)
+            if (statusLower === 'pending' || (statusLower === 'confirmed' && isToday)) {
+                changeStatusBtn.disabled = false;
+                changeStatusBtn.style.opacity = '1';
+                changeStatusBtn.style.cursor = 'pointer';
+                changeStatusBtn.title = 'Change appointment status';
+            } else {
+                changeStatusBtn.disabled = true;
+                changeStatusBtn.style.opacity = '0.5';
+                changeStatusBtn.style.cursor = 'not-allowed';
+                if (statusLower === 'cancelled') {
+                    changeStatusBtn.title = 'Cannot change status of cancelled appointments.';
+                } else if (statusLower === 'completed') {
+                    changeStatusBtn.title = 'Cannot change status of completed appointments.';
+                } else if (statusLower === 'missed') {
+                    changeStatusBtn.title = 'Cannot change status of missed appointments.';
+                } else if (statusLower === 'confirmed' && !isToday) {
+                    changeStatusBtn.title = 'Change status is only available for today\'s Confirmed appointments.';
+                } else {
+                    changeStatusBtn.title = 'Change status is only available for Pending appointments or Confirmed appointments scheduled for today.';
+                }
+            }
         }
 
         // Show the modal
@@ -5244,7 +5258,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (statusClass === 'completed') {
             statusBadge.classList.add('bg-success');
         } else if (statusClass === 'cancelled') {
-            statusBadge.classList.add('bg-danger');
+            statusBadge.classList.add('bg-brown');
         } else if (statusClass === 'missed') {
             statusBadge.classList.add('bg-secondary');
         }
@@ -6135,6 +6149,89 @@ document.addEventListener('DOMContentLoaded', function() {
     margin-bottom: 1px !important;
 }
 
+.appointment-item.pending {
+    background: #F59E0B !important;
+    color: white !important;
+    font-weight: 500 !important;
+}
+
+.appointment-item.confirmed {
+    background: #3B82F6 !important;
+    color: white !important;
+    font-weight: 500 !important;
+}
+
+.appointment-item.completed {
+    background: #047857 !important;
+    color: white !important;
+    font-weight: 500 !important;
+}
+
+[data-theme="dark"] .appointment-item.completed {
+    background: #047857 !important;
+    color: white !important;
+    font-weight: 500 !important;
+}
+
+.appointment-item.blocked {
+    background: #EF4444 !important;
+    color: white !important;
+    font-weight: 500 !important;
+}
+
+.appointment-item.missed {
+    background: #6B7280 !important;
+    color: white !important;
+    font-weight: 500 !important;
+    opacity: 0.7;
+}
+
+.appointment-item.missed .appointment-time,
+.appointment-item.missed .appointment-title,
+.appointment-item.missed .appointment-status,
+.appointment-item.missed .appointment-notes,
+.appointment-item.missed .appointment-meta,
+.appointment-item.missed .appointment-details {
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+}
+
+.appointment-item.cancelled {
+    background: #8b6f47 !important;
+    color: white !important;
+    font-weight: 500 !important;
+}
+
+[data-theme="dark"] .appointment-item.pending {
+    background: #F59E0B !important;
+    color: white !important;
+    font-weight: 500 !important;
+}
+
+[data-theme="dark"] .appointment-item.confirmed {
+    background: #3B82F6 !important;
+    color: white !important;
+    font-weight: 500 !important;
+}
+
+[data-theme="dark"] .appointment-item.blocked {
+    background: #EF4444 !important;
+    color: white !important;
+    font-weight: 500 !important;
+}
+
+[data-theme="dark"] .appointment-item.missed {
+    background: #6B7280 !important;
+    color: white !important;
+    font-weight: 500 !important;
+}
+
+[data-theme="dark"] .appointment-item.cancelled {
+    background: #6d4c41 !important;
+    color: white !important;
+    font-weight: 500 !important;
+}
+
 .time-slot {
     padding: 6px 10px !important;
     min-height: 35px !important;
@@ -6169,14 +6266,83 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="modal-body">
                 <!-- Content will be dynamically inserted here -->
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
         </div>
     </div>
 </div>
 
 <style>
+/* Brown Badge for Cancelled Appointments */
+.bg-brown {
+    background-color: #d4a574 !important;
+    color: #5d4037 !important;
+}
+
+/* Appointment Details Modal Button Styles */
+.btn-purple {
+    background-color: #6b21a8 !important;
+    border-color: #6b21a8 !important;
+    color: white !important;
+}
+
+.btn-purple:hover {
+    background-color: #581c87 !important;
+    border-color: #581c87 !important;
+    color: white !important;
+}
+
+.btn-purple i {
+    color: white !important;
+}
+
+.btn-yellow {
+    background-color: #ca8a04 !important;
+    border-color: #ca8a04 !important;
+    color: white !important;
+}
+
+.btn-yellow:hover {
+    background-color: #a16207 !important;
+    border-color: #a16207 !important;
+    color: white !important;
+}
+
+.btn-yellow i {
+    color: white !important;
+}
+
+/* Dark Mode Button Styles */
+[data-theme="dark"] .btn-purple {
+    background-color: #7c3aed !important;
+    border-color: #7c3aed !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .btn-purple:hover {
+    background-color: #6d28d9 !important;
+    border-color: #6d28d9 !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .btn-purple i {
+    color: white !important;
+}
+
+[data-theme="dark"] .btn-yellow {
+    background-color: #d97706 !important;
+    border-color: #d97706 !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .btn-yellow:hover {
+    background-color: #b45309 !important;
+    border-color: #b45309 !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .btn-yellow i {
+    color: white !important;
+}
+
 /* Day Appointments Modal Styles */
 .day-appointments-header {
     margin-bottom: 1.5rem;
@@ -6226,20 +6392,81 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .day-appointment-item.cancelled {
-    background: #fee2e2;
-    border-left-color: #ef4444;
-    opacity: 0.8;
+    background: #f5e6d3;
+    border-left-color: #d4a574;
+    opacity: 1;
+}
+
+.day-appointment-item.cancelled .appointment-time {
+    color: #8b6f47 !important;
+}
+
+.day-appointment-item.cancelled .appointment-title {
+    color: #5d4037 !important;
+}
+
+.day-appointment-item.cancelled .appointment-status {
+    color: #8b6f47 !important;
+}
+
+.day-appointment-item.cancelled .appointment-notes {
+    color: #6d4c41 !important;
+    border-top-color: rgba(139, 111, 71, 0.2) !important;
 }
 
 .day-appointment-item.blocked {
-    background: #e5e7eb;
-    border-left-color: #6b7280;
+    background: #fee2e2;
+    border-left-color: #ef4444;
+}
+
+.day-appointment-item.blocked .appointment-time {
+    color: #dc2626 !important;
+}
+
+.day-appointment-item.blocked .appointment-title {
+    color: #991b1b !important;
+}
+
+.day-appointment-item.blocked .appointment-status {
+    color: #dc2626 !important;
+}
+
+.day-appointment-item.blocked .appointment-notes {
+    color: #b91c1c !important;
+    border-top-color: rgba(239, 68, 68, 0.2) !important;
 }
 
 .day-appointment-item.missed {
     background: #e5e7eb;
     border-left-color: #6b7280;
-    opacity: 0.8;
+    opacity: 0.7;
+}
+
+.day-appointment-item.missed .appointment-time,
+.day-appointment-item.missed .appointment-title,
+.day-appointment-item.missed .appointment-status,
+.day-appointment-item.missed .appointment-notes,
+.day-appointment-item.missed .appointment-meta,
+.day-appointment-item.missed .appointment-description {
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+}
+
+/* Dark mode parity for missed items */
+[data-theme="dark"] .appointment-item.missed .appointment-time,
+[data-theme="dark"] .appointment-item.missed .appointment-title,
+[data-theme="dark"] .appointment-item.missed .appointment-status,
+[data-theme="dark"] .appointment-item.missed .appointment-notes,
+[data-theme="dark"] .appointment-item.missed .appointment-meta,
+[data-theme="dark"] .appointment-item.missed .appointment-details,
+[data-theme="dark"] .day-appointment-item.missed .appointment-time,
+[data-theme="dark"] .day-appointment-item.missed .appointment-title,
+[data-theme="dark"] .day-appointment-item.missed .appointment-status,
+[data-theme="dark"] .day-appointment-item.missed .appointment-notes,
+[data-theme="dark"] .day-appointment-item.missed .appointment-meta,
+[data-theme="dark"] .day-appointment-item.missed .appointment-description {
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
 }
 
 .appointment-time {
@@ -6375,9 +6602,26 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 [data-theme="dark"] .day-appointment-item.pending {
-    background: #2F2F1F !important;
-    border-left-color: #B8860B !important;
-    color: #F5DEB3 !important;
+    background: #4a3a1f !important;
+    border-left-color: #fbbf24 !important;
+    opacity: 1;
+}
+
+[data-theme="dark"] .day-appointment-item.pending .appointment-time {
+    color: #fde68a !important;
+}
+
+[data-theme="dark"] .day-appointment-item.pending .appointment-title {
+    color: #fef3c7 !important;
+}
+
+[data-theme="dark"] .day-appointment-item.pending .appointment-status {
+    color: #fcd34d !important;
+}
+
+[data-theme="dark"] .day-appointment-item.pending .appointment-notes {
+    color: #fde68a !important;
+    border-top-color: rgba(251, 191, 36, 0.3) !important;
 }
 
 [data-theme="dark"] .day-appointment-item.confirmed {
@@ -6393,34 +6637,83 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 [data-theme="dark"] .day-appointment-item.cancelled {
-    background: #3F2F2F !important;
-    border-left-color: #ef4444 !important;
-    color: #FCA5A5 !important;
-    opacity: 0.8;
+    background: #6d4c41 !important;
+    border-left-color: #d4a574 !important;
+    opacity: 1;
+}
+
+[data-theme="dark"] .day-appointment-item.cancelled .appointment-time {
+    color: #f5deb3 !important;
+}
+
+[data-theme="dark"] .day-appointment-item.cancelled .appointment-title {
+    color: #f5deb3 !important;
+}
+
+[data-theme="dark"] .day-appointment-item.cancelled .appointment-status {
+    color: #d4a574 !important;
+}
+
+[data-theme="dark"] .day-appointment-item.cancelled .appointment-notes {
+    color: #d4a574 !important;
+    border-top-color: rgba(212, 165, 116, 0.3) !important;
 }
 
 [data-theme="dark"] .day-appointment-item.blocked {
-    background: #2F2F2F !important;
-    border-left-color: #6b7280 !important;
-    color: #D1D5DB !important;
+    background: #7f1d1d !important;
+    border-left-color: #ef4444 !important;
+    opacity: 1;
+}
+
+[data-theme="dark"] .day-appointment-item.blocked .appointment-time {
+    color: #fca5a5 !important;
+}
+
+[data-theme="dark"] .day-appointment-item.blocked .appointment-title {
+    color: #fee2e2 !important;
+}
+
+[data-theme="dark"] .day-appointment-item.blocked .appointment-status {
+    color: #fca5a5 !important;
+}
+
+[data-theme="dark"] .day-appointment-item.blocked .appointment-notes {
+    color: #fca5a5 !important;
+    border-top-color: rgba(239, 68, 68, 0.3) !important;
 }
 
 [data-theme="dark"] .day-appointment-item.missed {
-    background: #2F2F2F !important;
-    border-left-color: #6b7280 !important;
-    color: #D1D5DB !important;
-    opacity: 0.8;
+    background: #3a3a3a !important;
+    border-left-color: #9ca3af !important;
+    opacity: 0.7;
 }
 
-[data-theme="dark"] .day-appointment-item .appointment-time {
+[data-theme="dark"] .day-appointment-item.missed .appointment-time {
+    color: #e5e7eb !important;
+}
+
+[data-theme="dark"] .day-appointment-item.missed .appointment-title {
+    color: #f3f4f6 !important;
+}
+
+[data-theme="dark"] .day-appointment-item.missed .appointment-status {
+    color: #d1d5db !important;
+}
+
+[data-theme="dark"] .day-appointment-item.missed .appointment-notes {
+    color: #d1d5db !important;
+    border-top-color: rgba(156, 163, 175, 0.3) !important;
+}
+
+[data-theme="dark"] .day-appointment-item:not(.missed):not(.pending) .appointment-time {
     color: inherit !important;
 }
 
-[data-theme="dark"] .day-appointment-item .appointment-title {
+[data-theme="dark"] .day-appointment-item:not(.missed):not(.pending) .appointment-title {
     color: inherit !important;
 }
 
-[data-theme="dark"] .day-appointment-item .appointment-status {
+[data-theme="dark"] .day-appointment-item:not(.missed):not(.pending) .appointment-status {
     color: inherit !important;
 }
 

@@ -153,6 +153,8 @@ let currentConversationId = null;
 let pollingInterval = null;
 let lastMessageId = null;
 const canAttachFiles = @json($canAttachFiles);
+const CURRENT_STAFF_ID = @json(Auth::guard('staff')->id());
+const CURRENT_STAFF_NAME = @json(optional(Auth::guard('staff')->user())->info ? (trim(optional(Auth::guard('staff')->user())->info->first_name . ' ' . optional(Auth::guard('staff')->user())->info->last_name)) : (optional(Auth::guard('staff')->user())->username ?? 'You'));
 
 async function loadConversations() {
     const status = document.getElementById('status-filter').value;
@@ -193,7 +195,7 @@ async function loadConversations() {
                             <small class="conversation-time">${formatDate(conv.last_message_at || conv.created_at)}</small>
                         </div>
                         <small class="conversation-email d-block">${conv.patient_email}</small>
-                        ${conv.last_message ? `<p class="mb-0 mt-2 conversation-preview"><i class="bi bi-chat-left me-1"></i>${conv.last_message}</p>` : ''}
+                        
                     </div>
                 </div>
             </div>
@@ -269,7 +271,12 @@ async function loadMessages(conversationId) {
             addMessage(welcomeMessage.message, welcomeMessage.sender_type, welcomeMessage.sender_name, welcomeMessage.created_at, null);
         } else {
         data.messages.forEach(msg => {
-                addMessage(msg.message, msg.sender_type, msg.sender_name, msg.created_at, msg.attachments);
+                let displayName = msg.sender_name || '';
+                if (msg.sender_type === 'staff' && CURRENT_STAFF_ID && msg.sender_id === CURRENT_STAFF_ID) {
+                    // Mark own messages as "You" so tooltip becomes "Your Name (you)"
+                    displayName = 'You';
+                }
+                addMessage(msg.message, msg.sender_type, displayName, msg.created_at, msg.attachments);
         });
         }
         
@@ -318,8 +325,20 @@ function addMessage(text, senderType, senderName, timestamp = null, attachments 
     }
     
     messageWrapper.className = `message-wrapper ${isStaff ? 'message-sent' : 'message-received'}`;
+    const senderRole = (senderType === 'admin' || senderType === 'staff' || senderType === 'patient') ? senderType : 'system';
+    let tooltipLabel = '';
+    if (senderRole === 'staff' && (senderName === 'You' || senderName === 'You ')) {
+        tooltipLabel = `${CURRENT_STAFF_NAME} (you)`;
+    } else if ((senderRole === 'admin' || senderRole === 'patient')) {
+        tooltipLabel = /\([\s\S]*\)$/.test(senderName) ? senderName : `${senderName} (${senderRole})`;
+    } else {
+        tooltipLabel = senderName || '';
+    }
     messageWrapper.innerHTML = `
-        <div class="message-bubble ${isStaff ? 'message-outgoing' : 'message-incoming'}">
+        <div class="message-bubble ${isStaff ? 'message-outgoing' : 'message-incoming'}"
+             data-sender-name="${escapeHtml(senderName || (isStaff ? 'You' : ''))}"
+             data-sender-type="${senderRole}"
+             data-sender-label="${escapeHtml(tooltipLabel)}">
             ${!isStaff ? `<div class="message-sender">${senderName}</div>` : ''}
             ${text ? `<div class="message-text">${escapeHtml(text)}</div>` : ''}
             ${attachmentsHtml}
@@ -526,7 +545,11 @@ function startPolling() {
             
             data.messages.forEach(msg => {
                 if (msg.id > lastMessageId) {
-                    addMessage(msg.message, msg.sender_type, msg.sender_name, msg.created_at, msg.attachments);
+                    let displayName = msg.sender_name || '';
+                    if (msg.sender_type === 'staff' && CURRENT_STAFF_ID && msg.sender_id === CURRENT_STAFF_ID) {
+                        displayName = 'You';
+                    }
+                    addMessage(msg.message, msg.sender_type, displayName, msg.created_at, msg.attachments);
                     lastMessageId = msg.id;
                 }
             });
@@ -675,6 +698,40 @@ document.getElementById('conversation-status').addEventListener('change', async 
         if (response.ok) loadConversations();
     } catch (error) {
         console.error('Error updating status:', error);
+    }
+});
+
+// Click a message bubble to reveal who sent it
+document.getElementById('chat-messages').addEventListener('click', function(e) {
+    const bubble = e.target.closest('.message-bubble');
+    if (!bubble) return;
+    const preset = bubble.getAttribute('data-sender-label');
+    let label = preset;
+    if (!label) {
+        const name = bubble.getAttribute('data-sender-name') || '';
+        const type = bubble.getAttribute('data-sender-type') || '';
+        if (name.toLowerCase() === 'you' && type === 'staff') {
+            label = `${CURRENT_STAFF_NAME} (you)`;
+        } else if (name.match(/\([\s\S]*\)$/)) {
+            label = name;
+        } else if (type) {
+            label = `${name} (${type})`;
+        } else {
+            label = name;
+        }
+    }
+    if (window.bootstrap && bootstrap.Tooltip) {
+        try {
+            bubble.setAttribute('data-bs-title', label);
+            bubble.setAttribute('data-bs-placement', 'top');
+            const tip = new bootstrap.Tooltip(bubble, { trigger: 'manual' });
+            tip.show();
+            setTimeout(() => { try { tip.dispose(); } catch(_) {} }, 1500);
+        } catch (_) {
+            alert(`Sent by: ${label}`);
+        }
+    } else {
+        alert(`Sent by: ${label}`);
     }
 });
 

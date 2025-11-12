@@ -422,6 +422,19 @@ class CalendarController extends Controller
                 [$serviceId, $otherConcern, $durationMinutes] = $this->determineServiceAndDuration($request);
                 // Use placeholder end time (will be updated when admin/staff assigns time)
                 $requestedEndDateTime = $requestedDateTime->copy()->addMinutes($durationMinutes ?? 30);
+                
+                // Prevent booking on clinic closed days (full-day closure 00:00–23:59)
+                $isClosedDay = \App\Models\BlockedTime::whereDate('start_datetime', $requestedDateTime->toDateString())
+                    ->whereRaw("DATE_FORMAT(start_datetime, '%H:%i') = '00:00'")
+                    ->whereRaw("DATE_FORMAT(end_datetime, '%H:%i') = '23:59'")
+                    ->exists();
+                if ($isClosedDay) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'The clinic is closed on this date. Please select a different date for your appointment request.',
+                        'errors' => ['date' => ['The clinic is closed on this date.']]
+                    ], 422);
+                }
             }
 
             // Create appointment request

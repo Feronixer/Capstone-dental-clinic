@@ -28,7 +28,7 @@ class NotificationController extends Controller
             }
         }
 
-        $notifications = $query->paginate(20)->appends($request->query());
+        $notifications = $query->paginate(10)->appends($request->query());
 
         $unreadCount = Notification::where('user_id', auth()->id())
             ->unread()

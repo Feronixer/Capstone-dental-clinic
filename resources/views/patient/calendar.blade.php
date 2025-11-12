@@ -3,6 +3,231 @@
 <link rel="stylesheet" href="{{ asset('css/patient-calendar.css') }}">
 
 <style>
+/* Loading Overlay Styles - Themed to match system design - Positioned over calendar sections only */
+.calendar-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(227, 242, 253, 0.95) 0%, rgba(187, 222, 251, 0.95) 100%);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    will-change: opacity;
+    transform: translateZ(0);
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 12px;
+    pointer-events: auto;
+}
+
+[data-theme="dark"] .calendar-loading-overlay {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+}
+
+.calendar-loading-overlay.hidden {
+    opacity: 0;
+    visibility: hidden;
+}
+
+/* Loading Spinner Container - Simple and elegant design */
+.loading-spinner {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    margin-bottom: 2rem;
+    will-change: transform;
+    transform: translateZ(0);
+    contain: layout style paint;
+    isolation: isolate;
+}
+
+/* Responsive spinner size */
+@media (max-width: 768px) {
+    .loading-spinner {
+        width: 50px;
+        height: 50px;
+        margin-bottom: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .loading-spinner {
+        width: 45px;
+        height: 45px;
+        margin-bottom: 1.25rem;
+    }
+}
+
+/* Simple elegant spinner - single smooth circle */
+.spinner-circle {
+    width: 100%;
+    height: 100%;
+    border: 4px solid rgba(33, 150, 243, 0.15);
+    border-top-color: #2196F3;
+    border-radius: 50%;
+    will-change: transform;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    animation: spin 1s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+
+@media (max-width: 768px) {
+    .spinner-circle {
+        border-width: 3.5px;
+    }
+}
+
+@media (max-width: 480px) {
+    .spinner-circle {
+        border-width: 3px;
+    }
+}
+
+/* Dark mode spinner */
+[data-theme="dark"] .spinner-circle {
+    border-color: rgba(96, 165, 250, 0.2);
+    border-top-color: #60a5fa;
+}
+
+/* Optimized spin animation - using transform3d for GPU acceleration */
+@keyframes spin {
+    0% {
+        transform: rotate3d(0, 0, 1, 0deg);
+    }
+    100% {
+        transform: rotate3d(0, 0, 1, 360deg);
+    }
+}
+
+/* Loading Text - Themed - Optimized for smooth animation */
+.loading-text {
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0;
+    will-change: opacity;
+    transform: translateZ(0);
+    animation: pulse 1.5s ease-in-out infinite;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    letter-spacing: 0.5px;
+}
+
+.loading-text i {
+    font-size: 1.2em;
+    color: #2196F3;
+    will-change: opacity;
+    transform: translateZ(0);
+    animation: pulse 1.5s ease-in-out infinite;
+    /* Using text-shadow instead of filter for better performance */
+    text-shadow: 0 2px 4px rgba(33, 150, 243, 0.3);
+}
+
+.loading-text span {
+    position: relative;
+}
+
+[data-theme="dark"] .loading-text {
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .loading-text i {
+    color: #60a5fa;
+    text-shadow: 0 2px 6px rgba(96, 165, 250, 0.5);
+}
+
+/* Responsive text adjustments */
+@media (max-width: 768px) {
+    .loading-text {
+        font-size: 0.95rem;
+        gap: 0.6rem;
+    }
+    
+    .loading-text i {
+        font-size: 1.1em;
+    }
+}
+
+@media (max-width: 480px) {
+    .loading-text {
+        font-size: 0.85rem;
+        gap: 0.5rem;
+        padding: 0 1rem;
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .loading-text i {
+        font-size: 1em;
+    }
+}
+
+/* Optimized pulse animation - using opacity only for GPU acceleration */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* Additional loading indicator - subtle background animation - Optimized */
+.calendar-loading-overlay::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(33, 150, 243, 0.1) 0%, transparent 70%);
+    border-radius: 50%;
+    will-change: transform, opacity;
+    transform: translate3d(-50%, -50%, 0) scale(0.8);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    animation: ripple 2s ease-out infinite;
+    z-index: -1;
+}
+
+[data-theme="dark"] .calendar-loading-overlay::before {
+    background: radial-gradient(circle, rgba(96, 165, 250, 0.15) 0%, transparent 70%);
+}
+
+@media (max-width: 768px) {
+    .calendar-loading-overlay::before {
+        width: 150px;
+        height: 150px;
+    }
+}
+
+@media (max-width: 480px) {
+    .calendar-loading-overlay::before {
+        width: 120px;
+        height: 120px;
+    }
+}
+
+/* Optimized ripple animation using transform3d */
+@keyframes ripple {
+    0% {
+        transform: translate3d(-50%, -50%, 0) scale(0.8);
+        opacity: 1;
+    }
+    100% {
+        transform: translate3d(-50%, -50%, 0) scale(1.5);
+        opacity: 0;
+    }
+}
+
 /* Fix z-index for modals to appear above header */
 .modal {
     z-index: 1050 !important;
@@ -237,12 +462,6 @@
         border-left-color: #ef4444 !important;
         color: #fee2e2 !important;
     }
-    [data-theme="dark"] .calendar-day .day-events .event-item.blocked.full-day-closure {
-        background: linear-gradient(135deg, rgba(252, 165, 165, 0.9) 0%, rgba(248, 113, 113, 0.9) 100%) !important;
-        border-left-color: #fca5a5 !important;
-        color: #7f1d1d !important;
-        font-weight: 600 !important;
-    }
     [data-theme="dark"] .calendar-day .day-events .event-item.missed {
         background: rgba(107, 114, 128, 0.2) !important;
         border-left-color: #6b7280 !important;
@@ -259,13 +478,24 @@
 <div class="calendar-container">
     <!-- Main Content -->
     <div class="calendar-layout">
+        <!-- Loading Overlay for Calendar Sections -->
+        <div id="calendar-loading-overlay" class="calendar-loading-overlay">
+            <div class="loading-spinner">
+                <div class="spinner-circle"></div>
+            </div>
+            <p class="loading-text">
+                <i class="bi bi-calendar-check"></i>
+                <span>Loading Calendar...</span>
+            </p>
+        </div>
+        
         <!-- Sidebar -->
         <aside class="calendar-sidebar">
             <!-- Tabbed Appointment Section -->
             <div class="sidebar-card tabbed-section reveal-element reveal-slide-left">
                 <!-- Tab Buttons -->
                 <div class="tab-buttons">
-                    <button class="tab-btn active" data-tab="upcoming" onclick="switchTab('upcoming')" data-tooltip="Upcoming Appointments">
+                    <button class="tab-btn active" data-tab="upcoming" onclick="switchTab('upcoming')" data-tooltip="Upcoming Appointment">
                         <i class="bi bi-clock-history"></i>
                         <span>Upcoming</span>
                     </button>
@@ -380,7 +610,7 @@
                                 <span class="history-year">{{ $appointment->start_datetime->format('Y') }}</span>
                             </div>
                             <div class="history-info">
-                                <div class="history-title {{ $status === 'cancelled' ? 'text-decoration-line-through' : '' }}">{{ $appointment->service ? $appointment->service->service_name : $appointment->reason_for_visit }}</div>
+                                <div class="history-title {{ in_array($status, ['cancelled', 'missed']) ? 'text-decoration-line-through' : '' }}">{{ $appointment->service ? $appointment->service->service_name : $appointment->reason_for_visit }}</div>
                                 <div class="history-meta">
                                     <div class="history-time">
                                         <i class="bi bi-clock me-1"></i>{{ $appointment->start_datetime->format('g:i A') }}
@@ -893,12 +1123,40 @@
 
 /* Optimized Layout - Better Space Usage */
 .calendar-layout {
+    position: relative;
     display: flex;
     gap: 0.875rem;
     align-items: stretch;
     --calendar-sidebar-width: 260px;
     --calendar-sidebar-min: 220px;
     --calendar-sidebar-max: 480px;
+}
+
+/* Desktop-only: lock the sidebar width and isolate its scrolling/positioning */
+@media (min-width: 1025px) {
+    .calendar-layout {
+        /* Lock a stable desktop width; independent from calendar adjustments */
+		--calendar-sidebar-width: 280px;
+    }
+    .calendar-sidebar {
+        /* Keep it pinned within the viewport; independent vertical scroll */
+        position: sticky;
+        top: 0.75rem;
+        max-height: calc(100vh - 1.5rem);
+        overflow-y: auto;
+    }
+	.tabbed-section {
+		/* Remove any inner bottom spacing so content can use full height */
+		padding-bottom: 0 !important;
+	}
+    .tabbed-section .tab-content-wrapper {
+        /* Ensure inner content uses its own scroll within fixed sidebar */
+		max-height: none !important; /* override earlier desktop cap that created a gap */
+		height: 100% !important;
+		flex: 1 1 auto !important;
+        overflow-y: auto;
+		padding-bottom: 0 !important;
+    }
 }
 
 .calendar-layout.is-resizing {
@@ -919,6 +1177,7 @@
     cursor: col-resize;
     border-radius: 999px;
     display: block;
+    z-index: 1; /* keep below tooltips */
 }
 
 .calendar-resizer::before {
@@ -932,6 +1191,7 @@
     border-radius: 999px;
     background: linear-gradient(135deg, rgba(33, 150, 243, 0.4), rgba(25, 118, 210, 0.4));
     transition: background 0.2s ease, width 0.2s ease;
+    z-index: 1; /* keep below tooltips */
 }
 
 .calendar-resizer:hover::before,
@@ -970,7 +1230,7 @@
     min-width: 0;
     position: relative;
     overflow: visible;
-    z-index: 1;
+    z-index: 3000;
 }
 
 
@@ -1115,15 +1375,18 @@
 /* Tab Button Tooltips */
 .tab-btn[data-tooltip] {
     position: relative;
-    z-index: 100;
+    z-index: 2000;
+    /* default positions for fixed tooltip (updated via JS on hover) */
+    --tt-left: 0px;
+    --tt-top: 0px;
 }
 
-.tab-btn[data-tooltip]:hover::before {
+.tab-btn[data-tooltip]:hover:not([data-no-tt])::before {
     content: attr(data-tooltip);
-    position: absolute;
-    top: calc(100% + 8px);
-    left: 50%;
-    transform: translateX(-50%);
+    position: fixed; /* escape ancestor overflow */
+    top: var(--tt-top);
+    left: var(--tt-left);
+    transform: translateX(-50%); /* center to button */
     background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
     color: white;
     padding: 0.5rem 0.75rem;
@@ -1131,19 +1394,19 @@
     font-size: 0.75rem;
     font-weight: 600;
     white-space: nowrap;
-    z-index: 99999 !important;
+    z-index: 999999 !important; /* above everything */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 2px 6px rgba(0, 0, 0, 0.2);
     pointer-events: none;
     opacity: 0;
     animation: tooltipFadeInBottom 0.2s ease forwards;
 }
 
-.tab-btn[data-tooltip]:hover::after {
+.tab-btn[data-tooltip]:hover:not([data-no-tt])::after {
     content: '';
-    position: absolute;
-    top: calc(100% + 2px);
-    left: 50%;
-    transform: translateX(-50%);
+    position: fixed; /* escape ancestor overflow */
+    top: calc(var(--tt-top) - 6px);
+    left: var(--tt-left);
+    transform: translateX(-50%); /* center to button */
     width: 0;
     height: 0;
     border-left: 6px solid transparent;
@@ -1175,6 +1438,39 @@
 
 [data-theme="dark"] .tab-btn[data-tooltip]:hover::after {
     border-bottom-color: #334155 !important;
+}
+
+.tab-buttons {
+    overflow: visible;
+    position: relative;
+    z-index: 2;
+}
+
+/* Body-mounted tooltip (JS-driven) to avoid clipping inside sidebar/card */
+.calendar-body-tooltip {
+    position: fixed;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    color: #e2e8f0;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 8px 16px rgba(2, 6, 23, 0.35);
+    z-index: 10000;
+    pointer-events: none;
+}
+.calendar-body-tooltip::after {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 6px solid #1e293b;
 }
 
 .tab-content-wrapper {
@@ -1496,7 +1792,7 @@
 }
 
 .legend-dot.blocked {
-    background: #fca5a5;
+    background: #ef4444;
 }
 
 .legend-dot.missed {
@@ -1697,6 +1993,120 @@
     opacity: 0.7;
 }
 
+/* Hide notes/description for cancelled appointments in the main calendar */
+.calendar-grid .event-item.cancelled .event-notes,
+.day-events .event-item.cancelled .event-notes {
+    display: none !important;
+}
+
+/* Compact spacing in day slots (month view) */
+.calendar-grid .day-events {
+    gap: 0.2rem !important;
+    margin-top: 0.25rem !important;
+}
+.calendar-grid .calendar-day .day-events {
+    /* Add a little clearance under the day number so the first item is not overlapped */
+    margin-top: 0.6rem !important;
+}
+.calendar-grid .calendar-day.today .day-events {
+    /* Today's circular day badge is taller; give a bit more space */
+    margin-top: 0.7rem !important;
+}
+.calendar-grid .calendar-day.today .day-number {
+    /* Pin today's badge to the very top-left corner of the day cell */
+    top: -0.1rem !important;
+    left: -0.1rem !important;
+    z-index: 4 !important;
+}
+.calendar-grid .calendar-day.fully-booked .day-events {
+    /* Ensure the first appointment is not hidden under the day-number or fully booked badge */
+    margin-top: 0.6rem !important;
+    padding-top: 0.65rem !important;
+}
+.calendar-grid .calendar-day .event-count-badge + .day-events {
+    /* If count badges are visible, add a bit of clearance */
+    margin-top: 1rem !important;
+}
+.calendar-grid .day-events .event-item {
+    padding: 0.35rem 0.45rem !important;
+    min-height: 2rem !important;
+    margin: 0 !important;
+}
+.calendar-grid .event-more-indicator {
+    margin-top: 0.25rem !important;
+}
+
+/* Desktop-only compaction to fit screen height without inner scrolling */
+@media (min-width: 1200px) {
+    /* Tighter overall layout spacing */
+    .calendar-layout {
+        gap: 0.75rem !important;
+    }
+    .calendar-container {
+        padding-top: 0.5rem !important;
+        padding-bottom: 0.5rem !important;
+    }
+    /* Sidebar compaction */
+    .calendar-sidebar {
+        max-height: calc(100vh - 70px) !important; /* slightly taller usable area */
+        gap: 0.5rem !important;
+    }
+    .sidebar-card.tabbed-section {
+        padding: 0.45rem !important;
+    }
+    .tab-buttons {
+        gap: 0.3rem !important;
+        padding-bottom: 0.35rem !important;
+        margin-bottom: 0.6rem !important;
+    }
+    .tab-btn {
+        min-height: 36px !important;
+        padding: 0.45rem 0.55rem !important;
+        font-size: 0.8rem !important;
+    }
+    .tab-btn i {
+        font-size: 0.9rem !important;
+    }
+    .tab-content-wrapper {
+        /* Reduce internal chrome so the content fits within viewport height */
+        max-height: calc(100vh - 210px) !important;
+        padding-right: 2px !important;
+    }
+    /* Month grid: reduce day cell height and internal padding */
+    .calendar-day {
+        min-height: 80px !important;
+        padding: 0.4rem !important;
+    }
+    .day-events {
+        gap: 0.2rem !important;
+        margin-top: 0.25rem !important;
+    }
+    .day-events .event-item {
+        padding: 0.35rem 0.45rem !important;
+        min-height: 1.9rem !important;
+    }
+    .event-time {
+        margin-bottom: 0.1rem !important;
+        font-size: 0.68rem !important;
+    }
+    .event-title {
+        font-size: 0.68rem !important;
+        line-height: 1.15 !important;
+    }
+    .event-notes {
+        font-size: 0.62rem !important;
+    }
+    .event-more-indicator {
+        margin-top: 0.35rem !important;
+        padding: 0.35rem 0.45rem !important;
+        font-size: 0.68rem !important;
+    }
+    /* Ensure fully-booked badge and day number don't overlap first event */
+    .calendar-day.fully-booked .day-events {
+        margin-top: 0.6rem !important;
+        padding-top: 0.3rem !important;
+    }
+}
 .event-item.blocked {
     background: #fff1f2 !important;
     border-left-color:rgb(255, 0, 0) !important;
@@ -1704,23 +2114,10 @@
     cursor: pointer;
 }
 
-.event-item.blocked.full-day-closure {
-    background: linear-gradient(135deg, #fca5a5 0%, #f87171 100%) !important;
-    border-left-color: #ef4444 !important;
-    color: #7f1d1d !important;
-    font-weight: 600 !important;
-}
-
-.event-item.blocked.full-day-closure:hover {
-    background: linear-gradient(135deg, #f87171 0%, #f87171 100%) !important;
-    transform: translateX(2px);
-    box-shadow: 0 2px 6px rgba(248, 113, 113, 0.4);
-    opacity: 1;
-}
 
 .event-item.blocked:hover {
     transform: translateX(2px);
-    box-shadow: 0 2px 6px rgba(252, 165, 165, 0.3);
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);
     opacity: 1;
 }
 
@@ -1729,6 +2126,80 @@
     border-left-color: #6b7280;
     color: #374151;
     cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.event-item.missed .event-time,
+.event-item.missed .event-title,
+.event-item.missed .event-notes,
+.event-item.missed .event-meta,
+.event-item.missed .event-service,
+.event-item.missed .event-patient {
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+}
+
+.week-appointment.missed .appointment-time,
+.week-appointment.missed .appointment-title,
+.week-appointment.missed .appointment-status,
+.week-appointment.missed .appointment-notes,
+.week-appointment.missed .appointment-meta {
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+}
+.week-appointment.missed {
+    opacity: 0.7;
+}
+
+.day-appointment.missed .appointment-time,
+.day-appointment.missed .appointment-title,
+.day-appointment-item.missed .appointment-time,
+.day-appointment-item.missed .appointment-title,
+.day-appointment-item.missed .appointment-status,
+.day-appointment-item.missed .appointment-notes,
+.day-appointment-item.missed .appointment-meta,
+.day-appointment-item.missed .appointment-description {
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+}
+.day-appointment.missed,
+.day-appointment-item.missed {
+    opacity: 0.7;
+}
+
+.history-item.missed .history-title {
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+}
+
+/* Dark mode: ensure the same strikethrough effect for missed items */
+[data-theme="dark"] .event-item.missed .event-time,
+[data-theme="dark"] .event-item.missed .event-title,
+[data-theme="dark"] .event-item.missed .event-notes,
+[data-theme="dark"] .event-item.missed .event-meta,
+[data-theme="dark"] .event-item.missed .event-service,
+[data-theme="dark"] .event-item.missed .event-patient,
+[data-theme="dark"] .event-item.missed,
+[data-theme="dark"] .week-appointment.missed .appointment-time,
+[data-theme="dark"] .week-appointment.missed .appointment-title,
+[data-theme="dark"] .week-appointment.missed .appointment-status,
+[data-theme="dark"] .week-appointment.missed .appointment-notes,
+[data-theme="dark"] .week-appointment.missed .appointment-meta,
+[data-theme="dark"] .week-appointment.missed,
+[data-theme="dark"] .day-appointment.missed .appointment-time,
+[data-theme="dark"] .day-appointment.missed .appointment-title,
+[data-theme="dark"] .day-appointment.missed,
+[data-theme="dark"] .day-appointment-item.missed .appointment-time,
+[data-theme="dark"] .day-appointment-item.missed .appointment-title,
+[data-theme="dark"] .day-appointment-item.missed .appointment-status,
+[data-theme="dark"] .day-appointment-item.missed .appointment-notes,
+[data-theme="dark"] .day-appointment-item.missed .appointment-meta,
+[data-theme="dark"] .day-appointment-item.missed .appointment-description,
+[data-theme="dark"] .day-appointment-item.missed,
+[data-theme="dark"] .history-item.missed .history-title {
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+    opacity: 0.7;
 }
 
 .event-item.booked {
@@ -1763,6 +2234,7 @@
 }
 
 .event-title {
+    font-weight: 700;
     color: #64748b;
     font-size: 0.65rem;
     line-height: 1.3;
@@ -4320,6 +4792,37 @@
     gap: 1.5rem;
 }
 
+/* Status Badge Colors in Appointment Details Modal */
+/* Confirmed = Blue (now using bg-primary) */
+#appointmentDetailsModal .status-badge.confirmed,
+#appointmentDetailsModal .badge.bg-primary {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    color: white !important;
+}
+
+/* Completed = Green (now using bg-success) */
+#appointmentDetailsModal .status-badge.completed,
+#appointmentDetailsModal .badge.bg-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    color: white !important;
+}
+
+[data-theme="dark"] #appointmentDetailsModal .status-badge.confirmed,
+[data-theme="dark"] #appointmentDetailsModal .badge.bg-primary {
+    background: #2196f3 !important;
+    color: #FFFFFF !important;
+}
+
+[data-theme="dark"] #appointmentDetailsModal .status-badge.completed,
+[data-theme="dark"] #appointmentDetailsModal .badge.bg-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    color: white !important;
+    box-shadow: 
+        0 4px 12px rgba(16, 185, 129, 0.5),
+        0 2px 6px rgba(16, 185, 129, 0.4),
+        0 0 8px rgba(16, 185, 129, 0.3) !important;
+}
+
 .detail-card {
     background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
     border-radius: 12px;
@@ -4621,13 +5124,13 @@
 }
 
 .week-appointment.confirmed {
-    background: #e8f5e9;
-    border-left-color: #4caf50;
+    background: #e3f2fd;
+    border-left-color: #2196F3;
 }
 
 .week-appointment.completed {
-    background: #f3e5f5;
-    border-left-color: #9c27b0;
+    background: #e8f5e9;
+    border-left-color: #4caf50;
 }
 
 .week-appointment.cancelled {
@@ -4641,35 +5144,16 @@
 .week-view .week-appointment.blocked,
 .week-body .week-appointment.blocked {
     background: #fff1f2 !important;
-    border-left-color: rgb(255, 0, 0) !important;
-    color: rgb(255, 0, 0) !important;
+    border-left-color: #ef4444 !important;
+    color: #991b1b !important;
     cursor: pointer;
 }
 
 .week-appointment.blocked.full-day-closure,
 .week-view .week-appointment.blocked.full-day-closure {
-    background: linear-gradient(135deg, #fca5a5 0%, #f87171 100%) !important;
+    background: rgba(239, 68, 68, 0.2) !important;
     border-left-color: #ef4444 !important;
-    color: #7f1d1d !important;
-    font-weight: 600 !important;
-}
-
-.week-appointment.blocked:not(.full-day-closure) .week-apt-time,
-.week-appointment.blocked:not(.full-day-closure) .week-apt-title,
-.week-appointment.blocked:not(.full-day-closure) .week-apt-notes,
-.week-view .week-appointment.blocked:not(.full-day-closure) .week-apt-time,
-.week-view .week-appointment.blocked:not(.full-day-closure) .week-apt-title,
-.week-view .week-appointment.blocked:not(.full-day-closure) .week-apt-notes {
-    color: rgb(255, 0, 0) !important;
-}
-
-.week-appointment.blocked.full-day-closure .week-apt-time,
-.week-appointment.blocked.full-day-closure .week-apt-title,
-.week-appointment.blocked.full-day-closure .week-apt-notes,
-.week-view .week-appointment.blocked.full-day-closure .week-apt-time,
-.week-view .week-appointment.blocked.full-day-closure .week-apt-title,
-.week-view .week-appointment.blocked.full-day-closure .week-apt-notes {
-    color: #7f1d1d !important;
+    color: #991b1b !important;
 }
 
 .week-appointment.missed {
@@ -4681,15 +5165,7 @@
 
 .week-appointment.blocked:hover {
     transform: translateX(2px);
-    box-shadow: 0 2px 8px rgba(252, 165, 165, 0.3);
-    opacity: 1;
-}
-
-.week-appointment.blocked.full-day-closure:hover,
-.week-view .week-appointment.blocked.full-day-closure:hover {
-    background: linear-gradient(135deg, #f87171 0%, #f87171 100%) !important;
-    transform: translateX(2px);
-    box-shadow: 0 2px 8px rgba(248, 113, 113, 0.4);
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
     opacity: 1;
 }
 
@@ -4760,10 +5236,11 @@
 /* Day View Styles - Compact to Fit Screen */
 .day-view {
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     max-height: calc(100vh - 300px);
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
+    height: 100%;
 }
 
 .day-view-header {
@@ -4773,6 +5250,7 @@
     border-radius: 10px;
     margin-bottom: 1rem;
     color: white;
+    flex-shrink: 0;
 }
 
 .day-view-title {
@@ -4793,9 +5271,11 @@
     gap: 1px;
     background: #e2e8f0;
     border-radius: 10px;
-    overflow: hidden;
-    max-height: calc(100vh - 360px);
     overflow-y: auto;
+    overflow-x: hidden;
+    flex: 1;
+    min-height: 0;
+    -webkit-overflow-scrolling: touch;
 }
 
 /* Custom Scrollbar for Day View */
@@ -4888,13 +5368,13 @@
 }
 
 .day-appointment.confirmed {
-    background: linear-gradient(135deg, #f1f8f4 0%, #e8f5e9 100%);
-    border-left-color: #4caf50;
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border-left-color: #2196F3;
 }
 
 .day-appointment.completed {
-    background: linear-gradient(135deg, #faf5fc 0%, #f3e5f5 100%);
-    border-left-color: #9c27b0;
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+    border-left-color: #4caf50;
 }
 
 .day-appointment.cancelled {
@@ -4907,42 +5387,17 @@
 .day-appointment.blocked,
 .day-view .day-appointment.blocked,
 .day-view-body .day-appointment.blocked {
-    background: #fff1f2 !important;
-    border-left-color: rgb(255, 0, 0) !important;
-    color: rgb(255, 0, 0) !important;
+    background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%) !important;
+    border-left-color: #ef4444 !important;
+    color: #991b1b !important;
     cursor: pointer;
 }
 
 .day-appointment.blocked.full-day-closure,
 .day-view .day-appointment.blocked.full-day-closure {
-    background: linear-gradient(135deg, #fca5a5 0%, #f87171 100%) !important;
+    background: #fff1f2 !important;
     border-left-color: #ef4444 !important;
-    color: #7f1d1d !important;
-    font-weight: 600 !important;
-}
-
-.day-appointment.blocked:not(.full-day-closure) .day-apt-time,
-.day-appointment.blocked:not(.full-day-closure) .day-apt-title,
-.day-appointment.blocked:not(.full-day-closure) .day-apt-notes,
-.day-view .day-appointment.blocked:not(.full-day-closure) .day-apt-time,
-.day-view .day-appointment.blocked:not(.full-day-closure) .day-apt-title,
-.day-view .day-appointment.blocked:not(.full-day-closure) .day-apt-notes {
-    color: rgb(255, 0, 0) !important;
-}
-
-.day-appointment.blocked.full-day-closure .day-apt-time,
-.day-appointment.blocked.full-day-closure .day-apt-title,
-.day-appointment.blocked.full-day-closure .day-apt-notes,
-.day-view .day-appointment.blocked.full-day-closure .day-apt-time,
-.day-view .day-appointment.blocked.full-day-closure .day-apt-title,
-.day-view .day-appointment.blocked.full-day-closure .day-apt-notes {
-    color: #7f1d1d !important;
-}
-
-.day-appointment.blocked.full-day-closure .day-apt-badge.blocked {
-    background: rgba(127, 29, 29, 0.2) !important;
-    color: #7f1d1d !important;
-    border: 1px solid rgba(127, 29, 29, 0.3) !important;
+    color: #991b1b !important;
 }
 
 .day-appointment.missed {
@@ -4954,14 +5409,7 @@
 
 .day-appointment.blocked:hover {
     transform: translateX(4px);
-    box-shadow: 0 4px 12px rgba(252, 165, 165, 0.2);
-}
-
-.day-appointment.blocked.full-day-closure:hover,
-.day-view .day-appointment.blocked.full-day-closure:hover {
-    background: linear-gradient(135deg, #f87171 0%, #f87171 100%) !important;
-    transform: translateX(4px);
-    box-shadow: 0 4px 12px rgba(248, 113, 113, 0.4);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
 }
 
 .day-appointment.missed:hover {
@@ -5034,8 +5482,8 @@
 }
 
 .day-apt-badge.completed {
-    background: #e9d5ff;
-    color: #6b21a8;
+    background: #d1fae5;
+    color: #065f46;
 }
 
 .day-apt-badge.cancelled {
@@ -6059,17 +6507,32 @@
 
 [data-theme="dark"] .calendar-day.today .day-number {
     background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
-    margin-left: auto !important;
+    position: absolute !important;
+    top: 0.375rem !important;
+    left: 0.375rem !important;
+    margin-left: 0 !important;
     margin-right: 0 !important;
-    align-self: flex-end !important;
+    align-self: auto !important;
 }
 
 [data-theme="dark"] .day-number {
     color: var(--dm-text-primary, #f1f5f9) !important;
-    align-self: flex-end !important;
-    margin-left: auto !important;
+    position: absolute !important;
+    top: 0.375rem !important;
+    left: 0.375rem !important;
+    margin-left: 0 !important;
     margin-right: 0 !important;
-    text-align: right !important;
+    align-self: auto !important;
+    text-align: left !important;
+}
+
+[data-theme="dark"] .calendar-grid .calendar-day.today .day-number {
+    position: absolute !important;
+    top: -0.1rem !important;
+    left: -0.1rem !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    align-self: auto !important;
 }
 
 [data-theme="dark"] .event-item {
@@ -6107,13 +6570,6 @@
     background: rgba(239, 68, 68, 0.2) !important;
     border-left-color: #ef4444 !important;
     color: #fee2e2 !important;
-}
-
-[data-theme="dark"] .event-item.blocked.full-day-closure {
-    background: linear-gradient(135deg, rgba(252, 165, 165, 0.9) 0%, rgba(248, 113, 113, 0.9) 100%) !important;
-    border-left-color: #fca5a5 !important;
-    color: #7f1d1d !important;
-    font-weight: 600 !important;
 }
 
 [data-theme="dark"] .event-item.missed {
@@ -6440,13 +6896,13 @@
 }
 
 [data-theme="dark"] .week-appointment.confirmed {
-    background: rgba(34, 197, 94, 0.2) !important;
-    border-left-color: #22c55e !important;
+    background: rgba(33, 150, 243, 0.2) !important;
+    border-left-color: #2196F3 !important;
 }
 
 [data-theme="dark"] .week-appointment.completed {
-    background: rgba(168, 85, 247, 0.2) !important;
-    border-left-color: #a855f7 !important;
+    background: rgba(34, 197, 94, 0.2) !important;
+    border-left-color: #22c55e !important;
 }
 
 [data-theme="dark"] .week-appointment.cancelled {
@@ -6474,29 +6930,6 @@
     background: rgba(239, 68, 68, 0.3) !important;
     transform: translateX(2px) !important;
     box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3) !important;
-}
-
-[data-theme="dark"] .week-appointment.blocked.full-day-closure,
-[data-theme="dark"] .week-view .week-appointment.blocked.full-day-closure {
-    background: linear-gradient(135deg, rgba(252, 165, 165, 0.9) 0%, rgba(248, 113, 113, 0.9) 100%) !important;
-    border-left-color: #fca5a5 !important;
-    color: #7f1d1d !important;
-    font-weight: 600 !important;
-}
-
-[data-theme="dark"] .week-appointment.blocked.full-day-closure .week-apt-time,
-[data-theme="dark"] .week-appointment.blocked.full-day-closure .week-apt-title,
-[data-theme="dark"] .week-appointment.blocked.full-day-closure .week-apt-notes,
-[data-theme="dark"] .week-view .week-appointment.blocked.full-day-closure .week-apt-time,
-[data-theme="dark"] .week-view .week-appointment.blocked.full-day-closure .week-apt-title,
-[data-theme="dark"] .week-view .week-appointment.blocked.full-day-closure .week-apt-notes {
-    color: #7f1d1d !important;
-}
-
-[data-theme="dark"] .week-appointment.blocked.full-day-closure:hover {
-    background: linear-gradient(135deg, rgba(248, 113, 113, 1) 0%, rgba(248, 113, 113, 1) 100%) !important;
-    transform: translateX(2px) !important;
-    box-shadow: 0 2px 8px rgba(248, 113, 113, 0.4) !important;
 }
 
 [data-theme="dark"] .week-appointment.missed:hover {
@@ -6570,13 +7003,13 @@
 }
 
 [data-theme="dark"] .day-appointment.confirmed {
-    background: #2F4F4F !important;
-    border-left-color: #4299E1 !important;
+    background: linear-gradient(135deg, rgba(33, 150, 243, 0.2) 0%, rgba(33, 150, 243, 0.15) 100%) !important;
+    border-left-color: #2196F3 !important;
 }
 
 [data-theme="dark"] .day-appointment.completed {
-    background: linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(168, 85, 247, 0.1) 100%) !important;
-    border-left-color: #a855f7 !important;
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(34, 197, 94, 0.15) 100%) !important;
+    border-left-color: #22c55e !important;
 }
 
 [data-theme="dark"] .day-appointment.cancelled {
@@ -6593,6 +7026,20 @@
     cursor: pointer !important;
 }
 
+[data-theme="dark"] .day-appointment.blocked.full-day-closure,
+[data-theme="dark"] .day-view .day-appointment.blocked.full-day-closure {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.25) 0%, rgba(220, 38, 38, 0.2) 100%) !important;
+    border-left-color: #ef4444 !important;
+    color: #fee2e2 !important;
+}
+
+[data-theme="dark"] .day-appointment.blocked.full-day-closure .day-apt-time,
+[data-theme="dark"] .day-appointment.blocked.full-day-closure .day-apt-title,
+[data-theme="dark"] .day-appointment.blocked.full-day-closure .day-apt-notes,
+[data-theme="dark"] .day-appointment.blocked.full-day-closure .day-apt-badge {
+    color: #fee2e2 !important;
+}
+
 [data-theme="dark"] .day-appointment.missed {
     background: linear-gradient(135deg, rgba(107, 114, 128, 0.3) 0%, rgba(107, 114, 128, 0.2) 100%) !important;
     border-left-color: #6b7280 !important;
@@ -6604,35 +7051,6 @@
     background: linear-gradient(135deg, rgba(239, 68, 68, 0.3) 0%, rgba(220, 38, 38, 0.2) 100%) !important;
     transform: translateX(4px) !important;
     box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3) !important;
-}
-
-[data-theme="dark"] .day-appointment.blocked.full-day-closure,
-[data-theme="dark"] .day-view .day-appointment.blocked.full-day-closure {
-    background: linear-gradient(135deg, rgba(252, 165, 165, 0.9) 0%, rgba(248, 113, 113, 0.9) 100%) !important;
-    border-left-color: #fca5a5 !important;
-    color: #7f1d1d !important;
-    font-weight: 600 !important;
-}
-
-[data-theme="dark"] .day-appointment.blocked.full-day-closure .day-apt-time,
-[data-theme="dark"] .day-appointment.blocked.full-day-closure .day-apt-title,
-[data-theme="dark"] .day-appointment.blocked.full-day-closure .day-apt-notes,
-[data-theme="dark"] .day-view .day-appointment.blocked.full-day-closure .day-apt-time,
-[data-theme="dark"] .day-view .day-appointment.blocked.full-day-closure .day-apt-title,
-[data-theme="dark"] .day-view .day-appointment.blocked.full-day-closure .day-apt-notes {
-    color: #7f1d1d !important;
-}
-
-[data-theme="dark"] .day-appointment.blocked.full-day-closure .day-apt-badge.blocked {
-    background: rgba(127, 29, 29, 0.3) !important;
-    color: #7f1d1d !important;
-    border: 1px solid rgba(127, 29, 29, 0.4) !important;
-}
-
-[data-theme="dark"] .day-appointment.blocked.full-day-closure:hover {
-    background: linear-gradient(135deg, rgba(248, 113, 113, 1) 0%, rgba(248, 113, 113, 1) 100%) !important;
-    transform: translateX(4px) !important;
-    box-shadow: 0 4px 12px rgba(248, 113, 113, 0.4) !important;
 }
 
 [data-theme="dark"] .day-appointment.missed:hover {
@@ -6653,6 +7071,11 @@
     box-shadow: 0 4px 12px rgba(147, 51, 234, 0.3) !important;
 }
 
+[data-theme="dark"] .day-apt-badge.pending {
+    background: rgba(251, 191, 36, 0.3) !important;
+    color: #fef3c7 !important;
+}
+
 [data-theme="dark"] .day-apt-badge.cancelled {
     background: rgba(146, 64, 14, 0.3) !important;
     color: #fef3c7 !important;
@@ -6669,8 +7092,13 @@
 }
 
 [data-theme="dark"] .day-apt-badge.confirmed {
-    background: #BFDBFE !important;
-    color: #FFFFFF !important;
+    background: rgba(59, 130, 246, 0.3) !important;
+    color: #dbeafe !important;
+}
+
+[data-theme="dark"] .day-apt-badge.completed {
+    background: rgba(34, 197, 94, 0.3) !important;
+    color: #d1fae5 !important;
 }
 
 [data-theme="dark"] .day-apt-badge.booked {
@@ -6996,7 +7424,7 @@
 [data-theme="dark"] .alert-danger {
     background: rgba(239, 68, 68, 0.15) !important;
     border-color: #ef4444 !important;
-    color: #fca5a5 !important;
+    color: #fee2e2 !important;
 }
 
 /* Success Modal Dark Mode */
@@ -7146,6 +7574,12 @@
     transition: all 0.2s ease;
     position: relative;
     border: 1px solid transparent;
+    overflow: hidden;
+}
+
+.custom-calendar-day .date-number {
+    font-weight: 600;
+    display: block;
 }
 
 .custom-calendar-day.inactive {
@@ -7176,15 +7610,98 @@
     background: rgba(33, 150, 243, 0.1);
 }
 
+
 .custom-calendar-day.disabled {
-    color: #cbd5e1;
+    color: #000000;
     cursor: not-allowed;
     opacity: 0.5;
     background: #f8fafc;
+    pointer-events: none;
 }
 
 .custom-calendar-day.disabled:hover {
     background: #f8fafc;
+}
+
+.custom-calendar-day.disabled .date-number {
+    opacity: 0.7;
+}
+
+.custom-calendar-day .day-status-label {
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.55rem;
+    font-weight: 700;
+    padding: 0.15rem 0.45rem;
+    border-radius: 999px;
+    letter-spacing: 0.02em;
+    pointer-events: none;
+}
+
+.custom-calendar-day.closed-day {
+    position: relative;
+    cursor: not-allowed;
+    pointer-events: none;
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    color: #b91c1c;
+}
+
+/* Full-width strike-through bar for closed days */
+.custom-calendar-day.closed-day::after {
+    content: '';
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    top: 50%;
+    height: 3px;
+    transform: translateY(-50%);
+    background: #ef4444; /* red-500 */
+    border-radius: 2px;
+}
+
+.custom-calendar-day.closed-day .day-status-label {
+    background: rgba(239, 68, 68, 0.2);
+    color: #b91c1c;
+}
+
+.custom-calendar-day.fully-booked-day {
+    background: rgba(59, 130, 246, 0.12);
+    border: 1px solid rgba(59, 130, 246, 0.35);
+    color: #1d4ed8;
+}
+
+.custom-calendar-day.fully-booked-day .day-status-label {
+    background: rgba(59, 130, 246, 0.2);
+    color: #1d4ed8;
+}
+
+[data-theme="dark"] .custom-calendar-day.closed-day::after {
+    background: #f87171; /* red-400 */
+}
+
+[data-theme="dark"] .custom-calendar-day.closed-day {
+    background: rgba(239, 68, 68, 0.18);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: #ef4444;
+}
+
+[data-theme="dark"] .custom-calendar-day.closed-day .day-status-label {
+    background: rgba(239, 68, 68, 0.25);
+    color: #f87171;
+}
+
+[data-theme="dark"] .custom-calendar-day.fully-booked-day {
+    background: rgba(59, 130, 246, 0.18);
+    border-color: rgba(59, 130, 246, 0.35);
+    color: #bfdbfe;
+}
+
+[data-theme="dark"] .custom-calendar-day.fully-booked-day .day-status-label {
+    background: rgba(59, 130, 246, 0.25);
+    color: #bfdbfe;
 }
 
 .custom-calendar-instruction {
@@ -7439,14 +7956,36 @@ document.addEventListener('DOMContentLoaded', function() {
     const bookForm = document.getElementById('bookForm');
     if (bookForm) {
         bookForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-
             const submitButton = this.querySelector('.btn-submit');
             const originalText = submitButton.innerHTML;
 
             // Disable button and show loading
             submitButton.disabled = true;
             submitButton.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Booking...';
+
+            // Duration-aware guard: ensure selected date can fit the chosen service duration
+            try {
+                appointmentType = 'book';
+                const selectedDateVal = document.getElementById('bookDate').value;
+                const durationNeeded = getRequestDuration();
+                if (selectedDateVal && durationNeeded > 0) {
+                    const dateObj = new Date(selectedDateVal + 'T00:00:00');
+                    if (!canDayFitDuration(dateObj, durationNeeded)) {
+                        e.preventDefault();
+                        const h = Math.floor(durationNeeded / 60);
+                        const m = durationNeeded % 60;
+                        const needText = `${h > 0 ? h + ' hr' + (h > 1 ? 's' : '' ) : ''}${h > 0 && m > 0 ? ' ' : ''}${m > 0 ? m + ' min' : ''}`.trim() || 'selected duration';
+                        alert(`This date has no continuous window available for ${needText}. Please choose a different date.`);
+                        submitButton.disabled = false;
+                        submitButton.innerHTML = originalText;
+                        return;
+                    }
+                }
+            } catch (_) {
+                // If guard fails silently, proceed to server-side validation
+            }
+
+            e.preventDefault();
 
             const formData = {
                 type: 'book', // Use 'book' type for regular appointment booking
@@ -7643,6 +8182,17 @@ function getRequestDuration() {
             const aptDuration = selectedOption.getAttribute('data-duration');
             if (aptDuration) {
                 duration = parseInt(aptDuration);
+            }
+        }
+    }
+    // If book mode, read selected service duration
+    else if (typeof appointmentType !== 'undefined' && appointmentType === 'book') {
+        const bookServiceSelect = document.getElementById('bookServiceSelect');
+        if (bookServiceSelect && bookServiceSelect.value && bookServiceSelect.value !== 'other') {
+            const selectedOption = bookServiceSelect.options[bookServiceSelect.selectedIndex];
+            const serviceDuration = selectedOption.getAttribute('data-duration');
+            if (serviceDuration) {
+                duration = parseInt(serviceDuration);
             }
         }
     }
@@ -7986,16 +8536,45 @@ function updateTimeAvailability() {
         messageDiv.innerHTML = '<i class="bi bi-check-circle-fill"></i> This time slot is available!';
         enableSubmit();
     } else {
-        if (isDarkMode) {
-            messageDiv.style.background = 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.1) 100%)';
-            messageDiv.style.color = '#fca5a5';
-            messageDiv.style.border = '2px solid #ef4444';
+        // Provide a specific warning if the chosen duration exceeds the available window
+        const [hh, mm] = selectedTime.split(':').map(Number);
+        const startAt = new Date(dateObj);
+        startAt.setHours(hh || 0, mm || 0, 0, 0);
+        const maxFree = getMaxContinuousFreeMinutes(startAt);
+        const need = typeof getRequestDuration === 'function' ? getRequestDuration() : 0;
+
+        const formatMinutes = (mins) => {
+            const h = Math.floor(mins / 60);
+            const m = mins % 60;
+            const parts = [];
+            if (h > 0) parts.push(`${h} hr${h > 1 ? 's' : ''}`);
+            if (m > 0) parts.push(`${m} min`);
+            return parts.length ? parts.join(' ') : '0 min';
+        };
+
+        if (maxFree > 0 && need > maxFree) {
+            if (isDarkMode) {
+                messageDiv.style.background = 'linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.1) 100%)';
+                messageDiv.style.color = '#fbbf24';
+                messageDiv.style.border = '2px solid #f59e0b';
+            } else {
+                messageDiv.style.background = 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)';
+                messageDiv.style.color = '#92400e';
+                messageDiv.style.border = '2px solid #f59e0b';
+            }
+            messageDiv.innerHTML = `<i class="bi bi-exclamation-triangle-fill"></i> Only ${formatMinutes(maxFree)} is available from this start time, but the selected service needs ${formatMinutes(need)}. Please pick an earlier time or a different date.`;
         } else {
-            messageDiv.style.background = 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)';
-            messageDiv.style.color = '#991b1b';
-            messageDiv.style.border = '2px solid #ef4444';
+            if (isDarkMode) {
+                messageDiv.style.background = 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.1) 100%)';
+                messageDiv.style.color = '#fee2e2';
+                messageDiv.style.border = '2px solid #ef4444';
+            } else {
+                messageDiv.style.background = 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)';
+                messageDiv.style.color = '#991b1b';
+                messageDiv.style.border = '2px solid #ef4444';
+            }
+            messageDiv.innerHTML = '<i class="bi bi-x-circle-fill"></i> This time slot is not available. Please select a different time.';
         }
-        messageDiv.innerHTML = '<i class="bi bi-x-circle-fill"></i> This time slot is not available. Please select a different time.';
         disableSubmit();
     }
 
@@ -8560,9 +9139,6 @@ document.getElementById('rescheduleForm').addEventListener('submit', function(e)
                 </div>
                     </div>
             <div class="modal-footer bg-light">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="bi bi-x-circle me-1"></i>Close
-                </button>
                 <button type="button" class="btn btn-warning" id="modalRescheduleBtn">
                     <i class="bi bi-calendar3 me-1"></i>Request Reschedule
                 </button>
@@ -9226,6 +9802,163 @@ document.addEventListener('DOMContentLoaded', function() {
 // CUSTOM DATE PICKER CALENDAR WIDGET
 // ============================================
 
+// Helper: check if a given Date has a full-day clinic closure (00:00–23:59) in window.blockedTimes
+function isFullDayClosed(dateObj) {
+    try {
+        const y = dateObj.getFullYear();
+        const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const d = String(dateObj.getDate()).padStart(2, '0');
+        const dateStr = `${y}-${m}-${d}`;
+        const list = Array.isArray(window.blockedTimes) ? window.blockedTimes : [];
+        return list.some(function(bt) {
+            if (!bt || !bt.start_datetime || !bt.end_datetime) return false;
+            // Expect 'Y-m-d H:i:s' strings
+            return bt.start_datetime.startsWith(dateStr) &&
+                   bt.end_datetime.startsWith(dateStr) &&
+                   bt.start_datetime.slice(11, 16) === '00:00' &&
+                   bt.end_datetime.slice(11, 16) === '23:59';
+        });
+    } catch (_) {
+        return false;
+    }
+}
+
+// Helper: determine if an entire day is effectively fully booked (no available start time)
+// for the currently selected service duration within clinic hours, considering appointments
+// (excluding cancelled) and blocked times.
+function isDayFullyBookedForDuration(dateObj, durationMinutes) {
+    try {
+        if (!durationMinutes || durationMinutes <= 0) return false;
+        const year = dateObj.getFullYear();
+        const month = dateObj.getMonth();
+        const day = dateObj.getDate();
+        const clinicOpenHour = 11;
+        const clinicCloseHour = 18;
+
+        // Build merged list of busy intervals for this day:
+        const busyIntervals = [];
+
+        // Appointments (exclude cancelled)
+        const appointments = Array.isArray(window.allAppointments) ? window.allAppointments : [];
+        for (const apt of appointments) {
+            if (!apt || !apt.start_datetime || !apt.end_datetime) continue;
+            const statusLower = (apt.status || '').toString().toLowerCase();
+            if (statusLower === 'cancelled') continue;
+            const s = parseLocalDateTime(apt.start_datetime);
+            const e = parseLocalDateTime(apt.end_datetime);
+            if (!s || !e) continue;
+            if (s.getFullYear() === year && s.getMonth() === month && s.getDate() === day) {
+                busyIntervals.push([s, e]);
+            }
+        }
+
+        // Blocked times
+        const blocked = Array.isArray(window.blockedTimes) ? window.blockedTimes : [];
+        for (const bt of blocked) {
+            if (!bt || !bt.start_datetime || !bt.end_datetime) continue;
+            const s = parseLocalDateTime(bt.start_datetime);
+            const e = parseLocalDateTime(bt.end_datetime);
+            if (!s || !e) continue;
+            if (s.getFullYear() === year && s.getMonth() === month && s.getDate() === day) {
+                busyIntervals.push([s, e]);
+            }
+        }
+
+        // If no busy intervals, day is not fully booked
+        if (busyIntervals.length === 0) return false;
+
+        // Try each potential start time in 15-min increments
+        for (let hour = clinicOpenHour; hour < clinicCloseHour; hour++) {
+            for (let minute = 0; minute < 60; minute += 15) {
+                const start = new Date(year, month, day, hour, minute, 0);
+                const end = new Date(start.getTime() + durationMinutes * 60000);
+                // End cannot go past closing
+                if (end.getHours() > clinicCloseHour || (end.getHours() === clinicCloseHour && end.getMinutes() > 0)) {
+                    continue;
+                }
+                // Inclusive overlap: treat boundary touching as conflict
+                const overlaps = busyIntervals.some(([bs, be]) => start <= be && end >= bs);
+                if (!overlaps) {
+                    // Found at least one free slot
+                    return false;
+                }
+            }
+        }
+        // No free slots found
+        return true;
+    } catch (_) {
+        return false;
+    }
+}
+
+// Helper: can at least one start time on the day fit the given duration?
+function canDayFitDuration(dateObj, durationMinutes) {
+    return !isDayFullyBookedForDuration(dateObj, durationMinutes);
+}
+
+// Helper: compute maximum continuous free minutes starting at a given date/time
+function getMaxContinuousFreeMinutes(startDateTime) {
+    try {
+        const clinicOpenHour = 11;
+        const clinicCloseHour = 18;
+
+        const year = startDateTime.getFullYear();
+        const month = startDateTime.getMonth();
+        const day = startDateTime.getDate();
+
+        // Closing boundary at 18:00 of same day
+        const closingBoundary = new Date(year, month, day, clinicCloseHour, 0, 0);
+        if (startDateTime >= closingBoundary) return 0;
+
+        // Collect busy intervals for the same day (appointments excl. cancelled + blocked)
+        const busyIntervals = [];
+        const appointments = Array.isArray(window.allAppointments) ? window.allAppointments : [];
+        for (const apt of appointments) {
+            if (!apt || !apt.start_datetime || !apt.end_datetime) continue;
+            const statusLower = (apt.status || '').toString().toLowerCase();
+            if (statusLower === 'cancelled') continue;
+            const s = parseLocalDateTime(apt.start_datetime);
+            const e = parseLocalDateTime(apt.end_datetime);
+            if (!s || !e) continue;
+            if (s.getFullYear() === year && s.getMonth() === month && s.getDate() === day) {
+                busyIntervals.push([s, e]);
+            }
+        }
+        const blocked = Array.isArray(window.blockedTimes) ? window.blockedTimes : [];
+        for (const bt of blocked) {
+            if (!bt || !bt.start_datetime || !bt.end_datetime) continue;
+            const s = parseLocalDateTime(bt.start_datetime);
+            const e = parseLocalDateTime(bt.end_datetime);
+            if (!s || !e) continue;
+            if (s.getFullYear() === year && s.getMonth() === month && s.getDate() === day) {
+                busyIntervals.push([s, e]);
+            }
+        }
+
+        // Find the earliest busy interval that overlaps or starts after the requested start
+        let earliestConflictStart = closingBoundary;
+        for (const [bs, be] of busyIntervals) {
+            if (startDateTime < be && be > startDateTime) {
+                // If busy starts at/after startDateTime and earlier than current earliest
+                if (bs >= startDateTime && bs < earliestConflictStart) {
+                    earliestConflictStart = bs;
+                }
+                // If currently inside a busy interval, there's zero availability
+                if (bs <= startDateTime && be > startDateTime) {
+                    return 0;
+                }
+            } else if (bs > startDateTime && bs < earliestConflictStart) {
+                earliestConflictStart = bs;
+            }
+        }
+
+        const freeMs = Math.max(0, earliestConflictStart.getTime() - startDateTime.getTime());
+        return Math.floor(freeMs / 60000);
+    } catch (_) {
+        return 0;
+    }
+}
+
 // Calendar widget class
 class CustomDatePicker {
     constructor(containerId, inputId, monthYearId, prevBtnId, nextBtnId, minDate = null) {
@@ -9332,25 +10065,55 @@ class CustomDatePicker {
         // Clear grid
         this.container.innerHTML = '';
         
+        const todayMidnight = new Date();
+        todayMidnight.setHours(0, 0, 0, 0);
+
         // Add days from previous month
         for (let i = firstDay - 1; i >= 0; i--) {
             const day = daysInPrevMonth - i;
             const date = new Date(year, month - 1, day);
-            const dayElement = this.createDayElement(date, true, false);
+            const isPast = date < todayMidnight;
+            const dayElement = this.createDayElement(date, true, true, false, false, false, false, isPast);
             this.container.appendChild(dayElement);
         }
         
         // Add days from current month
         for (let day = 1; day <= daysInMonth; day++) {
             const date = new Date(year, month, day);
-            const isDisabled = this.isDateDisabled(date);
+            const dateMidnight = new Date(date);
+            dateMidnight.setHours(0, 0, 0, 0);
+            const isPastDate = dateMidnight < todayMidnight;
+            const isClosed = isFullDayClosed(date);
+            const baseDisabled = this.isDateDisabled(date);
+            let isFullyBooked = false;
+            let isDisabled = baseDisabled || isClosed;
+
+            if (!isPastDate && !baseDisabled && !isClosed) {
+                const durationForCheck = typeof getRequestDuration === 'function' ? getRequestDuration() : 0;
+                if (durationForCheck > 0) {
+                    isFullyBooked = isDayFullyBookedForDuration(date, durationForCheck);
+                    if (isFullyBooked) {
+                        isDisabled = true;
+                    }
+                }
+            }
+
             const isSelected = this.selectedDate && 
                 date.getDate() === this.selectedDate.getDate() &&
                 date.getMonth() === this.selectedDate.getMonth() &&
                 date.getFullYear() === this.selectedDate.getFullYear();
             const isToday = date.toDateString() === new Date().toDateString();
             
-            const dayElement = this.createDayElement(date, false, isDisabled, isSelected, isToday);
+            const dayElement = this.createDayElement(
+                date,
+                false,
+                isDisabled,
+                isSelected,
+                isToday,
+                isClosed,
+                isFullyBooked,
+                isPastDate
+            );
             this.container.appendChild(dayElement);
         }
         
@@ -9359,24 +10122,64 @@ class CustomDatePicker {
         const remainingCells = 42 - totalCells; // 6 rows * 7 days
         for (let day = 1; day <= remainingCells; day++) {
             const date = new Date(year, month + 1, day);
-            const dayElement = this.createDayElement(date, true, false);
+            const isPast = date < todayMidnight;
+            const dayElement = this.createDayElement(date, true, true, false, false, false, false, isPast);
             this.container.appendChild(dayElement);
         }
     }
     
-    createDayElement(date, isInactive, isDisabled, isSelected = false, isToday = false) {
+    createDayElement(
+        date,
+        isInactive,
+        isDisabled,
+        isSelected = false,
+        isToday = false,
+        isClosed = false,
+        isFullyBooked = false,
+        isPastDate = false
+    ) {
         const dayElement = document.createElement('div');
         dayElement.className = 'custom-calendar-day';
-        dayElement.textContent = date.getDate();
+        dayElement.innerHTML = `<span class="date-number">${date.getDate()}</span>`;
         
         if (isInactive) {
             dayElement.classList.add('inactive');
+            dayElement.classList.add('disabled');
         } else if (isDisabled) {
             dayElement.classList.add('disabled');
         } else {
             dayElement.classList.add('active');
-            if (!isDisabled) {
-                dayElement.addEventListener('click', () => this.selectDate(date));
+            dayElement.addEventListener('click', () => this.selectDate(date));
+        }
+        
+        // Visual indicators for closed/fully booked days
+        if (!isInactive) {
+            if (isClosed) {
+                dayElement.classList.add('closed-day');
+                dayElement.classList.add('disabled');
+                dayElement.classList.remove('active');
+                dayElement.style.pointerEvents = 'none';
+                dayElement.setAttribute('title', 'Clinic is closed for the entire day');
+
+                const label = document.createElement('span');
+                label.className = 'day-status-label closed';
+                label.textContent = 'Closed';
+                dayElement.appendChild(label);
+            } else if (isFullyBooked) {
+                dayElement.classList.add('fully-booked-day');
+                dayElement.classList.add('disabled');
+                dayElement.classList.remove('active');
+                dayElement.style.pointerEvents = 'none';
+                dayElement.setAttribute('title', 'Fully booked for the selected service duration');
+
+                const label = document.createElement('span');
+                label.className = 'day-status-label full';
+                label.textContent = 'Full';
+                dayElement.appendChild(label);
+            } else if (isPastDate) {
+                dayElement.classList.add('disabled');
+                dayElement.classList.remove('active');
+                dayElement.style.pointerEvents = 'none';
             }
         }
         
@@ -9473,6 +10276,35 @@ document.addEventListener('DOMContentLoaded', function() {
     if (bookDateInput) {
         bookDateInput.addEventListener('change', function() {
             // Book form doesn't need time validation
+        });
+    }
+
+    // Re-render calendar days when service selection changes (duration-dependent availability)
+    const bookServiceSelectEl = document.getElementById('bookServiceSelect');
+    if (bookServiceSelectEl) {
+        bookServiceSelectEl.addEventListener('change', function() {
+            if (bookCalendar) bookCalendar.render();
+        });
+    }
+
+    // Prevent booking a date that cannot fit the selected duration at all
+    const bookForm = document.getElementById('bookForm');
+    if (bookForm) {
+        bookForm.addEventListener('submit', function(e) {
+            const dateInput = document.getElementById('bookDate');
+            const selectedDate = dateInput ? dateInput.value : '';
+            const duration = typeof getRequestDuration === 'function' ? getRequestDuration() : 0;
+            if (selectedDate && duration > 0) {
+                const dateObj = new Date(selectedDate + 'T00:00:00');
+                if (!canDayFitDuration(dateObj, duration)) {
+                    e.preventDefault();
+                    const hours = Math.floor(duration / 60);
+                    const mins = duration % 60;
+                    const needText = `${hours > 0 ? hours + ' hr' + (hours > 1 ? 's' : '') : ''}${hours > 0 && mins > 0 ? ' ' : ''}${mins > 0 ? mins + ' min' : ''}`.trim() || 'selected duration';
+                    alert(`No continuous window available on this date for ${needText}. Please choose a different date.`);
+                    return false;
+                }
+            }
         });
     }
 });
@@ -9766,7 +10598,7 @@ document.addEventListener('DOMContentLoaded', function() {
     align-items: center;
     justify-content: center;
     box-shadow: 0 8px 24px rgba(239, 68, 68, 0.2);
-    border: 3px solid #fca5a5;
+    border: 3px solid #ef4444;
 }
 
 .blocked-time-icon {
@@ -9863,7 +10695,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 [data-theme="dark"] .blocked-time-icon-circle {
     background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.15) 100%) !important;
-    border-color: #fca5a5 !important;
+    border-color: #ef4444 !important;
     box-shadow: 0 8px 24px rgba(239, 68, 68, 0.3) !important;
 }
 
@@ -10489,6 +11321,7 @@ document.addEventListener('DOMContentLoaded', function() {
 [data-theme="dark"] .day-appointment-item.missed {
     background: rgba(107, 114, 128, 0.15);
     border-left-color: #6b7280;
+    opacity: 0.7;
 }
 
 [data-theme="dark"] .day-appointment-item.booked {
@@ -10787,6 +11620,659 @@ document.addEventListener('DOMContentLoaded', function() {
         el.style.opacity = '1';
         el.style.transform = 'none';
     });
+})();
+</script>
+
+<script>
+// Style adjustments for Blocked Time display in the MAIN patient calendar
+// - "Clinic Closed" → ALL CAPS, bold, maroon
+// - "Blocked Off Time - Specific Time" → make the time maroon
+// Scoped to the main calendar grid only (not the day-of appointments or mini pickers)
+document.addEventListener('DOMContentLoaded', function() {
+    // Position tab tooltips using viewport coordinates so they aren't clipped by sidebar overflow
+    document.querySelectorAll('.tab-btn[data-tooltip]').forEach(function(btn) {
+        let bodyTip = null;
+        const updateBodyTip = () => {
+            if (!bodyTip) return;
+            const rect = btn.getBoundingClientRect();
+            const left = rect.left + rect.width / 2;
+            const top = rect.bottom + 8;
+            bodyTip.style.left = (left) + 'px';
+            bodyTip.style.top = (top) + 'px';
+            bodyTip.style.transform = 'translateX(-50%)';
+        };
+        btn.addEventListener('mouseenter', function() {
+            // prefer body-mounted tooltip to avoid any clipping/z-index issues
+            btn.setAttribute('data-no-tt', '1'); // disable pseudo tooltip
+            bodyTip = document.createElement('div');
+            bodyTip.className = 'calendar-body-tooltip';
+            bodyTip.textContent = btn.getAttribute('data-tooltip') || '';
+            document.body.appendChild(bodyTip);
+            updateBodyTip();
+        });
+        btn.addEventListener('mousemove', updateBodyTip);
+        btn.addEventListener('mouseleave', function() {
+            btn.removeAttribute('data-no-tt');
+            if (bodyTip && bodyTip.parentNode) {
+                bodyTip.parentNode.removeChild(bodyTip);
+            }
+            bodyTip = null;
+        });
+    });
+
+    function getAllGrids() {
+        return Array.from(document.querySelectorAll('.calendar-layout .calendar-grid'));
+    }
+
+    function styleBlockedInMainCalendar() {
+        const grids = getAllGrids();
+        if (!grids.length) return;
+
+        const blockedItems = grids.flatMap(grid => Array.from(grid.querySelectorAll('.event-item.blocked')));
+        if (!blockedItems.length) return; // Early return if no blocked items
+        
+        // Count items that need processing
+        const itemsToProcess = blockedItems.filter(item => item.dataset.blockStyled !== '1');
+        if (!itemsToProcess.length) return; // All items already styled, no work needed
+        
+        itemsToProcess.forEach(function(item) {
+            if (item.dataset.blockStyled === '1') return; // avoid rework loops
+            const titleEl = item.querySelector('.event-title');
+            const timeEl = item.querySelector('.event-time');
+            const dayEl = item.closest('.calendar-day');
+
+            if (titleEl) {
+                const titleText = titleEl.textContent.trim().toLowerCase();
+                // Treat as clinic closed if title OR notes mention it
+                const notesEl = item.querySelector('.event-notes');
+                const isClinicClosed = titleText.includes('clinic closed') || (notesEl && notesEl.textContent.toLowerCase().includes('clinic closed'));
+
+                if (isClinicClosed) {
+                    // Title: all caps, bold, maroon
+                    titleEl.textContent = titleEl.textContent.toUpperCase();
+                    titleEl.style.fontWeight = '800';
+                    titleEl.style.color = '#800000';
+                    // If time is present for any reason, also make it maroon
+                    if (timeEl) timeEl.style.color = '#800000';
+                    item.dataset.blockStyled = '1';
+                } else {
+                    // Specific-time block: make the time maroon
+                    if (timeEl) timeEl.style.color = '#800000';
+                    
+                    // Also display end time like "Already Booked" (e.g., 12:00 PM - 12:30 PM)
+                    try {
+                        if (!timeEl || !dayEl) return;
+
+                        // 1) Parse period header to get month/year currently displayed
+                        const periodEl = document.getElementById('currentPeriodDisplay');
+                        const periodText = periodEl ? periodEl.textContent.trim() : '';
+                        // Expected like "November 2025" (fallbacks handled)
+                        const monthMap = {
+                            january: 0, february: 1, march: 2, april: 3, may: 4, june: 5,
+                            july: 6, august: 7, september: 8, october: 9, november: 10, december: 11
+                        };
+                        let currentMonth = null;
+                        let currentYear = null;
+                        if (periodText) {
+                            const m = periodText.match(/^([A-Za-z]+)\s+(\d{4})$/);
+                            if (m) {
+                                const monthName = m[1].toLowerCase();
+                                if (monthMap.hasOwnProperty(monthName)) {
+                                    currentMonth = monthMap[monthName];
+                                    currentYear = parseInt(m[2], 10);
+                                }
+                            }
+                        }
+
+                        // 2) Determine the day number from the cell
+                        const dayNumEl = dayEl.querySelector('.day-number');
+                        const dayNum = dayNumEl ? parseInt(dayNumEl.textContent.trim(), 10) : NaN;
+                        if (Number.isNaN(dayNum)) return;
+
+                        // 3) Build a Date for the displayed start time on that day
+                        const displayed = (timeEl.textContent || '').trim();
+                        if (!displayed || / - /.test(displayed)) return; // already expanded or empty
+
+                        // "12:00 PM" -> minutes from midnight
+                        const parseDisplayTimeToMinutes = (str) => {
+                            const m = str.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+                            if (!m) return null;
+                            let h = parseInt(m[1], 10);
+                            const min = parseInt(m[2], 10);
+                            const ap = m[3].toUpperCase();
+                            if (ap === 'PM' && h !== 12) h += 12;
+                            if (ap === 'AM' && h === 12) h = 0;
+                            return h * 60 + min;
+                        };
+                        const startMinutes = parseDisplayTimeToMinutes(displayed);
+                        if (startMinutes === null) return;
+
+                        // 4) Find the matching blocked time from window.blockedTimes
+                        const blockedList = Array.isArray(window.blockedTimes) ? window.blockedTimes : [];
+                        if (!blockedList.length || currentMonth === null || currentYear === null) return;
+
+                        const pad2 = (n) => String(n).padStart(2, '0');
+                        // Build yyyy-mm-dd string for quick date equality checks in local time
+                        const candidateDateStr = `${currentYear}-${pad2(currentMonth + 1)}-${pad2(dayNum)}`;
+
+                        // Robust local parser to avoid timezone issues
+                        const toLocal = (str) => {
+                            if (!str) return new Date(NaN);
+                            // Accept "YYYY-MM-DD HH:MM:SS" or "YYYY-MM-DDTHH:MM:SS"
+                            const m = String(str).match(/^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})(?::(\d{2}))?/);
+                            if (!m) return new Date(str); // fallback to native
+                            const y = parseInt(m[1], 10);
+                            const mo = parseInt(m[2], 10) - 1;
+                            const d = parseInt(m[3], 10);
+                            const h = parseInt(m[4], 10);
+                            const mi = parseInt(m[5], 10);
+                            const s = m[6] ? parseInt(m[6], 10) : 0;
+                            return new Date(y, mo, d, h, mi, s);
+                        };
+                        const sameYMD = (d, y, m, day) => d.getFullYear() === y && d.getMonth() === m && d.getDate() === day;
+
+                        // Prefer exact start-minute match; otherwise match if displayed time lies within the block range
+                        const candidates = blockedList.filter((bt) => {
+                            if (!bt || !bt.start_datetime || !bt.end_datetime) return false;
+                            const s = toLocal(bt.start_datetime);
+                            const e = toLocal(bt.end_datetime);
+                            if (!(s instanceof Date) || isNaN(s) || !(e instanceof Date) || isNaN(e)) return false;
+                            return sameYMD(s, currentYear, currentMonth, dayNum);
+                        });
+                        let match = null;
+                        if (candidates.length) {
+                            match = candidates.find((bt) => {
+                                const s = toLocal(bt.start_datetime);
+                                const sMin = s.getHours() * 60 + s.getMinutes();
+                                return sMin === startMinutes;
+                            }) || candidates.find((bt) => {
+                                const s = toLocal(bt.start_datetime);
+                                const e = toLocal(bt.end_datetime);
+                                const sMin = s.getHours() * 60 + s.getMinutes();
+                                const eMin = e.getHours() * 60 + e.getMinutes();
+                                return startMinutes >= sMin && startMinutes < eMin;
+                            }) || null;
+                        }
+
+                        if (match) {
+                            const s = toLocal(match.start_datetime);
+                            const e = toLocal(match.end_datetime);
+                            if (s instanceof Date && !isNaN(s) && e instanceof Date && !isNaN(e)) {
+                                const fmt = (d) => {
+                                    let h = d.getHours();
+                                    const m = d.getMinutes();
+                                    const ap = h >= 12 ? 'PM' : 'AM';
+                                    h = h % 12;
+                                    h = h ? h : 12;
+                                    return `${h}:${pad2(m)} ${ap}`;
+                                };
+                                timeEl.textContent = `${fmt(s)} - ${fmt(e)}`;
+                            }
+                        } else {
+                            // Fallback: default to a 60-minute window to mirror common block durations
+                            const addMinutes = (minutes) => {
+                                const base = new Date(currentYear, currentMonth, dayNum, Math.floor(startMinutes / 60), startMinutes % 60, 0);
+                                base.setMinutes(base.getMinutes() + minutes);
+                                return base;
+                            };
+                            const fmt = (d) => {
+                                let h = d.getHours();
+                                const m = d.getMinutes();
+                                const ap = h >= 12 ? 'PM' : 'AM';
+                                h = h % 12;
+                                h = h ? h : 12;
+                                return `${h}:${pad2(m)} ${ap}`;
+                            };
+                            const startDate = addMinutes(0);
+                            const endDate = addMinutes(60);
+                            if (!isNaN(startDate) && !isNaN(endDate)) {
+                                timeEl.textContent = `${fmt(startDate)} - ${fmt(endDate)}`;
+                            }
+                        }
+                    } catch (_) {
+                        // no-op on failure
+                    }
+                }
+            } else if (timeEl) {
+                // Fallback: if only time exists, make it maroon
+                timeEl.style.color = '#800000';
+            }
+            item.dataset.blockStyled = '1';
+        });
+    }
+
+    // Initial styling will be triggered by the global debounced formatter below
+
+    // NEW: Ensure ALL appointments show a time range (Pending, Confirmed, Completed, Cancelled, Missed)
+    function ensureAllEventRanges() {
+        const grids = getAllGrids();
+        if (!grids.length) return;
+
+        const periodEl = document.getElementById('currentPeriodDisplay');
+        const periodText = periodEl ? periodEl.textContent.trim() : '';
+        const monthMap = {
+            january: 0, february: 1, march: 2, april: 3, may: 4, june: 5,
+            july: 6, august: 7, september: 8, october: 9, november: 10, december: 11
+        };
+        function parsePeriodToRange(text) {
+            if (!text) return null;
+            // Case 1: "April 2025"
+            let m = text.match(/^([A-Za-z]+)\s+(\d{4})$/);
+            if (m) {
+                const monthName = m[1].toLowerCase();
+                if (monthMap.hasOwnProperty(monthName)) {
+                    const y = parseInt(m[2], 10);
+                    const mo = monthMap[monthName];
+                    const start = new Date(y, mo, 1, 0, 0, 0);
+                    const end = new Date(y, mo + 1, 0, 23, 59, 59);
+                    return { start, end, year: y, month: mo };
+                }
+            }
+            // Case 2: "Nov 9 - Nov 15, 2025" or "November 9 - 15, 2025"
+            m = text.match(/^([A-Za-z]+)\s+(\d{1,2})\s*-\s*(?:([A-Za-z]+)\s*)?(\d{1,2}),\s*(\d{4})$/);
+            if (m) {
+                const m1Name = m[1].toLowerCase();
+                const m2Name = (m[3] ? m[3] : m[1]).toLowerCase();
+                if (monthMap.hasOwnProperty(m1Name) && monthMap.hasOwnProperty(m2Name)) {
+                    const y = parseInt(m[5], 10);
+                    const mo1 = monthMap[m1Name];
+                    const mo2 = monthMap[m2Name];
+                    const d1 = parseInt(m[2], 10);
+                    const d2 = parseInt(m[4], 10);
+                    const start = new Date(y, mo1, d1, 0, 0, 0);
+                    const end = new Date(y, mo2, d2, 23, 59, 59);
+                    return { start, end, year: y, month: mo1, range: true };
+                }
+            }
+            // Case 3: "Tuesday, November 11, 2025" (Day view)
+            m = text.match(/^(?:[A-Za-z]+,\s*)?([A-Za-z]+)\s+(\d{1,2}),\s*(\d{4})$/);
+            if (m) {
+                const monthName = m[1].toLowerCase();
+                if (monthMap.hasOwnProperty(monthName)) {
+                    const y = parseInt(m[3], 10);
+                    const mo = monthMap[monthName];
+                    const d = parseInt(m[2], 10);
+                    const start = new Date(y, mo, d, 0, 0, 0);
+                    const end = new Date(y, mo, d, 23, 59, 59);
+                    return { start, end, year: y, month: mo, day: d };
+                }
+            }
+            return null;
+        }
+        const periodInfo = parsePeriodToRange(periodText);
+        if (!periodInfo) return;
+        const currentYear = periodInfo.year;
+        const currentMonth = periodInfo.month;
+
+        const toLocal = (str) => {
+            if (!str) return new Date(NaN);
+            const m = String(str).match(/^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})(?::(\d{2}))?/);
+            if (!m) return new Date(str);
+            const y = parseInt(m[1], 10);
+            const mo = parseInt(m[2], 10) - 1;
+            const d = parseInt(m[3], 10);
+            const h = parseInt(m[4], 10);
+            const mi = parseInt(m[5], 10);
+            const s = m[6] ? parseInt(m[6], 10) : 0;
+            return new Date(y, mo, d, h, mi, s);
+        };
+        const pad2 = (n) => String(n).padStart(2, '0');
+        const sameYMD = (d, y, m, day) => d.getFullYear() === y && d.getMonth() === m && d.getDate() === day;
+        const parseDisplayTimeToMinutes = (str) => {
+            const m = String(str || '').trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+            if (!m) return null;
+            let h = parseInt(m[1], 10);
+            const min = parseInt(m[2], 10);
+            const ap = m[3].toUpperCase();
+            if (ap === 'PM' && h !== 12) h += 12;
+            if (ap === 'AM' && h === 12) h = 0;
+            return h * 60 + min;
+        };
+        const fmt = (d) => {
+            let h = d.getHours();
+            const m = d.getMinutes();
+            const ap = h >= 12 ? 'PM' : 'AM';
+            h = h % 12;
+            h = h ? h : 12;
+            return `${h}:${pad2(m)} ${ap}`;
+        };
+
+        const allAppointments = Array.isArray(window.allAppointments) ? window.allAppointments : [];
+        if (!allAppointments.length) return; // Early return if no appointments data
+
+        const allItems = grids.flatMap(grid => Array.from(grid.querySelectorAll('.event-item')));
+        if (!allItems.length) return; // Early return if no event items
+        
+        // Filter items that need processing (exclude blocked, items without time, or already formatted)
+        const itemsToProcess = allItems.filter(item => {
+            if (item.classList.contains('blocked')) return false;
+            const timeEl = item.querySelector('.event-time') || item.querySelector('.appointment-time');
+            if (!timeEl) return false;
+            const current = (timeEl.textContent || '').trim();
+            if (!current || / - /.test(current)) return false; // already a range or empty
+            return true;
+        });
+        
+        if (!itemsToProcess.length) return; // All items already formatted, no work needed
+        
+        // 1) Month/Week grid items
+        itemsToProcess.forEach(function(item) {
+            const timeEl = item.querySelector('.event-time') || item.querySelector('.appointment-time');
+            if (!timeEl) return;
+            const current = (timeEl.textContent || '').trim();
+            if (!current || / - /.test(current)) return; // already a range or empty
+
+            const dayEl = item.closest('.calendar-day');
+            const dayNumEl = dayEl ? dayEl.querySelector('.day-number') : null;
+            const dayNum = dayNumEl ? parseInt(dayNumEl.textContent.trim(), 10) : NaN;
+
+            const startMinutes = parseDisplayTimeToMinutes(current);
+            if (startMinutes === null) return;
+
+            // Find matching appointment
+            const candidates = allAppointments.filter((apt) => {
+                const s = toLocal(apt.start_datetime);
+                if (!(s instanceof Date) || isNaN(s)) return false;
+                if (!Number.isNaN(dayNum)) {
+                    return sameYMD(s, currentYear, currentMonth, dayNum);
+                }
+                // Week/Day view: use period range containment
+                return periodInfo.start <= s && s <= periodInfo.end;
+            });
+            let match = candidates.find((apt) => {
+                const s = toLocal(apt.start_datetime);
+                const sMin = s.getHours() * 60 + s.getMinutes();
+                return sMin === startMinutes;
+            }) || candidates.find((apt) => {
+                const s = toLocal(apt.start_datetime);
+                const e = toLocal(apt.end_datetime);
+                if (!(s instanceof Date) || isNaN(s) || !(e instanceof Date) || isNaN(e)) return false;
+                const sMin = s.getHours() * 60 + s.getMinutes();
+                const eMin = e.getHours() * 60 + e.getMinutes();
+                return startMinutes >= sMin && startMinutes < eMin;
+            }) || null;
+
+            if (match) {
+                const s = toLocal(match.start_datetime);
+                const e = toLocal(match.end_datetime);
+                if (s instanceof Date && !isNaN(s) && e instanceof Date && !isNaN(e)) {
+                    timeEl.textContent = `${fmt(s)} - ${fmt(e)}`;
+                    return;
+                }
+                // If end not parsable, try duration
+                const dur = parseInt(match.duration_minutes, 10);
+                if (!isNaN(dur) && dur > 0) {
+                    const base = !Number.isNaN(dayNum)
+                        ? new Date(currentYear, currentMonth, dayNum, Math.floor(startMinutes / 60), startMinutes % 60, 0)
+                        : new Date(s.getFullYear(), s.getMonth(), s.getDate(), Math.floor(startMinutes / 60), startMinutes % 60, 0);
+                    const sDate = base;
+                    const eDate = new Date(base);
+                    eDate.setMinutes(eDate.getMinutes() + dur);
+                    timeEl.textContent = `${fmt(sDate)} - ${fmt(eDate)}`;
+                    return;
+                }
+            }
+
+            // Fallback 60 minutes if no data match
+            const sDate = !Number.isNaN(dayNum)
+                ? new Date(currentYear, currentMonth, dayNum, Math.floor(startMinutes / 60), startMinutes % 60, 0)
+                : (function() {
+                    // Use start of period for date base when day number is unavailable
+                    const base = periodInfo.start;
+                    return new Date(base.getFullYear(), base.getMonth(), base.getDate(), Math.floor(startMinutes / 60), startMinutes % 60, 0);
+                })();
+            const eDate = new Date(sDate);
+            eDate.setMinutes(eDate.getMinutes() + 60);
+            timeEl.textContent = `${fmt(sDate)} - ${fmt(eDate)}`;
+        });
+
+        // 2) Day view cards (outside grid) - ensure their times show ranges too
+        const dayCards = Array.from(document.querySelectorAll('.day-appointment-item'));
+        dayCards.forEach(function(card) {
+            const timeEl = card.querySelector('.appointment-time');
+            if (!timeEl) return;
+            const current = (timeEl.textContent || '').trim();
+            if (!current || / - /.test(current)) return;
+
+            const startMinutes = parseDisplayTimeToMinutes(current);
+            if (startMinutes === null) return;
+
+            const candidates = allAppointments.filter((apt) => {
+                const s = toLocal(apt.start_datetime);
+                return s instanceof Date && !isNaN(s) && periodInfo.start <= s && s <= periodInfo.end;
+            });
+
+            let match = candidates.find((apt) => {
+                const s = toLocal(apt.start_datetime);
+                const sMin = s.getHours() * 60 + s.getMinutes();
+                return sMin === startMinutes;
+            }) || candidates.find((apt) => {
+                const s = toLocal(apt.start_datetime);
+                const e = toLocal(apt.end_datetime);
+                if (!(s instanceof Date) || isNaN(s) || !(e instanceof Date) || isNaN(e)) return false;
+                const sMin = s.getHours() * 60 + s.getMinutes();
+                const eMin = e.getHours() * 60 + e.getMinutes();
+                return startMinutes >= sMin && startMinutes < eMin;
+            }) || null;
+
+            const baseDate = periodInfo.start;
+            if (match) {
+                const s = toLocal(match.start_datetime);
+                const e = toLocal(match.end_datetime);
+                if (s instanceof Date && !isNaN(s) && e instanceof Date && !isNaN(e)) {
+                    timeEl.textContent = `${fmt(s)} - ${fmt(e)}`;
+                    return;
+                }
+                const dur = parseInt(match.duration_minutes, 10);
+                if (!isNaN(dur) && dur > 0) {
+                    const sDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), Math.floor(startMinutes / 60), startMinutes % 60, 0);
+                    const eDate = new Date(sDate);
+                    eDate.setMinutes(eDate.getMinutes() + dur);
+                    timeEl.textContent = `${fmt(sDate)} - ${fmt(eDate)}`;
+                    return;
+                }
+            }
+            const sDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), Math.floor(startMinutes / 60), startMinutes % 60, 0);
+            const eDate = new Date(sDate);
+            eDate.setMinutes(eDate.getMinutes() + 60);
+            timeEl.textContent = `${fmt(sDate)} - ${fmt(eDate)}`;
+        });
+    }
+
+    // Debounced formatter to avoid heavy loops
+    function debounce(fn, delay) {
+        let t = null;
+        return function() {
+            clearTimeout(t);
+            t = setTimeout(fn, delay);
+        };
+    }
+    // Track if formatters are currently running to prevent overlapping calls
+    let formattersRunning = false;
+    let lastFormatterRun = 0;
+    const MIN_FORMATTER_INTERVAL = 500; // Minimum 500ms between runs
+
+    const applyAllFormatters = debounce(function() {
+        // Prevent overlapping runs
+        const now = Date.now();
+        if (formattersRunning || (now - lastFormatterRun < MIN_FORMATTER_INTERVAL)) {
+            return;
+        }
+        
+        formattersRunning = true;
+        lastFormatterRun = now;
+        
+        try {
+            styleBlockedInMainCalendar();
+            ensureAllEventRanges();
+        } finally {
+            formattersRunning = false;
+        }
+    }, 200);
+
+    // Initial passes - defer to improve initial load performance
+    // Use requestIdleCallback if available, otherwise setTimeout
+    if (window.requestIdleCallback) {
+        requestIdleCallback(() => {
+            applyAllFormatters();
+        }, { timeout: 500 });
+    } else {
+        setTimeout(applyAllFormatters, 100);
+    }
+    
+    // Also run on window load, but with debounce
+    window.addEventListener('load', function() {
+        if (window.requestIdleCallback) {
+            requestIdleCallback(() => {
+                applyAllFormatters();
+            }, { timeout: 500 });
+        } else {
+            setTimeout(applyAllFormatters, 200);
+        }
+    }, { once: true });
+
+    // Observe all current grids and rebind when switching views
+    const observedGrids = new WeakSet();
+    let observerInstances = new WeakMap();
+    
+    function bindGridObservers() {
+        getAllGrids().forEach(grid => {
+            if (observedGrids.has(grid)) return;
+            
+            // Disconnect any existing observer for this grid
+            const existingObs = observerInstances.get(grid);
+            if (existingObs) {
+                existingObs.disconnect();
+            }
+            
+            const obs = new MutationObserver((mutations) => {
+                // Only trigger if there are actual meaningful changes
+                const hasSignificantChanges = mutations.some(mutation => {
+                    // Ignore attribute changes that don't affect rendering
+                    if (mutation.type === 'attributes') {
+                        const attr = mutation.attributeName;
+                        // Ignore data attributes used for tracking
+                        if (attr && (attr.startsWith('data-') && attr !== 'data-block-styled')) {
+                            return false;
+                        }
+                    }
+                    // Only care about actual DOM structure changes
+                    return mutation.type === 'childList' || 
+                           (mutation.type === 'characterData' && mutation.target.textContent.trim());
+                });
+                
+                if (hasSignificantChanges) {
+                    applyAllFormatters();
+                }
+            });
+            
+            obs.observe(grid, { 
+                childList: true, 
+                subtree: true, 
+                characterData: true,
+                attributes: true,
+                attributeFilter: ['class', 'style'] // Only watch class/style changes
+            });
+            
+            observedGrids.add(grid);
+            observerInstances.set(grid, obs);
+        });
+    }
+    bindGridObservers();
+
+    // Watch the layout for grid additions/removals (view change)
+    const layout = document.querySelector('.calendar-layout') || document.body;
+    if (layout) {
+        const layoutObs = new MutationObserver((mutations) => {
+            // Only trigger on actual grid additions/removals
+            const hasGridChanges = mutations.some(mutation => {
+                if (mutation.type !== 'childList') return false;
+                return Array.from(mutation.addedNodes).some(node => 
+                    node.nodeType === 1 && (node.classList?.contains('calendar-grid') || node.querySelector?.('.calendar-grid'))
+                ) || Array.from(mutation.removedNodes).some(node => 
+                    node.nodeType === 1 && (node.classList?.contains('calendar-grid') || node.querySelector?.('.calendar-grid'))
+                );
+            });
+            
+            if (hasGridChanges) {
+                bindGridObservers();
+                applyAllFormatters();
+            }
+        });
+        layoutObs.observe(layout, { childList: true, subtree: true });
+    }
+
+    // Removed setInterval - MutationObserver handles all updates efficiently
+    // No periodic polling needed - only update when DOM actually changes
+});
+</script>
+
+<script>
+// Optimized loading overlay - hide when calendar sections are ready
+(function() {
+    const loadingOverlay = document.getElementById('calendar-loading-overlay');
+    
+    if (!loadingOverlay) return;
+    
+    function hideLoadingOverlay() {
+        if (loadingOverlay && !loadingOverlay.classList.contains('hidden')) {
+            loadingOverlay.classList.add('hidden');
+            // Remove from DOM after animation completes
+            setTimeout(() => {
+                if (loadingOverlay.parentNode) {
+                    loadingOverlay.parentNode.removeChild(loadingOverlay);
+                }
+            }, 300);
+        }
+    }
+    
+    // Check if calendar sections are ready
+    function checkCalendarReady() {
+        const calendarMain = document.querySelector('.calendar-main');
+        const tabSection = document.querySelector('.tabbed-section');
+        
+        // If both sections exist and have content, hide overlay
+        if (calendarMain && tabSection) {
+            // Use requestAnimationFrame for smooth performance
+            requestAnimationFrame(() => {
+                hideLoadingOverlay();
+            });
+            return true;
+        }
+        return false;
+    }
+    
+    // Try to hide immediately if DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            // Give a small delay for initial render
+            setTimeout(() => {
+                if (!checkCalendarReady()) {
+                    // Fallback: hide after short delay even if sections not detected
+                    setTimeout(hideLoadingOverlay, 200);
+                }
+            }, 50);
+        });
+    } else {
+        // DOM already loaded
+        setTimeout(() => {
+            if (!checkCalendarReady()) {
+                setTimeout(hideLoadingOverlay, 200);
+            }
+        }, 50);
+    }
+    
+    // Also listen for window load as backup
+    window.addEventListener('load', function() {
+        setTimeout(() => {
+            if (!loadingOverlay.classList.contains('hidden')) {
+                hideLoadingOverlay();
+            }
+        }, 100);
+    }, { once: true });
+    
+    // Fallback: Hide after maximum wait time (reduced from 10s to 3s for faster UX)
+    setTimeout(hideLoadingOverlay, 3000);
 })();
 </script>
 

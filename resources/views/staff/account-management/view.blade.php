@@ -135,7 +135,6 @@
                 <div class="mt-2 small text-muted">For security, enter your password to reveal the patient's email.</div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary" id="confirmViewEmailBtnStaff">View Email</button>
             </div>
         </div>
@@ -165,9 +164,6 @@
                 <div class="text-danger small" id="editPasswordVerifyErrorStaff" style="display:none;"></div>
             </div>
             <div class="modal-footer enhanced-password-footer">
-                <button type="button" class="btn btn-secondary btn-cancel-password" data-bs-dismiss="modal">
-                    <i class="bi bi-x-circle me-2"></i>Cancel
-                </button>
                 <button type="button" class="btn btn-primary btn-verify-password" id="editPasswordVerifyBtnStaff">
                     <i class="bi bi-check-circle me-2"></i>Verify
                 </button>

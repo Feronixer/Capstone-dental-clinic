@@ -2,44 +2,85 @@
 @section('content')
 <style>
 .notifications-container {
-    padding: 2rem;
+    padding: 1rem;
     background: #f8f9fa;
     min-height: calc(100vh - 80px);
+    max-height: calc(100vh - 80px);
+    max-width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .notifications-header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 2rem;
-    border-radius: 16px;
-    margin-bottom: 2rem;
+    padding: 1.25rem 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 1.25rem;
     color: white;
     box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
 }
 
 .notifications-header h1 {
-    font-size: 2rem;
+    font-size: 1.5rem;
     font-weight: 700;
-    margin: 0 0 0.5rem 0;
+    margin: 0 0 0.25rem 0;
 }
 
 .notifications-header p {
     margin: 0;
     opacity: 0.9;
-    font-size: 1.05rem;
+    font-size: 0.95rem;
 }
 
 .requests-grid {
     display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.requests-grid::-webkit-scrollbar {
+    width: 8px;
+}
+
+.requests-grid::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.requests-grid::-webkit-scrollbar-thumb {
+    background: #667eea;
+    border-radius: 10px;
+}
+
+.requests-grid::-webkit-scrollbar-thumb:hover {
+    background: #5568d3;
+}
+
+.request-groups-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
     gap: 1.5rem;
+    padding-right: 0.5rem;
+}
+
+.request-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
 .request-card {
     background: white;
-    border-radius: 16px;
-    padding: 2rem;
+    border-radius: 12px;
+    padding: 1.25rem;
     box-shadow: 0 4px 16px rgba(0,0,0,0.08);
     transition: all 0.3s;
-    border-left: 5px solid #667eea;
+    border-left: 4px solid #667eea;
 }
 
 .request-card:hover {
@@ -51,9 +92,10 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
     border-bottom: 2px solid #f1f5f9;
+    gap: 0.75rem;
 }
 
 .request-type-badge {
@@ -92,20 +134,20 @@
 .patient-info {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
+    gap: 0.875rem;
+    margin-bottom: 1rem;
 }
 
 .patient-avatar {
-    width: 60px;
-    height: 60px;
+    width: 50px;
+    height: 50px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     font-weight: 700;
     flex-shrink: 0;
 }
@@ -115,7 +157,7 @@
 }
 
 .patient-name {
-    font-size: 1.3rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: #1e293b;
     margin: 0 0 0.25rem 0;
@@ -129,15 +171,15 @@
 
 .request-details-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1rem;
-    margin-bottom: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
 }
 
 .detail-box {
     background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-    padding: 1rem;
-    border-radius: 12px;
+    padding: 0.75rem;
+    border-radius: 8px;
     border: 2px solid #e2e8f0;
 }
 
@@ -154,7 +196,7 @@
 }
 
 .detail-value {
-    font-size: 1.1rem;
+    font-size: 0.95rem;
     font-weight: 600;
     color: #1e293b;
 }
@@ -162,9 +204,9 @@
 .request-reason {
     background: #fffbeb;
     border-left: 4px solid #f59e0b;
-    padding: 1rem;
+    padding: 0.75rem;
     border-radius: 8px;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
 }
 
 .request-reason-label {
@@ -252,6 +294,99 @@
 .empty-text {
     color: #64748b;
     font-size: 1.05rem;
+}
+
+/* Pagination */
+.pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 2px solid #f1f5f9;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.pagination-info {
+    color: #64748b;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.pagination-info strong {
+    color: #1e293b;
+}
+
+.pagination-links {
+    display: flex;
+    justify-content: flex-end;
+    flex: 1;
+}
+
+.modern-pagination {
+    list-style: none;
+    display: flex;
+    gap: 0.5rem;
+    padding: 0;
+    margin: 0;
+    align-items: center;
+}
+
+.modern-pagination .page-item {
+    display: flex;
+}
+
+.modern-pagination .page-link {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    border: 1.5px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: #1f2937;
+    background: #ffffff;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);
+}
+
+.modern-pagination .page-link i {
+    font-size: 1rem;
+}
+
+.modern-pagination .page-link:hover {
+    border-color: #667eea;
+    color: #667eea;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    transform: translateY(-1px);
+}
+
+.modern-pagination .page-item.active .page-link {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #ffffff;
+    border-color: transparent;
+    box-shadow: 0 6px 18px rgba(102, 126, 234, 0.35);
+}
+
+.modern-pagination .page-item.disabled .page-link {
+    background: #f3f4f6;
+    border-color: #e5e7eb;
+    color: #9ca3af;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.modern-pagination .page-link.dots {
+    width: auto;
+    padding: 0 0.8rem;
+    cursor: default;
+    border-style: dashed;
+    color: #9ca3af;
+    box-shadow: none;
 }
 
 /* Deny Reason Modal Styles */
@@ -385,28 +520,218 @@
     margin-top: 2px;
 }
 
+
 @media (max-width: 768px) {
+    .notifications-container {
+        padding: 0.75rem;
+    }
+    
+    .notifications-header {
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-radius: 10px;
+    }
+    
+    .notifications-header h1 {
+        font-size: 1.25rem;
+    }
+    
+    .notifications-header p {
+        font-size: 0.85rem;
+    }
+    
+    .requests-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+    
+    .request-card {
+        padding: 1rem;
+        border-radius: 10px;
+    }
+    
     .request-header {
         flex-direction: column;
-        gap: 1rem;
+        gap: 0.75rem;
+        margin-bottom: 0.875rem;
+        padding-bottom: 0.625rem;
     }
 
     .patient-info {
-        flex-direction: column;
-        text-align: center;
+        flex-direction: row;
+        text-align: left;
+        gap: 0.75rem;
+        margin-bottom: 0.875rem;
+    }
+    
+    .patient-avatar {
+        width: 45px;
+        height: 45px;
+        font-size: 1.1rem;
+    }
+    
+    .patient-name {
+        font-size: 1rem;
+    }
+    
+    .patient-id {
+        font-size: 0.85rem;
     }
 
     .request-details-grid {
         grid-template-columns: 1fr;
+        gap: 0.625rem;
+        margin-bottom: 0.875rem;
+    }
+    
+    .detail-box {
+        padding: 0.625rem;
+    }
+    
+    .detail-label {
+        font-size: 0.75rem;
+        margin-bottom: 0.375rem;
+    }
+    
+    .detail-value {
+        font-size: 0.875rem;
+    }
+
+    .request-reason {
+        padding: 0.625rem;
+        margin-bottom: 0.875rem;
+    }
+    
+    .request-reason-label {
+        font-size: 0.85rem;
+        margin-bottom: 0.375rem;
+    }
+    
+    .request-reason-text {
+        font-size: 0.8rem;
     }
 
     .request-actions {
         flex-direction: column;
+        gap: 0.75rem;
     }
 
     .btn-approve, .btn-deny {
         width: 100%;
         justify-content: center;
+        padding: 0.625rem 1.25rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .notifications-container {
+        padding: 0.5rem;
+    }
+    
+    .notifications-header {
+        padding: 0.875rem;
+        margin-bottom: 0.875rem;
+    }
+    
+    .notifications-header h1 {
+        font-size: 1.1rem;
+    }
+    
+    .notifications-header p {
+        font-size: 0.8rem;
+    }
+    
+    .requests-grid {
+        gap: 0.625rem;
+    }
+    
+    .request-card {
+        padding: 0.875rem;
+    }
+    
+    .request-header {
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.5rem;
+    }
+    
+    .request-type-badge {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.8rem;
+    }
+    
+    .request-time {
+        font-size: 0.75rem;
+    }
+    
+    .patient-info {
+        margin-bottom: 0.75rem;
+    }
+    
+    .patient-avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+    
+    .patient-name {
+        font-size: 0.95rem;
+    }
+    
+    .patient-id {
+        font-size: 0.8rem;
+    }
+    
+    .request-details-grid {
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .detail-box {
+        padding: 0.5rem;
+    }
+    
+    .detail-label {
+        font-size: 0.7rem;
+        margin-bottom: 0.3rem;
+    }
+    
+    .detail-value {
+        font-size: 0.8rem;
+    }
+    
+    .request-reason {
+        padding: 0.5rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .request-reason-label {
+        font-size: 0.8rem;
+        margin-bottom: 0.3rem;
+    }
+    
+    .request-reason-text {
+        font-size: 0.75rem;
+    }
+    
+    .request-actions {
+        gap: 0.625rem;
+    }
+    
+    .btn-approve, .btn-deny {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+    }
+
+    .pagination-container {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .pagination-links {
+        justify-content: center;
+        width: 100%;
     }
 }
 
@@ -547,6 +872,58 @@
 
 [data-theme="dark"] .empty-text {
     color: var(--dm-text-muted) !important;
+}
+
+[data-theme="dark"] .pagination-container {
+    border-top-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .pagination-info {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .pagination-info strong {
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .pagination-links {
+    justify-content: flex-end !important;
+}
+
+[data-theme="dark"] .modern-pagination .page-link {
+    background: var(--dm-card-bg) !important;
+    border-color: var(--dm-border-color) !important;
+    color: var(--dm-text-primary) !important;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.25) !important;
+}
+
+[data-theme="dark"] .modern-pagination .page-link:hover {
+    border-color: #667eea !important;
+    color: #a5b4fc !important;
+    box-shadow: 0 4px 14px rgba(102, 126, 234, 0.4) !important;
+}
+
+[data-theme="dark"] .modern-pagination .page-item.active .page-link {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    border-color: transparent !important;
+    color: #ffffff !important;
+    box-shadow: 0 6px 18px rgba(102, 126, 234, 0.45) !important;
+}
+
+[data-theme="dark"] .modern-pagination .page-item.disabled .page-link {
+    background: var(--dm-bg-secondary) !important;
+    border-color: var(--dm-border-color) !important;
+    color: var(--dm-text-muted) !important;
+    box-shadow: none !important;
+}
+
+[data-theme="dark"] .modern-pagination .page-link.dots {
+    border-color: var(--dm-border-color) !important;
+    color: var(--dm-text-muted) !important;
+}
+
+[data-theme="dark"] .modern-pagination .page-link i {
+    color: inherit !important;
 }
 
 /* Modal Dark Mode */
@@ -737,6 +1114,10 @@
     color: #6c757d;
 }
 
+.time-slot-btn.blocked {
+    text-decoration: line-through;
+}
+
 .time-slot-btn:disabled:hover,
 .time-slot-btn.disabled:hover {
     transform: none;
@@ -775,6 +1156,73 @@
     border-color: var(--dm-border-color) !important;
     color: var(--dm-text-muted) !important;
 }
+
+.bg-primary-subtle {
+    background-color: #6b6ed3 !important;
+}
+
+/* Filter Buttons */
+.filter-buttons {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 0.75rem 1.5rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    background: white;
+    color: #64748b;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.filter-btn:hover {
+    border-color: #667eea;
+    color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.filter-btn.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: transparent;
+    color: white;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.filter-btn i {
+    font-size: 1rem;
+}
+
+.request-group[data-filter-hidden="true"] {
+    display: none;
+}
+
+[data-theme="dark"] .filter-btn {
+    background: var(--dm-card-bg) !important;
+    border-color: var(--dm-border-color) !important;
+    color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .filter-btn:hover {
+    border-color: #667eea !important;
+    color: #667eea !important;
+}
+
+[data-theme="dark"] .filter-btn.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+}
+
 </style>
 
 <div class="notifications-container">
@@ -792,9 +1240,30 @@
             <p class="empty-text">You're all caught up! There are no appointment requests waiting for review.</p>
         </div>
     @else
-        <div class="requests-grid">
+        <!-- Filter Buttons -->
+        <div class="filter-buttons">
+            <a href="{{ request()->url() }}?type=all" class="filter-btn {{ ($filterType ?? 'all') === 'all' ? 'active' : '' }}" data-filter="all">
+                <i class="bi bi-list-ul"></i>
+                <span>All Requests ({{ $allCount ?? $pendingRequests->total() }})</span>
+            </a>
+            <a href="{{ request()->url() }}?type=book" class="filter-btn {{ ($filterType ?? '') === 'book' ? 'active' : '' }}" data-filter="book">
+                <i class="bi bi-calendar-plus-fill"></i>
+                <span>Regular Booking ({{ $bookCount ?? 0 }})</span>
+            </a>
+            <a href="{{ request()->url() }}?type=reschedule" class="filter-btn {{ ($filterType ?? '') === 'reschedule' ? 'active' : '' }}" data-filter="reschedule">
+                <i class="bi bi-arrow-repeat"></i>
+                <span>Reschedule ({{ $rescheduleCount ?? 0 }})</span>
+            </a>
+            <a href="{{ request()->url() }}?type=walk-in" class="filter-btn {{ ($filterType ?? '') === 'walk-in' ? 'active' : '' }}" data-filter="walk-in">
+                <i class="bi bi-lightning-charge-fill"></i>
+                <span>Emergency Walk-in ({{ $walkInCount ?? 0 }})</span>
+            </a>
+        </div>
+
+        <div class="request-groups-wrapper">
+            <div class="requests-grid">
             @foreach($pendingRequests as $request)
-                <div class="request-card" data-request-id="{{ $request->id }}">
+                <div class="request-card" data-request-id="{{ $request->id }}" data-request-type="{{ $request->request_type ?? 'other' }}">
                     <div class="request-header">
                         <span class="request-type-badge {{ $request->request_type }}">
                             <i class="bi {{ $request->isBooking() ? 'bi-calendar-plus-fill' : ($request->isWalkIn() ? 'bi-lightning-charge-fill' : 'bi-arrow-repeat') }}"></i>
@@ -870,9 +1339,71 @@
                             <i class="bi bi-check-circle"></i> Approve
                         </button>
                     </div>
-                </div>
+                    </div>
             @endforeach
+            </div>
         </div>
+
+        <!-- Pagination -->
+        @if($pendingRequests->hasPages())
+        <div class="pagination-container">
+            <div class="pagination-info">
+                <i class="bi bi-info-circle"></i>
+                <span>Showing <strong>{{ $pendingRequests->firstItem() }}</strong> to <strong>{{ $pendingRequests->lastItem() }}</strong> of <strong>{{ $pendingRequests->total() }}</strong> requests</span>
+            </div>
+            <div class="pagination-links">
+                <ul class="modern-pagination">
+                    {{-- Previous Page --}}
+                    <li class="page-item {{ $pendingRequests->onFirstPage() ? 'disabled' : '' }}">
+                        <a class="page-link" href="{{ $pendingRequests->appends(request()->query())->previousPageUrl() }}" aria-label="Previous">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+
+                    {{-- Page Numbers --}}
+                    @php
+                        $start = max($pendingRequests->currentPage() - 2, 1);
+                        $end = min($pendingRequests->currentPage() + 2, $pendingRequests->lastPage());
+                    @endphp
+
+                    {{-- First page + dots --}}
+                    @if ($start > 1)
+                        <li class="page-item">
+                            <a class="page-link" href="{{ $pendingRequests->appends(request()->query())->url(1) }}">1</a>
+                        </li>
+                        @if ($start > 2)
+                            <li class="page-item disabled"><span class="page-link dots">...</span></li>
+                        @endif
+                    @endif
+
+                    {{-- Page range --}}
+                    @for ($i = $start; $i <= $end; $i++)
+                        <li class="page-item {{ $pendingRequests->currentPage() == $i ? 'active' : '' }}">
+                            <a class="page-link" href="{{ $pendingRequests->appends(request()->query())->url($i) }}">{{ $i }}</a>
+                        </li>
+                    @endfor
+
+                    {{-- Last page + dots --}}
+                    @if ($end < $pendingRequests->lastPage())
+                        @if ($end < $pendingRequests->lastPage() - 1)
+                            <li class="page-item disabled"><span class="page-link dots">...</span></li>
+                        @endif
+                        <li class="page-item">
+                            <a class="page-link" href="{{ $pendingRequests->appends(request()->query())->url($pendingRequests->lastPage()) }}">{{ $pendingRequests->lastPage() }}</a>
+                        </li>
+                    @endif
+
+                    {{-- Next Page --}}
+                    <li class="page-item {{ $pendingRequests->currentPage() == $pendingRequests->lastPage() ? 'disabled' : '' }}">
+                        <a class="page-link" href="{{ $pendingRequests->appends(request()->query())->nextPageUrl() }}" aria-label="Next">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        @endif
+
     @endif
 </div>
 
@@ -943,9 +1474,6 @@
                 </div>
             </div>
             <div class="modal-footer bg-light">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="bi bi-x-circle me-1"></i>Cancel
-                </button>
                 <button type="button" class="btn btn-success" id="confirmApproveBtn">
                     <i class="bi bi-check-circle me-1"></i>Approve Appointment
                 </button>
@@ -982,6 +1510,10 @@
                     placeholder="E.g., Time slot already booked, Outside clinic hours, No available dentist..."
                     required
                 ></textarea>
+                <div id="denyReasonError" class="mt-2" style="display:none; color:#dc2626; font-weight:600;">
+                    <i class="bi bi-exclamation-triangle me-1"></i>
+                    Please provide a reason for denial.
+                </div>
 
                 <div class="deny-warning-box">
                     <p>
@@ -991,9 +1523,6 @@
                 </div>
             </div>
             <div class="modal-footer bg-light">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="bi bi-arrow-left me-1"></i>Go Back
-                </button>
                 <button type="button" class="btn btn-danger" id="confirmDenyBtn">
                     <i class="bi bi-x-circle me-1"></i>Confirm Denial
                 </button>
@@ -1005,6 +1534,20 @@
 <script>
 let currentRequestId = null;
 let currentRequestDuration = 30;
+
+// Filter requests by type - now handled server-side via URL
+// This function is kept for backward compatibility but filtering is done via URL
+function filterRequests(type) {
+    // Redirect to filtered URL
+    const url = new URL(window.location.href);
+    if (type === 'all') {
+        url.searchParams.delete('type');
+    } else {
+        url.searchParams.set('type', type);
+    }
+    url.searchParams.delete('page'); // Reset to first page when filtering
+    window.location.href = url.toString();
+}
 
 // Generate time slots for booking requests
 function generateTimeSlotsForBooking(durationMinutes, selectedDate) {
@@ -1060,7 +1603,7 @@ function generateTimeSlotsForBooking(durationMinutes, selectedDate) {
         }
 
         const appointments = data.appointments || [];
-        const blockedTimes = data.blockedTimes || [];
+        const blockedTimes = data.blocked_times || [];
 
         timeSlotsPicker.innerHTML = '';
 
@@ -1133,11 +1676,13 @@ function generateTimeSlotsForBooking(durationMinutes, selectedDate) {
                 }
 
                 // Check if this time slot conflicts with any blocked time
+                // Treat touching the boundary as a conflict (inclusive overlap):
+                // overlap if start <= blockedEnd AND end >= blockedStart
                 const isBlocked = blockedTimesOnDate.some(blockedTime => {
                     const blockedStart = parseLocalDateTime(blockedTime.start_datetime);
                     const blockedEnd = parseLocalDateTime(blockedTime.end_datetime);
                     if (!blockedStart || !blockedEnd) return false;
-                    return (start < blockedEnd && end > blockedStart);
+                    return (start <= blockedEnd && end >= blockedStart);
                 });
 
                 // Check overlap with booked appointments
@@ -1163,7 +1708,7 @@ function generateTimeSlotsForBooking(durationMinutes, selectedDate) {
                 // Create time slot button
                 const slotBtn = document.createElement('button');
                 slotBtn.type = 'button';
-                slotBtn.className = 'time-slot-btn' + (isConflicting ? ' disabled' : '');
+                slotBtn.className = 'time-slot-btn' + (isConflicting ? ' disabled' : '') + (isBlocked ? ' blocked' : '');
                 slotBtn.textContent = timeLabel;
                 slotBtn.dataset.time = timeValue;
                 slotBtn.dataset.display = timeLabel;
@@ -1427,15 +1972,31 @@ function approveRequest(requestId, duration, requestType, time, date) {
 function showDenyModal(requestId) {
     currentRequestId = requestId;
     document.getElementById('denyReason').value = '';
+    const errorDiv = document.getElementById('denyReasonError');
+    if (errorDiv) errorDiv.style.display = 'none';
+    const confirmBtn = document.getElementById('confirmDenyBtn');
+    if (confirmBtn) confirmBtn.disabled = true;
     const modal = new bootstrap.Modal(document.getElementById('denyReasonModal'));
     modal.show();
+    // Focus textarea after modal shows
+    setTimeout(() => document.getElementById('denyReason').focus(), 200);
 }
+
+// Enable/disable confirm button based on input and hide error on typing
+document.getElementById('denyReason').addEventListener('input', function() {
+    const hasText = this.value.trim().length > 0;
+    document.getElementById('confirmDenyBtn').disabled = !hasText;
+    const errorDiv = document.getElementById('denyReasonError');
+    if (errorDiv && hasText) errorDiv.style.display = 'none';
+});
 
 document.getElementById('confirmDenyBtn').addEventListener('click', function() {
     const reason = document.getElementById('denyReason').value.trim();
 
     if (!reason) {
-        alert('Please provide a reason for denial');
+        const errorDiv = document.getElementById('denyReasonError');
+        if (errorDiv) errorDiv.style.display = 'block';
+        document.getElementById('denyReason').focus();
         return;
     }
 

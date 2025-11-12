@@ -316,12 +316,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     // });
                     
                     // Show event items - limit visible items and show "X more" if needed
-                    const maxVisible = 3; // Show only first 3 appointments
+                    const maxVisible = 2; // Show only first 2 items in the day slot
                     const visibleAppointments = prioritizedAppointments.slice(0, maxVisible);
-                    const hiddenCount = Math.max(0, prioritizedAppointments.length - maxVisible);
+                    let hiddenCount = Math.max(0, prioritizedAppointments.length - maxVisible);
                     
                     // Debug: Log if there are 3+ appointments
-                    if (prioritizedAppointments.length >= 3) {
+                    if (prioritizedAppointments.length > maxVisible) {
                         console.log('Day ' + dateStr + ' has ' + prioritizedAppointments.length + ' appointments (' + patientOwnAppointments.length + ' own, ' + otherAppointments.length + ' others). Showing ' + visibleAppointments.length + ', hiding ' + hiddenCount);
                     }
                     
@@ -435,7 +435,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                     
                     // Blocked times are still shown as event items (not hidden) for visibility
+                    let remainingSlots = Math.max(0, maxVisible - eventItems.length);
+                    let hiddenBlockedCount = 0;
                     dayBlockedTimes.forEach(function(blocked) {
+                        if (remainingSlots <= 0) {
+                            hiddenBlockedCount++;
+                            return;
+                        }
                         const startTime = new Date(blocked.start_datetime);
                         const endTime = new Date(blocked.end_datetime);
                         // Check if it's a full day closure (00:00 to 23:59)
@@ -454,6 +460,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     ${notes ? `<div class="event-notes">${notes}</div>` : ''}
                                 </div>
                             `);
+                            remainingSlots--;
                         } else {
                             // Partial day block - show time
                             const time = startTime.toLocaleTimeString('en-US', {
@@ -468,9 +475,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                     ${notes ? `<div class="event-notes">${notes}</div>` : ''}
                                 </div>
                             `);
+                            remainingSlots--;
                         }
                     });
 
+                    hiddenCount = Math.max(0, hiddenCount + hiddenBlockedCount);
                     const totalEventsForDay = prioritizedAppointments.length + dayBlockedTimes.length;
                     if (eventItems.length > 0 && totalEventsForDay > 0) {
                         eventItems[0] = eventItems[0].replace(/>/, ` data-mobile-count="${totalEventsForDay}">\n                                    <span class="mobile-event-count" aria-hidden="true">${totalEventsForDay}</span>`);
@@ -1231,13 +1240,13 @@ document.addEventListener('DOMContentLoaded', function() {
         let statusBadgeClass = '';
         switch(statusClass) {
             case 'confirmed':
-                statusBadgeClass = 'bg-success';
+                statusBadgeClass = 'bg-primary';
                 break;
             case 'pending':
                 statusBadgeClass = 'bg-warning';
                 break;
             case 'completed':
-                statusBadgeClass = 'bg-primary';
+                statusBadgeClass = 'bg-success';
                 break;
             case 'cancelled':
                 statusBadgeClass = 'status-badge-brown text-white';
@@ -1741,7 +1750,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const startOfWeek = new Date(currentDate);
         startOfWeek.setDate(currentDate.getDate() - currentDate.getDay()); // Start on Sunday
 
-        const hours = Array.from({length: 10}, (_, i) => i + 8); // 8 AM to 5 PM (reduced from 8 PM)
+        const hours = Array.from({length: 8}, (_, i) => i + 11); // 11 AM to 6 PM
         const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
         let html = '<div class="week-view">';
@@ -1871,7 +1880,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const displayTitle = (title === 'Clinic Closed' || isFullDayClosure) ? 'Clinic Closed' : title;
 
                     const notes = blocked.notes || '';
-                    if (isFullDayClosure && hour === 8) {
+                    if (isFullDayClosure && hour === 11) {
                         // Full day closure - show only at first hour (8 AM) without time
                         cellContent += `
                             <div class="week-appointment blocked full-day-closure" data-blocked-time-id="${blocked.id}">
@@ -1936,7 +1945,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function renderDayView(container) {
-        const hours = Array.from({length: 13}, (_, i) => i + 8); // 8 AM to 8 PM
+        const hours = Array.from({length: 8}, (_, i) => i + 11); // 11 AM to 6 PM
         const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
         const dayAppointments = getAppointmentsForDate(dateStr);
         const dayBlockedTimes = getBlockedTimesForDate(dateStr);
@@ -1977,8 +1986,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                          endTime.getHours() === 23 && endTime.getMinutes() === 59;
 
                 if (isFullDayClosure) {
-                    // Full day closures show at hour 8 (first visible hour)
-                    return hour === 8;
+                    // Full day closures show at first visible hour (11 AM)
+                    return hour === 11;
                 } else {
                     // Partial blocks show in their actual hour
                     const blockedHour = startTime.getHours();
@@ -2079,7 +2088,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const title = blocked.title || 'Clinic Unavailable';
                     const displayTitle = (title === 'Clinic Closed' || isFullDayClosure) ? 'Clinic Closed' : title;
 
-                    if (isFullDayClosure && hour === 8) {
+                    if (isFullDayClosure && hour === 11) {
                         // Full day closure - show only at first hour (8 AM) without time
                         html += `
                             <div class="day-appointment blocked full-day-closure" data-blocked-time-id="${blocked.id}">

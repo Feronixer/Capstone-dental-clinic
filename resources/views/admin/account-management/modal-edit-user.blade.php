@@ -145,9 +145,6 @@
                 </div>
 
                 <div class="modal-footer enhanced-modal-footer">
-                    <button type="button" class="btn btn-secondary btn-cancel" data-bs-dismiss="modal">
-                        <i class="bi bi-x-circle me-2"></i>Cancel
-                    </button>
                     <button type="submit" class="btn btn-primary btn-save">
                         <i class="bi bi-check-circle me-2"></i>Save Changes
                     </button>

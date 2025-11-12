@@ -1824,7 +1824,7 @@
 
             <div class="services-carousel" id="servicesCarousel">
                 @forelse($services as $service)
-                <div class="service-card" onclick="openServiceModal({{ $service->id }}, {{ json_encode($service->service_name) }}, {{ json_encode($service->description) }}, {{ $service->default_duration_minutes }}, {{ json_encode($service->icon_class ?? 'bi-gear') }})">
+                <div class="service-card" onclick="event.stopPropagation(); openServiceModal({{ $service->id }}, {{ json_encode($service->service_name) }}, {{ json_encode($service->description) }}, {{ $service->default_duration_minutes }}, {{ json_encode($service->icon_class ?? 'bi-gear') }})">
                     <div class="service-icon-box">
                         @php $ic = $service->icon_class; @endphp
                         @if($ic && \Illuminate\Support\Str::startsWith($ic,'uploaded:'))
@@ -2283,7 +2283,16 @@
     });
 
     // Service Modal
+    let isModalOpening = false; // Guard to prevent double-opening
+    
     function openServiceModal(id, name, description, duration, iconClass) {
+        // Prevent double-opening
+        if (isModalOpening) return;
+        const modal = document.getElementById('serviceModal');
+        if (modal && modal.classList.contains('active')) return;
+        
+        isModalOpening = true;
+        
         document.getElementById('modalServiceName').textContent = name;
         document.getElementById('modalServiceDescription').textContent = description;
         document.getElementById('modalServiceDuration').textContent = duration + ' minutes';
@@ -2352,9 +2361,15 @@
         
         document.getElementById('serviceModal').classList.add('active');
         document.body.style.overflow = 'hidden';
+        
+        // Reset guard after a short delay
+        setTimeout(() => {
+            isModalOpening = false;
+        }, 300);
     }
 
     function closeServiceModal() {
+        isModalOpening = false; // Reset guard when closing
         document.getElementById('serviceModal').classList.remove('active');
         document.body.style.overflow = '';
     }
@@ -3155,7 +3170,7 @@
         border-color: var(--dm-border-color, #334155) !important;
     }
 
-    [data-theme="dark"] .history-card h6 {
+    [data-theme="dark"] .history-card h6:not(.history-service-name) {
         color: var(--dm-text-primary, #f1f5f9) !important;
     }
 
@@ -3163,15 +3178,52 @@
         color: var(--dm-text-muted, #94a3b8) !important;
     }
 
-    [data-theme="dark"] .history-card small {
+    [data-theme="dark"] .history-card small:not(.history-appointment-date):not(.history-submitted-date) {
         color: var(--dm-text-muted, #94a3b8) !important;
     }
 
     .history-stars {
-        color: #ffd700;
+        color: #0a2a6b;
         font-size: 1.2rem;
         flex-shrink: 0;
         white-space: nowrap;
+    }
+
+    [data-theme="dark"] .history-stars {
+        color: #00EAFF !important;
+        filter: none !important;
+        text-shadow: none !important;
+    }
+
+    /* Service Name, Appointment, and Submitted Date Colors */
+    .history-service-name {
+        color: #0a2a6b !important;
+    }
+
+    .history-appointment-date {
+        color: #0a2a6b !important;
+    }
+
+    .history-submitted-date {
+        color: #0a2a6b !important;
+    }
+
+    [data-theme="dark"] .history-service-name {
+        color: #00EAFF !important;
+        filter: none !important;
+        text-shadow: none !important;
+    }
+
+    [data-theme="dark"] .history-appointment-date {
+        color: #00EAFF !important;
+        filter: none !important;
+        text-shadow: none !important;
+    }
+
+    [data-theme="dark"] .history-submitted-date {
+        color: #00EAFF !important;
+        filter: none !important;
+        text-shadow: none !important;
     }
 
     @media (max-width: 992px) {
@@ -3373,13 +3425,15 @@ function openHistoryModal() {
                         <div class="history-card">
                             <div class="d-flex justify-content-between align-items-start mb-2 history-card-header">
                                 <div class="history-card-info">
-                                    <h6 class="fw-bold mb-1">${serviceName}</h6>
-                                    <small class="text-muted">Appointment: ${appointmentDate}</small>
+                                    <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                        <h6 class="fw-bold mb-0 history-service-name">${serviceName}</h6>
+                                        <small class="history-appointment-date">— Appointment: ${appointmentDate}</small>
+                                    </div>
                                 </div>
                                 <div class="history-stars">${stars}</div>
                             </div>
                             ${comment ? `<p class="text-muted mb-0 mt-2 history-card-comment">"${comment}"</p>` : ''}
-                            <small class="text-muted d-block mt-2">Submitted: ${submittedAt}</small>
+                            <small class="history-submitted-date d-block mt-2">Submitted: ${submittedAt}</small>
                         </div>
                     `;
                 });

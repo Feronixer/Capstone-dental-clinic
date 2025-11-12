@@ -636,7 +636,6 @@
                 <p class="text-danger small mt-2 mb-0">This action cannot be undone.</p>
             </div>
             <div class="modal-footer border-0 justify-content-center gap-2">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-danger" id="confirmDeleteArchiveBtn">
                     <i class="bi bi-trash me-1"></i>Delete
                 </button>

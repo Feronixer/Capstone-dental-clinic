@@ -58,7 +58,7 @@ class ActivityLogController extends Controller
             });
         }
 
-        $logs = $query->paginate(50);
+        $logs = $query->paginate(20);
 
         // Get all staff members for filter dropdown
         $staffMembers = User::where('role_id', 2)->with('info')->get();
@@ -107,7 +107,7 @@ class ActivityLogController extends Controller
             });
         }
 
-        $logs = $query->paginate(50);
+        $logs = $query->paginate(20);
 
         return response()->json([
             'success' => true,

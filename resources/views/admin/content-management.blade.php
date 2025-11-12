@@ -491,7 +491,7 @@
                                     <div class="mail-preview p-4 border rounded bg-white">
                                         <h5 class="fw-bold mb-3">JValera Dental Clinic</h5>
                                         <p id="initial-confirmation-preview">
-                                            Good Day! <span class="text-primary fw-bold">Angel Cuadernal</span>, you have a schedule appointment on
+                                            Good Day! <span class="text-primary fw-bold">Justine Valera</span>, you have a schedule appointment on
                                             <span class="text-primary fw-bold">April 15, 2025 3:00 PM</span> with Dr. Justin Valera regarding on your
                                             <span class="text-primary fw-bold">Flexible Dentures</span> treatment.
                                         </p>
@@ -515,7 +515,7 @@
                                     <div class="mail-preview p-4 border rounded bg-white">
                                         <h5 class="fw-bold mb-3">JValera Dental Clinic</h5>
                                         <p id="reminders-preview">
-                                            Reminder: <span class="text-primary fw-bold">Angel Cuadernal</span>, you have an appointment on
+                                            Reminder: <span class="text-primary fw-bold">Justine Valera</span>, you have an appointment on
                                             <span class="text-primary fw-bold">April 15, 2025 3:00 PM</span> with Dr. Justin Valera for
                                             <span class="text-primary fw-bold">Flexible Dentures</span>.
                                         </p>
@@ -539,7 +539,7 @@
                                     <div class="mail-preview p-4 border rounded bg-white">
                                         <h5 class="fw-bold mb-3">JValera Dental Clinic</h5>
                                         <p id="cancellation-preview">
-                                            Dear <span class="text-primary fw-bold">Angel Cuadernal</span>, your appointment on
+                                            Dear <span class="text-primary fw-bold">Justine Valera</span>, your appointment on
                                             <span class="text-primary fw-bold">April 15, 2025 3:00 PM</span> has been cancelled.
                                         </p>
                                     </div>
@@ -562,7 +562,7 @@
                                     <div class="mail-preview p-4 border rounded bg-white">
                                         <h5 class="fw-bold mb-3">JValera Dental Clinic</h5>
                                         <p id="rescheduling-preview">
-                                            Hello <span class="text-primary fw-bold">Angel Cuadernal</span>, your appointment has been rescheduled to
+                                            Hello <span class="text-primary fw-bold">Justine Valera</span>, your appointment has been rescheduled to
                                             <span class="text-primary fw-bold">April 20, 2025 2:00 PM</span>.
                                         </p>
                                     </div>
@@ -675,9 +675,6 @@
                     </div>
                 </div>
                 <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">
-                        <i class="bi bi-x-circle me-2"></i>Cancel
-                    </button>
                     <button type="submit" class="btn btn-primary px-4">
                         <i class="bi bi-check-circle me-2"></i>Add Service
                     </button>
@@ -787,9 +784,6 @@
                     </div>
                 </div>
                 <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">
-                        <i class="bi bi-x-circle me-2"></i>Cancel
-                    </button>
                     <button type="submit" class="btn btn-success px-4">
                         <i class="bi bi-check-circle me-2"></i>Update Service
                     </button>
@@ -1586,6 +1580,10 @@ document.addEventListener('change', function(e) {
 // Save Mail Template Function
 function saveMailTemplate(type) {
     const textarea = document.querySelector(`[data-type="${type}"]`);
+    if (!textarea) {
+        showToast('Template textarea not found', 'error');
+        return;
+    }
     const content = textarea.value;
 
     fetch(`/admin/content-management/mail-template/${type}`, {
@@ -1603,6 +1601,8 @@ function saveMailTemplate(type) {
     .then(data => {
         if (data.success) {
             showToast('Mail template updated successfully!', 'success');
+            // Update preview after saving
+            updateTemplatePreview(textarea);
         } else {
             showToast('Error updating mail template: ' + (data.message || 'Unknown error'), 'error');
         }
@@ -1615,6 +1615,7 @@ function saveMailTemplate(type) {
 
 // Update template preview in tab (live preview as you type)
 function updateTemplatePreview(textarea) {
+    if (!textarea) return;
     const type = textarea.dataset.type;
     const content = textarea.value;
 
@@ -1633,15 +1634,29 @@ function updateTemplatePreview(textarea) {
     const previewElement = document.getElementById(previewId);
     if (!previewElement) return;
 
-    // Replace placeholders with sample data
+    // Replace placeholders with sample data - using Justine Valera
     const sampleContent = content
-        .replace(/%firstname%/g, '<span class="text-primary fw-bold">Angel Cuadernal</span>')
+        .replace(/%firstname%/g, '<span class="text-primary fw-bold">Justine Valera</span>')
         .replace(/%datetime%/g, '<span class="text-primary fw-bold">April 15, 2025 3:00 PM</span>')
         .replace(/%rescheduledtime%/g, '<span class="text-primary fw-bold">April 20, 2025 2:00 PM</span>')
         .replace(/%service%/g, '<span class="text-primary fw-bold">Flexible Dentures</span>');
 
     previewElement.innerHTML = sampleContent;
 }
+
+// Initialize template previews and add event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    // Add event listeners to all template textareas for live preview
+    document.querySelectorAll('textarea[data-type]').forEach(textarea => {
+        // Initialize preview on load
+        updateTemplatePreview(textarea);
+        
+        // Update preview on input
+        textarea.addEventListener('input', function() {
+            updateTemplatePreview(this);
+        });
+    });
+});
 
 // Change Icon Function
 function changeIcon(id) {
@@ -1850,7 +1865,7 @@ function sendSingleEmail() {
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sending...';
 
     // Save template before sending (always save to ensure latest version is used)
-    saveMailTemplate('follow_up', template).then(() => {
+    saveMailTemplateHelper('follow_up', template).then(() => {
         performSendSingleEmail(appointmentId, btn, originalText);
     }).catch(() => {
         // Continue even if save fails
@@ -2132,7 +2147,7 @@ function sendMultipleEmails() {
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sending...';
 
         // Save template before sending (always save to ensure latest version is used)
-        const savePromise = saveMailTemplate('follow_up', template);
+        const savePromise = saveMailTemplateHelper('follow_up', template);
 
         savePromise.then(() => {
             // Send bulk email
@@ -2173,8 +2188,8 @@ function sendMultipleEmails() {
     });
 }
 
-// Helper function to save mail template
-function saveMailTemplate(type, content) {
+// Helper function to save mail template (for send email functionality)
+function saveMailTemplateHelper(type, content) {
     return fetch(`/admin/content-management/mail-template/${type}`, {
         method: 'POST',
         headers: {

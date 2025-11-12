@@ -29,9 +29,7 @@ class ChatController extends Controller
         $status = $request->input('status', 'active');
         $search = $request->input('search');
 
-        $query = ChatConversation::with(['patient.info', 'staff.info', 'admin.info', 'messages' => function($q) {
-            $q->latest()->limit(1);
-        }]);
+        $query = ChatConversation::with(['patient.info', 'staff.info', 'admin.info']);
 
         if ($status !== 'all') {
             $query->where('status', $status);
@@ -53,7 +51,6 @@ class ChatController extends Controller
 
         return response()->json([
             'conversations' => $conversations->map(function ($conversation) {
-                $lastMessage = $conversation->messages->first();
                 return [
                     'id' => $conversation->id,
                     'patient_id' => $conversation->patient_id,
@@ -68,7 +65,6 @@ class ChatController extends Controller
                         : null,
                     'status' => $conversation->status,
                     'unread_count' => $conversation->unreadMessagesCount(),
-                    'last_message' => $lastMessage ? $lastMessage->message : null,
                     'last_message_at' => $conversation->last_message_at 
                         ? $conversation->last_message_at->format('Y-m-d H:i:s') 
                         : null,

@@ -265,10 +265,6 @@
                                     style="background: linear-gradient(135deg, #198754 0%, #146c43 100%); border: none; border-radius: 8px; padding: 10px 24px; font-weight: 600;">
                                 <i class="bi bi-floppy-fill me-2"></i> SAVE RECORD
                             </button>
-                            <button type="button" class="btn btn-info btn-lg" onclick="printPatientRecord()"
-                                    style="background: linear-gradient(135deg, #0dcaf0 0%, #0aa2c0 100%); border: none; border-radius: 8px; padding: 10px 24px; font-weight: 600;">
-                                <i class="bi bi-printer-fill me-2"></i> PRINT
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -537,9 +533,6 @@
             </div>
 
             <div class="modal-footer" style="background: #f8f9fa;">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="bi bi-x-circle me-1"></i>Close
-                </button>
                 <button type="button" class="btn btn-primary" id="saveBtn" style="background: linear-gradient(135deg, #198754 0%, #146c43 100%); border: none;">
                     <i class="bi bi-floppy-fill me-1"></i>Save Changes
                 </button>
@@ -6097,7 +6090,7 @@ function updateProgressNoteRow(rowId, field, value) {
 }
 
 // Delete progress note row
-function deleteProgressNoteRow(rowId) {
+async function deleteProgressNoteRow(rowId) {
     const row = progressNoteRows.find(r => r.rowId === rowId);
     if (row && row.id) {
         // Cannot delete existing notes from here
@@ -6105,7 +6098,14 @@ function deleteProgressNoteRow(rowId) {
         return;
     }
     
-    if (confirm('Are you sure you want to delete this row?')) {
+    const confirmed = await showConfirmModal('Are you sure you want to delete this row?', {
+        title: 'Delete Row',
+        icon: 'trash',
+        type: 'danger',
+        okText: 'Yes, Delete'
+    });
+    
+    if (confirmed) {
         progressNoteRows = progressNoteRows.filter(r => r.rowId !== rowId);
         renderProgressNotesTable();
         showNotification('Row deleted', 'info');
@@ -6338,7 +6338,6 @@ function openEditRecordModalDirect(recordId) {
 
     const loading = '<div class="text-center p-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 text-muted">Loading Patient Record...</p></div>';
     const modal = createAndShowModal('editRecordModal', 'Edit Patient Information Record', loading, `
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
         <button type="button" class="btn btn-primary" id="save-record-btn">Save Changes</button>
     `, 'modal-xl');
 
@@ -6420,7 +6419,6 @@ function showPasswordVerificationModal(recordId, action = 'edit_record') {
                         </div>
                     </div>
                     <div class="modal-footer password-modal-footer-custom">
-                        <button type="button" class="btn btn-cancel-password-custom" data-bs-dismiss="modal" style="background: #e2e8f0 !important; color: #64748b !important; border: 2px solid #cbd5e1 !important; padding: 0.625rem 1.25rem !important; border-radius: 8px !important; font-weight: 600 !important; transition: all 0.2s ease !important; outline: none !important;">Cancel</button>
                         <button type="button" class="btn btn-verify-password-custom" id="verifyStaffPasswordBtn" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important; color: white !important; border: 2px solid #2563eb !important; padding: 0.625rem 1.5rem !important; border-radius: 8px !important; font-weight: 600 !important; transition: all 0.2s ease !important; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important; display: flex !important; align-items: center !important; outline: none !important;">
                             <i class="bi bi-check-circle me-2"></i>Verify
                         </button>
@@ -6452,7 +6450,6 @@ function showPasswordVerificationModal(recordId, action = 'edit_record') {
         const modalHeader = document.querySelector('#passwordVerificationModal .password-modal-header-custom');
         const modalTitle = document.querySelector('#passwordVerificationModal .password-modal-header-custom .modal-title');
         const closeBtn = document.querySelector('#passwordVerificationModal .password-modal-close-btn');
-        const cancelBtn = document.querySelector('#passwordVerificationModal .btn-cancel-password-custom');
         const verifyBtn = document.querySelector('#passwordVerificationModal .btn-verify-password-custom');
         
         if (modalHeader) {
@@ -6482,20 +6479,6 @@ function showPasswordVerificationModal(recordId, action = 'edit_record') {
             closeBtn.style.setProperty('margin', '0', 'important');
         }
         
-        if (cancelBtn) {
-            cancelBtn.style.setProperty('border', '2px solid #cbd5e1', 'important');
-            cancelBtn.style.setProperty('background', '#e2e8f0', 'important');
-            cancelBtn.style.setProperty('color', '#64748b', 'important');
-            cancelBtn.addEventListener('mouseenter', function() {
-                this.style.setProperty('border', '2px solid #94a3b8', 'important');
-                this.style.setProperty('background', '#cbd5e1', 'important');
-            });
-            cancelBtn.addEventListener('mouseleave', function() {
-                this.style.setProperty('border', '2px solid #cbd5e1', 'important');
-                this.style.setProperty('background', '#e2e8f0', 'important');
-            });
-        }
-        
         if (verifyBtn) {
             verifyBtn.style.setProperty('border', '2px solid #2563eb', 'important');
             verifyBtn.addEventListener('mouseenter', function() {
@@ -6519,19 +6502,6 @@ function showPasswordVerificationModal(recordId, action = 'edit_record') {
                 closeBtn.addEventListener('mouseleave', function() {
                     const span = this.querySelector('span');
                     if (span) span.style.setProperty('color', '#cbd5e1', 'important');
-                });
-            }
-            if (cancelBtn) {
-                cancelBtn.style.setProperty('background', 'rgba(51, 65, 85, 0.8)', 'important');
-                cancelBtn.style.setProperty('color', '#e2e8f0', 'important');
-                cancelBtn.style.setProperty('border', '2px solid rgba(148, 163, 184, 0.5)', 'important');
-                cancelBtn.addEventListener('mouseenter', function() {
-                    this.style.setProperty('border', '2px solid rgba(148, 163, 184, 0.7)', 'important');
-                    this.style.setProperty('background', 'rgba(71, 85, 105, 0.9)', 'important');
-                });
-                cancelBtn.addEventListener('mouseleave', function() {
-                    this.style.setProperty('border', '2px solid rgba(148, 163, 184, 0.5)', 'important');
-                    this.style.setProperty('background', 'rgba(51, 65, 85, 0.8)', 'important');
                 });
             }
             if (verifyBtn) {
@@ -6661,7 +6631,6 @@ function openEditHistoryModalDirect(recordId) {
 
     const loading = '<div class="text-center p-4"><div class="spinner-border text-info" role="status"></div><p class="mt-2 text-muted">Loading Patient History...</p></div>';
     const modal = createAndShowModal('editHistoryModal', 'Edit Patient History', loading, `
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
         <button type="button" class="btn btn-info text-white" id="save-history-btn">Save Changes</button>
     `, 'modal-xl');
 
@@ -6880,9 +6849,6 @@ function openEditNotesModalDirect(recordId) {
     const modal = createAndShowModal('editNotesModal',
         '<i class="bi bi-journal-text me-2"></i>Edit Progress Notes',
         formHtml, `
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-            <i class="bi bi-x-circle me-2"></i>Close
-        </button>
         <button type="button" class="btn btn-primary" id="save-notes-btn"
                 style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
             <i class="bi bi-save me-2"></i>Save Note

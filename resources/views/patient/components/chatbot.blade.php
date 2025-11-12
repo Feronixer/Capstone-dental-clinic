@@ -99,10 +99,10 @@
         right: 24px !important;
         left: auto !important;
         bottom: 92px !important;
-        width: 85vw;
+        width: 20vw;
         min-width: 300px;
         max-width: calc(85vw - 24px);
-        height: 600px;
+        height: 500px;
         min-height: 400px;
         max-height: calc(100vh - 120px);
         border-radius: 20px;
@@ -113,15 +113,58 @@
         flex-direction: column;
         z-index: 1000;
         resize: both;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: default;
+        opacity: 0;
+        transform: translateY(20px) scale(0.9);
+        transition: opacity 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+                    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
     
     .chatbot-widget.resizing {
-        transition: none;
+        transition: none !important;
     }
-
+    
+    /* Opening animation */
+    .chatbot-widget.opening {
+        display: flex !important;
+        animation: chatbotOpen 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+    
+    @keyframes chatbotOpen {
+        0% {
+            opacity: 0;
+            transform: translateY(20px) scale(0.9);
+        }
+        50% {
+            transform: translateY(-5px) scale(1.02);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+    
+    /* Closing animation */
+    .chatbot-widget.closing {
+        animation: chatbotClose 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+    
+    @keyframes chatbotClose {
+        0% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        100% {
+            opacity: 0;
+            transform: translateY(20px) scale(0.9);
+        }
+    }
+    
+    /* Open state - no animation, just visible */
     .chatbot-widget.open { 
         display: flex;
+        opacity: 1;
+        transform: translateY(0) scale(1);
     }
 
     .chatbot-header {
@@ -1175,6 +1218,7 @@
         const headerEl = widget.querySelector('.chatbot-header');
         
         // Widget drag and resize functionality
+        const DRAG_ENABLED = false;
         let isWidgetDragging = false;
         let isWidgetResizing = false;
         let widgetDragStartX = 0;
@@ -1189,23 +1233,32 @@
         
         // Load saved widget position and size
         function loadSavedWidgetState() {
-            const saved = localStorage.getItem('chatbot-widget-state');
-            if (saved) {
-                try {
-                    const state = JSON.parse(saved);
-                    if (state.width) widget.style.width = state.width + 'px';
-                    if (state.height) widget.style.height = state.height + 'px';
-                    if (state.left !== undefined) {
-                        widget.style.left = state.left + 'px';
-                        widget.style.right = 'auto';
+            if (DRAG_ENABLED) {
+                const saved = localStorage.getItem('chatbot-widget-state');
+                if (saved) {
+                    try {
+                        const state = JSON.parse(saved);
+                        if (state.width) widget.style.width = state.width + 'px';
+                        if (state.height) widget.style.height = state.height + 'px';
+                        if (state.left !== undefined) {
+                            widget.style.left = state.left + 'px';
+                            widget.style.right = 'auto';
+                        }
+                        if (state.top !== undefined) {
+                            widget.style.top = state.top + 'px';
+                            widget.style.bottom = 'auto';
+                        }
+                    } catch (e) {
+                        console.error('Error loading widget state:', e);
                     }
-                    if (state.top !== undefined) {
-                        widget.style.top = state.top + 'px';
-                        widget.style.bottom = 'auto';
-                    }
-                } catch (e) {
-                    console.error('Error loading widget state:', e);
                 }
+            } else {
+                // Reset to default anchored position (CSS controls it)
+                widget.style.left = '';
+                widget.style.top = '';
+                widget.style.right = '';
+                widget.style.bottom = '';
+                localStorage.removeItem('chatbot-widget-state');
             }
         }
         
@@ -1249,7 +1302,7 @@
             });
         }
         
-        document.addEventListener('mousemove', (e) => {
+        if (DRAG_ENABLED) document.addEventListener('mousemove', (e) => {
             if (isWidgetDragging) {
                 const deltaX = e.clientX - widgetDragStartX;
                 const deltaY = e.clientY - widgetDragStartY;
@@ -1269,7 +1322,7 @@
             }
         });
         
-        document.addEventListener('touchmove', (e) => {
+        if (DRAG_ENABLED) document.addEventListener('touchmove', (e) => {
             if (isWidgetDragging) {
                 const touch = e.touches[0];
                 const deltaX = touch.clientX - widgetDragStartX;
@@ -1291,7 +1344,7 @@
             }
         });
         
-        document.addEventListener('mouseup', () => {
+        if (DRAG_ENABLED) document.addEventListener('mouseup', () => {
             if (isWidgetDragging) {
                 isWidgetDragging = false;
                 widget.classList.remove('resizing');
@@ -1299,7 +1352,7 @@
             }
         });
         
-        document.addEventListener('touchend', () => {
+        if (DRAG_ENABLED) document.addEventListener('touchend', () => {
             if (isWidgetDragging) {
                 isWidgetDragging = false;
                 widget.classList.remove('resizing');
@@ -1387,91 +1440,47 @@
         // Load saved position from localStorage
         function loadSavedPosition() {
             if (!toggleBtn) return;
-            
+            if (!DRAG_ENABLED) {
+                // Clear any saved position and stick to default CSS position (bottom-right)
+                localStorage.removeItem('chatbot-button-position');
+                toggleBtn.classList.remove('dragged');
+                toggleBtn.style.left = '';
+                toggleBtn.style.right = '';
+                toggleBtn.style.top = '';
+                toggleBtn.style.bottom = '';
+                if (widget) updateWidgetPosition();
+                updateScrollToTopPosition();
+                return;
+            }
             const saved = localStorage.getItem('chatbot-button-position');
-            if (saved) {
-                try {
-                    const pos = JSON.parse(saved);
-                    const padding = pos.padding || SIDE_PADDING;
-                    
-                    // Ensure button is visible before positioning
-                    toggleBtn.style.display = 'flex';
-                    toggleBtn.style.visibility = 'visible';
-                    toggleBtn.style.opacity = '';
-                    
-                    if (pos.side === 'left' || pos.side === 'right') {
-                        // New format with side snapping
-                        if (pos.side === 'left') {
-                            toggleBtn.style.left = padding + 'px';
-                            toggleBtn.style.right = 'auto';
-                        } else {
-                            toggleBtn.style.right = padding + 'px';
-                            toggleBtn.style.left = 'auto';
-                        }
-                        
-                        if (pos.top !== undefined && !isNaN(pos.top)) {
-                            const maxY = window.innerHeight - toggleBtn.offsetHeight;
-                            const top = Math.max(padding, Math.min(Math.max(0, pos.top), maxY - padding));
-                            toggleBtn.style.top = top + 'px';
-                            toggleBtn.style.bottom = 'auto';
-                        } else {
-                            // Default position if top is invalid
-                            toggleBtn.style.bottom = '24px';
-                            toggleBtn.style.top = 'auto';
-                        }
-                        
-                        toggleBtn.classList.add('dragged');
-                        
-                        // Only update positions if elements exist
-                        if (widget) {
-                            updateWidgetPosition();
-                        }
-                        updateScrollToTopPosition();
-                    } else if (pos.left !== undefined && pos.top !== undefined) {
-                        // Legacy format with absolute left/top
-                        const centerX = pos.left + (toggleBtn.offsetWidth / 2);
-                        const screenCenterX = window.innerWidth / 2;
-                        const snapToLeft = centerX < screenCenterX;
-                        
-                        if (snapToLeft) {
-                            toggleBtn.style.left = padding + 'px';
-                            toggleBtn.style.right = 'auto';
-                        } else {
-                            toggleBtn.style.right = padding + 'px';
-                            toggleBtn.style.left = 'auto';
-                        }
-                        
-                        const maxY = window.innerHeight - toggleBtn.offsetHeight;
-                        const top = Math.max(padding, Math.min(Math.max(0, pos.top), maxY - padding));
-                        toggleBtn.style.top = top + 'px';
-                        toggleBtn.style.bottom = 'auto';
-                        toggleBtn.classList.add('dragged');
-                        
-                        if (widget) {
-                            updateWidgetPosition();
-                        }
-                        updateScrollToTopPosition();
-                    } else if (pos.right !== undefined && pos.bottom !== undefined) {
-                        // Legacy support for old saved positions
-                        toggleBtn.style.right = pos.right + 'px';
-                        toggleBtn.style.left = 'auto';
-                        toggleBtn.style.bottom = pos.bottom + 'px';
-                        toggleBtn.style.top = 'auto';
-                        
-                        if (widget) {
-                            updateWidgetPosition();
-                        }
-                        updateScrollToTopPosition();
-                    }
-                } catch (e) {
-                    console.error('Error loading saved position:', e);
-                    // Reset to default position on error
-                    toggleBtn.style.left = '';
-                    toggleBtn.style.right = '';
-                    toggleBtn.style.top = '';
-                    toggleBtn.style.bottom = '';
-                    toggleBtn.classList.remove('dragged');
+            if (!saved) return;
+            try {
+                const pos = JSON.parse(saved);
+                const padding = pos.padding || SIDE_PADDING;
+                toggleBtn.style.display = 'flex';
+                toggleBtn.style.visibility = 'visible';
+                toggleBtn.style.opacity = '';
+                if (pos.side === 'left') {
+                    toggleBtn.style.left = padding + 'px';
+                    toggleBtn.style.right = 'auto';
+                } else {
+                    toggleBtn.style.right = padding + 'px';
+                    toggleBtn.style.left = 'auto';
                 }
+                if (pos.top !== undefined && !isNaN(pos.top)) {
+                    const maxY = window.innerHeight - toggleBtn.offsetHeight;
+                    const top = Math.max(padding, Math.min(Math.max(0, pos.top), maxY - padding));
+                    toggleBtn.style.top = top + 'px';
+                    toggleBtn.style.bottom = 'auto';
+                } else {
+                    toggleBtn.style.bottom = '24px';
+                    toggleBtn.style.top = 'auto';
+                }
+                toggleBtn.classList.add('dragged');
+                if (widget) updateWidgetPosition();
+                updateScrollToTopPosition();
+            } catch (e) {
+                console.error('Error loading saved position:', e);
             }
         }
 
@@ -1554,6 +1563,7 @@
 
         // Save position to localStorage
         function savePosition() {
+            if (!DRAG_ENABLED) return;
             const rect = toggleBtn.getBoundingClientRect();
             const centerX = rect.left + (rect.width / 2);
             const screenCenterX = window.innerWidth / 2;
@@ -1656,6 +1666,7 @@
 
         // Mouse drag handlers
         function handleMouseDown(e) {
+            if (!DRAG_ENABLED) return;
             isDragging = false;
             hasDragged = false;
             dragStartX = e.clientX;
@@ -1676,6 +1687,7 @@
         }
 
         function handleMouseMove(e) {
+            if (!DRAG_ENABLED) return;
             if (!dragStartX || !dragStartY) return;
             
             const deltaX = Math.abs(e.clientX - dragStartX);
@@ -1714,6 +1726,7 @@
         }
 
         function handleMouseUp(e) {
+            if (!DRAG_ENABLED) return;
             if (isDragging) {
                 // Restore transition for snapping animation
                 toggleBtn.style.transition = '';
@@ -1733,6 +1746,7 @@
 
         // Touch drag handlers
         function handleTouchStart(e) {
+            if (!DRAG_ENABLED) return;
             isDragging = false;
             hasDragged = false;
             const touch = e.touches[0];
@@ -1752,6 +1766,7 @@
         }
 
         function handleTouchMove(e) {
+            if (!DRAG_ENABLED) return;
             if (!dragStartX || !dragStartY) return;
             
             const touch = e.touches[0];
@@ -1793,6 +1808,7 @@
         }
 
         function handleTouchEnd(e) {
+            if (!DRAG_ENABLED) return;
             if (isDragging) {
                 // Restore transition for snapping animation
                 toggleBtn.style.transition = '';
@@ -2313,8 +2329,21 @@
         }
 
         async function openChat() {
-            widget.classList.add('open');
+            // Remove closing class if present
+            widget.classList.remove('closing');
+            widget.classList.remove('open');
+            
+            // Show widget and start opening animation
+            widget.style.display = 'flex';
             widget.setAttribute('aria-hidden', 'false');
+            widget.classList.add('opening');
+            
+            // After animation completes, switch to open state
+            setTimeout(() => {
+                widget.classList.remove('opening');
+                widget.classList.add('open');
+            }, 400); // Match animation duration
+            
             // Stop pulse animation when widget is open
             toggleBtn.style.animation = 'none';
             // Set title based on current mode
@@ -2600,8 +2629,18 @@
         }
 
         function closeChat() {
+            // Remove open and opening classes, add closing class
             widget.classList.remove('open');
+            widget.classList.remove('opening');
+            widget.classList.add('closing');
             widget.setAttribute('aria-hidden', 'true');
+            
+            // Wait for closing animation to complete before hiding
+            setTimeout(() => {
+                widget.classList.remove('closing');
+                widget.style.display = 'none';
+            }, 300); // Match animation duration
+            
             stopPolling();
             
             // Restart pulse animation when widget is closed

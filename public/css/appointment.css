@@ -378,21 +378,31 @@
 [data-theme="dark"] .appointment-item.pending {
     background: #F59E0B !important;
     color: white !important;
+    font-weight: 500;
 }
 
 [data-theme="dark"] .appointment-item.confirmed {
     background: #3B82F6 !important;
     color: white !important;
+    font-weight: 500;
 }
 
 [data-theme="dark"] .appointment-item.completed {
-    background: #10B981 !important;
+    background: #047857 !important;
     color: white !important;
+    font-weight: 500;
+}
+
+[data-theme="dark"] .appointment-item.cancelled {
+    background: #6d4c41 !important;
+    color: white !important;
+    font-weight: 500;
 }
 
 [data-theme="dark"] .appointment-item.blocked {
     background: #EF4444 !important;
     color: white !important;
+    font-weight: 500;
 }
 
 [data-theme="dark"] .appointment-item.blocked.full-day-closure {
@@ -404,6 +414,7 @@
 [data-theme="dark"] .appointment-item.missed {
     background: #6B7280 !important;
     color: white !important;
+    font-weight: 500;
 }
 
 /* Highlight days with appointments in dark mode */
@@ -467,18 +478,32 @@
 
 .appointment-item.pending {
     background: #F59E0B;
+    color: white !important;
+    font-weight: 500;
 }
 
 .appointment-item.confirmed {
     background: #3B82F6;
+    color: white !important;
+    font-weight: 500;
 }
 
 .appointment-item.completed {
-    background: #10B981;
+    background: #047857 !important;
+    color: white !important;
+    font-weight: 500;
+}
+
+.appointment-item.cancelled {
+    background: #8b6f47 !important;
+    color: white !important;
+    font-weight: 500;
 }
 
 .appointment-item.blocked {
     background: #EF4444;
+    color: white !important;
+    font-weight: 500;
 }
 
 /* Full Day Closure Styling */
@@ -492,6 +517,8 @@
 
 .appointment-item.missed {
     background: #6B7280;
+    color: white !important;
+    font-weight: 500;
 }
 
 .status-dot {

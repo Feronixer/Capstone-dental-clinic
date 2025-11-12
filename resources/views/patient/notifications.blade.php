@@ -118,6 +118,40 @@
     padding-right: 0.5rem;
 }
 
+/* Compact layout applied to Unread filter to match All notifications styling */
+.notifications--compact .notifications-list {
+	gap: 0.75rem;
+}
+.notifications--compact .notification-card {
+	padding: 1rem 1.125rem;
+	gap: 0.75rem;
+}
+.notifications--compact .notification-icon-wrapper {
+	width: 40px;
+	height: 40px;
+}
+.notifications--compact .notification-icon-wrapper i {
+	font-size: 1.1rem;
+}
+.notifications--compact .notification-title {
+	font-size: 0.95rem;
+}
+.notifications--compact .notification-message {
+	font-size: 0.85rem;
+	-webkit-line-clamp: 2;
+}
+.notifications--compact .notification-actions {
+	gap: 0.4rem;
+}
+.notifications--compact .btn-action {
+	padding: 0.35rem 0.6rem;
+	font-size: 0.8rem;
+	border-radius: 6px;
+}
+.notifications--compact .pagination-wrapper {
+	padding: 0.875rem 1rem;
+}
+
 /* Custom Scrollbar for Notifications List */
 .notifications-list::-webkit-scrollbar {
     width: 8px;
@@ -813,12 +847,30 @@
 }
 
 /* Modal Dark Mode */
+[data-theme="dark"] .modern-modal {
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
+}
+
 [data-theme="dark"] .modern-modal .modal-header {
     background: linear-gradient(135deg, var(--dm-bg-tertiary) 0%, var(--dm-bg-secondary) 100%) !important;
+    border-bottom-color: var(--dm-border-color) !important;
+}
+
+[data-theme="dark"] .modern-modal-primary .modal-header {
+    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%) !important;
+}
+
+[data-theme="dark"] .modern-modal-info .modal-header {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
 }
 
 [data-theme="dark"] .modern-modal .modal-title {
     color: var(--dm-text-primary) !important;
+}
+
+[data-theme="dark"] .modern-modal-primary .modal-title,
+[data-theme="dark"] .modern-modal-info .modal-title {
+    color: white !important;
 }
 
 [data-theme="dark"] .modern-modal .modal-body {
@@ -826,16 +878,17 @@
     color: var(--dm-text-primary) !important;
 }
 
-[data-theme="dark"] .modern-modal .modal-body p {
+[data-theme="dark"] .modal-question {
     color: var(--dm-text-primary) !important;
 }
 
-[data-theme="dark"] .modern-modal .modal-body small.text-muted {
+[data-theme="dark"] .modal-subtext {
     color: var(--dm-text-muted) !important;
 }
 
 [data-theme="dark"] .modern-modal .modal-footer {
     background: var(--dm-bg-tertiary) !important;
+    border-top-color: var(--dm-border-color) !important;
 }
 
 [data-theme="dark"] .modern-modal .btn-close {
@@ -843,33 +896,72 @@
     opacity: 0.8;
 }
 
+[data-theme="dark"] .modern-modal-primary .btn-close,
+[data-theme="dark"] .modern-modal-info .btn-close {
+    filter: brightness(0) invert(1) !important;
+    opacity: 0.9;
+}
+
 [data-theme="dark"] .modern-modal .btn-close:hover {
     opacity: 1 !important;
 }
 
 /* Confirm Icons Dark Mode */
-[data-theme="dark"] .confirm-icon {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.2) 100%) !important;
+[data-theme="dark"] .confirm-icon-primary {
+    background: linear-gradient(135deg, rgba(33, 150, 243, 0.25) 0%, rgba(25, 118, 210, 0.25) 100%) !important;
+    box-shadow: 0 8px 24px rgba(33, 150, 243, 0.3) !important;
+}
+
+[data-theme="dark"] .confirm-icon-primary i {
+    color: #60a5fa !important;
+}
+
+[data-theme="dark"] .confirm-icon-info {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(37, 99, 235, 0.25) 100%) !important;
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3) !important;
+}
+
+[data-theme="dark"] .confirm-icon-info i {
+    color: #60a5fa !important;
 }
 
 [data-theme="dark"] .confirm-icon.danger {
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.2) 100%) !important;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.25) 0%, rgba(220, 38, 38, 0.25) 100%) !important;
+    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.3) !important;
+}
+
+[data-theme="dark"] .confirm-icon.danger i {
+    color: #f87171 !important;
 }
 
 [data-theme="dark"] .confirm-icon.warning {
-    background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.2) 100%) !important;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.25) 0%, rgba(217, 119, 6, 0.25) 100%) !important;
+    box-shadow: 0 8px 24px rgba(245, 158, 11, 0.3) !important;
+}
+
+[data-theme="dark"] .confirm-icon.warning i {
+    color: #fbbf24 !important;
 }
 
 /* Buttons in Modals Dark Mode */
-[data-theme="dark"] .modern-modal .btn-secondary {
-    background: var(--dm-bg-tertiary) !important;
-    color: var(--dm-text-primary) !important;
-    border-color: var(--dm-border-color) !important;
+[data-theme="dark"] .btn-primary {
+    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%) !important;
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4) !important;
 }
 
-[data-theme="dark"] .modern-modal .btn-secondary:hover {
-    background: var(--dm-bg-secondary) !important;
-    color: var(--dm-text-primary) !important;
+[data-theme="dark"] .btn-primary:hover {
+    background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%) !important;
+    box-shadow: 0 6px 20px rgba(33, 150, 243, 0.5) !important;
+}
+
+[data-theme="dark"] .btn-info {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4) !important;
+}
+
+[data-theme="dark"] .btn-info:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5) !important;
 }
 
 /* Notification View Modal Dark Mode */
@@ -903,7 +995,7 @@
 }
 </style>
 
-<div class="notifications-container">
+<div class="notifications-container {{ request('filter') == 'unread' ? 'notifications--compact' : '' }}">
     <!-- Header -->
     <div class="notifications-header">
         <h1 class="notifications-title">
@@ -1053,23 +1145,23 @@
 <!-- Mark All as Read Modal -->
 <div class="modal fade" id="markAllReadModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content modern-modal">
+        <div class="modal-content modern-modal modern-modal-primary">
             <div class="modal-header border-0">
                 <h5 class="modal-title">
-                    <i class="bi bi-check-all me-2 text-primary"></i>Mark All as Read
+                    <i class="bi bi-check-all me-2"></i>Mark All as Read
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body text-center py-4">
-                <div class="confirm-icon mb-3">
-                    <i class="bi bi-question-circle"></i>
+                <div class="confirm-icon confirm-icon-primary mb-4">
+                    <i class="bi bi-check-circle"></i>
                 </div>
-                <p class="mb-0">Are you sure you want to mark all notifications as read?</p>
+                <h6 class="modal-question mb-2">Are you sure you want to mark all notifications as read?</h6>
+                <p class="modal-subtext mb-0">This will mark all unread notifications as read.</p>
             </div>
             <div class="modal-footer border-0">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="confirmMarkAllAsRead()">
-                    <i class="bi bi-check-all me-1"></i>Yes, Mark All as Read
+                <button type="button" class="btn btn-primary btn-modal-action" onclick="confirmMarkAllAsRead()">
+                    <i class="bi bi-check-all me-2"></i>Yes, Mark All as Read
                 </button>
             </div>
         </div>
@@ -1106,24 +1198,23 @@
 <!-- Clear Read Notifications Modal -->
 <div class="modal fade" id="clearReadModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content modern-modal">
+        <div class="modal-content modern-modal modern-modal-info">
             <div class="modal-header border-0">
                 <h5 class="modal-title">
-                    <i class="bi bi-trash me-2 text-warning"></i>Clear Read Notifications
+                    <i class="bi bi-trash me-2"></i>Clear Read Notifications
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body text-center py-4">
-                <div class="confirm-icon warning mb-3">
-                    <i class="bi bi-question-circle"></i>
+                <div class="confirm-icon confirm-icon-info mb-4">
+                    <i class="bi bi-trash"></i>
                 </div>
-                <p class="mb-0">Are you sure you want to delete all read notifications?</p>
-                <small class="text-muted">This will permanently remove all notifications you've already read.</small>
+                <h6 class="modal-question mb-2">Are you sure you want to delete all read notifications?</h6>
+                <p class="modal-subtext mb-0">This will permanently remove all notifications you've already read.</p>
             </div>
             <div class="modal-footer border-0">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-warning" onclick="confirmClearRead()">
-                    <i class="bi bi-trash me-1"></i>Yes, Clear All Read
+                <button type="button" class="btn btn-info btn-modal-action" onclick="confirmClearRead()">
+                    <i class="bi bi-trash me-2"></i>Yes, Clear All Read
                 </button>
             </div>
         </div>
@@ -1160,67 +1251,260 @@
 </div>
 
 <style>
-/* Modal Styles */
+/* Modal Styles - Enhanced and Modern */
 .modern-modal {
-    border-radius: 16px;
+    border-radius: 20px;
     border: none;
     overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    max-width: 480px;
+    width: 100%;
 }
 
 .modern-modal .modal-header {
     background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-    padding: 1.5rem;
+    padding: 1.75rem 2rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .modern-modal .modal-title {
     font-weight: 700;
-    font-size: 1.25rem;
+    font-size: 1.35rem;
     color: #1e293b;
+    display: flex;
+    align-items: center;
+    margin: 0;
+}
+
+.modern-modal .modal-title i {
+    font-size: 1.4rem;
 }
 
 .modern-modal .modal-body {
-    padding: 2rem;
+    padding: 2.5rem 2rem;
+    background: white;
 }
 
 .modern-modal .modal-footer {
-    padding: 1.5rem;
+    padding: 1.75rem 2rem;
     background: #f8fafc;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+/* Primary Modal Theme (Mark All as Read) */
+.modern-modal-primary .modal-header {
+    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+}
+
+.modern-modal-primary .modal-title {
+    color: white;
+}
+
+.modern-modal-primary .modal-title i {
+    color: white;
+}
+
+.modern-modal-primary .btn-close {
+    filter: brightness(0) invert(1);
+    opacity: 0.9;
+}
+
+.modern-modal-primary .btn-close:hover {
+    opacity: 1;
+}
+
+/* Info Modal Theme (Clear Read) */
+.modern-modal-info .modal-header {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.modern-modal-info .modal-title {
+    color: white;
+}
+
+.modern-modal-info .modal-title i {
+    color: white;
+}
+
+.modern-modal-info .btn-close {
+    filter: brightness(0) invert(1);
+    opacity: 0.9;
+}
+
+.modern-modal-info .btn-close:hover {
+    opacity: 1;
+}
+
+/* Modal Content Styling */
+.modal-question {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+}
+
+.modal-subtext {
+    font-size: 0.95rem;
+    color: #64748b;
+    line-height: 1.5;
+}
+
+/* Confirm Icons - Enhanced */
+.confirm-icon {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    box-shadow: 0 8px 24px rgba(33, 150, 243, 0.2);
+}
+
+.confirm-icon i {
+    font-size: 2.75rem;
+    color: #2196F3;
+}
+
+.confirm-icon-primary {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    box-shadow: 0 8px 24px rgba(33, 150, 243, 0.25);
+}
+
+.confirm-icon-primary i {
+    color: #2196F3;
+}
+
+.confirm-icon-info {
+    background: linear-gradient(135deg, #dbeafe 0%, #93c5fd 100%);
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.25);
+}
+
+.confirm-icon-info i {
+    color: #3b82f6;
+}
+
+.confirm-icon.danger {
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.2);
+}
+
+.confirm-icon.danger i {
+    color: #ef4444;
+}
+
+.confirm-icon.warning {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    box-shadow: 0 8px 24px rgba(245, 158, 11, 0.2);
+}
+
+.confirm-icon.warning i {
+    color: #f59e0b;
+}
+
+/* Modal Action Buttons */
+.btn-modal-action {
+    padding: 0.875rem 2rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    border: none;
+    min-width: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-modal-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+    color: white;
+}
+
+.btn-info {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+}
+
+.btn-info:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: white;
 }
 
 /* Responsive Modal Styles */
 @media (max-width: 768px) {
     .modal-dialog {
-        margin: 0.5rem;
-        max-width: calc(100% - 1rem);
+        margin: 1rem;
+        max-width: calc(100% - 2rem);
     }
 
     .modal-dialog-centered {
-        min-height: calc(100% - 1rem);
+        min-height: calc(100% - 2rem);
+    }
+
+    .modern-modal {
+        max-width: 100%;
+        border-radius: 16px;
     }
 
     .modern-modal .modal-header {
-        padding: 1.25rem 1rem;
+        padding: 1.5rem 1.5rem;
     }
 
     .modern-modal .modal-title {
-        font-size: 1.1rem;
+        font-size: 1.2rem;
+    }
+
+    .modern-modal .modal-title i {
+        font-size: 1.3rem;
     }
 
     .modern-modal .modal-body {
-        padding: 1.5rem 1rem;
-        font-size: 0.95rem;
+        padding: 2rem 1.5rem;
+    }
+
+    .modal-question {
+        font-size: 1.05rem;
+    }
+
+    .modal-subtext {
+        font-size: 0.9rem;
     }
 
     .modern-modal .modal-footer {
-        padding: 1.25rem 1rem;
-        flex-direction: column;
-        gap: 0.75rem;
+        padding: 1.5rem 1.5rem;
     }
 
-    .modern-modal .modal-footer .btn {
+    .btn-modal-action {
         width: 100%;
-        margin: 0;
-        min-height: 44px;
+        min-width: auto;
+        padding: 0.875rem 1.5rem;
+        font-size: 0.95rem;
+    }
+
+    .confirm-icon {
+        width: 80px;
+        height: 80px;
+    }
+
+    .confirm-icon i {
+        font-size: 2.5rem;
     }
 
     .notification-modal-content {
@@ -1252,29 +1536,59 @@
 
 @media (max-width: 480px) {
     .modal-dialog {
-        margin: 0.25rem;
-        max-width: calc(100% - 0.5rem);
+        margin: 0.75rem;
+        max-width: calc(100% - 1.5rem);
     }
 
     .modal-dialog-centered {
-        min-height: calc(100% - 0.5rem);
+        min-height: calc(100% - 1.5rem);
+    }
+
+    .modern-modal {
+        border-radius: 14px;
     }
 
     .modern-modal .modal-header {
-        padding: 1rem 0.875rem;
+        padding: 1.25rem 1.25rem;
     }
 
     .modern-modal .modal-title {
-        font-size: 1rem;
+        font-size: 1.1rem;
+    }
+
+    .modern-modal .modal-title i {
+        font-size: 1.2rem;
     }
 
     .modern-modal .modal-body {
-        padding: 1.25rem 0.875rem;
-        font-size: 0.9rem;
+        padding: 1.75rem 1.25rem;
+    }
+
+    .modal-question {
+        font-size: 1rem;
+    }
+
+    .modal-subtext {
+        font-size: 0.85rem;
     }
 
     .modern-modal .modal-footer {
-        padding: 1rem 0.875rem;
+        padding: 1.25rem 1.25rem;
+    }
+
+    .btn-modal-action {
+        padding: 0.75rem 1.25rem;
+        font-size: 0.9rem;
+        min-height: 48px;
+    }
+
+    .confirm-icon {
+        width: 70px;
+        height: 70px;
+    }
+
+    .confirm-icon i {
+        font-size: 2.25rem;
     }
 
     .notification-modal-header {
@@ -1289,98 +1603,31 @@
     .notification-modal-footer {
         padding: 1rem 0.875rem !important;
     }
+}
+
+@media (max-width: 360px) {
+    .modern-modal .modal-header {
+        padding: 1rem 1rem;
+    }
+
+    .modern-modal .modal-body {
+        padding: 1.5rem 1rem;
+    }
+
+    .modern-modal .modal-footer {
+        padding: 1rem 1rem;
+    }
 
     .confirm-icon {
-        width: 60px !important;
-        height: 60px !important;
+        width: 65px;
+        height: 65px;
     }
 
     .confirm-icon i {
-        font-size: 2rem !important;
+        font-size: 2rem;
     }
 }
 
-.confirm-icon {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto;
-    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-}
-
-.confirm-icon i {
-    font-size: 2.5rem;
-    color: #2196F3;
-}
-
-.confirm-icon.danger {
-    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-}
-
-.confirm-icon.danger i {
-    color: #ef4444;
-}
-
-.confirm-icon.warning {
-    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-}
-
-.confirm-icon.warning i {
-    color: #f59e0b;
-}
-
-.btn {
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    font-weight: 600;
-    transition: all 0.3s;
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
-    border: none;
-}
-
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
-}
-
-.btn-danger {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    border: none;
-}
-
-.btn-danger:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
-}
-
-.btn-warning {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    border: none;
-    color: white;
-}
-
-.btn-warning:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
-    color: white;
-}
-
-.btn-secondary {
-    background: #e2e8f0;
-    color: #64748b;
-    border: none;
-}
-
-.btn-secondary:hover {
-    background: #cbd5e1;
-    color: #475569;
-}
 
 /* Notification View Modal Styles */
 .notification-modal-content {

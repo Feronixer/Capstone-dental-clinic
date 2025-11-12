@@ -15,15 +15,33 @@ class NotificationController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Get pending appointment requests
-        $pendingRequests = AppointmentRequest::with(['patient.info', 'service'])
-            ->where('status', 'Pending')
-            ->orderBy('created_at', 'desc')
-            ->get();
+        // Get filter type from request
+        $filterType = $request->get('type', 'all');
+        
+        // Build query
+        $query = AppointmentRequest::with(['patient.info', 'service'])
+            ->where('status', 'Pending');
+        
+        // Apply filter if not 'all'
+        if ($filterType !== 'all') {
+            $query->where('request_type', $filterType);
+        }
+        
+        // Get paginated results
+        $pendingRequests = $query->orderBy('created_at', 'desc')->paginate(10);
+        
+        // Get counts for each type (for filter buttons)
+        $allCount = AppointmentRequest::where('status', 'Pending')->count();
+        $bookCount = AppointmentRequest::where('status', 'Pending')->where('request_type', 'book')->count();
+        $rescheduleCount = AppointmentRequest::where('status', 'Pending')->where('request_type', 'reschedule')->count();
+        $walkInCount = AppointmentRequest::where('status', 'Pending')->where('request_type', 'walk-in')->count();
+        
+        // Append filter type to pagination links
+        $pendingRequests->appends(['type' => $filterType]);
 
-        return view("admin.notification", compact('pendingRequests'));
+        return view("admin.notification", compact('pendingRequests', 'filterType', 'allCount', 'bookCount', 'rescheduleCount', 'walkInCount'));
     }
 
     /**

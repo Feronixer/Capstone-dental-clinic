@@ -319,10 +319,23 @@
     }
 
     .archive-grid {
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
         gap: 0.5rem;
         margin-bottom: 1.25rem;
+    }
+    
+    .archive-grid .archive-card {
+        flex: 0 0 calc(20% - 0.4rem);
+        min-width: 200px;
+        max-width: 100%;
+    }
+    
+    @media (min-width: 1401px) {
+        .archive-grid .archive-card {
+            flex: 0 0 calc(20% - 0.4rem);
+        }
     }
 
     /* Archive Cards */
@@ -646,23 +659,20 @@
     }
 
     @media (max-width: 1400px) {
-        .archive-grid {
-            grid-template-columns: repeat(4, 1fr);
-            gap: 0.5rem;
+        .archive-grid .archive-card {
+            flex: 0 0 calc(25% - 0.375rem);
         }
     }
 
     @media (max-width: 1200px) {
-        .archive-grid {
-            grid-template-columns: repeat(3, 1fr);
-            gap: 0.625rem;
+        .archive-grid .archive-card {
+            flex: 0 0 calc(33.333% - 0.5rem);
         }
     }
 
     @media (max-width: 992px) {
-        .archive-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 0.75rem;
+        .archive-grid .archive-card {
+            flex: 0 0 calc(50% - 0.375rem);
         }
     }
 
@@ -810,9 +820,8 @@
             font-size: 1rem;
         }
 
-        .archive-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 0.75rem;
+        .archive-grid .archive-card {
+            flex: 0 0 calc(50% - 0.375rem);
         }
 
         .archive-card {

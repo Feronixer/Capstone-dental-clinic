@@ -799,6 +799,22 @@ class AppointmentController extends Controller
                 'notes' => 'nullable|string|max:500'
             ]);
 
+            // Allow status changes for Pending appointments regardless of date
+            // Only allow status changes from Confirmed status if appointment is scheduled for today
+            if ($oldStatus === 'Confirmed') {
+                $appointmentDate = Carbon::parse($appointment->start_datetime)->timezone('Asia/Manila')->startOfDay();
+                $today = Carbon::now('Asia/Manila')->startOfDay();
+                $isToday = $appointmentDate->isSameDay($today);
+
+                if (!$isToday) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Status changes for Confirmed appointments are only allowed for today\'s appointments.'
+                    ], 422);
+                }
+            }
+            // Pending appointments can change status regardless of date (exception)
+
             // Prevent cancelling rescheduled appointments
             if ($validated['status'] === 'Cancelled' && !is_null($appointment->rescheduled_at)) {
                 return response()->json([

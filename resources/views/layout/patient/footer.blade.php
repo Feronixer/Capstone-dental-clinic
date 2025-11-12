@@ -693,7 +693,9 @@
                 <h5 class="modal-title policy-modal-title" id="privacyPolicyModalLabel">
                     <i class="bi bi-shield-lock-fill me-2"></i>Privacy Policy
                 </h5>
-                <button type="button" class="btn-close policy-modal-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close policy-modal-close" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="bi bi-x-lg"></i>
+                </button>
             </div>
             <div class="modal-body policy-modal-body">
                 <div class="policy-content">
@@ -784,7 +786,9 @@
                 <h5 class="modal-title policy-modal-title" id="termsOfServiceModalLabel">
                     <i class="bi bi-file-text-fill me-2"></i>Terms of Service
                 </h5>
-                <button type="button" class="btn-close policy-modal-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close policy-modal-close" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="bi bi-x-lg"></i>
+                </button>
             </div>
             <div class="modal-body policy-modal-body">
                 <div class="policy-content">
@@ -938,9 +942,9 @@
     border-radius: 50%;
     width: 36px;
     height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     opacity: 1 !important;
     transition: all 0.3s ease;
     border: none;
@@ -948,25 +952,40 @@
     margin: 0;
     position: relative;
     z-index: 10;
+    /* Hide Bootstrap's default background image */
+    background-image: none !important;
+    filter: none !important;
 }
 
-.policy-modal-close .btn-close::before,
-.policy-modal-close::after {
+/* Hide Bootstrap's default close icon completely */
+.policy-modal-close.btn-close {
+    background-image: none !important;
+    filter: none !important;
+    /* Hide any Bootstrap SVG or background */
+    background-size: 0 !important;
+    background-position: center !important;
+}
+
+/* Hide Bootstrap's pseudo-elements */
+.policy-modal-close.btn-close::before,
+.policy-modal-close.btn-close::after {
     display: none !important;
+    content: none !important;
 }
 
-.policy-modal-close::before {
-    content: '×';
-    color: white !important;
-    font-size: 1.75rem;
-    font-weight: 300;
-    line-height: 1;
-    display: block;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 11;
+/* Style the icon inside the button */
+.policy-modal-close i {
+    color: #ffffff !important;
+    font-size: 1.25rem !important;
+    font-weight: 600 !important;
+    line-height: 1 !important;
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    opacity: 1 !important;
+    text-shadow: none !important;
+    filter: none !important;
+    transition: all 0.3s ease;
 }
 
 .policy-modal-close:hover {
@@ -974,8 +993,9 @@
     transform: rotate(90deg);
 }
 
-.policy-modal-close:hover::before {
-    color: white !important;
+.policy-modal-close:hover i {
+    color: #ffffff !important;
+    opacity: 1 !important;
 }
 
 .policy-modal-body {
@@ -1065,18 +1085,39 @@
 
 [data-theme="dark"] .policy-modal-close {
     background: rgba(255, 255, 255, 0.2) !important;
+    /* Ensure Bootstrap's default icon is hidden */
+    background-image: none !important;
+    filter: none !important;
 }
 
-[data-theme="dark"] .policy-modal-close::before {
-    color: white !important;
+[data-theme="dark"] .policy-modal-close.btn-close {
+    background-image: none !important;
+    filter: none !important;
+    background-size: 0 !important;
+    background-position: center !important;
+}
+
+[data-theme="dark"] .policy-modal-close.btn-close::before,
+[data-theme="dark"] .policy-modal-close.btn-close::after {
+    display: none !important;
+    content: none !important;
+}
+
+/* Dark mode icon styling */
+[data-theme="dark"] .policy-modal-close i {
+    color: #ffffff !important;
+    opacity: 1 !important;
+    text-shadow: none !important;
+    filter: none !important;
 }
 
 [data-theme="dark"] .policy-modal-close:hover {
     background: rgba(255, 255, 255, 0.3) !important;
 }
 
-[data-theme="dark"] .policy-modal-close:hover::before {
-    color: white !important;
+[data-theme="dark"] .policy-modal-close:hover i {
+    color: #ffffff !important;
+    opacity: 1 !important;
 }
 
 /* Responsive Styles */

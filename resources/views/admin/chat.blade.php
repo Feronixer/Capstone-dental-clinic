@@ -125,7 +125,6 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-danger" id="confirm-delete-btn">
                     <i class="bi bi-trash me-2"></i>Delete Conversation
                 </button>
@@ -197,6 +196,9 @@ let currentConversationId = null;
 let pollingInterval = null;
 let lastMessageId = null;
 
+// Current admin id for identifying own messages
+const CURRENT_ADMIN_ID = @json(Auth::guard('admin')->id());
+
 async function loadConversations() {
     const status = document.getElementById('status-filter').value;
     const search = document.getElementById('search-conversations').value;
@@ -237,7 +239,7 @@ async function loadConversations() {
                         </div>
                         <small class="conversation-email d-block">${conv.patient_email}</small>
                         ${conv.staff_name ? `<small class="conversation-staff d-block mt-1"><i class="bi bi-person-badge me-1"></i>${conv.staff_name}</small>` : ''}
-                        ${conv.last_message ? `<p class="mb-0 mt-2 conversation-preview"><i class="bi bi-chat-left me-1"></i>${conv.last_message}</p>` : ''}
+                        
                     </div>
                 </div>
             </div>
@@ -313,7 +315,17 @@ async function loadMessages(conversationId) {
             addMessage(welcomeMessage.message, welcomeMessage.sender_type, welcomeMessage.sender_name, welcomeMessage.created_at, null);
         } else {
         data.messages.forEach(msg => {
-                addMessage(msg.message, msg.sender_type, msg.sender_name, msg.created_at, msg.attachments);
+                // Compute display name for admin side:
+                // - If message from current admin -> "You"
+                // - If from staff -> "Name (staff)"
+                // - Else use provided name (patient/other)
+                let displayName = msg.sender_name || '';
+                if ((msg.sender_type === 'admin') && CURRENT_ADMIN_ID && msg.sender_id === CURRENT_ADMIN_ID) {
+                    displayName = 'You';
+                } else if (msg.sender_type === 'staff' && msg.sender_name) {
+                    displayName = `${msg.sender_name} (staff)`;
+                }
+                addMessage(msg.message, msg.sender_type, displayName, msg.created_at, msg.attachments);
         });
         }
         
@@ -362,8 +374,22 @@ function addMessage(text, senderType, senderName, timestamp = null, attachments 
     }
     
     messageWrapper.className = `message-wrapper ${isAdmin ? 'message-sent' : 'message-received'}`;
+    // Preserve the original senderType for identification (admin|staff|patient)
+    const senderRole = (senderType === 'admin' || senderType === 'staff' || senderType === 'patient') ? senderType : 'system';
+    // Build a clean label for tooltips
+    let tooltipLabel = '';
+    if (senderRole === 'admin' && (senderName === 'You' || senderName === 'You ')) {
+        tooltipLabel = 'You (admin)';
+    } else if ((senderRole === 'staff' || senderRole === 'patient')) {
+        tooltipLabel = /\([\s\S]*\)$/.test(senderName) ? senderName : `${senderName} (${senderRole})`;
+    } else {
+        tooltipLabel = senderName || '';
+    }
     messageWrapper.innerHTML = `
-        <div class="message-bubble ${isAdmin ? 'message-outgoing' : 'message-incoming'}">
+        <div class="message-bubble ${isAdmin ? 'message-outgoing' : 'message-incoming'}"
+             data-sender-name="${escapeHtml(senderName || (isAdmin ? 'You' : ''))}"
+             data-sender-type="${senderRole}"
+             data-sender-label="${escapeHtml(tooltipLabel)}">
             ${!isAdmin ? `<div class="message-sender">${senderName}</div>` : ''}
             ${text ? `<div class="message-text">${escapeHtml(text)}</div>` : ''}
             ${attachmentsHtml}
@@ -570,7 +596,13 @@ function startPolling() {
             
             data.messages.forEach(msg => {
                 if (msg.id > lastMessageId) {
-                    addMessage(msg.message, msg.sender_type, msg.sender_name, msg.created_at, msg.attachments);
+                    let displayName = msg.sender_name || '';
+                    if ((msg.sender_type === 'admin') && CURRENT_ADMIN_ID && msg.sender_id === CURRENT_ADMIN_ID) {
+                        displayName = 'You';
+                    } else if (msg.sender_type === 'staff' && msg.sender_name) {
+                        displayName = `${msg.sender_name} (staff)`;
+                    }
+                    addMessage(msg.message, msg.sender_type, displayName, msg.created_at, msg.attachments);
                     lastMessageId = msg.id;
                 }
             });
@@ -841,6 +873,40 @@ document.getElementById('delete-password-input').addEventListener('keydown', fun
 document.getElementById('delete-password-input').addEventListener('input', function() {
     this.classList.remove('is-invalid');
     document.getElementById('delete-password-error').textContent = '';
+});
+
+// Click a message bubble to reveal who sent it
+document.getElementById('chat-messages').addEventListener('click', function(e) {
+    const bubble = e.target.closest('.message-bubble');
+    if (!bubble) return;
+    const preset = bubble.getAttribute('data-sender-label');
+    let label = preset;
+    if (!label) {
+        const name = bubble.getAttribute('data-sender-name') || '';
+        const type = bubble.getAttribute('data-sender-type') || '';
+        if (name.toLowerCase() === 'you' && type === 'admin') {
+            label = 'You (admin)';
+        } else if (name.match(/\([\s\S]*\)$/)) {
+            label = name;
+        } else if (type) {
+            label = `${name} (${type})`;
+        } else {
+            label = name;
+        }
+    }
+    if (window.bootstrap && bootstrap.Tooltip) {
+        try {
+            bubble.setAttribute('data-bs-title', label);
+            bubble.setAttribute('data-bs-placement', 'top');
+            const tip = new bootstrap.Tooltip(bubble, { trigger: 'manual' });
+            tip.show();
+            setTimeout(() => { try { tip.dispose(); } catch(_) {} }, 1500);
+        } catch (_) {
+            alert(`Sent by: ${label}`);
+        }
+    } else {
+        alert(`Sent by: ${label}`);
+    }
 });
 
 // Load conversations on page load

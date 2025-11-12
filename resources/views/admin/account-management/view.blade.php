@@ -137,9 +137,6 @@
                 <div class="text-danger small" id="editPasswordVerifyError" style="display:none;"></div>
             </div>
             <div class="modal-footer enhanced-password-footer">
-                <button type="button" class="btn btn-secondary btn-cancel-password" data-bs-dismiss="modal">
-                    <i class="bi bi-x-circle me-2"></i>Cancel
-                </button>
                 <button type="button" class="btn btn-primary btn-verify-password" id="editPasswordVerifyBtn">
                     <i class="bi bi-check-circle me-2"></i>Verify
                 </button>
@@ -171,9 +168,6 @@
                 <div class="text-danger small" id="adminConfirmError" style="display:none;"></div>
             </div>
             <div class="modal-footer enhanced-password-footer">
-                <button type="button" class="btn btn-secondary btn-cancel-password" data-bs-dismiss="modal">
-                    <i class="bi bi-x-circle me-2"></i>Cancel
-                </button>
                 <button type="button" class="btn btn-primary btn-verify-password" id="adminConfirmSubmitBtn">
                     <i class="bi bi-check-circle me-2"></i>Confirm
                 </button>
@@ -202,7 +196,6 @@
                 <div class="mt-2 small text-muted">For security, enter your password to reveal the user's email.</div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary" id="confirmViewEmailBtn">View Email</button>
             </div>
         </div>
