@@ -1316,11 +1316,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     document.getElementById('block_start_date_input').addEventListener('change', function() {
+        updateRepeatButtonVisibility();
         if (isRepeatEnabled) {
             updateRepeatPreview();
         }
     });
     document.getElementById('block_end_date_input').addEventListener('change', function() {
+        updateRepeatButtonVisibility();
         if (isRepeatEnabled) {
             updateRepeatPreview();
         }
@@ -1330,6 +1332,37 @@ document.addEventListener('DOMContentLoaded', function() {
     function isClinicClosedSelected() {
         const clinicClosedTab = document.getElementById('clinic_closed_tab');
         return clinicClosedTab && clinicClosedTab.checked;
+    }
+
+    // Function to update repeat button visibility based on date inputs
+    function updateRepeatButtonVisibility() {
+        const repeatToggleBtn = document.getElementById('repeat-toggle-btn');
+        const repeatToggleContainer = repeatToggleBtn.parentElement;
+        const isMultiple = isClinicClosedSelected();
+
+        if (isMultiple) {
+            // For Clinic Closed tab, show repeat button only when both dates are filled
+            const startDate = document.getElementById('block_start_date_input').value;
+            const endDate = document.getElementById('block_end_date_input').value;
+            
+            if (startDate && endDate) {
+                repeatToggleContainer.style.display = 'block';
+            } else {
+                repeatToggleContainer.style.display = 'none';
+                // Also hide repeat options if open
+                const repeatOptionsSection = document.getElementById('repeat-options-section');
+                if (repeatOptionsSection) {
+                    repeatOptionsSection.style.display = 'none';
+                    isRepeatEnabled = false;
+                    repeatToggleBtn.classList.remove('btn-primary');
+                    repeatToggleBtn.classList.add('btn-outline-secondary');
+                    repeatToggleBtn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Repeat';
+                }
+            }
+        } else {
+            // For Specific Time tab, always show repeat button
+            repeatToggleContainer.style.display = 'block';
+        }
     }
 
     // Function to update repeat preview
@@ -1510,15 +1543,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 blockDateField.removeAttribute('required');
                 startTimeField.removeAttribute('required');
                 endTimeField.removeAttribute('required');
-                // Hide Repeat button when clinic closed is selected
-                repeatToggleContainer.style.display = 'none';
-                // Also hide repeat options if open
+                // Show Repeat button when clinic closed is selected (will be toggled based on date inputs)
+                updateRepeatButtonVisibility();
+                // Also hide repeat options if open (will be shown when repeat is enabled)
                 const repeatOptionsSection = document.getElementById('repeat-options-section');
-                if (repeatOptionsSection) {
+                if (repeatOptionsSection && !isRepeatEnabled) {
                     repeatOptionsSection.style.display = 'none';
-                    isRepeatEnabled = false;
-                    repeatToggleBtn.classList.remove('btn-primary');
-                    repeatToggleBtn.classList.add('btn-outline-secondary');
                 }
             } else {
                 timeSection.style.display = 'flex';
@@ -3190,8 +3220,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (isMultipleDays) {
                 // For date ranges, create blocks for each day in the range
                 const currentDate = new Date(occurrence.start);
-                while (currentDate <= occurrence.end) {
-                    const dateStr = currentDate.toISOString().split('T')[0];
+                const endDateObj = new Date(occurrence.end);
+                while (currentDate <= endDateObj) {
+                    const dateStr = formatLocalDate(currentDate);
                     const startDateTimeStr = `${dateStr} 00:00:00`;
                     const endDateTimeStr = `${dateStr} 23:59:00`;
 
@@ -3219,9 +3250,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             } else {
                 // For single day blocks
-                const dateStr = new Date(occurrence.start).toISOString().split('T')[0];
-                const startTime = new Date(occurrence.start).toTimeString().slice(0, 5);
-                const endTime = new Date(occurrence.end).toTimeString().slice(0, 5);
+                const startDateObj = new Date(occurrence.start);
+                const endDateObj = new Date(occurrence.end);
+                const dateStr = formatLocalDate(startDateObj);
+                const startTime = startDateObj.toTimeString().slice(0, 5);
+                const endTime = endDateObj.toTimeString().slice(0, 5);
 
                 const startDateTimeStr = `${dateStr} ${startTime}:00`;
                 const endDateTimeStr = `${dateStr} ${endTime}:00`;
@@ -3281,6 +3314,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 btnText.textContent = originalText;
                 submitBtn.disabled = false;
             });
+    }
+
+    // Helper function to format date as YYYY-MM-DD in local time (not UTC)
+    function formatLocalDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     }
 
     // Helper function to generate repeat date ranges
@@ -3446,7 +3487,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 const createPromises = dates.map(date => {
-                    const dateStr = date.toISOString().split('T')[0];
+                    const dateStr = formatLocalDate(date);
                 const blockData = {
                     title: 'Clinic Closed',
                         start_time: `${dateStr} 00:00:00`,
