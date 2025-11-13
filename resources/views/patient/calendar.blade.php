@@ -2060,6 +2060,89 @@ document.getElementById('appointmentForm').addEventListener('submit', function(e
         // Don't send service_id or other_concern for reschedule - backend will use original appointment's data
     }
 
+    // Check for blocked/closed times before submitting
+    const selectedDate = formData.date;
+    const selectedTime = formData.time;
+    
+    if (selectedDate && selectedTime) {
+        const [hours, minutes] = selectedTime.split(':').map(Number);
+        const requestedStart = new Date(selectedDate);
+        requestedStart.setHours(hours, minutes, 0);
+        
+        const duration = getRequestDuration();
+        const requestedEnd = new Date(requestedStart.getTime() + duration * 60000);
+        
+        // Check blocked times
+        const isBlocked = window.blockedTimes.some(blockedTime => {
+            const blockStart = parseLocalDateTime(blockedTime.start_datetime);
+            const blockEnd = parseLocalDateTime(blockedTime.end_datetime);
+            if (!blockStart || !blockEnd) return false;
+            
+            // Check if on the same date
+            if (blockStart.toDateString() !== requestedStart.toDateString()) return false;
+            
+            // Check for overlap
+            return (requestedStart < blockEnd && requestedEnd > blockStart);
+        });
+        
+        if (isBlocked) {
+            // Find the blocking time for details
+            const blockingTime = window.blockedTimes.find(blockedTime => {
+                const blockStart = parseLocalDateTime(blockedTime.start_datetime);
+                const blockEnd = parseLocalDateTime(blockedTime.end_datetime);
+                if (!blockStart || !blockEnd) return false;
+                
+                if (blockStart.toDateString() !== requestedStart.toDateString()) return false;
+                return (requestedStart < blockEnd && requestedEnd > blockStart);
+            });
+            
+                if (blockingTime) {
+                const blockStart = parseLocalDateTime(blockingTime.start_datetime);
+                const blockEnd = parseLocalDateTime(blockingTime.end_datetime);
+                const isFullDayClosure = blockStart && blockEnd && 
+                    blockStart.getHours() === 0 && blockStart.getMinutes() === 0 &&
+                    blockEnd.getHours() === 23 && blockEnd.getMinutes() === 59;
+                
+                // Re-enable button
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalText;
+                
+                if (isFullDayClosure) {
+                    // Show clinic closed modal (red) - separate feedback for clinic closure
+                    const conflictDate = new Date(selectedDate).toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                    
+                    document.getElementById('clinicClosedMessage').textContent = 'The clinic is closed on this date. Please select a different date for your appointment request.';
+                    document.getElementById('clinicClosedDate').textContent = conflictDate;
+                    
+                    // Show clinic closed modal
+                    new bootstrap.Modal(document.getElementById('patientClinicClosedModal')).show();
+                } else {
+                    // Show blocked time modal (yellow/warning) - for partial time blocks
+                    const conflictDate = new Date(selectedDate).toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                    const conflictTime = `${selectedTime}`;
+                    
+                    document.getElementById('patientConflictMessage').textContent = 'This time slot is blocked. Please select a different time slot for your appointment request.';
+                    document.getElementById('patientConflictDate').textContent = conflictDate;
+                    document.getElementById('patientConflictTime').textContent = conflictTime;
+                    
+                    // Show conflict modal
+                    new bootstrap.Modal(document.getElementById('patientAppointmentConflictModal')).show();
+                }
+                return; // Stop submission
+            }
+        }
+    }
+
     // Send to backend API
     fetch('{{ route("patient-calendar.submit-request") }}', {
         method: 'POST',
@@ -2121,7 +2204,46 @@ document.getElementById('appointmentForm').addEventListener('submit', function(e
             // Auto-dismiss after 5 seconds
             setTimeout(() => alert.remove(), 5000);
         } else {
-            throw new Error(data.message || 'Failed to submit request');
+            // Check if error is due to blocked/closed time
+            if (data.message && (data.message.includes('closed') || data.message.includes('blocked'))) {
+                // Re-enable button
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalText;
+                
+                if (data.message.includes('closed')) {
+                    // Show clinic closed modal (red) - separate feedback for clinic closure
+                    const conflictDate = new Date(formData.date).toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                    
+                    document.getElementById('clinicClosedMessage').textContent = data.message;
+                    document.getElementById('clinicClosedDate').textContent = conflictDate;
+                    
+                    // Show clinic closed modal
+                    new bootstrap.Modal(document.getElementById('patientClinicClosedModal')).show();
+                } else {
+                    // Show blocked time modal (yellow/warning) - for partial time blocks
+                    const conflictDate = new Date(formData.date).toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                    const conflictTime = formData.time;
+                    
+                    document.getElementById('patientConflictMessage').textContent = data.message;
+                    document.getElementById('patientConflictDate').textContent = conflictDate;
+                    document.getElementById('patientConflictTime').textContent = conflictTime;
+                    
+                    // Show conflict modal
+                    new bootstrap.Modal(document.getElementById('patientAppointmentConflictModal')).show();
+                }
+            } else {
+                throw new Error(data.message || 'Failed to submit request');
+            }
         }
     })
     .catch(error => {
@@ -2135,6 +2257,10 @@ document.getElementById('appointmentForm').addEventListener('submit', function(e
         `;
         this.parentElement.insertBefore(alert, this.parentElement.firstChild);
         this.parentElement.scrollIntoView({ behavior: 'smooth' });
+        
+        // Re-enable button
+        submitButton.disabled = false;
+        submitButton.innerHTML = originalText;
     })
     .finally(() => {
         // Re-enable button
@@ -2296,11 +2422,145 @@ document.getElementById('appointmentForm').addEventListener('submit', function(e
     </div>
 </div>
 
+<!-- Patient Appointment Conflict Modal (Blocked Time Slot) -->
+<div class="modal fade" id="patientAppointmentConflictModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modern-modal">
+            <div class="modal-header border-0 pb-0" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                <h5 class="modal-title text-white">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Time Slot Not Available
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-4">
+                    <div class="mx-auto mb-3" style="width: 80px; height: 80px; background: linear-gradient(135deg, #fee2e2, #fecaca); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-x-octagon-fill text-danger" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-2">Time Slot is Blocked</h4>
+                    <p class="text-muted mb-0" id="patientConflictMessage">This time slot is blocked. Please select a different time slot for your appointment request.</p>
+                </div>
+                <div class="bg-light rounded p-3 mb-3">
+                    <div class="d-flex flex-column align-items-center gap-2">
+                        <div><i class="bi bi-calendar-event text-warning me-2"></i><span id="patientConflictDate">-</span></div>
+                        <div><i class="bi bi-clock text-warning me-2"></i><span id="patientConflictTime">-</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0 bg-light">
+                <button type="button" class="btn btn-warning" data-bs-dismiss="modal">
+                    <i class="bi bi-arrow-left-circle me-1"></i>Select Different Time
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Patient Clinic Closed Modal (Full Day Closure) -->
+<div class="modal fade" id="patientClinicClosedModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modern-modal">
+            <div class="modal-header border-0 pb-0" style="background: linear-gradient(135deg, #dc2626, #b91c1c);">
+                <h5 class="modal-title text-white">
+                    <i class="bi bi-x-circle-fill me-2"></i>Clinic Closed
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-4">
+                    <div class="mx-auto mb-3" style="width: 80px; height: 80px; background: linear-gradient(135deg, #dc2626, #b91c1c); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-x-circle-fill text-white" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-2">Clinic is Closed on This Date</h4>
+                    <p class="text-muted mb-0" id="clinicClosedMessage">The clinic is closed on this date. Please select a different date for your appointment request.</p>
+                </div>
+                <div class="bg-light rounded p-3 mb-3" style="border-left: 4px solid #dc2626;">
+                    <div class="d-flex flex-column align-items-center gap-2">
+                        <div><i class="bi bi-calendar-x text-danger me-2"></i><span id="clinicClosedDate" class="fw-bold">-</span></div>
+                        <div class="mt-2">
+                            <i class="bi bi-info-circle text-danger me-1"></i>
+                            <small class="text-muted">No appointments available on this date</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0 bg-light">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+                    <i class="bi bi-calendar-event me-1"></i>Select Different Date
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 // Pass appointments data to JavaScript
 window.patientAppointments = @json($appointments);
 window.allAppointments = @json($allAppointments);
 window.blockedTimes = @json($blockedTimes);
+
+// Server time synchronization - CRITICAL for fault tolerance
+let serverTimeData = null;
+let serverTimeOffset = 0; // Offset between server time and client time (in ms)
+
+// Function to fetch and sync server time
+async function syncServerTime() {
+    try {
+        const response = await fetch('/patient/calendar/server-time', {
+            method: 'GET',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json'
+            }
+        });
+        const data = await response.json();
+        if (data.success) {
+            serverTimeData = data;
+            // Calculate offset: server timestamp - client timestamp
+            const clientNow = Date.now();
+            // Server timestamp is in seconds, convert to milliseconds
+            const serverTimestampMs = data.server_timestamp * 1000;
+            serverTimeOffset = serverTimestampMs - clientNow;
+            
+            console.log('Server time synced:', {
+                server_time: data.server_time,
+                client_time: new Date(clientNow).toISOString(),
+                offset_ms: serverTimeOffset,
+                offset_seconds: Math.round(serverTimeOffset / 1000)
+            });
+
+            // Warn if time skew is too large (> 5 minutes)
+            const skewSeconds = Math.abs(serverTimeOffset / 1000);
+            if (skewSeconds > 300) { // 5 minutes
+                console.warn('WARNING: Significant time skew detected:', {
+                    skew_seconds: skewSeconds,
+                    skew_minutes: Math.round(skewSeconds / 60)
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Error syncing server time:', error);
+        // Fall back to client time, but server-side validation will catch errors
+        serverTimeOffset = 0;
+    }
+}
+
+// Function to get current server time as Date object
+function getServerTime() {
+    if (serverTimeData) {
+        // Calculate server time: client time + offset
+        const serverTimestampMs = (serverTimeData.server_timestamp * 1000) + (Date.now() - (serverTimeData.server_timestamp * 1000) + serverTimeOffset);
+        return new Date(serverTimestampMs);
+    }
+    // Fallback to client time if server time not synced yet
+    return new Date();
+}
+
+// Sync server time on page load
+syncServerTime();
+
+// Re-sync server time periodically (every 5 minutes) and before critical operations
+setInterval(syncServerTime, 5 * 60 * 1000);
 
 // Modal button event handlers
 document.addEventListener('DOMContentLoaded', function() {
@@ -2447,9 +2707,16 @@ document.addEventListener('DOMContentLoaded', function() {
         function isTimeSlotAvailable(selectedDate, selectedTime) {
             if (!selectedDate || !selectedTime) return true;
 
+            // CRITICAL: Use server time to validate past dates (fault tolerant)
             const [hours, minutes] = selectedTime.split(':').map(Number);
             const requestedStart = new Date(selectedDate);
             requestedStart.setHours(hours, minutes, 0);
+            
+            // Check if the requested time is in the past (using server time)
+            const serverNow = getServerTime();
+            if (requestedStart < serverNow) {
+                return false; // Time is in the past
+            }
 
             // Get the duration based on the selected service or appointment
             const duration = getRequestDuration();

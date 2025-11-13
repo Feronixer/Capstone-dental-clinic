@@ -105,11 +105,11 @@
                                 </div>
                             </div>
                             <div class="col-md-4 text-end">
-                                <button type="button" id="btnFilter" class="btn btn-primary btn-modern me-2">
-                                    <i class="bi bi-funnel-fill me-2"></i>Apply Filters
-                                </button>
-                                <button type="button" id="btnReset" class="btn btn-outline-secondary btn-modern">
+                                <button type="button" id="btnReset" class="btn btn-outline-secondary btn-modern me-2">
                                     <i class="bi bi-arrow-clockwise me-2"></i>Reset
+                                </button>
+                                <button type="button" id="btnFilter" class="btn btn-primary btn-modern">
+                                    <i class="bi bi-funnel-fill me-2"></i>Apply Filters
                                 </button>
                             </div>
                         </div>
@@ -758,6 +758,30 @@
     border-color: #3b82f6 !important;
     color: var(--dm-text-primary) !important;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* Date input calendar icon - Dark Mode */
+[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) brightness(2) !important;
+    cursor: pointer;
+    opacity: 0.9;
+}
+
+[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+    filter: invert(1) brightness(2.5) !important;
+}
+
+/* Firefox date input calendar icon - Dark Mode */
+[data-theme="dark"] input[type="date"]::-moz-calendar-picker-indicator {
+    filter: invert(1) brightness(2) !important;
+    cursor: pointer;
+    opacity: 0.9;
+}
+
+[data-theme="dark"] input[type="date"]::-moz-calendar-picker-indicator:hover {
+    opacity: 1;
+    filter: invert(1) brightness(2.5) !important;
 }
 
 [data-theme="dark"] .modern-search .input-group-text {

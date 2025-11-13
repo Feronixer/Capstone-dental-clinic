@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ChatbotFaq;
 use App\Models\ChatbotSetting;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -42,7 +43,7 @@ class ToothTalkController extends Controller
         return back()->with('success', 'Chatbot settings saved.');
     }
 
-    public function storeFaq(Request $request): RedirectResponse
+    public function storeFaq(Request $request): RedirectResponse|JsonResponse
     {
         $data = $request->validate([
             'question' => ['required','string','max:255'],
@@ -50,12 +51,22 @@ class ToothTalkController extends Controller
             'is_active' => ['nullable'],
         ]);
         $nextOrder = (int) ChatbotFaq::max('order') + 1;
-        ChatbotFaq::create([
+        $faq = ChatbotFaq::create([
             'question' => $data['question'],
             'answer' => $data['answer'],
             'is_active' => $request->boolean('is_active'),
             'order' => $nextOrder,
         ]);
+        
+        // Return JSON for AJAX requests
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'FAQ added.',
+                'faq' => $faq
+            ]);
+        }
+        
         return back()->with('success', 'FAQ added.');
     }
 

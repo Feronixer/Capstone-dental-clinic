@@ -1498,19 +1498,61 @@
 
             function getBotReply(query) {
                 const q = normalize(query);
+                const qLower = q.toLowerCase();
                 const qTokens = tokenize(q);
+
+                // Check for help requests and general queries first
+                const helpPatterns = ['help', 'assist', 'support', 'can you', 'could you', 'need help', 'i need', 'i want', 'how can', 'what can'];
+                const greetingPatterns = ['hi', 'hello', 'hey', 'good morning', 'good afternoon', 'good evening', 'greetings'];
+                const servicePatterns = ['service', 'treatment', 'procedure', 'what do you', 'what services', 'offer', 'available'];
+                const hoursPatterns = ['hours', 'open', 'close', 'time', 'when', 'what time', 'schedule', 'availability'];
+                const pricePatterns = ['price', 'cost', 'fee', 'payment', 'how much', 'expensive', 'charge'];
+                const appointmentPatterns = ['appointment', 'book', 'schedule', 'reserve', 'visit', 'see dentist'];
+
+                // Check for help requests first
+                if (helpPatterns.some(pattern => qLower.includes(pattern))) {
+                    return 'Of course! I\'m here to help you. You can ask me about:\n\n• Our clinic hours and availability\n• Services and treatments we offer\n• Appointment scheduling\n• Pricing information\n• General questions about dental care\n\nWhat would you like to know more about?';
+                }
+
+                // Check for greetings
+                if (greetingPatterns.some(pattern => qLower.includes(pattern))) {
+                    return 'Hello! Welcome to our dental clinic. How can I assist you today? You can ask about our services, hours, pricing, or schedule an appointment.';
+                }
+
+                // Check for service-related queries
+                if (servicePatterns.some(pattern => qLower.includes(pattern))) {
+                    return 'We offer a comprehensive range of dental services including:\n\n• General dentistry (cleanings, check-ups)\n• Cosmetic dentistry (whitening, veneers)\n• Orthodontics (braces, aligners)\n• Root canals and fillings\n• Crowns and bridges\n• Implants\n• Emergency dental care\n\nWould you like to know more about a specific service?';
+                }
+
+                // Check for hours-related queries
+                if (hoursPatterns.some(pattern => qLower.includes(pattern))) {
+                    return 'Our clinic hours are:\n\n• Tuesday to Saturday: 11:00 AM to 6:00 PM\n• Sunday and Monday: Closed\n\nWe recommend scheduling an appointment in advance. Would you like to book one?';
+                }
+
+                // Check for pricing queries
+                if (pricePatterns.some(pattern => qLower.includes(pattern))) {
+                    return 'Pricing varies depending on the service and treatment needed. For specific pricing information, please contact our office or schedule a consultation. We\'d be happy to provide a detailed quote based on your needs.';
+                }
+
+                // Check for appointment queries
+                if (appointmentPatterns.some(pattern => qLower.includes(pattern))) {
+                    return 'You can schedule an appointment by:\n\n• Logging into your patient portal and using the calendar\n• Contacting us directly at (63)915 622 9695\n• Visiting our clinic at Policarpio St. Gen. T. de Leon Valenzuela City\n\nWould you like help with anything else?';
+                }
+
                 // 1) Fuzzy match FAQs by token overlap
                 let best = { score: 0, inter: 0, a: null };
                 for (const item of faqIndexed) {
                     if (!item.tokens.length) continue;
                     const { inter, jaccard } = overlapScore(qTokens, item.tokens);
-                    const score = inter >= 2 ? jaccard + 0.1 : jaccard; // slight boost if >=2 overlapping keywords
+                    // Lower threshold for matching - be more lenient
+                    const score = inter >= 1 ? jaccard + 0.15 : jaccard;
                     if (score > best.score) best = { score, inter, a: item.a };
                 }
-                if (best.a && (best.score >= 0.25 || best.inter >= 2)) return best.a;
+                // Lower the threshold for FAQ matching
+                if (best.a && (best.score >= 0.15 || best.inter >= 1)) return best.a;
 
-                // 2) Fallback generic message
-                return 'Thanks for your message! Please check our FAQs or ask a specific question.';
+                // 2) More helpful fallback message
+                return 'I\'m here to help! You can ask me about:\n\n• Clinic hours and availability\n• Our dental services\n• Appointment scheduling\n• Pricing information\n• General questions\n\nOr feel free to browse our FAQs for more detailed information. What would you like to know?';
             }
 
             function sendUserMessage(text) {

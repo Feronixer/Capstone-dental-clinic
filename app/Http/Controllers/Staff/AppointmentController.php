@@ -93,6 +93,23 @@ class AppointmentController extends Controller
     }
 
     /**
+     * Get current server time (for client synchronization)
+     */
+    public function getServerTime(): JsonResponse
+    {
+        $serverTime = Carbon::now('Asia/Manila');
+        return response()->json([
+            'success' => true,
+            'server_time' => $serverTime->format('Y-m-d H:i:s'),
+            'server_timestamp' => $serverTime->timestamp,
+            'timezone' => 'Asia/Manila',
+            'date' => $serverTime->format('Y-m-d'),
+            'time' => $serverTime->format('H:i:s'),
+            'datetime' => $serverTime->toIso8601String()
+        ]);
+    }
+
+    /**
      * Get appointments for calendar view
      */
     public function getAppointments(Request $request): JsonResponse
@@ -156,6 +173,16 @@ class AppointmentController extends Controller
                 ], 422);
             }
 
+            // CRITICAL: Validate that appointment is not in the past using SERVER time
+            $serverNow = Carbon::now('Asia/Manila');
+            if ($startDateTime->lt($serverNow)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot schedule appointments in the past. Please select a future date and time.',
+                    'errors' => ['start_datetime' => ['Cannot schedule appointments in the past']]
+                ], 422);
+            }
+
             // Additional validation: Check for time overlaps
             $endDateTime = $startDateTime->copy()->addMinutes($request->duration_minutes ?? 30);
 
@@ -166,10 +193,18 @@ class AppointmentController extends Controller
             })->first();
 
             if ($overlappingBlockedTime) {
+                // Check if it's a full day closure
+                $isFullDayClosure = $overlappingBlockedTime->start_datetime->format('H:i') === '00:00' &&
+                                    $overlappingBlockedTime->end_datetime->format('H:i') === '23:59';
+
+                $message = $isFullDayClosure
+                    ? 'The clinic is closed on this date. Please select a different date for the appointment.'
+                    : 'This time slot is blocked. Please select a different time slot.';
+
                 return response()->json([
                     'success' => false,
-                    'message' => 'This time slot conflicts with a blocked time',
-                    'errors' => ['start_datetime' => ['This time slot conflicts with a blocked time']]
+                    'message' => $message,
+                    'errors' => ['start_datetime' => [$message]]
                 ], 422);
             }
 
@@ -317,6 +352,19 @@ class AppointmentController extends Controller
             $startDateTime = Carbon::parse($request->start_datetime, 'Asia/Manila');
             $endDateTime = $startDateTime->copy()->addMinutes($request->duration_minutes ?? 30);
 
+            // CRITICAL: Validate that appointment is not in the past using SERVER time
+            $serverNow = Carbon::now('Asia/Manila');
+            if ($startDateTime->lt($serverNow)) {
+                if ($request->ajax() || $request->wantsJson() || $request->header('Accept') === 'application/json') {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Cannot reschedule appointments to a past date or time. Please select a future date and time.',
+                        'errors' => ['start_datetime' => ['Cannot reschedule appointments to a past date or time']]
+                    ], 422);
+                }
+                return redirect()->back()->withErrors(['start_datetime' => 'Cannot reschedule appointments to a past date or time.']);
+            }
+
             // Check for overlaps with blocked times
             $overlappingBlockedTime = \App\Models\BlockedTime::where(function($query) use ($startDateTime, $endDateTime) {
                 $query->where('start_datetime', '<', $endDateTime)
@@ -324,14 +372,22 @@ class AppointmentController extends Controller
             })->first();
 
             if ($overlappingBlockedTime) {
+                // Check if it's a full day closure
+                $isFullDayClosure = $overlappingBlockedTime->start_datetime->format('H:i') === '00:00' &&
+                                    $overlappingBlockedTime->end_datetime->format('H:i') === '23:59';
+
+                $message = $isFullDayClosure
+                    ? 'The clinic is closed on this date. Please select a different date for the appointment.'
+                    : 'This time slot is blocked. Please select a different time slot.';
+
                 if ($request->ajax() || $request->wantsJson() || $request->header('Accept') === 'application/json') {
                     return response()->json([
                         'success' => false,
-                        'message' => 'This time slot conflicts with a blocked time',
-                        'errors' => ['start_datetime' => ['This time slot conflicts with a blocked time']]
+                        'message' => $message,
+                        'errors' => ['start_datetime' => [$message]]
                     ], 422);
                 }
-                return redirect()->back()->withErrors(['start_datetime' => 'This time slot conflicts with a blocked time']);
+                return redirect()->back()->withErrors(['start_datetime' => $message]);
             }
 
             // Check for overlaps with other appointments (excluding current one)

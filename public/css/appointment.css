@@ -296,18 +296,25 @@
 .calendar-grid.month-view {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
+    grid-auto-rows: minmax(140px, 1fr); /* Equal height rows with minimum */
+    gap: 0; /* Remove gaps to use borders */
+    align-items: stretch; /* Stretch all items to fill grid area */
 }
 
 .calendar-grid.week-view {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
+    grid-auto-rows: minmax(200px, 1fr); /* Equal height rows with minimum */
     min-height: 400px;
+    gap: 0; /* Remove gaps to use borders */
+    align-items: stretch; /* Stretch all items to fill grid area */
 }
 
 .calendar-grid.day-view {
     display: grid;
     grid-template-columns: 1fr;
     min-height: 600px;
+    gap: 0;
 }
 
 .calendar-header {
@@ -320,13 +327,31 @@
 }
 
 .calendar-day {
-    min-height: 175px;
+    min-height: 140px; /* Reduced from 175px for better proportions */
+    height: 100%; /* Fill available height in grid */
     padding: 8px;
     border-right: 1px solid #dee2e6;
     border-bottom: 1px solid #dee2e6;
     position: relative;
     background: #fff;
     transition: background-color 0.2s;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    overflow: hidden; /* Prevent content overflow */
+}
+
+/* Ensure all calendar day cells have equal dimensions */
+.calendar-grid.month-view .calendar-day {
+    width: 100%;
+    /* Use padding-bottom trick for square aspect ratio */
+    padding-bottom: 0;
+}
+
+/* Container for appointments within calendar day */
+.calendar-day > .appointment-item {
+    flex: 0 0 auto; /* Don't grow or shrink */
+    max-width: 100%;
 }
 
 /* Ensure appointment items are visible in dark mode */
@@ -403,12 +428,14 @@
     font-weight: 600;
     color: #495057;
     margin-bottom: 4px;
+    flex-shrink: 0; /* Prevent day number from shrinking */
+    line-height: 1.2;
 }
 
 .appointment-item {
     background: #3B82F6;
     color: white;
-    padding: 2px 6px;
+    padding: 4px 6px;
     border-radius: 4px;
     font-size: 0.75rem;
     margin-bottom: 2px;
@@ -416,6 +443,9 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    flex-shrink: 0; /* Prevent shrinking */
+    width: 100%; /* Fill container width */
+    box-sizing: border-box;
 }
 
 .appointment-item.pending {
@@ -787,19 +817,68 @@
 }
 
 /* Responsive Design */
+@media (max-width: 1200px) {
+    .calendar-grid.month-view {
+        grid-auto-rows: minmax(120px, 1fr);
+    }
+    
+    .calendar-grid.week-view {
+        grid-auto-rows: minmax(180px, 1fr);
+    }
+    
+    .calendar-day {
+        min-height: 120px;
+        padding: 6px;
+    }
+}
+
+@media (max-width: 992px) {
+    .calendar-grid.month-view {
+        grid-auto-rows: minmax(100px, 1fr);
+    }
+    
+    .calendar-grid.week-view {
+        grid-auto-rows: minmax(150px, 1fr);
+    }
+    
+    .calendar-day {
+        min-height: 100px;
+        padding: 5px;
+    }
+    
+    .appointment-item {
+        font-size: 0.7rem;
+        padding: 2px 4px;
+    }
+}
+
 @media (max-width: 768px) {
     .calendar-grid {
         font-size: 0.875rem;
     }
+    
+    .calendar-grid.month-view {
+        grid-auto-rows: minmax(90px, 1fr);
+    }
+    
+    .calendar-grid.week-view {
+        grid-auto-rows: minmax(120px, 1fr);
+    }
 
     .calendar-day {
-        min-height: 80px;
+        min-height: 90px;
         padding: 4px;
     }
 
     .appointment-item {
-        font-size: 0.7rem;
-        padding: 1px 4px;
+        font-size: 0.65rem;
+        padding: 1px 3px;
+        margin-bottom: 1px;
+    }
+    
+    .day-number {
+        font-size: 0.85rem;
+        margin-bottom: 2px;
     }
 
     .d-flex.gap-4 {
@@ -827,6 +906,30 @@
     /* Adjust patient search results for mobile */
     #patient-results {
         max-height: 150px;
+    }
+}
+
+@media (max-width: 576px) {
+    .calendar-grid.month-view {
+        grid-auto-rows: minmax(70px, 1fr);
+    }
+    
+    .calendar-grid.week-view {
+        grid-auto-rows: minmax(100px, 1fr);
+    }
+    
+    .calendar-day {
+        min-height: 70px;
+        padding: 3px;
+    }
+    
+    .appointment-item {
+        font-size: 0.6rem;
+        padding: 1px 2px;
+    }
+    
+    .day-number {
+        font-size: 0.75rem;
     }
 }
 

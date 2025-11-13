@@ -216,4 +216,54 @@ class BlockedTimeController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get count of future blocked times.
+     */
+    public function getFutureCount()
+    {
+        try {
+            $now = Carbon::now('Asia/Manila');
+            $count = BlockedTime::where('start_datetime', '>', $now)->count();
+
+            return response()->json([
+                'success' => true,
+                'count' => $count
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error getting future blocked times count:', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Error getting future blocked times count: ' . $e->getMessage(),
+                'count' => 0
+            ], 500);
+        }
+    }
+
+    /**
+     * Clear all future blocked times (excluding past dates).
+     */
+    public function clearFuture()
+    {
+        try {
+            $now = Carbon::now('Asia/Manila');
+            
+            // Delete all blocked times where start_datetime is in the future
+            $deletedCount = BlockedTime::where('start_datetime', '>', $now)->delete();
+
+            \Log::info("Cleared {$deletedCount} future blocked time(s)");
+
+            return response()->json([
+                'success' => true,
+                'message' => "Successfully cleared {$deletedCount} future closed time slot(s)",
+                'deleted_count' => $deletedCount
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error clearing future blocked times:', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Error clearing future closed times: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

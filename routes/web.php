@@ -87,6 +87,7 @@ Route::middleware(['auth:admin'])->group(function(): void{
     Route::get('/admin/appointment', [AppointmentController::class,'index'])->name('admin-appointment');
     Route::get('/admin/appointment/table', [AppointmentController::class,'table'])->name('admin-appointment.table');
     Route::get('/admin/appointment/appointments', [AppointmentController::class,'getAppointments'])->name('admin-appointment.get');
+    Route::get('/admin/appointment/server-time', [AppointmentController::class,'getServerTime'])->name('admin-appointment.server-time');
     Route::post('/admin/appointment', [AppointmentController::class,'store'])->name('admin-appointment.store');
     Route::get('/admin/appointment/{id}', [AppointmentController::class,'show'])->name('admin-appointment.show');
     Route::put('/admin/appointment/{id}', [AppointmentController::class,'update'])->name('admin-appointment.update');
@@ -98,6 +99,8 @@ Route::middleware(['auth:admin'])->group(function(): void{
     Route::post('/admin/blocked-time', [App\Http\Controllers\Admin\BlockedTimeController::class, 'store'])->name('admin-blocked-time.store');
     Route::put('/admin/blocked-time/{id}', [App\Http\Controllers\Admin\BlockedTimeController::class, 'update'])->name('admin-blocked-time.update');
     Route::post('/admin/blocked-time/{id}/delete', [App\Http\Controllers\Admin\BlockedTimeController::class, 'destroy'])->name('admin-blocked-time.destroy');
+    Route::get('/admin/blocked-time/future/count', [App\Http\Controllers\Admin\BlockedTimeController::class, 'getFutureCount'])->name('admin-blocked-time.future.count');
+    Route::post('/admin/blocked-time/future/clear', [App\Http\Controllers\Admin\BlockedTimeController::class, 'clearFuture'])->name('admin-blocked-time.future.clear');
       Route::get('/admin/content-management', [ContentManagementController::class,'index'])->name('admin-content-management');
       Route::get('/admin/announcement-archives', [ContentManagementController::class,'announcementArchives'])->name('admin-announcement-archives');
       Route::post('/admin/content-management/announcement', [ContentManagementController::class,'updateAnnouncement'])->name('admin-content-management.announcement.update');
@@ -245,6 +248,7 @@ Route::middleware(['auth:staff'])->group(function(): void{
     Route::get('/staff/appointment', [App\Http\Controllers\Staff\AppointmentController::class,'index'])->name('staff-appointment');
     Route::get('/staff/appointment/table', [App\Http\Controllers\Staff\AppointmentController::class,'table'])->name('staff-appointment.table');
     Route::get('/staff/appointment/appointments', [App\Http\Controllers\Staff\AppointmentController::class,'getAppointments'])->name('staff-appointment.get');
+    Route::get('/staff/appointment/server-time', [App\Http\Controllers\Staff\AppointmentController::class,'getServerTime'])->name('staff-appointment.server-time');
     Route::post('/staff/appointment', [App\Http\Controllers\Staff\AppointmentController::class,'store'])->name('staff-appointment.store');
     Route::get('/staff/appointment/{id}', [App\Http\Controllers\Staff\AppointmentController::class,'show'])->name('staff-appointment.show');
     Route::put('/staff/appointment/{id}', [App\Http\Controllers\Staff\AppointmentController::class,'update'])->name('staff-appointment.update');
@@ -255,6 +259,8 @@ Route::middleware(['auth:staff'])->group(function(): void{
     Route::post('/staff/blocked-time', [App\Http\Controllers\Staff\BlockedTimeController::class, 'store'])->name('staff-blocked-time.store');
     Route::put('/staff/blocked-time/{id}', [App\Http\Controllers\Staff\BlockedTimeController::class, 'update'])->name('staff-blocked-time.update');
     Route::post('/staff/blocked-time/{id}/delete', [App\Http\Controllers\Staff\BlockedTimeController::class, 'destroy'])->name('staff-blocked-time.destroy');
+    Route::get('/staff/blocked-time/future/count', [App\Http\Controllers\Staff\BlockedTimeController::class, 'getFutureCount'])->name('staff-blocked-time.future.count');
+    Route::post('/staff/blocked-time/future/clear', [App\Http\Controllers\Staff\BlockedTimeController::class, 'clearFuture'])->name('staff-blocked-time.future.clear');
 
       // Staff Content Management Routes (No delete permission for services)
       Route::get('/staff/content-management', [App\Http\Controllers\Staff\ContentManagementController::class,'index'])->name('staff-content-management');
@@ -295,6 +301,7 @@ Route::middleware(['auth:web'])->group(function(): void{
     Route::get('/patient/dashboard', [PatientDashboardController::class, 'index'])->name('patient-dashboard');
     Route::get('/patient/home', [PatientDashboardController::class, 'index'])->name('patient-home');
     Route::get('/patient/calendar', [CalendarController::class, 'index'])->name('patient-calendar');
+    Route::get('/patient/calendar/server-time', [CalendarController::class, 'getServerTime'])->name('patient-calendar.server-time');
     Route::post('/patient/calendar/submit-request', [CalendarController::class, 'submitRequest'])->name('patient-calendar.submit-request');
     Route::get('/patient/profile', [PatientProfileController::class, 'index'])->name('patient-profile');
     Route::get('/patient/record', [PatientRecord::class, 'index'])->name('patient-record');

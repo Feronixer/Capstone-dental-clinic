@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Patient;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use App\Models\Appointment;
 use App\Models\AppointmentRequest;
 use App\Models\Service;
@@ -89,6 +90,23 @@ class CalendarController extends Controller
     }
 
     /**
+     * Get current server time (for client synchronization)
+     */
+    public function getServerTime(): JsonResponse
+    {
+        $serverTime = Carbon::now('Asia/Manila');
+        return response()->json([
+            'success' => true,
+            'server_time' => $serverTime->format('Y-m-d H:i:s'),
+            'server_timestamp' => $serverTime->timestamp,
+            'timezone' => 'Asia/Manila',
+            'date' => $serverTime->format('Y-m-d'),
+            'time' => $serverTime->format('H:i:s'),
+            'datetime' => $serverTime->toIso8601String()
+        ]);
+    }
+
+    /**
      * Submit appointment request (walk-in or reschedule)
      */
     public function submitRequest(Request $request)
@@ -108,6 +126,16 @@ class CalendarController extends Controller
 
             // Create datetime string
             $requestedDateTime = Carbon::parse($request->date . ' ' . $request->time, 'Asia/Manila');
+
+            // CRITICAL: Validate that requested date/time is not in the past using SERVER time
+            $serverNow = Carbon::now('Asia/Manila');
+            if ($requestedDateTime->lt($serverNow)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot request appointments in the past. Please select a future date and time.',
+                    'errors' => ['time' => ['Cannot request appointments in the past']]
+                ], 422);
+            }
 
             // Determine service_id, other_concern, and duration based on request type
             $serviceId = $request->service_id;
@@ -180,6 +208,43 @@ class CalendarController extends Controller
             }
 
             $requestedEndDateTime = $requestedDateTime->copy()->addMinutes($durationMinutes);
+
+            // Check for conflicts with blocked times (clinic closed or blocked times)
+            $blockedTime = \App\Models\BlockedTime::where(function($query) use ($requestedDateTime, $requestedEndDateTime) {
+                $query->where('start_datetime', '<', $requestedEndDateTime)
+                      ->where('end_datetime', '>', $requestedDateTime);
+            })->first();
+
+            if ($blockedTime) {
+                // Check if it's a full day closure
+                $isFullDayClosure = $blockedTime->start_datetime->format('H:i') === '00:00' &&
+                                    $blockedTime->end_datetime->format('H:i') === '23:59';
+
+                $message = $isFullDayClosure
+                    ? 'The clinic is closed on this date. Please select a different date for your appointment request.'
+                    : 'This time slot is blocked. Please select a different time slot for your appointment request.';
+
+                return response()->json([
+                    'success' => false,
+                    'message' => $message,
+                    'errors' => ['time' => [$message]]
+                ], 422);
+            }
+
+            // Check for conflicts with existing appointments
+            $conflictingAppointment = Appointment::where(function($query) use ($requestedDateTime, $requestedEndDateTime) {
+                $query->where('start_datetime', '<', $requestedEndDateTime)
+                      ->where('end_datetime', '>', $requestedDateTime)
+                      ->where('status', '!=', 'Cancelled');
+            })->first();
+
+            if ($conflictingAppointment) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This time slot is already booked. Please select a different time slot.',
+                    'errors' => ['time' => ['This time slot is already booked. Please select a different time slot.']]
+                ], 422);
+            }
 
             // Log the data before creating appointment request
             \Log::info('Creating AppointmentRequest with:', [
