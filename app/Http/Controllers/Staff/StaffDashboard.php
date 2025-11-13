@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Staff;
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\User;
+use App\Models\Service;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -86,12 +87,12 @@ class StaffDashboard extends Controller
                 return $data;
             });
 
-        // Get recent feedback (last 10 rated appointments)
+        // Get recent feedback (last 3 rated appointments)
         $recentFeedback = Appointment::whereNotNull('rating')
             ->where('status', 'Completed')
             ->with(['patient.info', 'service'])
             ->orderBy('rated_at', 'desc')
-            ->limit(10)
+            ->limit(3)
             ->get()
             ->map(function($appointment) {
                 return [
@@ -202,6 +203,9 @@ class StaffDashboard extends Controller
         // Get total appointments count (all time)
         $totalAppointments = Appointment::where('status', '!=', 'blocked')->count();
 
+        // Get current services list (limit to 5 for dashboard)
+        $clinicServices = Service::orderBy('created_at', 'desc')->get();
+
         return view('staff.dashboard', compact(
             'totalPatients',
             'todayAppointments',
@@ -219,8 +223,34 @@ class StaffDashboard extends Controller
             'pediatricCount',
             'adultCount',
             'feedbackData',
-            'topServices'
+            'topServices',
+            'clinicServices'
         ));
+    }
+
+    /**
+     * Display a full list of clinic services for staff.
+     */
+    public function services()
+    {
+        if (!Auth::guard('staff')->check()) {
+            return redirect()->route('staff.login')->withErrors(['error' => 'Please login as staff to access this page.']);
+        }
+
+        $user = Auth::guard('staff')->user();
+        if ($user->role_id !== 2) {
+            Auth::guard('staff')->logout();
+            return redirect()->route('staff.login')->withErrors(['error' => 'Access denied. This portal is for staff members only.']);
+        }
+
+        $accessCheck = $this->requireNavAccess('dashboard');
+        if ($accessCheck) {
+            return $accessCheck;
+        }
+
+        $clinicServices = Service::orderBy('created_at', 'desc')->paginate(15);
+
+        return view('staff.services.index', compact('clinicServices'));
     }
 
     /**

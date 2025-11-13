@@ -538,8 +538,8 @@
     }
 
     .notifications-filters {
-        flex-wrap: wrap;
-        gap: 0.375rem;
+        flex-wrap: nowrap;
+        gap: 0.5rem;
     }
 
     .filter-btn {
@@ -547,7 +547,12 @@
         font-size: 0.85rem;
         min-height: 40px;
         flex: 1;
-        min-width: calc(50% - 0.1875rem);
+        min-width: 0;
+    }
+    
+    /* Make "All" button bigger on mobile */
+    .filter-btn:first-child {
+        flex: 2;
     }
 
     .notification-card {
@@ -626,7 +631,12 @@
     .filter-btn {
         font-size: 0.8rem;
         padding: 0.45rem 0.75rem;
-        min-width: calc(50% - 0.15rem);
+        min-width: 0;
+    }
+    
+    /* Make "All" button bigger on mobile */
+    .filter-btn:first-child {
+        flex: 2;
     }
 
     .notification-card {

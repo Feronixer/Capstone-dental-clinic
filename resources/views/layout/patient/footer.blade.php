@@ -378,9 +378,16 @@
         padding-right: 1rem;
     }
     
+    /* Hide Quick Links and Our Services on mobile */
+    .footer-section:nth-child(2),
+    .footer-section:nth-child(3) {
+        display: none !important;
+    }
+    
+    /* Update grid to single column since we're hiding 2 sections */
     .footer-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
         margin-bottom: 1rem;
     }
 
@@ -393,8 +400,8 @@
     }
 
     .footer-logo-img {
-        width: 50px;
-        height: 50px;
+        width: 60px;
+        height: 60px;
     }
     
     /* About Section - full width */
@@ -420,8 +427,8 @@
     }
     
     .footer-logo-img {
-        width: 35px;
-        height: 35px;
+        width: 48px;
+        height: 48px;
     }
     
     .footer-description {
@@ -447,9 +454,13 @@
     }
     
     .footer-links a,
-    .footer-contact span,
     .footer-services-list li {
         font-size: 0.75rem;
+    }
+
+    .footer-contact span {
+        font-size: 0.7rem;
+        line-height: 1.35;
     }
     
     .footer-contact {
@@ -504,9 +515,15 @@
 }
 
 @media (max-width: 640px) {
+    /* Hide Quick Links and Our Services on mobile */
+    .footer-section:nth-child(2),
+    .footer-section:nth-child(3) {
+        display: none !important;
+    }
+    
     .footer-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
     }
     
     /* About Section - full width */
@@ -561,6 +578,11 @@
         padding-left: 1rem;
         list-style-position: outside;
     }
+
+    .footer-contact span {
+        font-size: 0.66rem;
+        line-height: 1.35;
+    }
     
     .footer-contact {
         align-items: flex-start;
@@ -602,13 +624,19 @@
 }
 
 @media (max-width: 480px) {
+    /* Hide Quick Links and Our Services on mobile */
+    .footer-section:nth-child(2),
+    .footer-section:nth-child(3) {
+        display: none !important;
+    }
+    
     .footer-content {
         padding: 0.75rem 0.5rem 0.5rem;
     }
     
     .footer-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 0.75rem;
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
     }
     
     /* About Section - full width */
@@ -626,8 +654,8 @@
     }
     
     .footer-logo-img {
-        width: 30px;
-        height: 30px;
+        width: 40px;
+        height: 40px;
     }
     
     .footer-description {
@@ -640,9 +668,13 @@
     }
     
     .footer-links a,
-    .footer-contact span,
     .footer-services-list li {
         font-size: 0.7rem;
+    }
+
+    .footer-contact span {
+        font-size: 0.62rem;
+        line-height: 1.4;
     }
     
     /* Quick Links section - move to the right */

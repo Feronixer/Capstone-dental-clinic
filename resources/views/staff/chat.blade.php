@@ -6,6 +6,25 @@
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="mb-0 fw-bold text-primary"><i class="bi bi-chat-dots"></i> Live Chat Conversations</h2>
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            <div class="chat-toggle-wrap">
+                <span class="chat-status-label" id="chat-status-label">Online</span>
+                <div class="form-check form-switch chat-online-toggle">
+                    <input class="form-check-input" type="checkbox" role="switch" id="chat-online-toggle" checked>
+                    <label class="form-check-label" for="chat-online-toggle"></label>
+                </div>
+            </div>
+            <div class="chat-toggle-wrap">
+                <span class="chat-status-label chat-censor-label status-off" id="chat-censor-label">Censor Off</span>
+                <div class="form-check form-switch chat-censor-toggle">
+                    <input class="form-check-input" type="checkbox" role="switch" id="chat-censor-toggle">
+                    <label class="form-check-label" for="chat-censor-toggle"></label>
+                </div>
+            </div>
+            <button class="btn btn-outline-primary chat-blocklist-btn" id="chat-blocklist-btn" type="button">
+                <i class="bi bi-shield-lock me-1"></i> Blocklist
+            </button>
+        </div>
     </div>
 
     <div class="row">
@@ -27,14 +46,6 @@
                                 <i class="bi bi-search"></i>
                             </span>
                             <input type="text" id="search-conversations" class="form-control chat-search-input" placeholder="Search patients...">
-                        </div>
-                        <div class="mt-3">
-                            <select id="status-filter" class="form-select form-select-sm chat-status-filter">
-                                <option value="all">All Status</option>
-                                <option value="active">Active</option>
-                                <option value="resolved">Resolved</option>
-                                <option value="closed">Closed</option>
-                            </select>
                         </div>
                     </div>
                     <div id="conversations-list" class="conversations-list-container">
@@ -64,13 +75,6 @@
                     </h5>
                             <small class="text-white-50" id="chat-status-text">Choose a conversation to start</small>
                         </div>
-                    </div>
-                    <div id="chat-actions" style="display: none;">
-                        <select id="conversation-status" class="form-select form-select-sm chat-status-select">
-                            <option value="active">Active</option>
-                            <option value="resolved">Resolved</option>
-                            <option value="closed">Closed</option>
-                        </select>
                     </div>
                 </div>
                 <div class="card-body p-0 chat-body">
@@ -136,6 +140,54 @@
     </div>
 </div>
 
+<!-- Blocklist Modal -->
+<div class="modal fade" id="blocklistModal" tabindex="-1" aria-labelledby="blocklistModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content chat-blocklist-modal">
+            <div class="modal-header chat-blocklist-header">
+                <h5 class="modal-title" id="blocklistModalLabel">
+                    <i class="bi bi-shield-lock-fill me-2"></i>Live Chat Blocklist
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-4">
+                    Words in this list will be automatically censored when censorship is enabled. Only the first and last letters remain visible.
+                </p>
+                <form id="blocklist-add-form" class="blocklist-add-form mb-4">
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text">
+                            <i class="bi bi-plus-circle"></i>
+                        </span>
+                        <input type="text" id="blocklist-input" class="form-control" maxlength="100" placeholder="Enter a word or phrase to censor">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="bi bi-check-lg me-1"></i>Add
+                        </button>
+                    </div>
+                    <div class="form-text mt-2">
+                        Preview: <span id="blocklist-input-preview" class="fw-semibold text-primary">—</span>
+                    </div>
+                    <div id="blocklist-feedback" class="mt-2 text-danger d-none"></div>
+                </form>
+                <div id="blocklist-words-container" class="blocklist-words-container">
+                    <div class="text-center text-muted py-4" id="blocklist-empty-state">
+                        <i class="bi bi-shield-check mb-2 d-block" style="font-size: 2rem;"></i>
+                        No custom words yet. Add one to start censoring it.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <small class="text-muted">Default sensitive words are always protected.</small>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-primary" id="blocklist-save-btn">
+                        <i class="bi bi-check-lg me-1"></i>Save Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 // Utility function to escape HTML
 function escapeHtml(text) {
@@ -156,10 +208,439 @@ const canAttachFiles = @json($canAttachFiles);
 const CURRENT_STAFF_ID = @json(Auth::guard('staff')->id());
 const CURRENT_STAFF_NAME = @json(optional(Auth::guard('staff')->user())->info ? (trim(optional(Auth::guard('staff')->user())->info->first_name . ' ' . optional(Auth::guard('staff')->user())->info->last_name)) : (optional(Auth::guard('staff')->user())->username ?? 'You'));
 
+// Chat online status management
+let chatOnlineStatus = true;
+let isTogglingStatus = false; // Flag to prevent conflicts
+
+// Chat censorship management
+let chatCensorshipEnabled = false;
+let isTogglingCensorship = false;
+let blocklistWords = []; // Words from database
+let blocklistTempWords = []; // Temporary words in modal (not yet saved)
+let blocklistModalInstance = null;
+
+async function loadOnlineStatus() {
+    // Don't reload if we're currently toggling
+    if (isTogglingStatus) return;
+    
+    try {
+        const response = await fetch('{{ route("staff-chat.online-status") }}');
+        const data = await response.json();
+        chatOnlineStatus = data.is_online;
+        updateToggleUI(chatOnlineStatus);
+    } catch (error) {
+        console.error('Error loading online status:', error);
+    }
+}
+
+function updateToggleUI(isOnline) {
+    const toggle = document.getElementById('chat-online-toggle');
+    const label = document.getElementById('chat-status-label');
+    if (toggle) {
+        toggle.checked = isOnline;
+    }
+    if (label) {
+        label.textContent = isOnline ? 'Online' : 'Offline';
+        label.className = isOnline ? 'chat-status-label status-online' : 'chat-status-label status-offline';
+    }
+}
+
+async function toggleOnlineStatus(isOnline) {
+    // Prevent multiple simultaneous toggles
+    if (isTogglingStatus) {
+        console.log('Toggle already in progress, ignoring...');
+        return;
+    }
+    
+    isTogglingStatus = true;
+    const toggle = document.getElementById('chat-online-toggle');
+    if (toggle) {
+        toggle.disabled = true;
+    }
+    
+    try {
+        const response = await fetch('{{ route("staff-chat.toggle-online-status") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ is_online: isOnline })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        if (data.success) {
+            chatOnlineStatus = data.is_online;
+            updateToggleUI(chatOnlineStatus);
+            console.log('Status toggled successfully:', chatOnlineStatus ? 'Online' : 'Offline');
+        } else {
+            throw new Error(data.message || 'Failed to toggle status');
+        }
+    } catch (error) {
+        console.error('Error toggling online status:', error);
+        // Revert toggle on error
+        updateToggleUI(!isOnline);
+        alert('Failed to update chat status. Please try again.');
+    } finally {
+        isTogglingStatus = false;
+        // Re-enable toggle
+        if (toggle) {
+            toggle.disabled = false;
+        }
+    }
+}
+
+// Censorship Management
+const censorRoutes = {
+    status: '{{ route("staff-chat.censorship-status") }}',
+    toggle: '{{ route("staff-chat.toggle-censorship") }}',
+    blocklistIndex: '{{ route("staff-chat.blocklist.index") }}',
+    blocklistStore: '{{ route("staff-chat.blocklist.store") }}',
+    blocklistDestroy: '{{ url('/staff/chat/blocklist') }}',
+};
+
+function maskWordClient(word) {
+    if (!word) return '';
+
+    const tokens = word.split(/(\s+)/);
+    return tokens.map((segment) => {
+        if (segment.trim() === '') {
+            return segment;
+        }
+
+        const match = segment.match(/^([A-Za-z0-9]+)(.*)$/u);
+        if (match) {
+            const masked = maskCore(match[1]);
+            return masked + match[2];
+        }
+
+        return maskCore(segment);
+    }).join('');
+
+    function maskCore(value) {
+        const chars = Array.from(value);
+        const length = chars.length;
+
+        if (length === 0) return '';
+        if (length === 1) return '*';
+        if (length === 2) return `${chars[0]}*`;
+
+        return `${chars[0]}${'*'.repeat(length - 2)}${chars[length - 1]}`;
+    }
+}
+
+function showBlocklistFeedback(message, isError = true) {
+    const feedback = document.getElementById('blocklist-feedback');
+    if (!feedback) return;
+    feedback.textContent = message;
+    feedback.classList.remove('d-none', 'text-danger', 'text-success');
+    feedback.classList.add(isError ? 'text-danger' : 'text-success');
+}
+
+function clearBlocklistFeedback() {
+    const feedback = document.getElementById('blocklist-feedback');
+    if (!feedback) return;
+    feedback.classList.add('d-none');
+    feedback.classList.remove('text-danger', 'text-success');
+    feedback.textContent = '';
+}
+
+async function loadCensorshipStatus() {
+    try {
+        const response = await fetch(censorRoutes.status);
+        const data = await response.json();
+        chatCensorshipEnabled = !!data.censorship_enabled;
+        updateCensorToggleUI(chatCensorshipEnabled);
+    } catch (error) {
+        console.error('Error loading censorship status:', error);
+    }
+}
+
+function updateCensorToggleUI(isEnabled) {
+    const toggle = document.getElementById('chat-censor-toggle');
+    const label = document.getElementById('chat-censor-label');
+
+    if (toggle) {
+        toggle.checked = isEnabled;
+    }
+
+    if (label) {
+        label.textContent = isEnabled ? 'Censor On' : 'Censor Off';
+        label.classList.remove('status-on', 'status-off');
+        label.classList.add(isEnabled ? 'status-on' : 'status-off');
+    }
+}
+
+async function toggleCensorship(isEnabled) {
+    if (isTogglingCensorship) {
+        console.log('Censorship toggle already in progress, ignoring...');
+        return;
+    }
+
+    isTogglingCensorship = true;
+    const toggle = document.getElementById('chat-censor-toggle');
+    if (toggle) {
+        toggle.disabled = true;
+    }
+
+    try {
+        const response = await fetch(censorRoutes.toggle, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ censorship_enabled: isEnabled })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (data.success) {
+            chatCensorshipEnabled = !!data.censorship_enabled;
+            updateCensorToggleUI(chatCensorshipEnabled);
+        } else {
+            throw new Error(data.message || 'Failed to update censorship setting');
+        }
+    } catch (error) {
+        console.error('Error toggling censorship:', error);
+        updateCensorToggleUI(!isEnabled);
+        alert('Failed to update censorship setting. Please try again.');
+    } finally {
+        isTogglingCensorship = false;
+        if (toggle) {
+            toggle.disabled = false;
+        }
+    }
+}
+
+async function loadBlocklist() {
+    try {
+        const response = await fetch(censorRoutes.blocklistIndex);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        blocklistWords = Array.isArray(data.words) ? data.words : [];
+        // Initialize temp list with current words when modal opens
+        blocklistTempWords = blocklistWords.map(w => ({ word: w.word, id: w.id }));
+        renderBlocklist();
+    } catch (error) {
+        console.error('Error loading blocklist:', error);
+        showBlocklistFeedback('Unable to load blocklist. Please refresh and try again.');
+    }
+}
+
+function renderBlocklist() {
+    const container = document.getElementById('blocklist-words-container');
+    const emptyState = document.getElementById('blocklist-empty-state');
+
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    if (!blocklistTempWords || blocklistTempWords.length === 0) {
+        if (emptyState) {
+            emptyState.classList.remove('d-none');
+        }
+        return;
+    }
+
+    if (emptyState) {
+        emptyState.classList.add('d-none');
+    }
+
+    blocklistTempWords.forEach((word, index) => {
+        const pill = document.createElement('div');
+        pill.className = 'blocklist-word-pill';
+        pill.innerHTML = `
+            <span class="blocklist-word-text" title="${word.word}">
+                ${maskWordClient(word.word)}
+            </span>
+            <button type="button" class="blocklist-remove" data-word-index="${index}" aria-label="Remove ${word.word}">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        `;
+        container.appendChild(pill);
+    });
+}
+
+function addBlocklistWord(word) {
+    if (!word || word.trim() === '') {
+        showBlocklistFeedback('Please provide a word to add.');
+        return;
+    }
+
+    const trimmedWord = word.trim();
+    
+    // Check if word already exists in temp list
+    const exists = blocklistTempWords.some(w => w.word.toLowerCase() === trimmedWord.toLowerCase());
+    if (exists) {
+        showBlocklistFeedback('That word is already in the list.');
+        return;
+    }
+
+    // Check if word is too short
+    if (trimmedWord.length < 2) {
+        showBlocklistFeedback('Words must be at least two characters long.');
+        return;
+    }
+
+    // Add to temporary list
+    blocklistTempWords.push({ word: trimmedWord, id: null });
+    blocklistTempWords.sort((a, b) => a.word.localeCompare(b.word));
+    renderBlocklist();
+    showBlocklistFeedback('Word added to list. Click "Save Changes" to save.', false);
+
+    const input = document.getElementById('blocklist-input');
+    if (input) {
+        input.value = '';
+        updateBlocklistPreview('');
+    }
+}
+
+function removeBlocklistWord(index) {
+    if (index === undefined || index === null) return;
+    
+    blocklistTempWords.splice(index, 1);
+    renderBlocklist();
+    showBlocklistFeedback('Word removed from list. Click "Save Changes" to save.', false);
+}
+
+async function saveBlocklist() {
+    const saveButton = document.getElementById('blocklist-save-btn');
+    if (saveButton) {
+        saveButton.disabled = true;
+        saveButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+    }
+
+    try {
+        const words = blocklistTempWords.map(w => w.word);
+        const response = await fetch('{{ route("staff-chat.blocklist.save") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ words })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || 'Failed to save blocklist.');
+        }
+
+        // Update the saved words list
+        blocklistWords = Array.isArray(data.words) ? data.words : [];
+        showBlocklistFeedback('Blocklist saved successfully!', false);
+        
+        // Close modal after a short delay
+        setTimeout(() => {
+            if (blocklistModalInstance) {
+                blocklistModalInstance.hide();
+            }
+        }, 1500);
+    } catch (error) {
+        console.error('Error saving blocklist:', error);
+        showBlocklistFeedback(error.message || 'Failed to save blocklist.');
+    } finally {
+        if (saveButton) {
+            saveButton.disabled = false;
+            saveButton.innerHTML = '<i class="bi bi-check-lg me-1"></i>Save Changes';
+        }
+    }
+}
+
+function updateBlocklistPreview(value) {
+    const preview = document.getElementById('blocklist-input-preview');
+    if (!preview) return;
+
+    if (!value.trim()) {
+        preview.textContent = '—';
+        return;
+    }
+
+    preview.textContent = maskWordClient(value);
+}
+
+// Initialize online status on page load
+loadOnlineStatus();
+loadCensorshipStatus();
+
+// Toggle event listener
+document.getElementById('chat-online-toggle')?.addEventListener('change', function(e) {
+    toggleOnlineStatus(e.target.checked);
+});
+
+document.getElementById('chat-censor-toggle')?.addEventListener('change', function(e) {
+    toggleCensorship(e.target.checked);
+});
+
+const blocklistModalElement = document.getElementById('blocklistModal');
+if (typeof bootstrap !== 'undefined' && blocklistModalElement) {
+    blocklistModalInstance = new bootstrap.Modal(blocklistModalElement);
+
+    blocklistModalElement.addEventListener('shown.bs.modal', () => {
+        clearBlocklistFeedback();
+        loadBlocklist();
+        document.getElementById('blocklist-input')?.focus();
+    });
+
+    blocklistModalElement.addEventListener('hidden.bs.modal', () => {
+        clearBlocklistFeedback();
+        const input = document.getElementById('blocklist-input');
+        if (input) {
+            input.value = '';
+        }
+        updateBlocklistPreview('');
+        // Reset temp list to saved words when modal closes
+        blocklistTempWords = blocklistWords.map(w => ({ word: w.word, id: w.id }));
+    });
+}
+
+document.getElementById('chat-blocklist-btn')?.addEventListener('click', () => {
+    if (blocklistModalInstance) {
+        blocklistModalInstance.show();
+    }
+});
+
+document.getElementById('blocklist-add-form')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    clearBlocklistFeedback();
+    const input = document.getElementById('blocklist-input');
+    const value = input ? input.value.trim() : '';
+    addBlocklistWord(value);
+});
+
+document.getElementById('blocklist-input')?.addEventListener('input', function(e) {
+    updateBlocklistPreview(e.target.value);
+    clearBlocklistFeedback();
+});
+
+document.getElementById('blocklist-words-container')?.addEventListener('click', function(e) {
+    const button = e.target.closest('.blocklist-remove');
+    if (!button) return;
+    const index = button.getAttribute('data-word-index');
+    removeBlocklistWord(parseInt(index));
+});
+
+document.getElementById('blocklist-save-btn')?.addEventListener('click', function() {
+    saveBlocklist();
+});
+
 async function loadConversations() {
-    const status = document.getElementById('status-filter').value;
     const search = document.getElementById('search-conversations').value;
-    const params = new URLSearchParams({ status, search });
+    const params = new URLSearchParams({ search });
     
     try {
         const response = await fetch(`{{ route('staff-chat.conversations') }}?${params}`);
@@ -195,7 +676,7 @@ async function loadConversations() {
                             <small class="conversation-time">${formatDate(conv.last_message_at || conv.created_at)}</small>
                         </div>
                         <small class="conversation-email d-block">${conv.patient_email}</small>
-                        
+                        ${getLastSenderBadge(conv.last_sender_type, conv.last_sender_name, conv.last_message_text, conv.last_message_has_attachments)}
                     </div>
                 </div>
             </div>
@@ -224,13 +705,61 @@ function formatDate(dateStr) {
     return date.toLocaleDateString();
 }
 
+function getLastSenderBadge(senderType, senderName, lastMessageText = null, hasAttachments = false) {
+    if (!senderType || !senderName) return '';
+    
+    let senderLabel = '';
+    let iconClass = '';
+    
+    if (senderType === 'patient') {
+        senderLabel = 'Patient';
+        iconClass = 'bi-person';
+    } else if (senderType === 'staff') {
+        if (senderName === 'You') {
+            senderLabel = 'Staff(You)';
+        } else {
+            senderLabel = `Staff - ${escapeHtml(senderName)}`;
+        }
+        iconClass = 'bi-person-badge';
+    } else if (senderType === 'admin') {
+        if (senderName === 'You') {
+            senderLabel = 'Admin(You)';
+        } else {
+            senderLabel = `Admin - ${escapeHtml(senderName)}`;
+        }
+        iconClass = 'bi-shield-check';
+    }
+    
+    if (!senderLabel) return '';
+    
+    // Truncate message preview if too long
+    let messagePreview = '';
+    // If message has attachments and sender is admin or staff, show "Sent an attachment file"
+    if (hasAttachments && (senderType === 'admin' || senderType === 'staff')) {
+        messagePreview = `<div class="last-message-preview mt-1 attachment-preview-text">&lt;Sent an attachment file&gt;</div>`;
+    } else if (lastMessageText) {
+        const maxLength = 50;
+        const truncated = lastMessageText.length > maxLength 
+            ? lastMessageText.substring(0, maxLength) + '...' 
+            : lastMessageText;
+        messagePreview = `<div class="last-message-preview mt-1">${escapeHtml(truncated)}</div>`;
+    }
+    
+    return `<div class="last-sender-container mt-1">
+        <span class="last-sender-badge d-inline-flex align-items-center gap-1">
+            <i class="bi ${iconClass}"></i>
+            <span><strong>Last Sender:</strong> ${senderLabel}</span>
+        </span>
+        ${messagePreview}
+    </div>`;
+}
+
 async function selectConversation(id, patientName, patientEmail) {
     currentConversationId = id;
     const initial = patientName.charAt(0).toUpperCase();
     document.getElementById('chat-patient-name').innerHTML = `<i class="bi bi-person-fill me-2"></i>${patientName}`;
     document.getElementById('chat-status-text').textContent = patientEmail;
     document.getElementById('chat-avatar-header').innerHTML = `<div class="avatar-circle-small">${initial}</div>`;
-    document.getElementById('chat-actions').style.display = 'block';
     document.getElementById('chat-input-container').style.display = 'block';
     
     // Update active state
@@ -356,10 +885,61 @@ function formatMessageTime(timestamp) {
     const now = new Date();
     const diff = now - date;
     const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
     
-    if (minutes < 1) return 'Just now';
-    if (minutes < 60) return `${minutes}m ago`;
-    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    // Just now (less than 1 minute)
+    if (minutes < 1) {
+        return 'just now';
+    }
+    
+    // Minutes ago (less than 1 hour)
+    if (minutes < 60) {
+        return `${minutes} ${minutes === 1 ? 'min.' : 'mins.'} ago`;
+    }
+    
+    // Hours ago (less than 3 hours old)
+    if (hours < 3) {
+        return `${hours} ${hours === 1 ? 'hour.' : 'hours.'} ago`;
+    }
+    
+    // Today (less than 24 hours old, same date)
+    const isToday = date.toDateString() === now.toDateString();
+    if (isToday && hours < 24) {
+        const hours12 = date.getHours() % 12 || 12;
+        const minutes12 = date.getMinutes().toString().padStart(2, '0');
+        const ampm = date.getHours() >= 12 ? 'PM' : 'AM';
+        return `Today ${hours12}:${minutes12} ${ampm}`;
+    }
+    
+    // Yesterday
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    if (date.toDateString() === yesterday.toDateString()) {
+        const hours12 = date.getHours() % 12 || 12;
+        const minutes12 = date.getMinutes().toString().padStart(2, '0');
+        const ampm = date.getHours() >= 12 ? 'PM' : 'AM';
+        return `Yesterday ${hours12}:${minutes12} ${ampm}`;
+    }
+    
+    // This week (within 7 days)
+    if (days < 7) {
+        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const dayName = dayNames[date.getDay()];
+        const hours12 = date.getHours() % 12 || 12;
+        const minutes12 = date.getMinutes().toString().padStart(2, '0');
+        const ampm = date.getHours() >= 12 ? 'PM' : 'AM';
+        return `${dayName} ${hours12}:${minutes12} ${ampm}`;
+    }
+    
+    // Older dates - full date format (MM/DD/YYYY HH:MM AM/PM)
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const year = date.getFullYear();
+    const hours12 = date.getHours() % 12 || 12;
+    const minutes12 = date.getMinutes().toString().padStart(2, '0');
+    const ampm = date.getHours() >= 12 ? 'PM' : 'AM';
+    return `${month}/${day}/${year} ${hours12}:${minutes12} ${ampm}`;
 }
 
 function escapeHtml(text) {
@@ -678,27 +1258,10 @@ function removeAttachedFile(index) {
     document.getElementById('chat-file-input').value = '';
 }
 
-document.getElementById('status-filter').addEventListener('change', loadConversations);
 document.getElementById('search-conversations').addEventListener('input', loadConversations);
 document.getElementById('send-message-btn').addEventListener('click', sendMessage);
 document.getElementById('chat-input').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') sendMessage();
-});
-document.getElementById('conversation-status').addEventListener('change', async function() {
-    if (!currentConversationId) return;
-    try {
-        const response = await fetch(`{{ url('/staff/chat/conversations') }}/${currentConversationId}/status`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
-            body: JSON.stringify({ status: this.value })
-        });
-        if (response.ok) loadConversations();
-    } catch (error) {
-        console.error('Error updating status:', error);
-    }
 });
 
 // Click a message bubble to reveal who sent it
@@ -741,6 +1304,316 @@ setInterval(loadConversations, 10000); // Refresh list every 10 seconds
 </script>
 
 <style>
+/* Chat Online Status Toggle Styles */
+.chat-status-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 0.375rem 0.75rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.chat-status-label.status-online {
+    color: #10b981;
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    border: 1px solid #10b981;
+}
+
+.chat-status-label.status-offline {
+    color: #ef4444;
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    border: 1px solid #ef4444;
+}
+
+.chat-online-toggle .form-check-input {
+    width: 3.5rem;
+    height: 1.75rem;
+    cursor: pointer;
+    background-color: #cbd5e1;
+    border: 2px solid #94a3b8;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.chat-online-toggle .form-check-input:checked {
+    background-color: #10b981;
+    border-color: #10b981;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e");
+}
+
+.chat-online-toggle .form-check-input:focus {
+    border-color: #10b981;
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(16, 185, 129, 0.25);
+}
+
+.chat-online-toggle .form-check-input:not(:checked) {
+    background-color: #ef4444;
+    border-color: #ef4444;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e");
+    background-position: left center;
+}
+
+.chat-toggle-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.chat-censor-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 0.375rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.chat-censor-label.status-on {
+    color: #2563eb;
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    border-color: #2563eb;
+}
+
+.chat-censor-label.status-off {
+    color: #9333ea;
+    background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+    border-color: #a855f7;
+}
+
+.chat-censor-toggle .form-check-input {
+    width: 3.5rem;
+    height: 1.75rem;
+    cursor: pointer;
+    background-color: #c7d2fe;
+    border: 2px solid #818cf8;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.chat-censor-toggle .form-check-input:checked {
+    background-color: #6366f1;
+    border-color: #4f46e5;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e");
+}
+
+.chat-censor-toggle .form-check-input:not(:checked) {
+    background-color: #ede9fe;
+    border-color: #c4b5fd;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e");
+    background-position: left center;
+}
+
+.chat-censor-toggle .form-check-input:focus {
+    border-color: #4f46e5;
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.25);
+}
+
+.chat-blocklist-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-weight: 600;
+    border-radius: 999px;
+    padding: 0.5rem 1.25rem;
+    transition: all 0.3s ease;
+    border-width: 2px;
+}
+
+.chat-blocklist-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(59, 130, 246, 0.25);
+}
+
+.chat-blocklist-modal {
+    border: none;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(37, 99, 235, 0.25);
+}
+
+.chat-blocklist-header {
+    background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%) !important;
+    color: #fff;
+    border-bottom: none;
+}
+
+.blocklist-add-form .input-group-text {
+    background: transparent;
+    border: none;
+    font-size: 1.1rem;
+    color: #2563eb;
+}
+
+.blocklist-add-form .form-control {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-color: #bfdbfe;
+    font-weight: 500;
+}
+
+.blocklist-add-form .form-control:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.2);
+}
+
+.blocklist-words-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.blocklist-word-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
+    border: 1px solid #bfdbfe;
+    border-radius: 999px;
+    padding: 0.5rem 0.75rem 0.5rem 1rem;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.blocklist-word-pill:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(37, 99, 235, 0.2);
+}
+
+.blocklist-word-text {
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.blocklist-remove {
+    background: transparent;
+    border: none;
+    color: #1d4ed8;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.blocklist-remove:hover {
+    background: rgba(37, 99, 235, 0.15);
+    color: #1e3a8a;
+}
+
+[data-theme="dark"] .chat-censor-label.status-on {
+    color: #60a5fa;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.2) 0%, rgba(59, 130, 246, 0.25) 100%);
+    border-color: rgba(59, 130, 246, 0.6);
+}
+
+[data-theme="dark"] .chat-censor-label.status-off {
+    color: #c084fc;
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.2) 0%, rgba(147, 51, 234, 0.2) 100%);
+    border-color: rgba(147, 51, 234, 0.5);
+}
+
+[data-theme="dark"] .chat-censor-toggle .form-check-input {
+    background-color: #4c1d95;
+    border-color: #6d28d9;
+}
+
+[data-theme="dark"] .chat-censor-toggle .form-check-input:checked {
+    background-color: #4f46e5;
+    border-color: #4338ca;
+}
+
+[data-theme="dark"] .chat-censor-toggle .form-check-input:not(:checked) {
+    background-color: #312e81;
+    border-color: #4338ca;
+}
+
+[data-theme="dark"] .chat-censor-toggle .form-check-input:focus {
+    box-shadow: 0 0 0 0.25rem rgba(79, 70, 229, 0.35);
+}
+
+[data-theme="dark"] .chat-blocklist-btn {
+    border-color: rgba(96, 165, 250, 0.6) !important;
+    color: #93c5fd !important;
+}
+
+[data-theme="dark"] .chat-blocklist-btn:hover {
+    box-shadow: 0 6px 18px rgba(59, 130, 246, 0.35);
+}
+
+[data-theme="dark"] .chat-blocklist-modal {
+    background: var(--dm-card-bg, #1f2937) !important;
+    box-shadow: 0 20px 60px rgba(37, 99, 235, 0.35);
+}
+
+[data-theme="dark"] .chat-blocklist-header {
+    background: linear-gradient(135deg, #1d4ed8 0%, #312e81 100%) !important;
+}
+
+[data-theme="dark"] .blocklist-add-form .input-group-text {
+    color: #93c5fd !important;
+}
+
+[data-theme="dark"] .blocklist-add-form .form-control {
+    background: var(--dm-bg-secondary, #0f172a) !important;
+    color: var(--dm-text-primary, #f1f5f9) !important;
+    border-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] .blocklist-add-form .form-control:focus {
+    border-color: #60a5fa !important;
+    box-shadow: 0 0 0 0.2rem rgba(96, 165, 250, 0.25) !important;
+}
+
+[data-theme="dark"] .blocklist-word-pill {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.2) 0%, rgba(96, 165, 250, 0.2) 100%) !important;
+    border-color: rgba(96, 165, 250, 0.35) !important;
+    color: var(--dm-text-primary, #f8fafc) !important;
+}
+
+[data-theme="dark"] .blocklist-remove {
+    color: #bfdbfe !important;
+}
+
+[data-theme="dark"] .blocklist-remove:hover {
+    background: rgba(59, 130, 246, 0.35) !important;
+    color: #e0f2fe !important;
+}
+
+[data-theme="dark"] .chat-status-label.status-online {
+    color: #34d399;
+    background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
+    border-color: #10b981;
+}
+
+[data-theme="dark"] .chat-status-label.status-offline {
+    color: #fca5a5;
+    background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%);
+    border-color: #ef4444;
+}
+
+[data-theme="dark"] .chat-online-toggle .form-check-input {
+    background-color: #475569;
+    border-color: #64748b;
+}
+
+[data-theme="dark"] .chat-online-toggle .form-check-input:checked {
+    background-color: #10b981;
+    border-color: #10b981;
+}
+
+[data-theme="dark"] .chat-online-toggle .form-check-input:not(:checked) {
+    background-color: #ef4444;
+    border-color: #ef4444;
+}
+
+[data-theme="dark"] .chat-online-toggle .form-check-input:focus {
+    box-shadow: 0 0 0 0.25rem rgba(16, 185, 129, 0.3);
+}
+
 /* Card Enhancements */
 .chat-sidebar-card,
 .chat-main-card {
@@ -827,22 +1700,6 @@ setInterval(loadConversations, 10000); // Refresh list every 10 seconds
     background: white;
 }
 
-.chat-status-filter {
-    border-radius: 10px;
-    border: 2px solid #e2e8f0;
-    background: white;
-    font-size: 0.875rem;
-    font-weight: 500;
-    padding: 0.5rem 0.75rem;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.chat-status-filter:focus {
-    border-color: #2196F3;
-    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
-    outline: none;
-}
 
 .conversations-list-container {
     max-height: 600px;
@@ -991,10 +1848,66 @@ setInterval(loadConversations, 10000); // Refresh list every 10 seconds
 
 .conversation-email {
     font-size: 0.8rem;
-    color: #64748b;
+    color: #1e40af;
     display: flex;
     align-items: center;
     gap: 0.25rem;
+}
+
+.last-sender-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.last-sender-badge {
+    font-size: 0.75rem;
+    color: #3b82f6;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    padding: 0.25rem 0.625rem;
+    border-radius: 8px;
+    border: 1px solid #bfdbfe;
+    font-weight: 500;
+    box-shadow: 0 1px 3px rgba(59, 130, 246, 0.1);
+    transition: all 0.2s ease;
+    width: fit-content;
+}
+
+.last-sender-badge:hover {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.15);
+    transform: translateY(-1px);
+}
+
+.last-sender-badge i {
+    font-size: 0.875rem;
+    color: #2563eb;
+}
+
+.last-sender-badge strong {
+    font-weight: 700;
+    color: #1e40af;
+}
+
+.last-message-preview {
+    font-size: 0.8rem;
+    color: #64748b;
+    line-height: 1.4;
+    margin-top: 0.25rem;
+    padding-left: 0.125rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.attachment-preview-text {
+    font-style: italic;
+    color: #3b82f6 !important;
+    font-weight: 500;
 }
 
 .conversation-preview {
@@ -1367,18 +2280,6 @@ setInterval(loadConversations, 10000); // Refresh list every 10 seconds
     transform: translateY(-1px) scale(0.98);
 }
 
-.chat-status-select {
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    backdrop-filter: blur(10px);
-}
-
-.chat-status-select option {
-    background: #10b981;
-    color: white;
-}
 
 .cursor-pointer {
     cursor: pointer;
@@ -1451,13 +2352,44 @@ setInterval(loadConversations, 10000); // Refresh list every 10 seconds
     color: var(--dm-text-primary, #f1f5f9) !important;
 }
 
-[data-theme="dark"] .conversation-email,
 [data-theme="dark"] .conversation-time {
     color: var(--dm-text-muted, #94a3b8) !important;
 }
 
+[data-theme="dark"] .conversation-email {
+    color: #00d4ff !important;
+    text-shadow: none !important;
+}
+
 [data-theme="dark"] .conversation-preview {
     color: var(--dm-text-secondary, #cbd5e1) !important;
+}
+
+[data-theme="dark"] .last-sender-badge {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.2) 100%) !important;
+    color: #60a5fa !important;
+    border-color: rgba(59, 130, 246, 0.3) !important;
+}
+
+[data-theme="dark"] .last-sender-badge:hover {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.25) 100%) !important;
+}
+
+[data-theme="dark"] .last-sender-badge i {
+    color: #60a5fa !important;
+}
+
+[data-theme="dark"] .last-sender-badge strong {
+    color: #93c5fd !important;
+}
+
+[data-theme="dark"] .last-message-preview {
+    color: var(--dm-text-muted, #94a3b8) !important;
+}
+
+[data-theme="dark"] .attachment-preview-text {
+    color: #60a5fa !important;
+    font-style: italic;
 }
 
 [data-theme="dark"] .avatar-circle {
@@ -1569,21 +2501,6 @@ setInterval(loadConversations, 10000); // Refresh list every 10 seconds
     color: var(--dm-text-primary, #f1f5f9) !important;
 }
 
-[data-theme="dark"] .chat-status-filter {
-    background: var(--dm-bg-secondary, #0f172a) !important;
-    border-color: var(--dm-border-color, #334155) !important;
-    color: var(--dm-text-primary, #f1f5f9) !important;
-}
-
-[data-theme="dark"] .chat-status-filter:focus {
-    border-color: #60a5fa !important;
-    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2) !important;
-}
-
-[data-theme="dark"] .chat-status-filter option {
-    background: var(--dm-bg-secondary, #0f172a) !important;
-    color: var(--dm-text-primary, #f1f5f9) !important;
-}
 
 [data-theme="dark"] .chat-body {
     background: var(--dm-bg-secondary, #0f172a) !important;

@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Patient;
 use App\Http\Controllers\Controller;
 use App\Models\ChatConversation;
 use App\Models\ChatMessage;
+use App\Models\ChatbotSetting;
+use App\Services\ChatCensorshipService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -66,7 +68,7 @@ class ChatController extends Controller
                     'sender_name' => $message->sender->info 
                         ? $message->sender->info->first_name . ' ' . $message->sender->info->last_name 
                         : $message->sender->username,
-                    'message' => $message->message,
+                    'message' => ChatCensorshipService::censorText($message->message),
                     'attachments' => $attachments,
                     'is_read' => $message->is_read,
                     'created_at' => $message->created_at->format('Y-m-d H:i:s'),
@@ -80,6 +82,17 @@ class ChatController extends Controller
      */
     public function sendMessage(Request $request)
     {
+        // Check if chat is online
+        $setting = ChatbotSetting::first();
+        $isOnline = $setting ? $setting->is_online : true;
+        
+        if (!$isOnline) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Chat is currently offline. Please try again later.',
+            ], 403);
+        }
+
         $request->validate([
             'conversation_id' => 'required|exists:chat_conversations,id',
             'message' => 'required|string|max:2000',
@@ -110,7 +123,7 @@ class ChatController extends Controller
                 'sender_name' => $message->sender->info 
                     ? $message->sender->info->first_name . ' ' . $message->sender->info->last_name 
                     : $message->sender->username,
-                'message' => $message->message,
+                'message' => ChatCensorshipService::censorText($message->message),
                 'is_read' => $message->is_read,
                 'created_at' => $message->created_at->format('Y-m-d H:i:s'),
             ],
@@ -145,6 +158,20 @@ class ChatController extends Controller
             ->count();
 
         return response()->json(['count' => $count]);
+    }
+
+    /**
+     * Get chat online status
+     */
+    public function getOnlineStatus()
+    {
+        $setting = ChatbotSetting::first();
+        $isOnline = $setting ? $setting->is_online : true;
+
+        return response()->json([
+            'is_online' => $isOnline,
+            'censorship_enabled' => $setting ? (bool) $setting->censorship_enabled : false,
+        ]);
     }
 }
 

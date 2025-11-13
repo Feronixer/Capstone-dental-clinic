@@ -5,7 +5,10 @@ namespace App\Http\Controllers\Staff;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\ChatConversation;
+use App\Models\ChatCensoredWord;
 use App\Models\ChatMessage;
+use App\Models\ChatbotSetting;
+use App\Services\ChatCensorshipService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -31,14 +34,9 @@ class ChatController extends Controller
      */
     public function getConversations(Request $request)
     {
-        $status = $request->input('status', 'active');
         $search = $request->input('search');
 
-        $query = ChatConversation::with(['patient.info', 'staff.info']);
-
-        if ($status !== 'all') {
-            $query->where('status', $status);
-        }
+        $query = ChatConversation::with(['patient.info', 'staff.info', 'messages.sender.info']);
 
         if ($search) {
             $query->whereHas('patient', function($q) use ($search) {
@@ -54,8 +52,53 @@ class ChatController extends Controller
         $conversations = $query->orderBy('last_message_at', 'desc')
             ->paginate(20);
 
+        $currentStaffId = Auth::guard('staff')->id();
+        
         return response()->json([
-            'conversations' => $conversations->map(function ($conversation) {
+            'conversations' => $conversations->map(function ($conversation) use ($currentStaffId) {
+                // Get last message with sender relationship loaded
+                // Query directly from ChatMessage to avoid relationship ordering issues
+                $lastMessage = ChatMessage::where('conversation_id', $conversation->id)
+                    ->with('sender.info')
+                    ->orderByDesc('created_at')
+                    ->orderByDesc('id')
+                    ->first();
+                $lastSenderType = null;
+                $lastSenderName = null;
+                $lastSenderId = null;
+                
+                if ($lastMessage) {
+                    $lastSenderType = $lastMessage->sender_type;
+                    $lastSenderId = $lastMessage->sender_id;
+                    
+                    if ($lastMessage->sender_type === 'patient') {
+                        $lastSenderName = 'Patient';
+                    } elseif ($lastMessage->sender_type === 'staff') {
+                        if ($lastMessage->sender_id == $currentStaffId) {
+                            $lastSenderName = 'You';
+                        } else {
+                            if ($lastMessage->sender) {
+                                $lastSenderName = $lastMessage->sender->info 
+                                    ? $lastMessage->sender->info->first_name . ' ' . $lastMessage->sender->info->last_name 
+                                    : $lastMessage->sender->username;
+                            } else {
+                                $lastSenderName = 'Staff';
+                            }
+                        }
+                    } elseif ($lastMessage->sender_type === 'admin') {
+                        if ($lastMessage->sender) {
+                            $lastSenderName = $lastMessage->sender->info 
+                                ? $lastMessage->sender->info->first_name . ' ' . $lastMessage->sender->info->last_name 
+                                : $lastMessage->sender->username;
+                        } else {
+                            $lastSenderName = 'Admin';
+                        }
+                    }
+                }
+                
+                // Check if last message has attachments
+                $hasAttachments = $lastMessage && $lastMessage->attachments && !empty($lastMessage->attachments);
+                
                 return [
                     'id' => $conversation->id,
                     'patient_id' => $conversation->patient_id,
@@ -69,6 +112,13 @@ class ChatController extends Controller
                         ? $conversation->last_message_at->format('Y-m-d H:i:s') 
                         : null,
                     'created_at' => $conversation->created_at->format('Y-m-d H:i:s'),
+                    'last_sender_type' => $lastSenderType,
+                    'last_sender_name' => $lastSenderName,
+                    'last_sender_id' => $lastSenderId,
+                    'last_message_text' => $lastMessage
+                        ? ChatCensorshipService::censorText($lastMessage->message ?? '')
+                        : null,
+                    'last_message_has_attachments' => $hasAttachments,
                 ];
             }),
             'pagination' => [
@@ -114,7 +164,7 @@ class ChatController extends Controller
                     'sender_name' => $message->sender->info 
                         ? $message->sender->info->first_name . ' ' . $message->sender->info->last_name 
                         : $message->sender->username,
-                    'message' => $message->message,
+                    'message' => ChatCensorshipService::censorText($message->message),
                     'attachments' => $message->attachments,
                     'is_read' => $message->is_read,
                     'created_at' => $message->created_at->format('Y-m-d H:i:s'),
@@ -266,7 +316,7 @@ class ChatController extends Controller
                     'sender_name' => $message->sender->info 
                         ? $message->sender->info->first_name . ' ' . $message->sender->info->last_name 
                         : $message->sender->username,
-                    'message' => $message->message,
+                    'message' => ChatCensorshipService::censorText($message->message),
                     'attachments' => $message->attachments,
                     'is_read' => $message->is_read,
                     'created_at' => $message->created_at->format('Y-m-d H:i:s'),
@@ -326,6 +376,288 @@ class ChatController extends Controller
             ->count();
 
         return response()->json(['count' => $count]);
+    }
+
+    /**
+     * Toggle chat online status
+     */
+    public function toggleOnlineStatus(Request $request)
+    {
+        try {
+            $request->validate([
+                'is_online' => 'required|boolean',
+            ]);
+
+            $setting = ChatbotSetting::first();
+            if (!$setting) {
+                $setting = ChatbotSetting::create([
+                    'enabled' => true,
+                    'is_online' => true,
+                    'welcome_message' => '',
+                    'quick_intents' => [],
+                ]);
+            }
+
+            $setting->is_online = $request->boolean('is_online');
+            $setting->save();
+
+            return response()->json([
+                'success' => true,
+                'is_online' => $setting->is_online,
+                'message' => $setting->is_online ? 'Chat is now online' : 'Chat is now offline',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error: ' . $e->getMessage(),
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Error toggling chat online status: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update chat status. Please try again.',
+            ], 500);
+        }
+    }
+
+    public function toggleCensorship(Request $request)
+    {
+        try {
+            $request->validate([
+                'censorship_enabled' => 'required|boolean',
+            ]);
+
+            $setting = ChatbotSetting::first();
+            if (!$setting) {
+                $setting = ChatbotSetting::create([
+                    'enabled' => true,
+                    'is_online' => true,
+                    'censorship_enabled' => false,
+                    'welcome_message' => '',
+                    'quick_intents' => [],
+                ]);
+            }
+
+            $setting->censorship_enabled = $request->boolean('censorship_enabled');
+            $setting->save();
+
+            ChatCensorshipService::resetCache();
+
+            return response()->json([
+                'success' => true,
+                'censorship_enabled' => $setting->censorship_enabled,
+                'message' => $setting->censorship_enabled
+                    ? 'Censorship is now enabled.'
+                    : 'Censorship has been disabled.',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error: ' . $e->getMessage(),
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Staff: error toggling chat censorship: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update censorship setting. Please try again.',
+            ], 500);
+        }
+    }
+
+    public function getCensorshipStatus()
+    {
+        $setting = ChatbotSetting::first();
+
+        return response()->json([
+            'censorship_enabled' => $setting ? (bool) $setting->censorship_enabled : false,
+        ]);
+    }
+
+    public function getBlocklist()
+    {
+        $words = ChatCensoredWord::query()
+            ->orderBy('word')
+            ->get();
+
+        return response()->json([
+            'words' => $words->map(function (ChatCensoredWord $word) {
+                return [
+                    'id' => $word->id,
+                    'word' => $word->word,
+                    'masked' => ChatCensorshipService::maskedPreview($word->word),
+                ];
+            }),
+        ]);
+    }
+
+    public function addBlocklistWord(Request $request)
+    {
+        try {
+            $request->validate([
+                'word' => 'required|string|max:100',
+            ]);
+
+            $word = trim($request->input('word'));
+
+            if ($word === '') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Please provide a word to block.',
+                ], 422);
+            }
+
+            if (mb_strlen($word) < 2) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Words must be at least two characters long.',
+                ], 422);
+            }
+
+            if (ChatCensorshipService::isDefaultWord($word)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'That word is already part of the default blocklist.',
+                ], 422);
+            }
+
+            $normalized = mb_strtolower($word);
+            $duplicate = ChatCensoredWord::query()
+                ->whereRaw('LOWER(word) = ?', [$normalized])
+                ->exists();
+
+            if ($duplicate) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'That word is already in the blocklist.',
+                ], 422);
+            }
+
+            $newWord = ChatCensoredWord::create([
+                'word' => $word,
+                'created_by_id' => Auth::guard('staff')->id(),
+                'created_by_type' => 'staff',
+            ]);
+
+            ChatCensorshipService::resetCache();
+
+            return response()->json([
+                'success' => true,
+                'word' => [
+                    'id' => $newWord->id,
+                    'word' => $newWord->word,
+                    'masked' => ChatCensorshipService::maskedPreview($newWord->word),
+                ],
+                'message' => 'Word added to blocklist.',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error: ' . $e->getMessage(),
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Staff: error adding blocklist word: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to add word to blocklist. Please try again.',
+            ], 500);
+        }
+    }
+
+    public function removeBlocklistWord($wordId)
+    {
+        $word = ChatCensoredWord::findOrFail($wordId);
+        $word->delete();
+
+        ChatCensorshipService::resetCache();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Word removed from blocklist.',
+        ]);
+    }
+
+    /**
+     * Save all blocklist words (bulk save).
+     */
+    public function saveBlocklist(Request $request)
+    {
+        try {
+            $request->validate([
+                'words' => 'required|array',
+                'words.*' => 'required|string|max:100',
+            ]);
+
+            $words = collect($request->input('words', []))
+                ->map(fn($word) => trim($word))
+                ->filter(fn($word) => $word !== '' && mb_strlen($word) >= 2)
+                ->unique()
+                ->values()
+                ->all();
+
+            // Remove existing custom words
+            ChatCensoredWord::query()->delete();
+
+            // Add new words
+            $savedWords = [];
+            foreach ($words as $word) {
+                // Allow all words/phrases to be saved, even if they match default words
+                // This allows users to add custom phrases and see them in the modal
+                $savedWords[] = ChatCensoredWord::create([
+                    'word' => $word,
+                    'created_by_id' => Auth::guard('staff')->id(),
+                    'created_by_type' => 'staff',
+                ]);
+            }
+
+            ChatCensorshipService::resetCache();
+
+            return response()->json([
+                'success' => true,
+                'words' => collect($savedWords)->map(function (ChatCensoredWord $word) {
+                    return [
+                        'id' => $word->id,
+                        'word' => $word->word,
+                        'masked' => ChatCensorshipService::maskedPreview($word->word),
+                    ];
+                }),
+                'message' => 'Blocklist saved successfully.',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error: ' . $e->getMessage(),
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Staff: error saving blocklist: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to save blocklist. Please try again.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Get chat online status
+     */
+    public function getOnlineStatus()
+    {
+        $setting = ChatbotSetting::first();
+        $isOnline = $setting ? $setting->is_online : true;
+
+        return response()->json([
+            'is_online' => $isOnline,
+        ]);
     }
 }
 

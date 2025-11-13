@@ -85,6 +85,7 @@ Route::middleware(['auth:admin'])->group(function(): void{
     //Admin Routes
     Route::post('/admin/verify-inactivity-password', [AdminAuthController::class, 'verifyInactivityPassword'])->name('admin.verify-inactivity-password');
     Route::get('/admin/dashboard', [AdminDashboardController::class,'index'])->name('admin-dashboard');
+    Route::get('/admin/services', [AdminDashboardController::class,'services'])->name('admin-services');
 
     Route::get('/admin/account-management', [AccountManagementController::class,'index'])->name('admin-account-management');
     Route::post('/admin/account-management', [AccountManagementController::class,'store']);
@@ -187,6 +188,17 @@ Route::middleware(['auth:admin'])->group(function(): void{
     Route::put('/admin/chat/conversations/{id}/status', [App\Http\Controllers\Admin\ChatController::class, 'updateStatus'])->name('admin-chat.update-status');
     Route::delete('/admin/chat/conversations/{id}', [App\Http\Controllers\Admin\ChatController::class, 'deleteConversation'])->name('admin-chat.delete');
     Route::get('/admin/chat/unread-count', [App\Http\Controllers\Admin\ChatController::class, 'getUnreadCount'])->name('admin-chat.unread-count');
+    Route::post('/admin/chat/toggle-online-status', [App\Http\Controllers\Admin\ChatController::class, 'toggleOnlineStatus'])->name('admin-chat.toggle-online-status');
+    Route::get('/admin/chat/online-status', [App\Http\Controllers\Admin\ChatController::class, 'getOnlineStatus'])->name('admin-chat.online-status');
+    Route::post('/admin/chat/toggle-censorship', [App\Http\Controllers\Admin\ChatController::class, 'toggleCensorship'])->name('admin-chat.toggle-censorship');
+    Route::get('/admin/chat/censorship-status', [App\Http\Controllers\Admin\ChatController::class, 'getCensorshipStatus'])->name('admin-chat.censorship-status');
+    Route::get('/admin/chat/blocklist', [App\Http\Controllers\Admin\ChatController::class, 'getBlocklist'])->name('admin-chat.blocklist.index');
+    Route::post('/admin/chat/blocklist', [App\Http\Controllers\Admin\ChatController::class, 'addBlocklistWord'])->name('admin-chat.blocklist.store');
+    Route::post('/admin/chat/blocklist/save', [App\Http\Controllers\Admin\ChatController::class, 'saveBlocklist'])->name('admin-chat.blocklist.save');
+    Route::delete('/admin/chat/blocklist/{word}', [App\Http\Controllers\Admin\ChatController::class, 'removeBlocklistWord'])->name('admin-chat.blocklist.destroy');
+
+    // Admin Feedback Routes
+    Route::get('/admin/feedback', [App\Http\Controllers\Admin\FeedbackController::class, 'index'])->name('admin-feedback');
 
     // Admin Logout Route
     Route::post('/admin/logout', [AdminAuthController::class,'logout'])->name('admin.logout');
@@ -273,6 +285,7 @@ Route::middleware(['auth:staff', \App\Http\Middleware\LogStaffActivity::class])-
     Route::post('/staff/post-procedural/verify-password', [StaffPostProceduralController::class,'verifyPassword'])->name('staff-post-procedural.verify-password');
 
     Route::get('/staff/dashboard',[StaffDashboard::class, 'index'])->name('staff-dashboard');
+    Route::get('/staff/services',[StaffDashboard::class, 'services'])->name('staff-services');
 
     // Staff ToothTalk Routes
     Route::get('/staff/toothtalk', [App\Http\Controllers\Staff\ToothTalkController::class, 'index'])->name('staff-toothtalk');
@@ -351,6 +364,17 @@ Route::middleware(['auth:staff', \App\Http\Middleware\LogStaffActivity::class])-
     Route::post('/staff/chat/conversations/{id}/send', [App\Http\Controllers\Staff\ChatController::class, 'sendMessage'])->name('staff-chat.send');
     Route::put('/staff/chat/conversations/{id}/status', [App\Http\Controllers\Staff\ChatController::class, 'updateStatus'])->name('staff-chat.update-status');
     Route::get('/staff/chat/unread-count', [App\Http\Controllers\Staff\ChatController::class, 'getUnreadCount'])->name('staff-chat.unread-count');
+    Route::post('/staff/chat/toggle-online-status', [App\Http\Controllers\Staff\ChatController::class, 'toggleOnlineStatus'])->name('staff-chat.toggle-online-status');
+    Route::get('/staff/chat/online-status', [App\Http\Controllers\Staff\ChatController::class, 'getOnlineStatus'])->name('staff-chat.online-status');
+    Route::post('/staff/chat/toggle-censorship', [App\Http\Controllers\Staff\ChatController::class, 'toggleCensorship'])->name('staff-chat.toggle-censorship');
+    Route::get('/staff/chat/censorship-status', [App\Http\Controllers\Staff\ChatController::class, 'getCensorshipStatus'])->name('staff-chat.censorship-status');
+    Route::get('/staff/chat/blocklist', [App\Http\Controllers\Staff\ChatController::class, 'getBlocklist'])->name('staff-chat.blocklist.index');
+    Route::post('/staff/chat/blocklist', [App\Http\Controllers\Staff\ChatController::class, 'addBlocklistWord'])->name('staff-chat.blocklist.store');
+    Route::post('/staff/chat/blocklist/save', [App\Http\Controllers\Staff\ChatController::class, 'saveBlocklist'])->name('staff-chat.blocklist.save');
+    Route::delete('/staff/chat/blocklist/{word}', [App\Http\Controllers\Staff\ChatController::class, 'removeBlocklistWord'])->name('staff-chat.blocklist.destroy');
+
+    // Staff Feedback Routes
+    Route::get('/staff/feedback', [App\Http\Controllers\Staff\FeedbackController::class, 'index'])->name('staff-feedback');
 
     // Staff Logout Route
     Route::post('/staff/logout', [StaffAuthController::class,'logout'])->name('staff.logout');
@@ -439,6 +463,7 @@ Route::middleware(['auth:web'])->group(function(): void{
     Route::get('/patient/chat/messages', [App\Http\Controllers\Patient\ChatController::class, 'getMessages'])->name('patient-chat.messages');
     Route::post('/patient/chat/send', [App\Http\Controllers\Patient\ChatController::class, 'sendMessage'])->name('patient-chat.send');
     Route::get('/patient/chat/unread-count', [App\Http\Controllers\Patient\ChatController::class, 'getUnreadCount'])->name('patient-chat.unread-count');
+    Route::get('/patient/chat/online-status', [App\Http\Controllers\Patient\ChatController::class, 'getOnlineStatus'])->name('patient-chat.online-status');
 
     // Patient Logout Route
     Route::post('/logout', [AuthController::class,'logout'])->name('logout');
@@ -447,4 +472,6 @@ Route::middleware(['auth:web'])->group(function(): void{
 
 // Public route for checking chat authentication
 Route::get('/chat/check-auth', [App\Http\Controllers\Patient\ChatController::class, 'checkAuth'])->name('chat.check-auth');
+// Public route for checking chat online status
+Route::get('/chat/online-status', [App\Http\Controllers\Patient\ChatController::class, 'getOnlineStatus'])->name('chat.online-status');
 

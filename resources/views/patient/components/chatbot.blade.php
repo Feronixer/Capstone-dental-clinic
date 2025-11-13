@@ -94,6 +94,15 @@
         object-fit: contain;
     }
 
+    @media (max-width: 992px) {
+        body.mobile-menu-open .chatbot-toggle-btn,
+        body.mobile-menu-open .chatbot-widget {
+            opacity: 0 !important;
+            pointer-events: none !important;
+            visibility: hidden !important;
+        }
+    }
+
     .chatbot-widget {
         position: fixed !important;
         right: 24px !important;
@@ -116,8 +125,16 @@
         cursor: default;
         opacity: 0;
         transform: translateY(20px) scale(0.9);
-        transition: opacity 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
-                    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        /* Transition removed - using animations instead to prevent conflicts */
+    }
+    
+    /* Desktop: Increase chatbot width */
+    @media (min-width: 769px) {
+        .chatbot-widget {
+            width: 25vw;
+            min-width: 340px;
+            max-width: calc(90vw - 24px);
+        }
     }
     
     .chatbot-widget.resizing {
@@ -128,6 +145,7 @@
     .chatbot-widget.opening {
         display: flex !important;
         animation: chatbotOpen 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        will-change: opacity, transform;
     }
     
     @keyframes chatbotOpen {
@@ -147,6 +165,7 @@
     /* Closing animation */
     .chatbot-widget.closing {
         animation: chatbotClose 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        will-change: opacity, transform;
     }
     
     @keyframes chatbotClose {
@@ -162,9 +181,17 @@
     
     /* Open state - no animation, just visible */
     .chatbot-widget.open { 
-        display: flex;
-        opacity: 1;
-        transform: translateY(0) scale(1);
+        display: flex !important;
+        opacity: 1 !important;
+        transform: translateY(0) scale(1) !important;
+        animation: none !important;
+        will-change: auto;
+        visibility: visible !important;
+    }
+    
+    /* Ensure widget doesn't get hidden when open */
+    .chatbot-widget.open[style*="display: none"] {
+        display: flex !important;
     }
 
     .chatbot-header {
@@ -196,6 +223,17 @@
         border-radius: 50%;
         background: #A5D6A7;
         box-shadow: 0 0 0 4px rgba(165,214,167,0.25);
+        transition: all 0.3s ease;
+    }
+
+    .chatbot-title .badge-dot.online {
+        background: #A5D6A7;
+        box-shadow: 0 0 0 4px rgba(165,214,167,0.25);
+    }
+
+    .chatbot-title .badge-dot.offline {
+        background: #ef4444;
+        box-shadow: 0 0 0 4px rgba(239,68,68,0.25);
     }
 
     .chatbot-body {
@@ -464,6 +502,7 @@
         border-radius: 10px;
         outline: none;
         transition: border 0.2s ease, box-shadow 0.2s ease;
+        font-size: 0.875rem;
     }
 
     .chatbot-input input[type="text"]:focus {
@@ -574,7 +613,7 @@
         }
         
         .chatbot-tabs {
-            padding: 8px 0 0;
+            padding: 8px 10px 12px;
             margin-top: auto;
         }
         
@@ -669,13 +708,13 @@
         }
         
         .chatbot-tabs {
-            padding: 6px 0 0;
+            padding: 6px 8px 10px;
             margin-top: auto;
         }
         
         .chatbot-input input[type="text"] {
             padding: 8px 12px;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             border-radius: 20px;
         }
         
@@ -750,7 +789,7 @@
         }
         
         .chatbot-tabs {
-            padding: 6px 0 0;
+            padding: 6px 8px 10px;
             margin-top: auto;
         }
     }
@@ -787,6 +826,7 @@
         }
         
         .chatbot-tabs {
+            padding: 8px 10px 12px;
             margin-top: auto;
         }
         
@@ -814,6 +854,7 @@
         }
         
         .chatbot-tabs {
+            padding: 8px 10px 0;
             margin-top: auto;
         }
     }
@@ -846,7 +887,7 @@
     .chatbot-tabs {
         display: flex;
         gap: 8px;
-        padding: 8px 0 0;
+        padding: 8px 12px 12px;
         border-top: 1px solid #eef2f5;
         margin-top: auto;
         flex-shrink: 0;
@@ -1171,7 +1212,7 @@
 <div id="chatbot" class="chatbot-widget" role="dialog" aria-modal="false" aria-labelledby="chatbotTitle">
     <div class="chatbot-header">
         <div class="chatbot-title">
-            <span class="badge-dot"></span>
+            <span class="badge-dot online"></span>
             <span id="chatbotTitle">Live Chat</span>
         </div>
         <button id="chatbot-close" class="send-btn" aria-label="Close chat" title="Close" style="background:#ffffff22;border:1px solid #ffffff33;">
@@ -1210,6 +1251,7 @@
         const tabLiveChat = document.getElementById('tab-live-chat');
         const tabFaqs = document.getElementById('tab-faqs');
         const titleEl = document.getElementById('chatbotTitle');
+        const badgeDotEl = widget ? widget.querySelector('.chatbot-title .badge-dot') : null;
 
         if (!toggleBtn || !widget) {
             return;
@@ -1230,6 +1272,16 @@
         let widgetInitialWidth = 0;
         let widgetInitialHeight = 0;
         let resizeHandle = null;
+
+        function updateBadgeDotVisibilityForMode(mode) {
+            if (!badgeDotEl) return;
+            const activeMode = mode || currentMode;
+            if (activeMode === 'faqs') {
+                badgeDotEl.style.display = 'none';
+            } else {
+                badgeDotEl.style.display = '';
+            }
+        }
         
         // Load saved widget position and size
         function loadSavedWidgetState() {
@@ -1581,6 +1633,11 @@
         function updateWidgetPosition() {
             if (!widget || !toggleBtn) return;
             
+            // Don't update position if widget is not open or is closing
+            if (!widget.classList.contains('open') && !widget.classList.contains('opening')) {
+                return;
+            }
+            
             try {
                 const rect = toggleBtn.getBoundingClientRect();
                 const buttonBottom = window.innerHeight - rect.bottom;
@@ -1590,11 +1647,16 @@
                 const screenCenterX = window.innerWidth / 2;
                 const isOnLeft = centerX < screenCenterX;
                 
+                // Ensure widget stays visible during position update
+                if (widget.classList.contains('open') || widget.classList.contains('opening')) {
+                    widget.style.display = 'flex';
+                }
+                
                 // During dragging, disable transitions for instant movement
                 if (isDragging) {
                     widget.style.transition = 'none';
                 } else {
-                    // Smooth transition when not dragging
+                    // Smooth transition when not dragging (only for position, not display)
                     widget.style.transition = 'left 0.3s ease, right 0.3s ease, bottom 0.3s ease, border-radius 0.3s ease';
                 }
                 
@@ -1877,12 +1939,142 @@
         let pollingInterval = null;
         let lastMessageId = null;
         let faqInitialized = false;
+        let chatOnlineStatus = true;
+        let chatCensorshipEnabled = false;
+        let onlineStatusInterval = null;
+        let isWidgetOpening = false;
+        let isWidgetClosing = false;
         // Use Maps to store messages with unique keys to prevent duplicates
         const liveChatMessagesMap = new Map(); // key -> message object
         const faqMessagesMap = new Map(); // key -> message object
         // Global Set to track all message IDs that have been added to DOM
         const addedMessageIds = new Set();
         const addedMessageKeys = new Set();
+
+        function maskWordForClient(word) {
+            if (!word) return '';
+
+            const tokens = word.split(/(\s+)/);
+            return tokens.map((segment) => {
+                if (segment.trim() === '') {
+                    return segment;
+                }
+
+                const match = segment.match(/^([A-Za-z0-9]+)(.*)$/u);
+                if (match) {
+                    const masked = maskCore(match[1]);
+                    return masked + match[2];
+                }
+
+                return maskCore(segment);
+            }).join('');
+
+            function maskCore(value) {
+                const chars = Array.from(value);
+                const length = chars.length;
+
+                if (length === 0) return '';
+                if (length === 1) return '*';
+                if (length === 2) return `${chars[0]}*`;
+
+                return `${chars[0]}${'*'.repeat(length - 2)}${chars[length - 1]}`;
+            }
+        }
+
+        // Chat online status management
+        async function checkOnlineStatus() {
+            try {
+                const response = await fetch('{{ route("chat.online-status") }}');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                const wasOnline = chatOnlineStatus;
+                chatOnlineStatus = data.is_online !== undefined ? data.is_online : true;
+                chatCensorshipEnabled = data.censorship_enabled !== undefined ? data.censorship_enabled : chatCensorshipEnabled;
+                
+                // Update badge-dot color
+                if (badgeDotEl) {
+                    badgeDotEl.classList.remove('online', 'offline');
+                    if (chatOnlineStatus) {
+                        badgeDotEl.classList.add('online');
+                    } else {
+                        badgeDotEl.classList.add('offline');
+                    }
+                }
+                
+                // Always update input and send button state when in live-chat mode
+                if (currentMode === 'live-chat') {
+                    updateChatInputState(chatOnlineStatus);
+                }
+            } catch (error) {
+                console.error('Error checking online status:', error);
+                // On error, assume offline to be safe
+                chatOnlineStatus = false;
+                if (currentMode === 'live-chat') {
+                    updateChatInputState(false);
+                }
+            }
+        }
+
+        function updateChatInputState(isOnline) {
+            const inputEl = document.getElementById('chatbot-input');
+            const sendBtn = document.getElementById('chatbot-send');
+            const inputContainer = document.getElementById('chatbot-input-container');
+            
+            // Only update if we're in live-chat mode and input container is visible
+            if (currentMode !== 'live-chat' || !inputContainer || inputContainer.style.display === 'none') {
+                return;
+            }
+            
+            if (inputEl) {
+                inputEl.disabled = !isOnline;
+                if (!isOnline) {
+                    inputEl.placeholder = 'Chat is currently offline. Please try again later.';
+                    inputEl.value = ''; // Clear any text
+                } else {
+                    inputEl.placeholder = 'Type your message for the clinic...';
+                }
+            }
+            
+            if (sendBtn) {
+                sendBtn.disabled = !isOnline;
+            }
+            
+            // Show/hide offline message
+            if (!isOnline) {
+                const existingOfflineMsg = Array.from(messagesEl.children).find(wrapper => {
+                    const msgDiv = wrapper.querySelector('.message.bot');
+                    return msgDiv && msgDiv.textContent.includes('Chat is currently offline');
+                });
+                
+                if (!existingOfflineMsg) {
+                    addMessage('Chat is currently offline. Our staff will be back online soon. Please try again later.', 'bot', null, new Date().toISOString());
+                }
+            } else {
+                // Remove offline message when going online
+                const offlineMsgs = Array.from(messagesEl.children).filter(wrapper => {
+                    const msgDiv = wrapper.querySelector('.message.bot');
+                    return msgDiv && msgDiv.textContent.includes('Chat is currently offline');
+                });
+                offlineMsgs.forEach(wrapper => wrapper.remove());
+            }
+        }
+
+        // Start polling for online status
+        function startOnlineStatusPolling() {
+            if (onlineStatusInterval) clearInterval(onlineStatusInterval);
+            checkOnlineStatus(); // Check immediately
+            onlineStatusInterval = setInterval(checkOnlineStatus, 3000); // Check every 3 seconds for faster updates
+        }
+
+        // Stop polling for online status
+        function stopOnlineStatusPolling() {
+            if (onlineStatusInterval) {
+                clearInterval(onlineStatusInterval);
+                onlineStatusInterval = null;
+            }
+        }
         
         // Helper function to create a unique key for a message
         function createMessageKey(msg) {
@@ -2040,54 +2232,9 @@
             return !!existingByContent;
         }
 
-        function addMessage(text, sender, attachments = null, timestamp = null, messageId = null) {
-            // Check if message already exists in DOM before adding
-            if (messageExistsInDOM(messageId, text, sender, timestamp, attachments)) {
-                return; // Skip if already exists
-            }
-            
-            // Create unique key for tracking
-            const attachmentKey = attachments && Array.isArray(attachments) 
-                ? attachments.map(a => (a.url || a.name || '')).sort().join('|')
-                : (attachments ? (attachments.url || attachments.name || '') : '');
-            const messageKey = `${text}_${timestamp}_${sender}_${attachmentKey}`;
-            
-            // Check if we've already added this message (by ID or key)
-            if (messageId && addedMessageIds.has(String(messageId))) {
-                return; // Skip if already added
-            }
-            if (addedMessageKeys.has(messageKey)) {
-                return; // Skip if already added
-            }
-            
-            // Mark as added
-            if (messageId) {
-                addedMessageIds.add(String(messageId));
-            }
-            addedMessageKeys.add(messageKey);
-            
-            const wrapper = document.createElement('div');
-            wrapper.className = 'message-wrapper';
-            
-            // Store the original ISO timestamp as a data attribute for preservation
-            if (timestamp) {
-                wrapper.setAttribute('data-timestamp', timestamp);
-            } else {
-                // If no timestamp provided, use current time and store it
-                timestamp = new Date().toISOString();
-                wrapper.setAttribute('data-timestamp', timestamp);
-            }
-            
-            // Store message ID if provided
-            if (messageId) {
-                wrapper.setAttribute('data-message-id', messageId);
-            }
-            
-            const div = document.createElement('div');
-            div.className = 'message ' + (sender === 'user' ? 'user' : (sender === 'staff' ? 'staff' : (sender === 'admin' ? 'admin' : 'bot')));
-
+        function buildMessageContentHTML(text, sender, attachments = null) {
             let contentHTML = '';
-            
+
             if (sender === 'bot' || sender === 'staff' || sender === 'admin') {
                 let lines = String(text).split('\n');
                 let formattedHTML = '';
@@ -2109,21 +2256,16 @@
             } else {
                 contentHTML = text;
             }
-            
-            // Add attachments if any (ONLY if not already in contentHTML)
-            // Check if contentHTML already contains attachment HTML to avoid duplicates
+
             const hasAttachmentHTML = contentHTML.includes('message-attachments') || contentHTML.includes('attachment-item');
-            
             if (attachments && Array.isArray(attachments) && attachments.length > 0 && !hasAttachmentHTML) {
                 contentHTML += '<div class="message-attachments">';
                 attachments.forEach(attachment => {
-                    // Ensure attachment has required properties
                     if (!attachment || !attachment.url || !attachment.name) return;
-                    
+
                     const isImage = attachment.mime_type && attachment.mime_type.startsWith('image/');
                     const fileSize = attachment.size ? (attachment.size / 1024).toFixed(1) : '0';
                     if (isImage) {
-                        // Escape quotes for safe JavaScript string usage
                         const escapedUrl = attachment.url.replace(/'/g, "\\'").replace(/"/g, '&quot;');
                         const escapedName = escapeHtml(attachment.name).replace(/'/g, "\\'").replace(/"/g, '&quot;');
                         contentHTML += `
@@ -2147,7 +2289,63 @@
                 });
                 contentHTML += '</div>';
             }
+
+            return contentHTML;
+        }
+
+        function addMessage(text, sender, attachments = null, timestamp = null, messageId = null, options = {}) {
+            const { skipTracking = false, pending = false } = options || {};
+            // Check if message already exists in DOM before adding
+            if (messageExistsInDOM(messageId, text, sender, timestamp, attachments)) {
+                return null; // Skip if already exists
+            }
             
+            // Create unique key for tracking
+            const attachmentKey = attachments && Array.isArray(attachments) 
+                ? attachments.map(a => (a.url || a.name || '')).sort().join('|')
+                : (attachments ? (attachments.url || attachments.name || '') : '');
+            const messageKey = `${text}_${timestamp}_${sender}_${attachmentKey}`;
+            
+            // Check if we've already added this message (by ID or key)
+            if (messageId && addedMessageIds.has(String(messageId))) {
+                return null; // Skip if already added
+            }
+            if (!skipTracking && addedMessageKeys.has(messageKey)) {
+                return null; // Skip if already added
+            }
+            
+            // Mark as added
+            if (!skipTracking && messageId) {
+                addedMessageIds.add(String(messageId));
+            }
+            if (!skipTracking) {
+                addedMessageKeys.add(messageKey);
+            }
+            
+            const wrapper = document.createElement('div');
+            wrapper.className = 'message-wrapper';
+            if (pending) {
+                wrapper.classList.add('pending');
+            }
+            
+            // Store the original ISO timestamp as a data attribute for preservation
+            if (timestamp) {
+                wrapper.setAttribute('data-timestamp', timestamp);
+            } else {
+                // If no timestamp provided, use current time and store it
+                timestamp = new Date().toISOString();
+                wrapper.setAttribute('data-timestamp', timestamp);
+            }
+            
+            // Store message ID if provided
+            if (messageId) {
+                wrapper.setAttribute('data-message-id', messageId);
+            }
+            
+            const div = document.createElement('div');
+            div.className = 'message ' + (sender === 'user' ? 'user' : (sender === 'staff' ? 'staff' : (sender === 'admin' ? 'admin' : 'bot')));
+
+            const contentHTML = buildMessageContentHTML(text, sender, attachments);
             div.innerHTML = contentHTML;
             wrapper.appendChild(div);
             
@@ -2164,6 +2362,41 @@
             
             messagesEl.appendChild(wrapper);
             scrollToBottom();
+            return wrapper;
+        }
+
+        function finalizePendingMessage(tempId, serverMessage) {
+            const wrapper = messagesEl.querySelector(`.message-wrapper[data-message-id="${tempId}"]`);
+            if (!wrapper) return;
+
+            const existingWrapper = messagesEl.querySelector(`.message-wrapper[data-message-id="${serverMessage.id}"]`);
+            if (existingWrapper && existingWrapper !== wrapper) {
+                wrapper.remove();
+                return;
+            }
+
+            const normalizedAttachments = serverMessage.attachments && Array.isArray(serverMessage.attachments)
+                ? serverMessage.attachments
+                : (serverMessage.attachments ? [serverMessage.attachments] : null);
+
+            const sender = serverMessage.sender_type === 'patient' ? 'user' : serverMessage.sender_type;
+            const messageDiv = wrapper.querySelector('.message');
+            if (messageDiv) {
+                messageDiv.innerHTML = buildMessageContentHTML(serverMessage.message, sender, normalizedAttachments);
+            }
+
+            const timeDiv = wrapper.querySelector('.message-time');
+            if (timeDiv) {
+                timeDiv.textContent = formatTimeIndicator(serverMessage.created_at);
+            }
+
+            wrapper.setAttribute('data-message-id', serverMessage.id);
+            wrapper.setAttribute('data-timestamp', serverMessage.created_at);
+            wrapper.classList.remove('pending');
+
+            addedMessageIds.add(String(serverMessage.id));
+            const key = createMessageKey(serverMessage);
+            addedMessageKeys.add(key);
         }
 
         function showTypingIndicator() {
@@ -2329,30 +2562,112 @@
         }
 
         async function openChat() {
-            // Remove closing class if present
-            widget.classList.remove('closing');
-            widget.classList.remove('open');
+            // Prevent multiple simultaneous opens
+            if (isWidgetOpening || widget.classList.contains('open') || widget.classList.contains('opening')) {
+                return;
+            }
+
+            // Prevent opening if currently closing
+            if (isWidgetClosing) {
+                return;
+            }
+
+            isWidgetOpening = true;
+            isWidgetClosing = false;
+
+            // Remove all state classes first
+            widget.classList.remove('closing', 'open', 'opening');
             
-            // Show widget and start opening animation
-            widget.style.display = 'flex';
-            widget.setAttribute('aria-hidden', 'false');
-            widget.classList.add('opening');
+            // Ensure widget is hidden initially
+            widget.style.display = 'none';
+            widget.style.opacity = '0';
+            widget.style.transform = 'translateY(20px) scale(0.9)';
             
-            // After animation completes, switch to open state
+            // Use requestAnimationFrame to ensure smooth transition
+            requestAnimationFrame(() => {
+                // Show widget first
+                widget.style.display = 'flex';
+                widget.setAttribute('aria-hidden', 'false');
+                
+                // Force reflow to ensure display change is applied
+                void widget.offsetWidth;
+                
+                // Now add opening class to trigger animation
+                widget.classList.add('opening');
+                
+                // Remove transition during animation to prevent conflicts
+                const originalTransition = widget.style.transition;
+                widget.style.transition = 'none';
+                
+                // Restore transition after a brief moment
+                requestAnimationFrame(() => {
+                    widget.style.transition = originalTransition;
+                });
+            });
+
+            // Handle animation end
+            const handleOpenAnimationEnd = (event) => {
+                // Only handle if this is our widget and our opening animation
+                if (event.target !== widget || event.animationName !== 'chatbotOpen') {
+                    return;
+                }
+                
+                // Ensure widget is still in opening state before transitioning
+                if (widget.classList.contains('opening') && !isWidgetClosing) {
+                    widget.classList.remove('opening');
+                    widget.classList.add('open');
+                    // Ensure widget stays visible
+                    widget.style.display = 'flex';
+                    widget.style.opacity = '1';
+                    widget.style.transform = 'translateY(0) scale(1)';
+                    isWidgetOpening = false;
+                }
+            };
+
+            // Add one-time listener
+            widget.addEventListener('animationend', handleOpenAnimationEnd, { once: true });
+            
+            // Fallback timeout (slightly longer than animation) - ensure widget stays open
             setTimeout(() => {
-                widget.classList.remove('opening');
-                widget.classList.add('open');
-            }, 400); // Match animation duration
+                if (widget.classList.contains('opening') && !isWidgetClosing) {
+                    widget.classList.remove('opening');
+                    widget.classList.add('open');
+                    // Ensure widget stays visible
+                    widget.style.display = 'flex';
+                    widget.style.opacity = '1';
+                    widget.style.transform = 'translateY(0) scale(1)';
+                }
+                isWidgetOpening = false;
+            }, 500);
             
             // Stop pulse animation when widget is open
             toggleBtn.style.animation = 'none';
+            
             // Set title based on current mode
             if (currentMode === 'live-chat') {
                 titleEl.textContent = 'Live Chat';
             } else {
                 titleEl.textContent = 'FAQs about the Clinic';
             }
-            updateWidgetPosition();
+            updateBadgeDotVisibilityForMode(currentMode);
+            
+            // Update position after animation starts (not during)
+            setTimeout(() => {
+                if (!isWidgetClosing) {
+                    updateWidgetPosition();
+                }
+            }, 50);
+            
+            // Safeguard: Ensure widget stays visible after animation completes
+            setTimeout(() => {
+                if (widget.classList.contains('open') && !isWidgetClosing) {
+                    // Force widget to stay visible
+                    widget.style.display = 'flex';
+                    widget.style.opacity = '1';
+                    widget.style.transform = 'translateY(0) scale(1)';
+                    widget.style.visibility = 'visible';
+                }
+            }, 600);
 
             if (!messagesEl.dataset.checked) {
                 if (currentMode === 'faqs') {
@@ -2379,9 +2694,9 @@
                     }
                     const isAuth = await checkAuth();
                     if (isAuth) {
-                        inputEl.placeholder = 'Type your message for the clinic...';
-                        inputEl.disabled = false;
-                        sendBtn.disabled = false;
+                        // Check online status and update input state
+                        await checkOnlineStatus();
+                        updateChatInputState(chatOnlineStatus);
                         await initializeLiveChat();
                     } else {
                         messagesEl.innerHTML = '';
@@ -2423,6 +2738,8 @@
 
         async function initializeLiveChat() {
             try {
+                // Check online status before initializing
+                await checkOnlineStatus();
                 const response = await fetch('{{ route("patient-chat.conversation") }}');
                 const data = await response.json();
                 conversationId = data.conversation_id;
@@ -2590,9 +2907,16 @@
 
         async function sendLiveMessage(text) {
             if (!conversationId) return;
+            
+            // Check online status before sending
+            if (!chatOnlineStatus) {
+                addMessage('Chat is currently offline. Please try again later.', 'bot', null, new Date().toISOString());
+                return;
+            }
+            
             const now = new Date().toISOString();
             const tempId = Date.now();
-            addMessage(text, 'user', null, now, tempId);
+            addMessage(text, 'user', null, now, tempId, { skipTracking: true, pending: true });
             // Store user message temporarily
             const tempMsg = {
                 sender_type: 'patient',
@@ -2621,25 +2945,94 @@
                     const tempKey = createMessageKey(tempMsg);
                     liveChatMessagesMap.delete(tempKey);
                     addMessageToMap(liveChatMessagesMap, data.message);
+                    finalizePendingMessage(tempId, data.message);
                     lastMessageId = data.message.id;
+                } else {
+                    // Remove temporary message on error
+                    const tempKey = createMessageKey(tempMsg);
+                    liveChatMessagesMap.delete(tempKey);
+                    const messageWrappers = messagesEl.querySelectorAll('.message-wrapper');
+                    if (messageWrappers.length > 0) {
+                        const lastWrapper = messageWrappers[messageWrappers.length - 1];
+                        if (lastWrapper.querySelector('.message.user')) {
+                            lastWrapper.remove();
+                        }
+                    }
+                    addMessage(data.message || 'Error sending message. Please try again.', 'bot', null, new Date().toISOString());
+                    // Update online status if error indicates offline
+                    if (response.status === 403) {
+                        await checkOnlineStatus();
+                    }
                 }
             } catch (error) {
+                // Remove temporary message on error
+                const tempKey = createMessageKey(tempMsg);
+                liveChatMessagesMap.delete(tempKey);
+                const messageWrappers = messagesEl.querySelectorAll('.message-wrapper');
+                if (messageWrappers.length > 0) {
+                    const lastWrapper = messageWrappers[messageWrappers.length - 1];
+                    if (lastWrapper.querySelector('.message.user')) {
+                        lastWrapper.remove();
+                    }
+                }
                 addMessage('Error sending message. Please try again.', 'bot', null, new Date().toISOString());
             }
         }
 
         function closeChat() {
+            // Prevent closing if already closing or not open
+            if (isWidgetClosing || (!widget.classList.contains('open') && !widget.classList.contains('opening'))) {
+                return;
+            }
+
+            // Prevent closing if currently opening
+            if (isWidgetOpening) {
+                return;
+            }
+
+            isWidgetClosing = true;
+            isWidgetOpening = false;
+
             // Remove open and opening classes, add closing class
-            widget.classList.remove('open');
-            widget.classList.remove('opening');
+            widget.classList.remove('open', 'opening');
             widget.classList.add('closing');
             widget.setAttribute('aria-hidden', 'true');
+
+            // Remove transition during closing animation to prevent conflicts
+            const originalTransition = widget.style.transition;
+            widget.style.transition = 'none';
+
+            // Handle animation end
+            const handleCloseAnimationEnd = (event) => {
+                // Only handle if this is our widget
+                if (event.target !== widget) {
+                    return;
+                }
+                
+                // Remove listener to prevent multiple calls
+                widget.removeEventListener('animationend', handleCloseAnimationEnd);
+                
+                // Only proceed if still in closing state
+                if (widget.classList.contains('closing')) {
+                    widget.classList.remove('closing');
+                    widget.style.display = 'none';
+                    widget.style.transition = originalTransition;
+                    isWidgetClosing = false;
+                }
+            };
+
+            // Add one-time listener
+            widget.addEventListener('animationend', handleCloseAnimationEnd, { once: true });
             
-            // Wait for closing animation to complete before hiding
+            // Fallback timeout (slightly longer than animation)
             setTimeout(() => {
-                widget.classList.remove('closing');
+                if (widget.classList.contains('closing')) {
+                    widget.classList.remove('closing');
+                }
                 widget.style.display = 'none';
-            }, 300); // Match animation duration
+                widget.style.transition = originalTransition;
+                isWidgetClosing = false;
+            }, 350);
             
             stopPolling();
             
@@ -2813,6 +3206,7 @@
 
             // Update mode and tabs
             currentMode = mode;
+            updateBadgeDotVisibilityForMode(mode);
             tabLiveChat.classList.toggle('active', mode === 'live-chat');
             tabFaqs.classList.toggle('active', mode === 'faqs');
 
@@ -2848,8 +3242,9 @@
                     stopPolling();
                     checkAuth().then(async isAuth => {
                         if (isAuth) {
-                            inputEl.disabled = false;
-                            sendBtn.disabled = false;
+                            // Check online status and update input state
+                            await checkOnlineStatus();
+                            updateChatInputState(chatOnlineStatus);
                             if (!conversationId) {
                                 messagesEl.innerHTML = '';
                                 await initializeLiveChat();
@@ -2970,15 +3365,21 @@
                 return;
             }
             
+            // Prevent action if widget is currently animating
+            if (isWidgetOpening || isWidgetClosing) {
+                return;
+            }
+            
             // Set opacity to 100% on mobile when clicked
             if (window.innerWidth <= 480) {
                 toggleBtn.classList.add('clicked');
                 toggleBtn.style.opacity = '1';
             }
             
+            // Check current state and toggle accordingly
             if (widget.classList.contains('open')) {
                 closeChat();
-            } else {
+            } else if (!widget.classList.contains('opening')) {
                 openChat();
             }
         });
@@ -3011,6 +3412,9 @@
         tabFaqs?.addEventListener('click', () => switchTab('faqs'));
 
         widget.setAttribute('aria-hidden', 'true');
+        
+        // Initialize online status polling
+        startOnlineStatusPolling();
     })();
 
     // Chat unread count polling for patient

@@ -1001,6 +1001,7 @@
     width: 320px;
     max-width: 85vw;
     height: 100vh;
+    height: 100dvh;
     background: white;
     box-shadow: -4px 0 30px rgba(0,0,0,0.2);
     z-index: 1038 !important;
@@ -1009,6 +1010,8 @@
     overflow-x: hidden;
     display: flex;
     flex-direction: column;
+    padding-bottom: env(safe-area-inset-bottom, 16px);
+    -webkit-overflow-scrolling: touch;
 }
 
 .mobile-menu-overlay.active {
@@ -1019,7 +1022,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 14px 16px;
+    padding: calc(14px + env(safe-area-inset-top, 0px)) 16px 14px;
     background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
     color: white;
     min-height: 64px;
@@ -1106,6 +1109,8 @@
     overflow-y: auto;
     overflow-x: hidden;
     min-height: 0;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
 }
 
 .mobile-nav-menu {
@@ -1347,6 +1352,7 @@
     margin-top: auto;
     margin-bottom: 0;
     flex-shrink: 0;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 12px));
 }
 
 .mobile-action-item {
@@ -1385,6 +1391,7 @@
     min-width: 24px;
     text-align: center;
     flex-shrink: 0;
+    margin-right: 10px;
 }
 
 .mobile-action-dark-mode .form-check-input {
@@ -1897,11 +1904,13 @@
     .mobile-menu-overlay {
         width: 100%;
         max-width: 300px;
+        height: 100vh;
+        height: 100dvh;
     }
 
 
     .mobile-menu-header {
-        padding: 12px 14px;
+        padding: calc(12px + env(safe-area-inset-top, 0px)) 14px 12px;
         min-height: 60px;
         height: 60px;
         max-height: 60px;
@@ -1987,6 +1996,7 @@
         font-size: 16px;
         width: 20px;
         min-width: 20px;
+        margin-right: 8px;
     }
 
     .mobile-action-dark-mode:hover {
@@ -2074,11 +2084,13 @@
 
     .mobile-menu-overlay {
         max-width: 280px;
+        height: 100vh;
+        height: 100dvh;
     }
 
 
     .mobile-menu-header {
-        padding: 10px 12px;
+        padding: calc(10px + env(safe-area-inset-top, 0px)) 12px 10px;
         min-height: 56px;
         height: 56px;
         max-height: 56px;
@@ -2164,6 +2176,7 @@
         font-size: 14px;
         width: 18px;
         min-width: 18px;
+        margin-right: 6px;
     }
 
     .mobile-action-dark-mode:hover {
@@ -2207,6 +2220,7 @@ document.addEventListener('DOMContentLoaded', function(){
         backdrop.setAttribute('aria-hidden','false');
         if (toggleIcon) toggleIcon.classList.add('open');
         document.body.style.overflow = 'hidden'; // lock page scroll under menu
+        document.body.classList.add('mobile-menu-open');
         // pin toggle on top
         toggle.classList.add('fixed-open');
         toggle.setAttribute('aria-label','Close menu');
@@ -2220,6 +2234,7 @@ document.addEventListener('DOMContentLoaded', function(){
         backdrop.setAttribute('aria-hidden','true');
         if (toggleIcon) toggleIcon.classList.remove('open');
         document.body.style.overflow = ''; // restore scroll
+        document.body.classList.remove('mobile-menu-open');
         toggle.classList.remove('fixed-open');
         toggle.setAttribute('aria-label','Open menu');
     }
@@ -2566,6 +2581,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 toggle.setAttribute('aria-label', 'Open menu');
             }
             document.body.style.overflow = '';
+            document.body.classList.remove('mobile-menu-open');
             
             // Then show logout modal
             const modalElement = document.getElementById('patientLogoutModal');

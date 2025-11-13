@@ -11,12 +11,16 @@ class ChatbotSetting extends Model
 
     protected $fillable = [
         'enabled',
+        'is_online',
+        'censorship_enabled',
         'welcome_message',
         'quick_intents',
     ];
 
     protected $casts = [
         'enabled' => 'boolean',
+        'is_online' => 'boolean',
+        'censorship_enabled' => 'boolean',
         'quick_intents' => 'array',
     ];
 }

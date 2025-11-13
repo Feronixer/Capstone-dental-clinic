@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\User;
+use App\Models\Service;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -188,12 +189,12 @@ class DashboardController extends Controller
             ->take(5)
             ->values();
 
-        // Get recent feedback (last 10 rated appointments)
+        // Get recent feedback (last 3 rated appointments)
         $recentFeedback = Appointment::whereNotNull('rating')
             ->where('status', 'Completed')
             ->with(['patient.info', 'service'])
             ->orderBy('rated_at', 'desc')
-            ->limit(10)
+            ->limit(3)
             ->get()
             ->map(function($appointment) {
                 return [
@@ -216,6 +217,9 @@ class DashboardController extends Controller
             ->where('status', 'Pending')
             ->count();
 
+        // Get current services list (limit to 5 for dashboard)
+        $clinicServices = Service::orderBy('created_at', 'desc')->get();
+
         return view('admin.dashboard', compact(
             'totalPatients',
             'todayAppointments',
@@ -235,7 +239,8 @@ class DashboardController extends Controller
             'adultCount',
             'feedbackData',
             'topServices',
-            'recentFeedback'
+            'recentFeedback',
+            'clinicServices'
         ));
     }
 
@@ -285,5 +290,25 @@ class DashboardController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    /**
+     * Display a full list of clinic services.
+     */
+    public function services()
+    {
+        if (!Auth::guard('admin')->check()) {
+            return redirect()->route('admin.login')->withErrors(['error' => 'Please login as administrator to access this page.']);
+        }
+
+        $user = Auth::guard('admin')->user();
+        if ($user->role_id !== 1) {
+            Auth::guard('admin')->logout();
+            return redirect()->route('admin.login')->withErrors(['error' => 'Access denied. This portal is for administrators only.']);
+        }
+
+        $clinicServices = Service::orderBy('created_at', 'desc')->paginate(15);
+
+        return view('admin.services.index', compact('clinicServices'));
     }
 }

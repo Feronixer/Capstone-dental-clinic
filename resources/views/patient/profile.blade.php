@@ -206,6 +206,23 @@
     box-sizing: border-box;
 }
 
+.detail-block input.readonly-input,
+.detail-block select.readonly-input {
+    background: #e3f2fd;
+    border-color: #1976D2;
+    color: #000000;
+    cursor: not-allowed;
+}
+
+.detail-block input.readonly-input:hover,
+.detail-block select.readonly-input:hover,
+.detail-block input.readonly-input:focus,
+.detail-block select.readonly-input:focus {
+    background: #e3f2fd;
+    border-color: #1976D2;
+    box-shadow: none;
+}
+
 .detail-block input:hover,
 .detail-block select:hover {
     border-color: #1565C0;
@@ -243,6 +260,121 @@
     padding-top: 1.5rem;
     border-top: 2px solid #2196F3;
     flex-shrink: 0;
+}
+
+/* Floating Feedback Message */
+.floating-feedback {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    animation: slideInRight 0.3s ease-out, fadeOut 0.3s ease-in 2.7s;
+    animation-fill-mode: forwards;
+    max-width: 400px;
+    word-wrap: break-word;
+}
+
+.floating-feedback.success {
+    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+    color: white;
+    border: 2px solid #1976D2;
+}
+
+.floating-feedback.danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    border: 2px solid #dc2626;
+}
+
+.floating-feedback i {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(400px);
+    }
+}
+
+/* Dark mode for floating feedback */
+[data-theme="dark"] .floating-feedback.success {
+    background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+    border-color: #1565C0;
+}
+
+[data-theme="dark"] .floating-feedback.danger {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    border-color: #b91c1c;
+}
+
+/* Responsive styles for floating feedback */
+@media (max-width: 768px) {
+    .floating-feedback {
+        top: 15px;
+        right: 15px;
+        left: 15px;
+        max-width: none;
+        padding: 0.875rem 1.25rem;
+        font-size: 0.9rem;
+        animation: slideInDown 0.3s ease-out, fadeOutUp 0.3s ease-in 2.7s;
+    }
+    
+    @keyframes slideInDown {
+        from {
+            transform: translateY(-100px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes fadeOutUp {
+        from {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        to {
+            opacity: 0;
+            transform: translateY(-100px);
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    .floating-feedback {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        padding: 0.75rem 1rem;
+        font-size: 0.85rem;
+    }
 }
 
 .btn-update {
@@ -459,14 +591,12 @@
     }
     
     .edit-button-container {
-        flex-direction: column;
-        gap: 0.75rem;
+        justify-content: center;
         margin-top: 1.5rem;
         padding-top: 1.25rem;
     }
     
-    .btn-update,
-    .btn-cancel {
+    .btn-update {
         width: 100%;
         padding: 0.875rem 2rem;
     }
@@ -727,11 +857,22 @@
 
 /* Read-only Age Input Dark Mode */
 [data-theme="dark"] input[readonly],
-[data-theme="dark"] input[readonly][style*="background: #f5f5f5"] {
+[data-theme="dark"] input[readonly][style*="background: #f5f5f5"],
+[data-theme="dark"] .detail-block input.readonly-input,
+[data-theme="dark"] .detail-block select.readonly-input {
     background: var(--dm-bg-tertiary, #334155) !important;
     border-color: var(--dm-border-color, #475569) !important;
     color: var(--dm-text-muted, #94a3b8) !important;
     cursor: not-allowed !important;
+}
+
+[data-theme="dark"] .detail-block input.readonly-input:hover,
+[data-theme="dark"] .detail-block select.readonly-input:hover,
+[data-theme="dark"] .detail-block input.readonly-input:focus,
+[data-theme="dark"] .detail-block select.readonly-input:focus {
+    background: var(--dm-bg-tertiary, #334155) !important;
+    border-color: var(--dm-border-color, #475569) !important;
+    box-shadow: none !important;
 }
 
 /* Select dropdown options dark mode */
@@ -1019,7 +1160,7 @@ html, body {
                         <div class="details-row">
                             <div class="detail-block">
                                 <span class="detail-block-label">First Name *</span>
-                                <input type="text" name="first_name" id="first_name" value="{{ $userInfo->first_name ?? '' }}" required>
+                                <input type="text" name="first_name" id="first_name" value="{{ $userInfo->first_name ?? '' }}" required readonly class="readonly-input">
                                 <div class="invalid-feedback"></div>
                             </div>
                             <div class="detail-block">
@@ -1029,7 +1170,7 @@ html, body {
                             </div>
                             <div class="detail-block">
                                 <span class="detail-block-label">Last Name *</span>
-                                <input type="text" name="last_name" id="last_name" value="{{ $userInfo->last_name ?? '' }}" required>
+                                <input type="text" name="last_name" id="last_name" value="{{ $userInfo->last_name ?? '' }}" required readonly class="readonly-input">
                                 <div class="invalid-feedback"></div>
                             </div>
                         </div>
@@ -1041,16 +1182,16 @@ html, body {
                             </div>
                             <div class="detail-block">
                                 <span class="detail-block-label">Birthday *</span>
-                                <input type="date" name="birthday" id="birthday" value="{{ $userInfo->birthday ?? '' }}" readonly style="background: #e3f2fd; border-color: #1976D2; color: #000000; cursor: not-allowed;">
+                                <input type="date" name="birthday" id="birthday" value="{{ $userInfo->birthday ?? '' }}" readonly class="readonly-input">
                                 <div class="invalid-feedback"></div>
                             </div>
                             <div class="detail-block">
                                 <span class="detail-block-label">Age</span>
-                                <input type="number" id="age" value="{{ $userInfo->age ?? '' }}" readonly style="background: #e3f2fd; border-color: #1976D2; color: #000000; cursor: not-allowed;">
+                                <input type="number" id="age" value="{{ $userInfo->age ?? '' }}" readonly class="readonly-input">
                             </div>
                             <div class="detail-block">
                                 <span class="detail-block-label">Sex *</span>
-                                <select name="gender" id="gender" disabled style="background: #e3f2fd; border-color: #1976D2; color: #000000; cursor: not-allowed;">
+                                <select name="gender" id="gender" disabled class="readonly-input">
                                     <option value="">Select...</option>
                                     <option value="Male" {{ ($userInfo->gender ?? '') === 'Male' ? 'selected' : '' }}>Male</option>
                                     <option value="Female" {{ ($userInfo->gender ?? '') === 'Female' ? 'selected' : '' }}>Female</option>
@@ -1067,7 +1208,6 @@ html, body {
                         </div>
                     </div>
                     <div class="edit-button-container">
-                        <button type="button" class="btn-cancel" onclick="window.location.reload()">Cancel</button>
                         <button type="submit" class="btn-update">Update Profile</button>
                     </div>
                 </form>
@@ -1157,10 +1297,10 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                showMessage('Profile updated successfully!', 'success');
+                showMessage('My profile is updated', 'success');
                 setTimeout(() => {
                     window.location.reload();
-                }, 1500);
+                }, 3000);
             } else {
                 if (data.errors) {
                     showValidationErrors(data.errors);
@@ -1179,23 +1319,32 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function showMessage(message, type) {
-        const messagesDiv = document.getElementById('validation-messages');
-        messagesDiv.innerHTML = `
-            <div class="alert alert-${type}">
-                ${message}
-            </div>
-        `;
-        messagesDiv.style.display = 'block';
-
-        // Scroll to top to show message
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-
-        // Auto-hide success messages
-        if (type === 'success') {
-            setTimeout(() => {
-                messagesDiv.style.display = 'none';
-            }, 3000);
+        // Remove any existing floating feedback messages
+        const existingFeedback = document.querySelector('.floating-feedback');
+        if (existingFeedback) {
+            existingFeedback.remove();
         }
+
+        // Create floating feedback message
+        const feedback = document.createElement('div');
+        feedback.className = `floating-feedback ${type}`;
+        
+        // Add icon based on type
+        const icon = type === 'success' 
+            ? '<i class="bi bi-check-circle-fill"></i>' 
+            : '<i class="bi bi-exclamation-circle-fill"></i>';
+        
+        feedback.innerHTML = `${icon}<span>${message}</span>`;
+        
+        // Append to body
+        document.body.appendChild(feedback);
+        
+        // Remove after animation completes (3 seconds total: 2.7s visible + 0.3s fade out)
+        setTimeout(() => {
+            if (feedback.parentNode) {
+                feedback.remove();
+            }
+        }, 3000);
     }
 
     function showValidationErrors(errors) {

@@ -570,8 +570,10 @@
                                 <div class="pending-request-datetime">
                                     <i class="bi bi-calendar-event me-1"></i>
                                     {{ $request->requested_datetime->format('M d, Y') }}
-                                    <i class="bi bi-clock ms-2 me-1"></i>
-                                    {{ $request->requested_datetime->format('g:i A') }}
+                                    @if($request->requested_datetime->format('H:i') !== '00:00')
+                                        <i class="bi bi-clock ms-2 me-1"></i>
+                                        {{ $request->requested_datetime->format('g:i A') }}
+                                    @endif
                                 </div>
                                 <div class="pending-request-status">
                                     <i class="bi bi-hourglass-split me-1"></i>
@@ -1476,11 +1478,10 @@
 .tab-content-wrapper {
     position: relative;
     min-height: 0;
-    max-height: none;
-    overflow-y: auto;
     flex: 1;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
 .tab-content {
@@ -1488,10 +1489,10 @@
     animation: fadeIn 0.3s ease;
     flex: 1;
     min-height: 0;
-    max-height: 100%;
     flex-direction: column;
     padding-bottom: 0;
     margin-bottom: 0;
+    overflow: hidden;
 }
 
 .tab-content.active {
@@ -1502,16 +1503,113 @@
 }
 
 .tab-content .upcoming-list,
-.tab-content .pending-requests-list,
-.tab-content .history-list {
+.tab-content .history-list,
+.tab-content .pending-requests-list {
     flex: 1;
     min-height: 0;
-    max-height: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;
     padding-right: 0.45rem;
     padding-bottom: 0;
     margin-bottom: 0;
+}
+
+/* Desktop - Fix content wrapper, tab and list layout */
+@media (min-width: 769px) {
+    /* Remove spacing and maximize tabs - Only for calendar sidebar */
+    .calendar-sidebar .sidebar-card.tabbed-section {
+        padding: 0.5rem 0.5rem 0.25rem 0.5rem !important;
+        padding-bottom: 0.25rem !important;
+    }
+    
+    .calendar-sidebar .tabbed-section {
+        padding: 0.5rem 0.5rem 0.25rem 0.5rem !important;
+        padding-bottom: 0.25rem !important;
+    }
+    
+    .calendar-sidebar .sidebar-card {
+        padding-bottom: 0.25rem !important;
+    }
+    
+    .calendar-sidebar .tab-buttons {
+        gap: 0 !important;
+        margin-bottom: 0.5rem !important;
+        padding-bottom: 0.375rem !important;
+        border-bottom-width: 1px !important;
+    }
+    
+    .calendar-sidebar .tab-btn {
+        padding: 0.5rem 0.25rem !important;
+        min-width: 0 !important;
+        flex: 1 1 0 !important;
+    }
+    
+    .calendar-sidebar .tab-btn i {
+        font-size: 1rem !important;
+    }
+    
+    .calendar-sidebar .tab-content-wrapper {
+        overflow-y: auto;
+        overflow-x: hidden;
+        max-height: 100%;
+        height: 100%;
+        padding-bottom: 0 !important;
+        margin-bottom: 0 !important;
+    }
+    
+    .calendar-sidebar .tab-content {
+        overflow: visible;
+        max-height: none;
+        height: auto;
+        padding-bottom: 0 !important;
+        margin-bottom: 0 !important;
+    }
+    
+    .calendar-sidebar .tab-content .upcoming-list,
+    .calendar-sidebar .tab-content .history-list,
+    .calendar-sidebar .tab-content .pending-requests-list {
+        padding-bottom: 0 !important;
+        margin-bottom: 0 !important;
+        max-height: none !important;
+        overflow-y: visible !important;
+    }
+    
+    .tab-content-wrapper {
+        overflow: hidden;
+        max-height: 100%;
+        height: 100%;
+    }
+    
+    .tab-content {
+        overflow: hidden;
+        max-height: 100%;
+        height: 100%;
+    }
+    
+    /* Remove item limits for desktop calendar sidebar - show all items */
+    .calendar-sidebar .upcoming-list,
+    .calendar-sidebar .history-list {
+        max-height: none !important;
+        overflow-y: visible !important;
+    }
+    
+    .calendar-sidebar .pending-requests-list {
+        max-height: none !important;
+        overflow-y: visible !important;
+    }
+    
+    .calendar-sidebar .tab-content .upcoming-list,
+    .calendar-sidebar .tab-content .history-list {
+        max-height: none !important;
+        overflow-y: visible !important;
+        flex: 1 1 auto;
+        min-height: 0;
+    }
+    
+    .calendar-sidebar .tab-content .pending-requests-list {
+        max-height: none !important;
+        overflow-y: visible !important;
+        flex: 1 1 auto;
+        min-height: 0;
+    }
 }
 
 @keyframes fadeIn {
@@ -1567,7 +1665,6 @@
 
 /* Upcoming Items - More Compact */
 .upcoming-list,
-.pending-requests-list,
 .history-list {
     gap: 0.625rem;
     display: flex;
@@ -1576,14 +1673,37 @@
     padding-bottom: 0;
 }
 
+.pending-requests-list {
+    gap: 0.625rem;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+/* Desktop - Limit sidebar items (consolidated with tab-content rules above) */
+
 .upcoming-item,
 .history-item {
     padding: 0.625rem;
     border-radius: 8px;
     transition: all 0.25s ease;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.pending-request-item {
+    padding: 0.625rem;
+    border-radius: 8px;
+    transition: all 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 
 .upcoming-item:hover,
+.pending-request-item:hover,
 .history-item:hover {
     transform: translateX(3px);
     box-shadow: 0 3px 10px rgba(33, 150, 243, 0.2);
@@ -1651,20 +1771,43 @@
     padding-left: 1.25rem;
 }
 
-.upcoming-date {
+.upcoming-date,
+.history-date {
     width: 48px;
+    min-width: 48px;
     height: 48px;
     border-radius: 8px;
     flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #25079C 0%, #1a0569 100%);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.date-day {
+.date-day,
+.history-day {
     font-size: 1.15rem;
     font-weight: 700;
+    color: white;
+    line-height: 1.2;
 }
 
-.date-month {
+.date-month,
+.history-month {
     font-size: 0.65rem;
+    color: white;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.history-year {
+    font-size: 0.5rem;
+    color: white;
+    line-height: 1;
+    opacity: 0.8;
 }
 
 /* Main Calendar Area - Optimized */
@@ -2267,15 +2410,28 @@
 }
 
 /* Upcoming Info - More Compact */
-.upcoming-info {
+.upcoming-info,
+.history-info {
     flex: 1;
     min-width: 0;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    overflow: hidden;
 }
 
-.upcoming-title {
+.pending-request-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+}
+
+.upcoming-title,
+.history-title {
     font-weight: 600;
     color: #1e293b;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0;
     font-size: 0.9rem;
     line-height: 1.25;
     white-space: normal;
@@ -2284,39 +2440,27 @@
     word-break: break-word;
 }
 
-.upcoming-time {
+.upcoming-time,
+.history-time {
     font-size: 0.75rem;
     color: #64748b;
+    display: flex;
+    align-items: center;
 }
 
-/* History Info - More Compact */
-.history-title {
-    font-weight: 600;
-    color: #1e293b;
-    margin-bottom: 0.25rem;
-    font-size: 0.85rem;
-    line-height: 1.25;
-    white-space: normal;
-    overflow: hidden;
-    text-overflow: clip;
-    word-break: break-word;
+/* Meta sections - unified layout */
+.upcoming-meta,
+.history-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.25rem;
 }
 
-.history-time {
-    font-size: 0.7rem;
-    color: #64748b;
-}
-
-/* Pending Request - More Compact */
-.pending-request-item {
-    padding: 0.625rem;
-    border-radius: 8px;
-    transition: all 0.25s ease;
-    margin-bottom: 0;
-}
-
+/* Pending Request - Original Layout */
 .pending-request-header {
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.25rem;
 }
 
 .pending-request-service {
@@ -2324,14 +2468,30 @@
     line-height: 1.25;
     white-space: normal;
     word-break: break-word;
+    color: #1e293b;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+}
+
+.pending-request-service .tooth-icon {
+    flex-shrink: 0;
 }
 
 .pending-request-datetime {
     font-size: 0.75rem;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
 }
 
 .pending-request-status {
     font-size: 0.7rem;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
 }
 
 /* Status Badges - Smaller */
@@ -2340,35 +2500,7 @@
     font-size: 0.65rem;
 }
 
-/* History Date - Smaller */
-.history-date {
-    width: 44px;
-    padding: 0.375rem;
-    background: linear-gradient(135deg, #25079C 0%, #1a0569 100%);
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    position: relative;
-}
-
-.history-day {
-    font-size: 1.1rem;
-    color: white;
-    font-weight: 700;
-}
-
-.history-month {
-    font-size: 0.6rem;
-    color: white;
-}
-
-.history-year {
-    font-size: 0.5rem;
-    color: white;
-}
+/* History date styling is now unified with upcoming-date and pending-request-date above */
 
 /* Responsive Calendar Header */
 @media (max-width: 768px) {
@@ -2379,6 +2511,688 @@
 
     .page-title i {
         font-size: 1em;
+    }
+    
+    /* Limit list heights for mobile */
+    .upcoming-list,
+    .history-list {
+        max-height: 350px;
+    }
+    
+    .pending-requests-list {
+        max-height: 250px;
+    }
+    
+    .tab-content .upcoming-list,
+    .tab-content .history-list {
+        max-height: 350px;
+    }
+    
+    .tab-content .pending-requests-list {
+        max-height: 250px;
+    }
+    
+    /* Unified item cards - tablet responsive */
+    .upcoming-item,
+    .pending-request-item,
+    .history-item {
+        padding: 0.5rem;
+        gap: 0.625rem;
+    }
+    
+    .upcoming-date,
+    .history-date {
+        width: 44px;
+        min-width: 44px;
+        height: 44px;
+        flex-shrink: 0;
+    }
+    
+    .date-day,
+    .history-day {
+        font-size: 1rem;
+        line-height: 1.2;
+    }
+    
+    .date-month,
+    .history-month {
+        font-size: 0.6rem;
+        line-height: 1;
+    }
+    
+    .upcoming-title,
+    .history-title {
+        font-size: 0.85rem;
+        line-height: 1.3;
+        word-break: break-word;
+        overflow-wrap: break-word;
+    }
+    
+    .pending-request-service {
+        font-size: 0.8rem;
+    }
+    
+    .pending-request-datetime {
+        font-size: 0.65rem;
+    }
+    
+    .pending-request-status {
+        font-size: 0.6rem;
+    }
+    
+    .upcoming-time,
+    .history-time {
+        font-size: 0.7rem;
+        line-height: 1.3;
+    }
+    
+    .upcoming-time i,
+    .history-time i {
+        font-size: 0.65rem;
+    }
+    
+    .pending-request-service {
+        font-size: 0.85rem;
+    }
+    
+    .pending-request-datetime {
+        font-size: 0.7rem;
+    }
+    
+    .pending-request-status {
+        font-size: 0.65rem;
+    }
+    
+    .upcoming-meta,
+    .history-meta {
+        gap: 0.375rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    
+    .status-badge,
+    .request-type-badge {
+        font-size: 0.6rem;
+        padding: 0.2rem 0.5rem;
+        line-height: 1.2;
+        white-space: nowrap;
+    }
+    
+    .history-badges {
+        gap: 0.375rem;
+        flex-wrap: wrap;
+    }
+    
+    .pending-request-service {
+        font-size: 0.85rem;
+    }
+    
+    .pending-request-datetime {
+        font-size: 0.7rem;
+    }
+    
+    .pending-request-status {
+        font-size: 0.65rem;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Limit list heights for small mobile */
+    .upcoming-list,
+    .history-list {
+        max-height: 300px;
+    }
+    
+    .pending-requests-list {
+        max-height: 220px;
+    }
+    
+    .tab-content .upcoming-list,
+    .tab-content .history-list {
+        max-height: 300px;
+    }
+    
+    .tab-content .pending-requests-list {
+        max-height: 220px;
+    }
+    
+    .upcoming-item,
+    .pending-request-item,
+    .history-item {
+        padding: 0.5rem 0.4rem;
+        gap: 0.5rem;
+        flex-wrap: nowrap;
+    }
+    
+    .upcoming-date,
+    .history-date {
+        width: 42px;
+        min-width: 42px;
+        height: 42px;
+        flex-shrink: 0;
+    }
+    
+    .date-day,
+    .history-day {
+        font-size: 1rem;
+        line-height: 1.1;
+    }
+    
+    .date-month,
+    .history-month {
+        font-size: 0.6rem;
+        line-height: 1;
+        margin-top: 0.1rem;
+    }
+    
+    .history-year {
+        font-size: 0.5rem;
+        line-height: 1;
+        margin-top: 0.05rem;
+    }
+    
+    .upcoming-info,
+    .history-info {
+        flex: 1;
+        min-width: 0;
+        gap: 0.2rem;
+    }
+    
+    .upcoming-title,
+    .history-title {
+        font-size: 0.8rem;
+        line-height: 1.3;
+        margin-bottom: 0;
+        word-break: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
+    }
+    
+    .upcoming-time,
+    .history-time {
+        font-size: 0.65rem;
+        line-height: 1.2;
+        flex-shrink: 0;
+    }
+    
+    .upcoming-time i,
+    .history-time i {
+        font-size: 0.6rem;
+        flex-shrink: 0;
+    }
+    
+    .upcoming-meta,
+    .history-meta {
+        gap: 0.3rem;
+        margin-top: 0.2rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    
+    .status-badge,
+    .request-type-badge {
+        font-size: 0.55rem;
+        padding: 0.15rem 0.4rem;
+        line-height: 1.2;
+        white-space: nowrap;
+    }
+    
+    .history-badges {
+        gap: 0.3rem;
+        flex-wrap: wrap;
+    }
+    
+    .status-badge i,
+    .request-type-badge i {
+        font-size: 0.5rem;
+        margin-right: 0.15rem;
+    }
+    
+    .pending-request-service {
+        font-size: 0.75rem;
+    }
+    
+    .pending-request-datetime {
+        font-size: 0.6rem;
+    }
+    
+    .pending-request-status {
+        font-size: 0.55rem;
+    }
+}
+
+/* Mobile phones (400px and below) */
+@media (max-width: 400px) {
+    /* Limit list heights for narrow mobile */
+    .upcoming-list,
+    .history-list {
+        max-height: 280px;
+    }
+    
+    .pending-requests-list {
+        max-height: 200px;
+    }
+    
+    .tab-content .upcoming-list,
+    .tab-content .history-list {
+        max-height: 280px;
+    }
+    
+    .tab-content .pending-requests-list {
+        max-height: 200px;
+    }
+    
+    .upcoming-item,
+    .pending-request-item,
+    .history-item {
+        padding: 0.45rem 0.4rem;
+        gap: 0.45rem;
+    }
+    
+    .upcoming-date,
+    .history-date {
+        width: 40px;
+        min-width: 40px;
+        height: 40px;
+    }
+    
+    .date-day,
+    .history-day {
+        font-size: 0.95rem;
+        line-height: 1.1;
+    }
+    
+    .date-month,
+    .history-month {
+        font-size: 0.58rem;
+        line-height: 1;
+    }
+    
+    .history-year {
+        font-size: 0.48rem;
+        line-height: 1;
+    }
+    
+    .upcoming-title,
+    .pending-request-title,
+    .history-title {
+        font-size: 0.78rem;
+        line-height: 1.3;
+    }
+    
+    .upcoming-time,
+    .pending-request-time,
+    .history-time {
+        font-size: 0.63rem;
+        line-height: 1.2;
+    }
+    
+    .upcoming-time i,
+    .pending-request-time i,
+    .history-time i {
+        font-size: 0.58rem;
+    }
+    
+    .status-badge,
+    .request-type-badge {
+        font-size: 0.53rem;
+        padding: 0.14rem 0.38rem;
+    }
+    
+    .status-badge i,
+    .request-type-badge i {
+        font-size: 0.48rem;
+        margin-right: 0.12rem;
+    }
+    
+    .upcoming-meta,
+    .pending-request-meta,
+    .history-meta {
+        gap: 0.28rem;
+    }
+}
+
+/* Extra small phones (320px - 375px) */
+@media (max-width: 375px) {
+    .upcoming-item,
+    .pending-request-item,
+    .history-item {
+        padding: 0.4rem 0.35rem;
+        gap: 0.4rem;
+    }
+    
+    .upcoming-date,
+    .pending-request-date,
+    .history-date {
+        width: 38px;
+        min-width: 38px;
+        height: 38px;
+    }
+    
+    .date-day,
+    .history-day {
+        font-size: 0.9rem;
+        line-height: 1.1;
+    }
+    
+    .date-month,
+    .history-month {
+        font-size: 0.55rem;
+        line-height: 1;
+    }
+    
+    .history-year {
+        font-size: 0.45rem;
+        line-height: 1;
+    }
+    
+    .upcoming-title,
+    .pending-request-title,
+    .history-title {
+        font-size: 0.75rem;
+        line-height: 1.25;
+    }
+    
+    .upcoming-time,
+    .pending-request-time,
+    .history-time {
+        font-size: 0.6rem;
+        line-height: 1.2;
+    }
+    
+    .upcoming-time i,
+    .pending-request-time i,
+    .history-time i {
+        font-size: 0.55rem;
+    }
+    
+    .status-badge,
+    .request-type-badge {
+        font-size: 0.5rem;
+        padding: 0.12rem 0.35rem;
+        line-height: 1.1;
+    }
+    
+    .status-badge i,
+    .request-type-badge i {
+        font-size: 0.45rem;
+        margin-right: 0.1rem;
+    }
+    
+    .upcoming-meta,
+    .pending-request-meta,
+    .history-meta {
+        gap: 0.25rem;
+    }
+}
+
+/* Small phones (350px and below) */
+@media (max-width: 350px) {
+    /* Limit list heights for very small mobile */
+    .upcoming-list,
+    .history-list {
+        max-height: 260px;
+    }
+    
+    .pending-requests-list {
+        max-height: 180px;
+    }
+    
+    .tab-content .upcoming-list,
+    .tab-content .history-list {
+        max-height: 260px;
+    }
+    
+    .tab-content .pending-requests-list {
+        max-height: 180px;
+    }
+    
+    .upcoming-item,
+    .pending-request-item,
+    .history-item {
+        padding: 0.38rem 0.33rem;
+        gap: 0.38rem;
+    }
+    
+    .upcoming-date,
+    .history-date {
+        width: 37px;
+        min-width: 37px;
+        height: 37px;
+    }
+    
+    .date-day,
+    .history-day {
+        font-size: 0.88rem;
+        line-height: 1.1;
+    }
+    
+    .date-month,
+    .history-month {
+        font-size: 0.53rem;
+        line-height: 1;
+    }
+    
+    .history-year {
+        font-size: 0.43rem;
+        line-height: 1;
+    }
+    
+    .upcoming-title,
+    .pending-request-title,
+    .history-title {
+        font-size: 0.73rem;
+        line-height: 1.25;
+    }
+    
+    .upcoming-time,
+    .pending-request-time,
+    .history-time {
+        font-size: 0.58rem;
+        line-height: 1.2;
+    }
+    
+    .upcoming-time i,
+    .pending-request-time i,
+    .history-time i {
+        font-size: 0.53rem;
+    }
+    
+    .status-badge,
+    .request-type-badge {
+        font-size: 0.48rem;
+        padding: 0.11rem 0.33rem;
+        line-height: 1.1;
+    }
+    
+    .status-badge i,
+    .request-type-badge i {
+        font-size: 0.43rem;
+        margin-right: 0.08rem;
+    }
+    
+    .upcoming-meta,
+    .pending-request-meta,
+    .history-meta {
+        gap: 0.23rem;
+    }
+    
+    .pending-request-badges,
+    .history-badges {
+        gap: 0.23rem;
+    }
+}
+
+/* Very small phones (320px and below) */
+@media (max-width: 320px) {
+    /* Limit list heights for extra small mobile */
+    .upcoming-list,
+    .history-list {
+        max-height: 240px;
+    }
+    
+    .pending-requests-list {
+        max-height: 160px;
+    }
+    
+    .tab-content .upcoming-list,
+    .tab-content .history-list {
+        max-height: 240px;
+    }
+    
+    .tab-content .pending-requests-list {
+        max-height: 160px;
+    }
+    
+    .upcoming-item,
+    .pending-request-item,
+    .history-item {
+        padding: 0.35rem 0.3rem;
+        gap: 0.35rem;
+    }
+    
+    .upcoming-date,
+    .history-date {
+        width: 36px;
+        min-width: 36px;
+        height: 36px;
+    }
+    
+    .date-day,
+    .history-day {
+        font-size: 0.85rem;
+    }
+    
+    .date-month,
+    .history-month {
+        font-size: 0.5rem;
+    }
+    
+    .history-year {
+        font-size: 0.4rem;
+    }
+    
+    .upcoming-title,
+    .pending-request-title,
+    .history-title {
+        font-size: 0.7rem;
+        line-height: 1.2;
+    }
+    
+    .upcoming-time,
+    .pending-request-time,
+    .history-time {
+        font-size: 0.55rem;
+    }
+    
+    .status-badge,
+    .request-type-badge {
+        font-size: 0.45rem;
+        padding: 0.1rem 0.3rem;
+    }
+}
+
+/* Extra narrow phones (250px and below) */
+@media (max-width: 250px) {
+    /* Limit list heights for narrowest mobile */
+    .upcoming-list,
+    .history-list {
+        max-height: 220px;
+    }
+    
+    .pending-requests-list {
+        max-height: 140px;
+    }
+    
+    .tab-content .upcoming-list,
+    .tab-content .history-list {
+        max-height: 220px;
+    }
+    
+    .tab-content .pending-requests-list {
+        max-height: 140px;
+    }
+    
+    .upcoming-item,
+    .pending-request-item,
+    .history-item {
+        padding: 0.3rem 0.25rem;
+        gap: 0.3rem;
+    }
+    
+    .upcoming-date,
+    .history-date {
+        width: 32px;
+        min-width: 32px;
+        height: 32px;
+    }
+    
+    .date-day,
+    .history-day {
+        font-size: 0.75rem;
+        line-height: 1;
+    }
+    
+    .date-month,
+    .history-month {
+        font-size: 0.45rem;
+        line-height: 1;
+    }
+    
+    .history-year {
+        font-size: 0.35rem;
+        line-height: 1;
+    }
+    
+    .upcoming-title,
+    .pending-request-title,
+    .history-title {
+        font-size: 0.65rem;
+        line-height: 1.15;
+    }
+    
+    .upcoming-time,
+    .pending-request-time,
+    .history-time {
+        font-size: 0.5rem;
+        line-height: 1.1;
+    }
+    
+    .upcoming-time i,
+    .pending-request-time i,
+    .history-time i {
+        font-size: 0.45rem;
+    }
+    
+    .status-badge,
+    .request-type-badge {
+        font-size: 0.4rem;
+        padding: 0.08rem 0.25rem;
+        line-height: 1;
+    }
+    
+    .status-badge i,
+    .request-type-badge i {
+        font-size: 0.35rem;
+        margin-right: 0.05rem;
+    }
+    
+    .upcoming-meta,
+    .pending-request-meta,
+    .history-meta {
+        gap: 0.2rem;
+        margin-top: 0.15rem;
+    }
+    
+    .pending-request-badges,
+    .history-badges {
+        gap: 0.2rem;
+    }
+    
+    .upcoming-info,
+    .pending-request-info,
+    .history-info {
+        gap: 0.15rem;
     }
 }
 
@@ -2446,12 +3260,10 @@
     white-space: nowrap;
 }
 
-/* Pending Request Items */
+/* Pending Request Items - unified with others */
 .pending-request-item {
     background: #F8FAFC;
     border-left: 3px solid #f59e0b;
-    transition: all 0.25s ease;
-    margin-bottom: 0;
 }
 
 .pending-request-item:hover {
@@ -2485,31 +3297,7 @@
     color: white;
 }
 
-/* History Items */
-.history-date {
-    border-radius: 8px;
-    background: linear-gradient(135deg, #25079C 0%, #1a0569 100%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    position: relative;
-}
-
-.history-day {
-    font-size: 1.2rem;
-    color: white;
-    font-weight: 700;
-}
-
-.history-month {
-    color: white;
-}
-
-.history-year {
-    color: white;
-}
+/* History date styling is unified with other date styles above */
 
 /* Responsive Adjustments */
 /* Desktop styles - ensure desktop is not affected by mobile */
@@ -6362,8 +7150,19 @@
 
 /* Upcoming Items Dark Mode */
 [data-theme="dark"] .upcoming-item:hover,
+[data-theme="dark"] .pending-request-item:hover,
 [data-theme="dark"] .history-item:hover {
     box-shadow: 0 3px 10px rgba(59, 130, 246, 0.3) !important;
+}
+
+/* Pending Request Item Dark Mode */
+[data-theme="dark"] .pending-request-item {
+    background: rgba(245, 158, 11, 0.15) !important;
+    border-left: 3px solid #f59e0b !important;
+}
+
+[data-theme="dark"] .pending-request-item:hover {
+    box-shadow: 0 3px 10px rgba(245, 158, 11, 0.4) !important;
 }
 
 /* History Item Status Colors - Dark Mode */
@@ -6397,14 +7196,17 @@
 }
 
 /* Upcoming Date Container - Status-Specific Shadows - Dark Mode */
-[data-theme="dark"] .upcoming-date {
+[data-theme="dark"] .upcoming-date,
+[data-theme="dark"] .pending-request-date,
+[data-theme="dark"] .history-date {
     background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%) !important;
     color: white !important;
     border: 1px solid rgba(255, 255, 255, 0.15) !important;
 }
 
 /* Pending Status - Yellow Shadow */
-[data-theme="dark"] .upcoming-item.pending .upcoming-date {
+[data-theme="dark"] .upcoming-item.pending .upcoming-date,
+[data-theme="dark"] .pending-request-item .pending-request-date {
     box-shadow: 
         0 4px 12px rgba(251, 191, 36, 0.5),
         0 2px 6px rgba(251, 191, 36, 0.4),
@@ -6424,11 +7226,7 @@
 }
 
 
-/* History Date Dark Mode - Status-Specific Shadows */
-[data-theme="dark"] .history-date {
-    background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%) !important;
-    border: 1px solid rgba(255, 255, 255, 0.15) !important;
-}
+/* History Date Dark Mode - Status-Specific Shadows (unified with other dates above) */
 
 /* Completed Status - Green Shadow */
 [data-theme="dark"] .history-item.completed .history-date {
@@ -6460,6 +7258,8 @@
         inset 0 -1px 0 rgba(0, 0, 0, 0.5) !important;
 }
 
+[data-theme="dark"] .date-day,
+[data-theme="dark"] .date-month,
 [data-theme="dark"] .history-day,
 [data-theme="dark"] .history-month,
 [data-theme="dark"] .history-year {
