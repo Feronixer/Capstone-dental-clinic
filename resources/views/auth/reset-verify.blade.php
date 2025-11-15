@@ -31,7 +31,7 @@
                     @enderror
                     <div class="form-text">
                         <i class="bi bi-info-circle me-1"></i>
-                        The code will expire in 15 minutes
+                        The code will expire in 30 minutes
                     </div>
                 </div>
 

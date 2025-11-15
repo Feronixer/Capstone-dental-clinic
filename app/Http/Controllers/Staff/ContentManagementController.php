@@ -385,7 +385,6 @@ class ContentManagementController extends Controller
         $validator = Validator::make($request->all(), [
             'service_name' => 'required|string|max:255',
             'description' => 'required|string',
-            'price' => 'required|numeric|min:0',
             'default_duration_minutes' => 'required|integer|min:1',
             'icon_class' => 'nullable|string'
         ]);
@@ -398,7 +397,7 @@ class ContentManagementController extends Controller
             ], 422);
         }
 
-        $service = Service::create($request->all());
+        $service = Service::create($request->except('price'));
 
         // Log activity
         ActivityLog::log(
@@ -426,7 +425,6 @@ class ContentManagementController extends Controller
         $validator = Validator::make($request->all(), [
             'service_name' => 'required|string|max:255',
             'description' => 'required|string',
-            'price' => 'required|numeric|min:0',
             'default_duration_minutes' => 'required|integer|min:1',
             'icon_upload' => 'nullable|image|mimes:jpeg,png,webp,gif,svg,ico|max:2048'
         ]);
@@ -441,7 +439,7 @@ class ContentManagementController extends Controller
 
         $service = Service::findOrFail($id);
         $oldValues = $service->toArray();
-        $service->update($request->except('icon_upload'));
+        $service->update($request->except(['icon_upload', 'price']));
 
         if ($request->hasFile('icon_upload')) {
             $path = $request->file('icon_upload')->store('service-icons', 'public');

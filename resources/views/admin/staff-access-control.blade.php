@@ -883,7 +883,12 @@
             <p>Please enter your password to save the changes to staff access control.</p>
         </div>
         <div class="password-input-wrapper">
-            <input type="password" id="adminPassword" class="form-control" placeholder="Enter your password" autocomplete="current-password">
+            <div class="input-group">
+                <input type="password" id="adminPassword" class="form-control" placeholder="Enter your password" autocomplete="current-password">
+                <button class="btn btn-outline-secondary" type="button" id="toggleAdminPassword" aria-label="Show password">
+                    <i class="bi bi-eye" id="toggleAdminPasswordIcon"></i>
+                </button>
+            </div>
             <div class="error-message" id="passwordError"></div>
         </div>
         <div class="password-modal-actions">
@@ -1108,6 +1113,29 @@ function showToast(type, message) {
         }, 300);
     }, 5000);
 }
+
+// Password toggle for admin password field
+document.addEventListener('click', function(e) {
+    if (e.target.closest('#toggleAdminPassword')) {
+        const toggleBtn = document.getElementById('toggleAdminPassword');
+        const passwordInput = document.getElementById('adminPassword');
+        const toggleIcon = document.getElementById('toggleAdminPasswordIcon');
+        
+        if (toggleBtn && passwordInput && toggleIcon) {
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('bi-eye');
+                toggleIcon.classList.add('bi-eye-slash');
+                toggleBtn.setAttribute('aria-label', 'Hide password');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('bi-eye-slash');
+                toggleIcon.classList.add('bi-eye');
+                toggleBtn.setAttribute('aria-label', 'Show password');
+            }
+        }
+    }
+});
 </script>
 
 @endsection

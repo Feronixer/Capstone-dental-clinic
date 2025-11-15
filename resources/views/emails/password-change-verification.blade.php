@@ -22,7 +22,7 @@
             <p style="margin: 10px 0 0 0; font-size: 36px; font-weight: bold; color: #1976D2; letter-spacing: 5px;">{{ $token }}</p>
         </div>
         
-        <p style="color: #666; font-size: 14px;">This code will expire in <strong>15 minutes</strong>.</p>
+        <p style="color: #666; font-size: 14px;">This code will expire in <strong>30 minutes</strong>.</p>
         
         <p style="color: #d32f2f; font-size: 14px; margin-top: 30px;">
             <strong>Security Notice:</strong> If you did not request this password change, please ignore this email or contact our support team immediately.

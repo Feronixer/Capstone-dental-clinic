@@ -112,11 +112,19 @@ class AuthController extends Controller
             // Validate password fields before sending code
             try {
                 $request->validate([
-                    'new_password' => ['required', 'min:8'],
+                    'new_password' => [
+                        'required',
+                        'min:8',
+                        'regex:/[a-z]/',      // At least one lowercase letter
+                        'regex:/[A-Z]/',      // At least one uppercase letter
+                        'regex:/[0-9]/',      // At least one number
+                        'regex:/[^A-Za-z0-9]/' // At least one special character
+                    ],
                     'new_password_confirmation' => ['required', 'same:new_password'],
                 ], [
                     'new_password.required' => 'Please enter a new password.',
                     'new_password.min' => 'Password must be at least 8 characters long.',
+                    'new_password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
                     'new_password_confirmation.required' => 'Please confirm your new password.',
                     'new_password_confirmation.same' => 'Passwords do not match.',
                 ]);
@@ -196,7 +204,7 @@ class AuthController extends Controller
 
         // Check if password change is verified
         if (!session('password_change_verified') || 
-            now()->diffInMinutes(session('password_change_verified_at')) > 15) {
+            now()->diffInMinutes(session('password_change_verified_at')) > 30) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => false,
@@ -210,7 +218,20 @@ class AuthController extends Controller
         }
 
         $request->validate([
-            'new_password' => ['required', 'min:8', 'confirmed'],
+            'new_password' => [
+                'required',
+                'min:8',
+                'regex:/[a-z]/',      // At least one lowercase letter
+                'regex:/[A-Z]/',      // At least one uppercase letter
+                'regex:/[0-9]/',      // At least one number
+                'regex:/[^A-Za-z0-9]/', // At least one special character
+                'confirmed'
+            ],
+        ], [
+            'new_password.required' => 'Please enter a new password.',
+            'new_password.min' => 'Password must be at least 8 characters long.',
+            'new_password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
+            'new_password.confirmed' => 'Password confirmation does not match.',
         ]);
 
         // Update password and reset must_change_password flag
@@ -383,11 +404,22 @@ class AuthController extends Controller
         }
 
         $request->validate([
-            'password' => 'required|string|min:8|confirmed',
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'regex:/[a-z]/',      // At least one lowercase letter
+                'regex:/[A-Z]/',      // At least one uppercase letter
+                'regex:/[0-9]/',      // At least one number
+                'regex:/[^A-Za-z0-9]/', // At least one special character
+                'confirmed'
+            ],
             'password_confirmation' => 'required'
         ], [
+            'password.required' => 'Please enter a new password.',
+            'password.min' => 'Password must be at least 8 characters long.',
+            'password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
             'password.confirmed' => 'Password confirmation does not match.',
-            'password.min' => 'Password must be at least 8 characters long.'
         ]);
 
         $email = session('reset_email');

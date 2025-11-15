@@ -2389,21 +2389,75 @@ function renderAllProgressNotes(notes, record) {
         return;
     }
 
-    let tableRows = '';
-    notes.forEach((note, index) => {
-        const noteDate = note.note_date ? new Date(note.note_date).toLocaleDateString() : 'N/A';
-        const amountPaid = note.amount_paid ? parseFloat(note.amount_paid).toFixed(2) : '-';
-        const balance = note.balance ? parseFloat(note.balance).toFixed(2) : '-';
-        
-        tableRows += `
-            <tr class="progress-notes-row">
-                <td class="progress-notes-cell" style="text-align: center; padding: 0.5rem;">${index + 1}</td>
-                <td class="progress-notes-cell" style="padding: 0.5rem;">${noteDate}</td>
-                <td class="progress-notes-cell" style="padding: 0.5rem;">${note.progress_description || '-'}</td>
-                <td class="progress-notes-cell" style="text-align: right; padding: 0.5rem;">${amountPaid !== '-' ? '₱' + amountPaid : '-'}</td>
-                <td class="progress-notes-cell" style="text-align: right; padding: 0.5rem;">${balance !== '-' ? '₱' + balance : '-'}</td>
-                <td class="progress-notes-cell" style="padding: 0.5rem;">${note.conforme || '-'}</td>
-            </tr>
+    const groupedNotes = {};
+    const groupOrder = [];
+    notes.forEach(note => {
+        const procedureName = note.appointment?.service?.service_name
+            || note.appointment?.service?.name
+            || 'No Linked Procedure';
+
+        if (!groupedNotes[procedureName]) {
+            groupedNotes[procedureName] = [];
+            groupOrder.push(procedureName);
+        }
+        groupedNotes[procedureName].push(note);
+    });
+
+    const formatCurrency = (value) => {
+        if (value === null || value === undefined || value === '') {
+            return '-';
+        }
+        const parsed = parseFloat(value);
+        return isNaN(parsed) ? '-' : '₱' + parsed.toFixed(2);
+    };
+
+    let sectionsHtml = '';
+    groupOrder.forEach((procedureName, groupIndex) => {
+        const procedureNotes = groupedNotes[procedureName];
+        let rowsHtml = '';
+
+        procedureNotes.forEach((note, index) => {
+            const noteDate = note.note_date ? new Date(note.note_date).toLocaleDateString() : 'N/A';
+
+            rowsHtml += `
+                <tr class="progress-notes-row">
+                    <td class="progress-notes-cell" style="text-align: center; padding: 0.5rem;">${index + 1}</td>
+                    <td class="progress-notes-cell" style="padding: 0.5rem;">${noteDate}</td>
+                    <td class="progress-notes-cell" style="padding: 0.5rem;">${note.progress_description || '-'}</td>
+                    <td class="progress-notes-cell" style="text-align: right; padding: 0.5rem;">${formatCurrency(note.amount_paid)}</td>
+                    <td class="progress-notes-cell" style="text-align: right; padding: 0.5rem;">${formatCurrency(note.balance)}</td>
+                    <td class="progress-notes-cell" style="padding: 0.5rem;">${note.conforme || '-'}</td>
+                </tr>
+            `;
+        });
+
+        sectionsHtml += `
+            <div class="progress-procedure-section mb-4" style="border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden;">
+                <div class="procedure-header d-flex justify-content-between align-items-center" style="background: rgba(13, 110, 253, 0.15); padding: 0.75rem 1rem;">
+                    <div>
+                        <span class="badge text-bg-primary-subtle text-primary-emphasis me-2" style="font-size: 0.75rem;">Procedure ${groupIndex + 1}</span>
+                        <span class="fw-semibold">${procedureName}</span>
+                    </div>
+                    <small class="text-muted">${procedureNotes.length} ${procedureNotes.length === 1 ? 'entry' : 'entries'}</small>
+                </div>
+                <div class="table-responsive progress-notes-table-container" style="max-height: 420px; overflow-y: auto;">
+                    <table class="table table-bordered table-sm mb-0 progress-notes-table" style="font-size: 0.85rem;">
+                        <thead class="progress-notes-thead" style="background: rgba(13, 110, 253, 0.25); color: #fff; position: sticky; top: 0; z-index: 5;">
+                            <tr>
+                                <th style="text-align: center; padding: 0.5rem; width: 5%;">#</th>
+                                <th style="padding: 0.5rem; width: 12%;">DATE</th>
+                                <th style="padding: 0.5rem; width: 30%;">PROGRESS NOTES</th>
+                                <th style="text-align: right; padding: 0.5rem; width: 15%;">AMOUNT PAID</th>
+                                <th style="text-align: right; padding: 0.5rem; width: 15%;">BALANCE</th>
+                                <th style="padding: 0.5rem; width: 23%;">CONFORME</th>
+                            </tr>
+                        </thead>
+                        <tbody class="progress-notes-tbody">
+                            ${rowsHtml}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         `;
     });
 
@@ -2417,22 +2471,8 @@ function renderAllProgressNotes(notes, record) {
             <p class="text-muted mb-0"><strong>Patient:</strong> ${patientName}</p>
             <p class="text-muted mb-0"><strong>Total Entries:</strong> ${notes.length}</p>
         </div>
-        <div class="table-responsive progress-notes-table-container" style="max-height: 500px; overflow-y: auto;">
-            <table class="table table-bordered table-sm progress-notes-table" style="font-size: 0.875rem;">
-                <thead class="progress-notes-thead" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); color: white; position: sticky; top: 0; z-index: 10;">
-                    <tr>
-                        <th style="text-align: center; padding: 0.5rem; width: 5%;">#</th>
-                        <th style="padding: 0.5rem; width: 12%;">DATE</th>
-                        <th style="padding: 0.5rem; width: 30%;">PROGRESS NOTES</th>
-                        <th style="text-align: right; padding: 0.5rem; width: 15%;">AMOUNT PAID</th>
-                        <th style="text-align: right; padding: 0.5rem; width: 15%;">BALANCE</th>
-                        <th style="padding: 0.5rem; width: 23%;">CONFORME</th>
-                    </tr>
-                </thead>
-                <tbody class="progress-notes-tbody">
-                    ${tableRows}
-                </tbody>
-            </table>
+        <div class="progress-note-groups">
+            ${sectionsHtml}
         </div>
     `;
 

@@ -5,6 +5,7 @@
             <img src="{{ asset('images/logo4.png') }}" alt="ToothTalk" class="logo-img">
             <div class="logo-text">
                 <span class="clinic-name">Tooth<span class="clinic-name-talk">Talk</span></span>
+                <span class="clinic-subtitle">JValera Dental Clinic</span>
             </div>
         </a>
 
@@ -179,6 +180,7 @@
                 <img src="{{ asset('images/logo4.png') }}" alt="ToothTalk" class="logo-img">
                 <div class="logo-text">
                     <span class="clinic-name">Tooth<span class="clinic-name-talk">Talk</span></span>
+                    <span class="clinic-subtitle">JValera Dental Clinic</span>
                 </div>
             </a>
         </div>
@@ -405,8 +407,18 @@
 }
 
 .clinic-subtitle {
-    font-size: 0.75rem;
-    opacity: 0.9;
+    font-size: 0.7rem;
+    opacity: 0.85;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
+    margin-top: 2px;
+    line-height: 1;
+    display: block;
+}
+
+[data-theme="dark"] .clinic-subtitle {
+    color: rgba(255, 255, 255, 0.95) !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
 }
 
 /* Page Title (Mobile Only) */

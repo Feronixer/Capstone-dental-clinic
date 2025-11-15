@@ -67,7 +67,7 @@
             background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
             color: white;
             border-radius: 0;
-            margin: 0 -0.5in 1.5rem -0.5in;
+           
             width: 100%;
         }
 
@@ -215,45 +215,69 @@
         <p><strong>Total Entries:</strong> {{ $record->progressNotes->count() }}</p>
     </div>
 
+    @php
+        $groupedNotes = $record->progressNotes->groupBy(function($note) {
+            return $note->appointment && $note->appointment->service
+                ? ($note->appointment->service->service_name ?? $note->appointment->service->name)
+                : 'No Linked Procedure';
+        });
+    @endphp
+
     <!-- Progress Notes Table -->
     <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th class="text-center" style="width: 3%;">#</th>
-                    <th class="text-right" style="width: 20%;">DATE</th>
-                    <th class="text-right"style="width: 20%;">PROGRESS NOTES</th>
-                    <th class="text-right" style="width: 20%;">AMOUNT PAID</th>
-                    <th class="text-right" style="width: 20%;">BALANCE</th>
-                    <th style="width: 20%;">CONFORME</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($record->progressNotes as $index => $note)
-                <tr>
-                    <td class="text-center">{{ $index + 1 }}</td>
-                    <td class="text-right">{{ $note->note_date ? \Carbon\Carbon::parse($note->note_date)->format('m/d/Y') : 'N/A' }}</td>
-                    <td class="text-right">{{ $note->progress_description ?? '-' }}</td>
-                    <td class="text-right">{{ $note->amount_paid ? '₱' . number_format($note->amount_paid, 2) : '-' }}</td>
-                    <td class="text-right">{{ $note->balance ? '₱' . number_format($note->balance, 2) : '-' }}</td>
-                    <td class="text-right">{{ $note->conforme ?? '-' }}</td>
-                </tr>
-                @if($note->createdBy)
-                <tr style="background: #f8f9fa; font-size: 7pt; color:rgb(0, 0, 0);">
-                    <td colspan="6" style="padding: 0.4rem 0.4rem; font-style: italic; poppins-italic;">
-                        Created by: {{ $note->createdBy->info ? $note->createdBy->info->first_name . ' ' . $note->createdBy->info->last_name : $note->createdBy->username }} ({{ ucfirst($note->created_by_role ?? 'staff') }}) on {{ $note->created_at ? \Carbon\Carbon::parse($note->created_at)->format('m/d/Y h:i A') : 'N/A' }}
-                    </td>
-                </tr>
-                @endif
-                @empty
-                <tr>
-                    <td colspan="6" style="text-align: center; padding: 1rem; color: #64748b;">
-                        No progress notes found.
-                    </td>
-                </tr>
-                @endforelse
-            </tbody>
-        </table>
+        @forelse($groupedNotes as $procedureName => $notes)
+            <div style="border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 1.5rem; overflow: hidden;">
+                <div style="background: rgba(13, 110, 253, 0.1); padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <span style="font-size: 0.75rem; color: #0d6efd; font-weight: 700; margin-right: 0.5rem;">PROCEDURE</span>
+                        <strong style="font-size: 0.9rem; color: #0a58ca;">{{ $procedureName }}</strong>
+                    </div>
+                    <small style="color: #64748b;">{{ $notes->count() }} {{ $notes->count() === 1 ? 'entry' : 'entries' }}</small>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="text-center" style="width: 3%;">#</th>
+                            <th class="text-right" style="width: 15%;">DATE</th>
+                            <th class="text-right"style="width: 32%;">PROGRESS NOTES</th>
+                            <th class="text-right" style="width: 15%;">AMOUNT PAID</th>
+                            <th class="text-right" style="width: 15%;">BALANCE</th>
+                            <th style="width: 20%;">CONFORME</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($notes as $index => $note)
+                            <tr>
+                                <td class="text-center">{{ $index + 1 }}</td>
+                                <td class="text-right">{{ $note->note_date ? \Carbon\Carbon::parse($note->note_date)->format('m/d/Y') : 'N/A' }}</td>
+                                <td class="text-right">{{ $note->progress_description ?? '-' }}</td>
+                                <td class="text-right">{{ $note->amount_paid ? '₱' . number_format($note->amount_paid, 2) : '-' }}</td>
+                                <td class="text-right">{{ $note->balance ? '₱' . number_format($note->balance, 2) : '-' }}</td>
+                                <td class="text-right">{{ $note->conforme ?? '-' }}</td>
+                            </tr>
+                            @if($note->createdBy)
+                                <tr style="background: #f8f9fa; font-size: 7pt; color:rgb(0, 0, 0);">
+                                    <td colspan="6" style="padding: 0.4rem 0.4rem; font-style: italic;">
+                                        Created by: {{ $note->createdBy->info ? $note->createdBy->info->first_name . ' ' . $note->createdBy->info->last_name : $note->createdBy->username }} ({{ ucfirst($note->created_by_role ?? 'staff') }}) on {{ $note->created_at ? \Carbon\Carbon::parse($note->created_at)->format('m/d/Y h:i A') : 'N/A' }}
+                                    </td>
+                                </tr>
+                            @endif
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @empty
+            <table>
+                <tbody>
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 1rem; color: #64748b;">
+                            No progress notes found.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        @endforelse
     </div>
 
     <!-- Footer -->

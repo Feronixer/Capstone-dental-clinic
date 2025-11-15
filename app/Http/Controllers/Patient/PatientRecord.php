@@ -32,7 +32,8 @@ class PatientRecord extends Controller
                           ->orderBy('visit_date', 'desc');
                 },
                 'progressNotes' => function($query) {
-                    $query->orderBy('note_date', 'desc');
+                    $query->with('appointment.service')
+                          ->orderBy('note_date', 'desc');
                 }
             ])
             ->orderBy('created_at', 'desc')
@@ -114,13 +115,14 @@ class PatientRecord extends Controller
                               ->orderBy('visit_date', 'desc');
                     },
                     'progressNotes' => function($query) {
-                        $query->with('createdBy.info')->orderBy('note_date', 'asc');
+                        $query->with(['createdBy.info', 'appointment.service'])
+                              ->orderBy('note_date', 'asc');
                     }
                 ])
                 ->firstOrFail();
 
             // Ensure progressNotes are loaded and accessible
-            $record->load('progressNotes');
+            $record->load('progressNotes.appointment.service');
             
             // Convert to array to ensure relationships are included
             $recordArray = $record->toArray();
@@ -168,7 +170,12 @@ class PatientRecord extends Controller
         // Get the record and ensure it belongs to the authenticated patient
         $record = PatientRecordModel::where('id', $id)
             ->where('user_id', $userId)
-            ->with(['user.info', 'appointment.service'])
+            ->with([
+                'user.info',
+                'appointment.service',
+                'progressNotes.appointment.service',
+                'progressNotes.createdBy.info'
+            ])
             ->firstOrFail();
 
         // Get creator information from ActivityLog

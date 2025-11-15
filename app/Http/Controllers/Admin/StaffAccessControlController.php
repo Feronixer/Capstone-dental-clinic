@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Events\StaffAccessControlUpdated;
 use App\Models\StaffAccessControl;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -112,6 +113,13 @@ class StaffAccessControlController extends Controller
             ['staff_id' => $staffId],
             $request->access_controls
         );
+
+        // Refresh the access control to get all fields
+        $accessControl->refresh();
+
+        // Broadcast the event
+        $event = new StaffAccessControlUpdated($staffId, $accessControl, $admin->id);
+        \App\Http\Controllers\BroadcastController::storeEvent('staff-access-control.updated', $event->broadcastWith());
 
         return response()->json([
             'success' => true,

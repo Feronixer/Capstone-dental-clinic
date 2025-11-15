@@ -126,7 +126,12 @@
                 <p class="mb-3">Please enter your password to confirm deletion:</p>
                 <div class="mb-3">
                     <label for="delete-password-input" class="form-label">Password</label>
-                    <input type="password" class="form-control" id="delete-password-input" placeholder="Enter your password" autocomplete="current-password">
+                    <div class="input-group">
+                        <input type="password" class="form-control" id="delete-password-input" placeholder="Enter your password" autocomplete="current-password">
+                        <button class="btn btn-outline-secondary" type="button" id="toggleDeletePassword" aria-label="Show password">
+                            <i class="bi bi-eye" id="toggleDeletePasswordIcon"></i>
+                        </button>
+                    </div>
                     <div class="invalid-feedback" id="delete-password-error"></div>
                 </div>
             </div>
@@ -330,7 +335,7 @@ async function toggleOnlineStatus(isOnline) {
         console.error('Error toggling online status:', error);
         // Revert toggle on error
         updateToggleUI(!isOnline);
-        alert('Failed to update chat status. Please try again.');
+        showErrorModal('Failed to update chat status. Please try again.');
     } finally {
         isTogglingStatus = false;
         // Re-enable toggle
@@ -458,7 +463,7 @@ async function toggleCensorship(isEnabled) {
     } catch (error) {
         console.error('Error toggling censorship:', error);
         updateCensorToggleUI(!isEnabled);
-        alert('Failed to update censorship setting. Please try again.');
+        showErrorModal('Failed to update censorship setting. Please try again.');
     } finally {
         isTogglingCensorship = false;
         if (toggle) {
@@ -1296,20 +1301,18 @@ function showFileSizeWarningModal(invalidFiles) {
 
 // Function to show error modal
 function showErrorModal(message) {
-    // Create a simple error modal or use existing modal
     const errorMessage = escapeHtml(message);
-    if (fileSizeWarningModal) {
-        document.getElementById('fileSizeWarningModalLabel').innerHTML = '<i class="bi bi-exclamation-circle-fill me-2"></i>Error';
-        document.getElementById('file-size-warning-list').innerHTML = `
-            <div class="file-size-warning-item">
-                <i class="bi bi-exclamation-circle text-danger me-2"></i>
-                <span class="file-size-warning-name">${errorMessage}</span>
-            </div>
-        `;
-        fileSizeWarningModal.show();
-    } else {
-        alert('Error: ' + message);
-    }
+    const modal = new bootstrap.Modal(document.getElementById('genericErrorModal'));
+    document.getElementById('genericErrorMessage').textContent = errorMessage;
+    modal.show();
+}
+
+// Function to show info modal
+function showInfoModal(message) {
+    const infoMessage = escapeHtml(message);
+    const modal = new bootstrap.Modal(document.getElementById('genericInfoModal'));
+    document.getElementById('genericInfoMessage').textContent = infoMessage;
+    modal.show();
 }
 
 document.getElementById('delete-conversation-btn').addEventListener('click', function() {
@@ -1423,6 +1426,29 @@ document.getElementById('confirm-delete-btn').addEventListener('click', async fu
 });
 
 // Allow Enter key to submit password
+// Password toggle for delete password field
+document.addEventListener('click', function(e) {
+    if (e.target.closest('#toggleDeletePassword')) {
+        const toggleBtn = document.getElementById('toggleDeletePassword');
+        const passwordInput = document.getElementById('delete-password-input');
+        const toggleIcon = document.getElementById('toggleDeletePasswordIcon');
+        
+        if (toggleBtn && passwordInput && toggleIcon) {
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('bi-eye');
+                toggleIcon.classList.add('bi-eye-slash');
+                toggleBtn.setAttribute('aria-label', 'Hide password');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('bi-eye-slash');
+                toggleIcon.classList.add('bi-eye');
+                toggleBtn.setAttribute('aria-label', 'Show password');
+            }
+        }
+    }
+});
+
 document.getElementById('delete-password-input').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') {
         e.preventDefault();
@@ -1463,10 +1489,10 @@ document.getElementById('chat-messages').addEventListener('click', function(e) {
             tip.show();
             setTimeout(() => { try { tip.dispose(); } catch(_) {} }, 1500);
         } catch (_) {
-            alert(`Sent by: ${label}`);
+            showInfoModal(`Sent by: ${label}`);
         }
     } else {
-        alert(`Sent by: ${label}`);
+        showInfoModal(`Sent by: ${label}`);
     }
 });
 
@@ -3046,5 +3072,101 @@ setInterval(loadConversations, 10000); // Refresh list every 10 seconds
     color: #fee2e2 !important;
 }
 </style>
+
+<!-- Generic Error Modal -->
+<div class="modal fade" id="genericErrorModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                <h5 class="modal-title text-white">
+                    <i class="bi bi-exclamation-circle-fill me-2"></i>Error
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-4">
+                    <div class="mx-auto mb-3" style="width: 80px; height: 80px; background: linear-gradient(135deg, #fee2e2, #fecaca); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-x-circle-fill text-danger" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <p class="text-muted mb-0" id="genericErrorMessage"></p>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+                    <i class="bi bi-check-circle me-1"></i>OK
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Generic Info Modal -->
+<div class="modal fade" id="genericInfoModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
+                <h5 class="modal-title text-white">
+                    <i class="bi bi-info-circle-fill me-2"></i>Information
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-4">
+                    <div class="mx-auto mb-3" style="width: 80px; height: 80px; background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-info-circle-fill text-primary" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <p class="text-muted mb-0" id="genericInfoMessage"></p>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                    <i class="bi bi-check-circle me-1"></i>OK
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Dark Mode Styles for Generic Modals */
+[data-theme="dark"] #genericWarningModal .modal-content,
+[data-theme="dark"] #genericErrorModal .modal-content,
+[data-theme="dark"] #genericInfoModal .modal-content,
+[data-theme="dark"] #genericConfirmModal .modal-content {
+    background-color: #1e293b !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] #genericWarningModal .modal-body,
+[data-theme="dark"] #genericErrorModal .modal-body,
+[data-theme="dark"] #genericInfoModal .modal-body,
+[data-theme="dark"] #genericConfirmModal .modal-body {
+    background-color: #1e293b !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] #genericWarningModal .modal-footer,
+[data-theme="dark"] #genericErrorModal .modal-footer,
+[data-theme="dark"] #genericInfoModal .modal-footer,
+[data-theme="dark"] #genericConfirmModal .modal-footer {
+    background-color: #1e293b !important;
+    border-top: 1px solid #334155 !important;
+}
+
+[data-theme="dark"] #genericWarningModal .text-muted,
+[data-theme="dark"] #genericErrorModal .text-muted,
+[data-theme="dark"] #genericInfoModal .text-muted,
+[data-theme="dark"] #genericConfirmModal .text-muted {
+    color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] #genericWarningModal #genericWarningMessage,
+[data-theme="dark"] #genericErrorModal #genericErrorMessage,
+[data-theme="dark"] #genericInfoModal #genericInfoMessage,
+[data-theme="dark"] #genericConfirmModal #genericConfirmMessage {
+    color: #cbd5e1 !important;
+}
+</style>
+
 @endsection
 

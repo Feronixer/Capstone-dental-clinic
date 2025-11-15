@@ -49,8 +49,9 @@
 
                     {{-- Phone --}}
                     <div class="form-floating mb-3">
-                        <input name="phone" type="text" class="form-control form-control-sm" id="floatingPhone" placeholder="Enter phone number" value="{{ old('phone', $user->info->phone ?? '') }}">
+                        <input name="phone" type="tel" class="form-control form-control-sm" id="floatingPhone" placeholder="09XXXXXXXXX" value="{{ old('phone', $user->info->phone ?? '') }}" pattern="09[0-9]{9}" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, ''); if(this.value.length > 0) { if(!this.value.startsWith('09')) { if(this.value.startsWith('0')) { this.value = '09' + this.value.substring(1).substring(0, 9); } else { this.value = '09' + this.value.substring(0, 9); } } else { this.value = this.value.substring(0, 11); } }">
                         <label for="floatingPhone">Phone Number</label>
+                        <small class="text-muted" style="font-size: 0.75rem;">Format: 09XXXXXXXXX (must start with 09)</small>
                     </div>
                     @error('phone')<p class="text-danger">* {{ $message }}</p>@enderror
 

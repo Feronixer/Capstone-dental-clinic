@@ -335,7 +335,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => {
             console.error('Error fetching appointment:', error);
-            alert('Error loading appointment details');
+            showErrorModal('Error loading appointment details');
         });
     }
 
@@ -1222,5 +1222,83 @@ function initializeSorting() {
 }
 
 </style>
+
+<!-- Generic Error Modal -->
+<div class="modal fade" id="genericErrorModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                <h5 class="modal-title text-white">
+                    <i class="bi bi-exclamation-circle-fill me-2"></i>Error
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-4">
+                    <div class="mx-auto mb-3" style="width: 80px; height: 80px; background: linear-gradient(135deg, #fee2e2, #fecaca); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-x-circle-fill text-danger" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <p class="text-muted mb-0" id="genericErrorMessage"></p>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+                    <i class="bi bi-check-circle me-1"></i>OK
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Generic Error Modal Function
+function showErrorModal(message) {
+    const modal = new bootstrap.Modal(document.getElementById('genericErrorModal'));
+    document.getElementById('genericErrorMessage').textContent = message;
+    modal.show();
+}
+</script>
+
+<style>
+/* Dark Mode Styles for Generic Modals */
+[data-theme="dark"] #genericWarningModal .modal-content,
+[data-theme="dark"] #genericErrorModal .modal-content,
+[data-theme="dark"] #genericInfoModal .modal-content,
+[data-theme="dark"] #genericConfirmModal .modal-content {
+    background-color: #1e293b !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] #genericWarningModal .modal-body,
+[data-theme="dark"] #genericErrorModal .modal-body,
+[data-theme="dark"] #genericInfoModal .modal-body,
+[data-theme="dark"] #genericConfirmModal .modal-body {
+    background-color: #1e293b !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] #genericWarningModal .modal-footer,
+[data-theme="dark"] #genericErrorModal .modal-footer,
+[data-theme="dark"] #genericInfoModal .modal-footer,
+[data-theme="dark"] #genericConfirmModal .modal-footer {
+    background-color: #1e293b !important;
+    border-top: 1px solid #334155 !important;
+}
+
+[data-theme="dark"] #genericWarningModal .text-muted,
+[data-theme="dark"] #genericErrorModal .text-muted,
+[data-theme="dark"] #genericInfoModal .text-muted,
+[data-theme="dark"] #genericConfirmModal .text-muted {
+    color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] #genericWarningModal #genericWarningMessage,
+[data-theme="dark"] #genericErrorModal #genericErrorMessage,
+[data-theme="dark"] #genericInfoModal #genericInfoMessage,
+[data-theme="dark"] #genericConfirmModal #genericConfirmMessage {
+    color: #cbd5e1 !important;
+}
+</style>
+
 @endsection
 

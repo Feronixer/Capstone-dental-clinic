@@ -159,30 +159,18 @@ class CalendarController extends Controller
 
     private function getReschedulableAppointments(int $patientId)
     {
-        $autoCancelPhrase = 'automatically cancelled because the appointment remained pending past its date.';
-
         return Appointment::where('patient_id', $patientId)
             ->with(['service'])
+            ->whereNotIn('status', ['Cancelled', 'cancelled'])
             ->orderBy('start_datetime', 'desc')
             ->limit(40)
             ->get()
-            ->filter(function ($appointment) use ($autoCancelPhrase) {
+            ->filter(function ($appointment) {
                 $status = strtolower($appointment->status ?? 'pending');
-                $notes = strtolower((string) $appointment->notes);
-
-                if (in_array($status, ['pending', 'confirmed'])) {
-                    return true;
-                }
-
-                if ($status === 'missed') {
-                    return true;
-                }
-
-                if ($status === 'cancelled' && str_contains($notes, strtolower($autoCancelPhrase))) {
-                    return true;
-                }
-
-                return false;
+                
+                // Only include pending, confirmed, and missed appointments
+                // Exclude all cancelled appointments
+                return in_array($status, ['pending', 'confirmed', 'missed']);
             })
             ->values();
     }
@@ -281,7 +269,8 @@ class CalendarController extends Controller
 
     private function getBlockedTimes(): array
     {
-        return \App\Models\BlockedTime::where('start_datetime', '>=', Carbon::now()->startOfDay())
+        $now = Carbon::now('Asia/Manila');
+        return \App\Models\BlockedTime::where('end_datetime', '>=', $now)
             ->get()
             ->map(fn($bt) => [
                 'id' => $bt->id,
@@ -435,6 +424,16 @@ class CalendarController extends Controller
                         'errors' => ['date' => ['The clinic is closed on this date.']]
                     ], 422);
                 }
+            }
+
+            // Validate same-day procedure combinations
+            $sameDayValidation = $this->validateSameDayProcedureCombinations(auth()->id(), $serviceId, $requestedDateTime);
+            if (!$sameDayValidation['valid']) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $sameDayValidation['message'],
+                    'errors' => ['service_id' => [$sameDayValidation['message']]]
+                ], 422);
             }
 
             // Create appointment request
@@ -783,5 +782,39 @@ class CalendarController extends Controller
             'has_updates' => $hasUpdates,
             'timestamp' => now()->toISOString(),
         ]);
+    }
+
+    /**
+     * Validate that the same procedure cannot be booked twice on the same day
+     */
+    private function validateSameDayProcedureCombinations($patientId, $serviceId, $startDateTime)
+    {
+        // If no service is selected, allow it (might be a custom reason_for_visit)
+        if (!$serviceId) {
+            return ['valid' => true, 'message' => ''];
+        }
+
+        // Get all appointments for this patient on the same day (excluding cancelled)
+        $sameDay = Carbon::parse($startDateTime)->startOfDay();
+        $sameDayEnd = Carbon::parse($startDateTime)->endOfDay();
+
+        $existingAppointment = Appointment::where('patient_id', $patientId)
+            ->where('service_id', $serviceId)
+            ->where('status', '!=', 'Cancelled')
+            ->whereBetween('start_datetime', [$sameDay, $sameDayEnd])
+            ->first();
+
+        // If patient already has the same procedure booked on this day, prevent booking
+        if ($existingAppointment) {
+            $service = Service::find($serviceId);
+            $serviceName = $service ? $service->service_name : 'this procedure';
+            
+            return [
+                'valid' => false,
+                'message' => "You cannot book the same procedure ({$serviceName}) twice on the same day."
+            ];
+        }
+
+        return ['valid' => true, 'message' => ''];
     }
 }

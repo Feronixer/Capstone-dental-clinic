@@ -90,7 +90,8 @@
                             <!-- Phone -->
                             <div class="col-md-3">
                                 <label for="phone" class="form-label fw-semibold">Phone Number</label>
-                                <input type="text" class="form-control" id="phone" name="phone" value="{{ $userInfo->phone ?? '' }}" placeholder="09XXXXXXXXX">
+                                <input type="tel" class="form-control" id="phone" name="phone" value="{{ $userInfo->phone ?? '' }}" placeholder="09XXXXXXXXX" pattern="09[0-9]{9}" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, ''); if(this.value.length > 0) { if(!this.value.startsWith('09')) { if(this.value.startsWith('0')) { this.value = '09' + this.value.substring(1).substring(0, 9); } else { this.value = '09' + this.value.substring(0, 9); } } else { this.value = this.value.substring(0, 11); } }">
+                                <small class="text-muted">Format: 09XXXXXXXXX (must start with 09)</small>
                             </div>
 
                             <!-- Birthday -->
@@ -706,6 +707,51 @@ document.addEventListener('DOMContentLoaded', function() {
     if (birthdayInput && birthdayInput.value) {
         calculateAgeFromBirthday();
     }
+
+    // Handle Enter key in password form
+    $(document).on('keydown', '#passwordForm input', function(e) {
+        if (e.key === 'Enter' || e.keyCode === 13) {
+            e.preventDefault();
+            const submitBtn = document.querySelector('#passwordForm button[type="submit"]');
+            if (submitBtn && !submitBtn.disabled) {
+                submitBtn.click();
+            }
+        }
+    });
+
+    // Handle Enter key in email change modal password field
+    $(document).on('keydown', '#modalPassword', function(e) {
+        if (e.key === 'Enter' || e.keyCode === 13) {
+            e.preventDefault();
+            const confirmBtn = document.getElementById('confirmPasswordBtn');
+            if (confirmBtn) {
+                confirmBtn.click();
+            }
+        }
+    });
+
+    // Handle Enter key in verification code input
+    $(document).on('keydown', '#verificationCode', function(e) {
+        if (e.key === 'Enter' || e.keyCode === 13) {
+            e.preventDefault();
+            const verifyBtn = document.getElementById('verifyCodeBtn');
+            if (verifyBtn && verifyBtn.style.display !== 'none') {
+                verifyBtn.click();
+            }
+        }
+    });
+
+    // Handle Enter key in verify current password input (password change modal)
+    $(document).on('keydown', '#verifyCurrentPassword', function(e) {
+        if (e.key === 'Enter' || e.keyCode === 13) {
+            e.preventDefault();
+            const sendCodeBtn = document.getElementById('sendVerificationCodeBtn');
+            const sendCodeSection = document.getElementById('sendCodeSection');
+            if (sendCodeBtn && sendCodeSection && sendCodeSection.style.display !== 'none') {
+                sendCodeBtn.click();
+            }
+        }
+    });
 });
 </script>
 @endsection

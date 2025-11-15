@@ -207,7 +207,7 @@ class ProfileController extends Controller
 
         // Check if password change is verified
         if (!session('password_change_verified') || 
-            now()->diffInMinutes(session('password_change_verified_at')) > 15) {
+            now()->diffInMinutes(session('password_change_verified_at')) > 30) {
             return response()->json([
                 'success' => false,
                 'message' => 'Please verify your email first by entering the verification code.'

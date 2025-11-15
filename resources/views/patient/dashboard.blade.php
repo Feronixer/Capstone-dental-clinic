@@ -1805,8 +1805,6 @@
                     <p>Highest safety standards</p>
                 </div>
             </div>
-
-            <h2 class="card-title">JValera Dental Clinic</h2>
         </div>
     </div>
 </section>

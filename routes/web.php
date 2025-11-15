@@ -80,6 +80,11 @@ Route::post('/staff/reset-password/verify', [StaffAuthController::class, 'verify
 Route::get('/staff/reset-password', [StaffAuthController::class, 'showResetForm'])->name('staff.password.reset.form');
 Route::post('/staff/reset-password', [StaffAuthController::class, 'resetPassword'])->name('staff.password.reset');
 
+// Broadcast Events Route (accessible by admin, staff, and patients)
+Route::middleware(['auth:admin,staff,web'])->group(function(): void{
+    Route::get('/broadcasting/events', [App\Http\Controllers\BroadcastController::class, 'events'])->name('broadcasting.events');
+});
+
 // Admin Routes - Only accessible by admin guard (role_id = 1)
 Route::middleware(['auth:admin'])->group(function(): void{
     //Admin Routes
@@ -106,6 +111,7 @@ Route::middleware(['auth:admin'])->group(function(): void{
     Route::get('/admin/appointment', [AppointmentController::class,'index'])->name('admin-appointment');
     Route::get('/admin/appointment/table', [AppointmentController::class,'table'])->name('admin-appointment.table');
     Route::get('/admin/appointment/appointments', [AppointmentController::class,'getAppointments'])->name('admin-appointment.get');
+    Route::get('/admin/appointment/calendar-data', [AppointmentController::class,'calendarData'])->name('admin-appointment.calendar-data');
     Route::get('/admin/appointment/server-time', [AppointmentController::class,'getServerTime'])->name('admin-appointment.server-time');
     Route::post('/admin/appointment', [AppointmentController::class,'store'])->name('admin-appointment.store');
     Route::get('/admin/appointment/{id}', [AppointmentController::class,'show'])->name('admin-appointment.show');
@@ -120,7 +126,9 @@ Route::middleware(['auth:admin'])->group(function(): void{
     Route::put('/admin/blocked-time/{id}', [App\Http\Controllers\Admin\BlockedTimeController::class, 'update'])->name('admin-blocked-time.update');
     Route::post('/admin/blocked-time/{id}/delete', [App\Http\Controllers\Admin\BlockedTimeController::class, 'destroy'])->name('admin-blocked-time.destroy');
     Route::get('/admin/blocked-time/future/clinic-closed/count', [App\Http\Controllers\Admin\BlockedTimeController::class, 'getFutureClinicClosedCount'])->name('admin-blocked-time.clinic-closed.count');
+    Route::get('/admin/blocked-time/future/clinic-closed/dates', [App\Http\Controllers\Admin\BlockedTimeController::class, 'getFutureClinicClosedDates'])->name('admin-blocked-time.clinic-closed.dates');
     Route::post('/admin/blocked-time/future/clinic-closed/clear', [App\Http\Controllers\Admin\BlockedTimeController::class, 'clearFutureClinicClosed'])->name('admin-blocked-time.clinic-closed.clear');
+    Route::post('/admin/blocked-time/future/clinic-closed/clear-specific', [App\Http\Controllers\Admin\BlockedTimeController::class, 'clearSpecificClinicClosed'])->name('admin-blocked-time.clinic-closed.clear-specific');
     Route::get('/admin/blocked-time/future/block-off-time/count', [App\Http\Controllers\Admin\BlockedTimeController::class, 'getFutureBlockOffTimeCount'])->name('admin-blocked-time.block-off-time.count');
     Route::post('/admin/blocked-time/future/block-off-time/clear', [App\Http\Controllers\Admin\BlockedTimeController::class, 'clearFutureBlockOffTime'])->name('admin-blocked-time.block-off-time.clear');
       Route::get('/admin/content-management', [ContentManagementController::class,'index'])->name('admin-content-management');
@@ -308,6 +316,7 @@ Route::middleware(['auth:staff', \App\Http\Middleware\LogStaffActivity::class])-
     Route::get('/staff/appointment', [App\Http\Controllers\Staff\AppointmentController::class,'index'])->name('staff-appointment');
     Route::get('/staff/appointment/table', [App\Http\Controllers\Staff\AppointmentController::class,'table'])->name('staff-appointment.table');
     Route::get('/staff/appointment/appointments', [App\Http\Controllers\Staff\AppointmentController::class,'getAppointments'])->name('staff-appointment.get');
+    Route::get('/staff/appointment/calendar-data', [App\Http\Controllers\Staff\AppointmentController::class,'calendarData'])->name('staff-appointment.calendar-data');
     Route::get('/staff/appointment/server-time', [App\Http\Controllers\Staff\AppointmentController::class,'getServerTime'])->name('staff-appointment.server-time');
     Route::post('/staff/appointment', [App\Http\Controllers\Staff\AppointmentController::class,'store'])->name('staff-appointment.store');
     Route::get('/staff/appointment/{id}', [App\Http\Controllers\Staff\AppointmentController::class,'show'])->name('staff-appointment.show');
@@ -321,7 +330,9 @@ Route::middleware(['auth:staff', \App\Http\Middleware\LogStaffActivity::class])-
     Route::put('/staff/blocked-time/{id}', [App\Http\Controllers\Staff\BlockedTimeController::class, 'update'])->name('staff-blocked-time.update');
     Route::post('/staff/blocked-time/{id}/delete', [App\Http\Controllers\Staff\BlockedTimeController::class, 'destroy'])->name('staff-blocked-time.destroy');
     Route::get('/staff/blocked-time/future/clinic-closed/count', [App\Http\Controllers\Staff\BlockedTimeController::class, 'getFutureClinicClosedCount'])->name('staff-blocked-time.clinic-closed.count');
+    Route::get('/staff/blocked-time/future/clinic-closed/dates', [App\Http\Controllers\Staff\BlockedTimeController::class, 'getFutureClinicClosedDates'])->name('staff-blocked-time.clinic-closed.dates');
     Route::post('/staff/blocked-time/future/clinic-closed/clear', [App\Http\Controllers\Staff\BlockedTimeController::class, 'clearFutureClinicClosed'])->name('staff-blocked-time.clinic-closed.clear');
+    Route::post('/staff/blocked-time/future/clinic-closed/clear-specific', [App\Http\Controllers\Staff\BlockedTimeController::class, 'clearSpecificClinicClosed'])->name('staff-blocked-time.clinic-closed.clear-specific');
     Route::get('/staff/blocked-time/future/block-off-time/count', [App\Http\Controllers\Staff\BlockedTimeController::class, 'getFutureBlockOffTimeCount'])->name('staff-blocked-time.block-off-time.count');
     Route::post('/staff/blocked-time/future/block-off-time/clear', [App\Http\Controllers\Staff\BlockedTimeController::class, 'clearFutureBlockOffTime'])->name('staff-blocked-time.block-off-time.clear');
 

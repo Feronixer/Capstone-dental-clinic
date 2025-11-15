@@ -524,7 +524,7 @@
                                 $statusClass = 'pending';
                             }
                         @endphp
-                        <div class="upcoming-item {{ $statusClass }}">
+                        <div class="upcoming-item {{ $statusClass }}" data-appointment-id="{{ $appointment->id }}">
                             <div class="upcoming-date">
                                 <span class="date-day">{{ $appointment->start_datetime->format('d') }}</span>
                                 <span class="date-month">{{ $appointment->start_datetime->format('M') }}</span>
@@ -640,6 +640,83 @@
     </aside>
 
     <div class="calendar-resizer" id="calendarResizer" role="separator" aria-label="Resize appointment panels" aria-orientation="vertical" tabindex="0"></div>
+
+    <!-- CRITICAL: Define functions BEFORE buttons that use them -->
+    <script>
+    // Early function definitions - must be available when buttons are rendered
+    // These will be properly implemented later in the script, but stubs prevent errors
+    
+    // Stub for openAppointmentModal - will be replaced by full implementation
+    // This stub actually works to show the modal content immediately
+    if (typeof window.openAppointmentModal === 'undefined') {
+        window.openAppointmentModal = function(type) {
+            // Try to call the real function if it exists (will be set later)
+            if (window._openAppointmentModal && typeof window._openAppointmentModal === 'function') {
+                return window._openAppointmentModal(type);
+            }
+            
+            // If real function not available yet, implement basic functionality
+            const emergencyFormSection = document.getElementById('emergencyFormSection');
+            const rescheduleFormSection = document.getElementById('rescheduleFormSection');
+            const bookFormSection = document.getElementById('bookFormSection');
+            const modalTitle = document.getElementById('appointmentRequestModalLabel');
+            
+            // Hide all forms first
+            if (emergencyFormSection) emergencyFormSection.style.display = 'none';
+            if (rescheduleFormSection) rescheduleFormSection.style.display = 'none';
+            if (bookFormSection) bookFormSection.style.display = 'none';
+            
+            // Show the appropriate form based on type
+            if (type === 'emergency') {
+                if (emergencyFormSection) emergencyFormSection.style.display = 'block';
+                if (modalTitle) {
+                    modalTitle.innerHTML = '<i class="bi bi-lightning-charge-fill me-2"></i>Emergency Appointment';
+                }
+            } else if (type === 'reschedule') {
+                if (rescheduleFormSection) rescheduleFormSection.style.display = 'block';
+                if (modalTitle) {
+                    modalTitle.innerHTML = '<i class="bi bi-arrow-repeat me-2"></i>Request Reschedule';
+                }
+            } else if (type === 'book') {
+                if (bookFormSection) bookFormSection.style.display = 'block';
+                if (modalTitle) {
+                    modalTitle.innerHTML = '<i class="bi bi-calendar-plus me-2"></i>Book Appointment';
+                }
+            }
+            
+            // Retry with real function after a short delay
+            setTimeout(function() {
+                if (window._openAppointmentModal && typeof window._openAppointmentModal === 'function') {
+                    window._openAppointmentModal(type);
+                }
+            }, 50);
+        };
+    }
+    
+      // Stub for updateTimeAvailability - will be replaced by full implementation
+      if (typeof window.updateTimeAvailability === 'undefined') {
+          window.updateTimeAvailability = function() {
+              // This is a stub - the real function will replace it
+              if (window._updateTimeAvailability && typeof window._updateTimeAvailability === 'function') {
+                  return window._updateTimeAvailability();
+              }
+              // If real function not available yet, just return (no error)
+              return;
+          };
+      }
+
+      // Stub for isTimeSlotAvailable - will be replaced by full implementation
+      if (typeof window.isTimeSlotAvailable === 'undefined') {
+          window.isTimeSlotAvailable = function(selectedDate, selectedTime) {
+              // Try to call the real function if it exists (will be set later)
+              if (window._isTimeSlotAvailable && typeof window._isTimeSlotAvailable === 'function') {
+                  return window._isTimeSlotAvailable(selectedDate, selectedTime);
+              }
+              // If real function not available yet, return true (default to available)
+              return true;
+          };
+      }
+      </script>
 
         <!-- Main Calendar -->
         <main class="calendar-main reveal-element reveal-slide-right">
@@ -852,11 +929,16 @@
                     @endphp
                     @foreach($reschedulableAppointments as $appointment)
                         @php
-                            $status = $appointment->status ?? 'Pending';
+                            $status = strtolower($appointment->status ?? 'pending');
+                            // Skip cancelled appointments
+                            if ($status === 'cancelled') {
+                                continue;
+                            }
+                            $statusDisplay = $appointment->status ?? 'Pending';
                             $optionLabel = ($appointment->service ? $appointment->service->service_name : ($appointment->reason_for_visit ?? 'Appointment')) .
                                 ' - ' . $appointment->start_datetime->format('M d, Y') . ' at ' . $appointment->start_datetime->format('g:i A');
-                            if (!in_array($status, ['Pending', 'Confirmed'])) {
-                                $optionLabel .= ' [' . $status . ']';
+                            if (!in_array($statusDisplay, ['Pending', 'Confirmed'])) {
+                                $optionLabel .= ' [' . $statusDisplay . ']';
                             }
                         @endphp
                         @if(!in_array($appointment->id, $displayedIds))
@@ -1059,12 +1141,76 @@
                 </p>
             </div>
             <div class="modal-footer" style="border: none; padding: 1.5rem; background: #f8f9fa; justify-content: center;">
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" style="padding: 0.75rem 2rem; border-radius: 8px; font-weight: 600; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
-                    <i class="bi bi-check-circle me-2"></i>OK
+                <button type="button" class="btn btn-success" data-bs-dismiss="modal" style="min-width: 120px;">
+                    <i class="bi bi-check-circle me-1"></i>OK
                 </button>
             </div>
         </div>
     </div>
+</div>
+
+<!-- Same Procedure Warning Modal -->
+<div class="modal fade" id="patientSameProcedureWarningModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; overflow: hidden;">
+            <div class="modal-header border-0 pb-0" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                <h5 class="modal-title text-white">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Duplicate Procedure Warning
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-4">
+                    <div class="mx-auto mb-3" style="width: 80px; height: 80px; background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-exclamation-triangle-fill text-warning" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-2">Duplicate Procedure Detected</h4>
+                    <p class="text-muted mb-3" id="patientSameProcedureWarningMessage">You already have the same procedure booked on this day.</p>
+                    <div class="alert alert-warning mb-0" style="background: #fff3cd; border: 1px solid #ffc107;">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Warning:</strong> Booking the same procedure twice on the same day is not recommended.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-warning" id="proceedWithDuplicateBtnPatient">
+                    <i class="bi bi-check-circle me-1"></i>Proceed Anyway
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Same Procedure Error Modal (for backend validation) -->
+<div class="modal fade" id="patientSameProcedureErrorModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; overflow: hidden;">
+            <div class="modal-header border-0 pb-0" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                <h5 class="modal-title text-white">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Cannot Book Same Procedure
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-4">
+                    <div class="mx-auto mb-3" style="width: 80px; height: 80px; background: linear-gradient(135deg, #fee2e2, #fecaca); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-x-circle-fill text-danger" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-2">Same Procedure Already Booked</h4>
+                    <p class="text-muted mb-0" id="patientSameProcedureErrorMessage">You cannot book the same procedure twice on the same day.</p>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+                    <i class="bi bi-check-circle me-1"></i>Understood
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 </div>
 
 <style>
@@ -8671,68 +8817,111 @@ html, body {
 <script>
 // Open Appointment Modal with Type
 function openAppointmentModal(type) {
-    // Set appointment type
-    appointmentType = type;
-
-    // Hide all forms
-    const emergencyFormSection = document.getElementById('emergencyFormSection');
-    const rescheduleFormSection = document.getElementById('rescheduleFormSection');
-    const bookFormSection = document.getElementById('bookFormSection');
-    const modalDialog = document.querySelector('#appointmentRequestModal .modal-dialog');
-
-    if (modalDialog) {
-        modalDialog.classList.remove('compact-book');
-    }
-
-        if (type === 'emergency') {
-        // Show emergency form, hide others
-        if (emergencyFormSection) emergencyFormSection.style.display = 'block';
-        if (rescheduleFormSection) rescheduleFormSection.style.display = 'none';
-        if (bookFormSection) bookFormSection.style.display = 'none';
-
-
-        // Update modal title
-        const modalTitle = document.getElementById('appointmentRequestModalLabel');
-        if (modalTitle) {
-            modalTitle.innerHTML = '<i class="bi bi-lightning-charge-fill me-2"></i>Emergency Appointment';
+    try {
+        // Set appointment type
+        if (typeof appointmentType !== 'undefined') {
+            appointmentType = type;
         }
 
-        refreshTimeSlotAvailability('emergency');
-        updateSelectedTimeLabel('emergencyTime', 'emergencyTimeSelected');
-    } else if (type === 'reschedule') {
-        // Show reschedule form, hide others
-        if (emergencyFormSection) emergencyFormSection.style.display = 'none';
-        if (rescheduleFormSection) rescheduleFormSection.style.display = 'block';
-        if (bookFormSection) bookFormSection.style.display = 'none';
-
-        // Update modal title
-        const modalTitle = document.getElementById('appointmentRequestModalLabel');
-        if (modalTitle) {
-            modalTitle.innerHTML = '<i class="bi bi-arrow-repeat me-2"></i>Request Reschedule';
-        }
-
-        refreshTimeSlotAvailability('reschedule');
-        updateSelectedTimeLabel('rescheduleTime', 'rescheduleTimeSelected');
-    } else if (type === 'book') {
-        // Show book form, hide others
-        if (emergencyFormSection) emergencyFormSection.style.display = 'none';
-        if (rescheduleFormSection) rescheduleFormSection.style.display = 'none';
-        if (bookFormSection) bookFormSection.style.display = 'block';
-
+        // Hide all forms
+        const emergencyFormSection = document.getElementById('emergencyFormSection');
+        const rescheduleFormSection = document.getElementById('rescheduleFormSection');
+        const bookFormSection = document.getElementById('bookFormSection');
+        const modalDialog = document.querySelector('#appointmentRequestModal .modal-dialog');
 
         if (modalDialog) {
-            modalDialog.classList.add('compact-book');
+            modalDialog.classList.remove('compact-book');
         }
 
-        // Update modal title
-        const modalTitle = document.getElementById('appointmentRequestModalLabel');
-        if (modalTitle) {
-            modalTitle.innerHTML = '<i class="bi bi-calendar-plus me-2"></i>Book Appointment';
+        if (type === 'emergency') {
+            // Show emergency form, hide others
+            if (emergencyFormSection) emergencyFormSection.style.display = 'block';
+            if (rescheduleFormSection) rescheduleFormSection.style.display = 'none';
+            if (bookFormSection) bookFormSection.style.display = 'none';
+
+            // Update modal title
+            const modalTitle = document.getElementById('appointmentRequestModalLabel');
+            if (modalTitle) {
+                modalTitle.innerHTML = '<i class="bi bi-lightning-charge-fill me-2"></i>Emergency Appointment';
+            }
+
+            // Only call these if functions exist
+            if (typeof refreshTimeSlotAvailability === 'function') {
+                refreshTimeSlotAvailability('emergency');
+            } else if (typeof window.refreshTimeSlotAvailability === 'function') {
+                window.refreshTimeSlotAvailability('emergency');
+            }
+            if (typeof updateSelectedTimeLabel === 'function') {
+                updateSelectedTimeLabel('emergencyTime', 'emergencyTimeSelected');
+            }
+        } else if (type === 'reschedule') {
+            // Show reschedule form, hide others
+            if (emergencyFormSection) emergencyFormSection.style.display = 'none';
+            if (rescheduleFormSection) rescheduleFormSection.style.display = 'block';
+            if (bookFormSection) bookFormSection.style.display = 'none';
+
+            // Update modal title
+            const modalTitle = document.getElementById('appointmentRequestModalLabel');
+            if (modalTitle) {
+                modalTitle.innerHTML = '<i class="bi bi-arrow-repeat me-2"></i>Request Reschedule';
+            }
+
+            // Only call these if functions exist
+            if (typeof refreshTimeSlotAvailability === 'function') {
+                refreshTimeSlotAvailability('reschedule');
+            } else if (typeof window.refreshTimeSlotAvailability === 'function') {
+                window.refreshTimeSlotAvailability('reschedule');
+            }
+            if (typeof updateSelectedTimeLabel === 'function') {
+                updateSelectedTimeLabel('rescheduleTime', 'rescheduleTimeSelected');
+            }
+        } else if (type === 'book') {
+            // Show book form, hide others
+            if (emergencyFormSection) emergencyFormSection.style.display = 'none';
+            if (rescheduleFormSection) rescheduleFormSection.style.display = 'none';
+            if (bookFormSection) bookFormSection.style.display = 'block';
+
+            if (modalDialog) {
+                modalDialog.classList.add('compact-book');
+            }
+
+            // Update modal title
+            const modalTitle = document.getElementById('appointmentRequestModalLabel');
+            if (modalTitle) {
+                modalTitle.innerHTML = '<i class="bi bi-calendar-plus me-2"></i>Book Appointment';
+            }
+        }
+
+        // Update time availability if function exists
+        if (typeof updateTimeAvailability === 'function') {
+            updateTimeAvailability();
+        }
+    } catch (error) {
+        console.error('Error in openAppointmentModal:', error);
+        // Fallback: at least show the form
+        const emergencyFormSection = document.getElementById('emergencyFormSection');
+        const rescheduleFormSection = document.getElementById('rescheduleFormSection');
+        const bookFormSection = document.getElementById('bookFormSection');
+        
+        if (type === 'emergency' && emergencyFormSection) {
+            emergencyFormSection.style.display = 'block';
+            if (rescheduleFormSection) rescheduleFormSection.style.display = 'none';
+            if (bookFormSection) bookFormSection.style.display = 'none';
+        } else if (type === 'reschedule' && rescheduleFormSection) {
+            rescheduleFormSection.style.display = 'block';
+            if (emergencyFormSection) emergencyFormSection.style.display = 'none';
+            if (bookFormSection) bookFormSection.style.display = 'none';
+        } else if (type === 'book' && bookFormSection) {
+            bookFormSection.style.display = 'block';
+            if (emergencyFormSection) emergencyFormSection.style.display = 'none';
+            if (rescheduleFormSection) rescheduleFormSection.style.display = 'none';
         }
     }
-
-    updateTimeAvailability();
 }
+
+// Expose openAppointmentModal to window for global access (replaces stub if it exists)
+window.openAppointmentModal = openAppointmentModal;
+window._openAppointmentModal = openAppointmentModal; // Backup reference
 
 // Handle Book Service Selection (show/hide "Other" field)
 document.addEventListener('DOMContentLoaded', function() {
@@ -8775,7 +8964,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         const h = Math.floor(durationNeeded / 60);
                         const m = durationNeeded % 60;
                         const needText = `${h > 0 ? h + ' hr' + (h > 1 ? 's' : '' ) : ''}${h > 0 && m > 0 ? ' ' : ''}${m > 0 ? m + ' min' : ''}`.trim() || 'selected duration';
-                        alert(`This date has no continuous window available for ${needText}. Please choose a different date.`);
+                        showPatientWarningModal(`This date has no continuous window available for ${needText}. Please choose a different date.`);
                         submitButton.disabled = false;
                         submitButton.innerHTML = originalText;
                         return;
@@ -8803,17 +8992,129 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (otherConcern && otherConcern.value.trim()) {
                         formData.other_concern = otherConcern.value.trim();
                     } else {
-                        alert('Please enter the service name.');
+                        showPatientWarningModal('Please enter the service name.');
                         submitButton.disabled = false;
                         submitButton.innerHTML = originalText;
                         return;
                     }
                 } else {
                     formData.service_id = serviceSelect.value;
+                    
+                    // Check for duplicate procedure on the same day (frontend validation)
+                    if (formData.date && formData.service_id) {
+                        // Fetch patient's appointments for the selected date to check for duplicates
+                        const checkDate = new Date(formData.date + 'T00:00:00');
+                        const checkDateStart = new Date(checkDate.getFullYear(), checkDate.getMonth(), checkDate.getDate(), 0, 0, 0);
+                        const checkDateEnd = new Date(checkDate.getFullYear(), checkDate.getMonth(), checkDate.getDate(), 23, 59, 59);
+                        
+                        // Check against upcoming appointments if available
+                        fetch('/patient/calendar/updates')
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success && data.upcoming_appointments) {
+                                    const duplicate = data.upcoming_appointments.find(apt => {
+                                        if (String(apt.service_id) !== String(formData.service_id)) return false;
+                                        const aptDate = new Date(apt.start_datetime);
+                                        return aptDate >= checkDateStart && aptDate <= checkDateEnd;
+                                    });
+                                    
+                                    if (duplicate) {
+                                        const serviceName = serviceSelect.options[serviceSelect.selectedIndex].text;
+                                        const formattedDate = new Date(formData.date).toLocaleDateString('en-US', { 
+                                            weekday: 'long', 
+                                            year: 'numeric', 
+                                            month: 'long', 
+                                            day: 'numeric' 
+                                        });
+                                        
+                                        // Show warning modal
+                                        document.getElementById('patientSameProcedureWarningMessage').textContent = `You already have "${serviceName}" booked on ${formattedDate}.`;
+                                        
+                                        const warningModal = new bootstrap.Modal(document.getElementById('patientSameProcedureWarningModal'));
+                                        
+                                        // Set up proceed button handler
+                                        const proceedBtn = document.getElementById('proceedWithDuplicateBtnPatient');
+                                        proceedBtn.onclick = function() {
+                                            warningModal.hide();
+                                            // Proceed with submission
+                                            submitAppointmentRequest();
+                                        };
+                                        
+                                        warningModal.show();
+                                        
+                                        submitButton.disabled = false;
+                                        submitButton.innerHTML = originalText;
+                                        return;
+                                    }
+                                }
+                                // If no duplicate found, proceed with submission
+                                submitAppointmentRequest();
+                            })
+                            .catch(() => {
+                                // If check fails, proceed with submission (backend will validate)
+                                submitAppointmentRequest();
+                            });
+                        
+                        // Function to submit the request
+                        function submitAppointmentRequest() {
+                            fetch('/patient/calendar/submit-request', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': formData._token,
+                                    'Accept': 'application/json'
+                                },
+                                body: JSON.stringify(formData)
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    // Close appointment request modal
+                                    const requestModal = bootstrap.Modal.getInstance(document.getElementById('appointmentRequestModal'));
+                                    if (requestModal) requestModal.hide();
+                                    
+                                    // Reset form
+                                    bookForm.reset();
+                                    if (bookOtherConcernGroup) bookOtherConcernGroup.style.display = 'none';
+                                    
+                                    // Show success modal
+                                    const successMessage = data.message || 'Appointment request submitted successfully!';
+                                    document.getElementById('successModalMessage').textContent = successMessage;
+                                    const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+                                    successModal.show();
+                                    
+                                    // Reload page when success modal is closed
+                                    document.getElementById('successModal').addEventListener('hidden.bs.modal', function() {
+                                        window.location.reload();
+                                    }, { once: true });
+                                } else {
+                                    // Check if error is due to same procedure
+                                    if (data.message && (data.message.includes('same procedure') || data.message.includes('cannot book the same'))) {
+                                        // Show same procedure error modal
+                                        document.getElementById('patientSameProcedureErrorMessage').textContent = data.message;
+                                        const sameProcedureModal = new bootstrap.Modal(document.getElementById('patientSameProcedureErrorModal'));
+                                        sameProcedureModal.show();
+                                    } else {
+                                        showPatientErrorModal(data.message || 'Failed to submit appointment request. Please try again.');
+                                    }
+                                    submitButton.disabled = false;
+                                    submitButton.innerHTML = originalText;
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                showPatientErrorModal('An error occurred. Please try again.');
+                                submitButton.disabled = false;
+                                submitButton.innerHTML = originalText;
+                            });
+                        }
+                        
+                        return; // Exit early, submission will happen in the promise chain
+                    }
                 }
             }
 
-            // Submit the form
+            // Submit the form (if no service_id check needed - for "other" service or no service)
             fetch('/patient/calendar/submit-request', {
                 method: 'POST',
                 headers: {
@@ -8845,11 +9146,21 @@ document.addEventListener('DOMContentLoaded', function() {
                         window.location.reload();
                     }, { once: true });
                 } else {
-                    alert(data.message || 'Failed to submit appointment request. Please try again.');
+                    // Check if error is due to same procedure
+                    if (data.message && (data.message.includes('same procedure') || data.message.includes('cannot book the same'))) {
+                        // Show same procedure error modal
+                        document.getElementById('patientSameProcedureErrorMessage').textContent = data.message;
+                        const sameProcedureModal = new bootstrap.Modal(document.getElementById('patientSameProcedureErrorModal'));
+                        sameProcedureModal.show();
+                    } else {
+                        showPatientErrorModal(data.message || 'Failed to submit appointment request. Please try again.');
+                    }
                     submitButton.disabled = false;
                     submitButton.innerHTML = originalText;
                 }
+            
             })
+        
             .catch(error => {
                 console.error('Error:', error);
                 alert('An error occurred. Please try again.');
@@ -9017,7 +9328,37 @@ function updateSelectedTimeLabel(inputId, displayId) {
     if (!input || !display) return;
 
     if (input.value) {
-        display.textContent = formatTimeLabel(input.value);
+        const startTime = formatTimeLabel(input.value);
+        
+        // Calculate end time based on service duration
+        const duration = typeof getRequestDuration === 'function' ? getRequestDuration() : 30;
+        const [hourStr, minuteStr] = input.value.split(':');
+        const hours = Number(hourStr);
+        const minutes = Number(minuteStr);
+        
+        if (!Number.isNaN(hours) && !Number.isNaN(minutes)) {
+            const startDate = new Date();
+            startDate.setHours(hours, minutes, 0, 0);
+            const endDate = new Date(startDate.getTime() + duration * 60000);
+            
+            // Clinic closes at 6:00 PM (18:00), so cap the end time at 6:00 PM
+            const clinicCloseHour = 18;
+            const clinicCloseMinute = 0;
+            const closingTime = new Date();
+            closingTime.setHours(clinicCloseHour, clinicCloseMinute, 0, 0);
+            
+            // If calculated end time is past closing, use closing time instead
+            if (endDate > closingTime) {
+                endDate.setHours(clinicCloseHour, clinicCloseMinute, 0, 0);
+            }
+            
+            const endTime = endDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+            
+            // Display as "Start Time - End Time"
+            display.textContent = `${startTime} - ${endTime}`;
+        } else {
+            display.textContent = startTime;
+        }
         display.classList.add('has-value');
     } else {
         display.textContent = 'No time selected';
@@ -9058,7 +9399,12 @@ function refreshTimeSlotAvailability(pickerType) {
         const dateObj = new Date(dateInput.value + 'T00:00:00');
         buttons.forEach(btn => {
             const slotValue = btn.dataset.value;
-            const available = isTimeSlotAvailable(dateObj, slotValue);
+            let available = true;
+            if (typeof isTimeSlotAvailable === 'function') {
+                available = isTimeSlotAvailable(dateObj, slotValue);
+            } else if (typeof window.isTimeSlotAvailable === 'function') {
+                available = window.isTimeSlotAvailable(dateObj, slotValue);
+            }
             btn.disabled = !available;
             btn.classList.toggle('disabled', !available);
             if (!available) {
@@ -9081,6 +9427,9 @@ function refreshTimeSlotAvailability(pickerType) {
         updateSelectedTimeLabel(timeInput.id, pickerType === 'emergency' ? 'emergencyTimeSelected' : 'rescheduleTimeSelected');
     }
 }
+
+// Expose refreshTimeSlotAvailability to window for global access
+window.refreshTimeSlotAvailability = refreshTimeSlotAvailability;
 
 // GLOBAL: Check if a day is fully booked
 function checkIfDayIsFullyBooked(dateStr, appointments, blockedTimes) {
@@ -9260,6 +9609,10 @@ function isTimeSlotAvailable(selectedDate, selectedTime) {
     return true;
 }
 
+// Expose isTimeSlotAvailable to window for global access (replaces stub if it exists)
+window.isTimeSlotAvailable = isTimeSlotAvailable;
+window._isTimeSlotAvailable = isTimeSlotAvailable; // Backup reference
+
 // GLOBAL: Show availability message and enable/disable submit
 function updateTimeAvailability() {
     function getActiveFormInputs() {
@@ -9309,7 +9662,12 @@ function updateTimeAvailability() {
     }
 
     const dateObj = new Date(selectedDate + 'T00:00:00');
-    const available = isTimeSlotAvailable(dateObj, selectedTime);
+    let available = true;
+    if (typeof isTimeSlotAvailable === 'function') {
+        available = isTimeSlotAvailable(dateObj, selectedTime);
+    } else if (typeof window.isTimeSlotAvailable === 'function') {
+        available = window.isTimeSlotAvailable(dateObj, selectedTime);
+    }
     const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
 
     messageDiv = document.createElement('div');
@@ -9382,6 +9740,10 @@ function updateTimeAvailability() {
     if (timeFormGroup) timeFormGroup.appendChild(messageDiv);
 }
 
+// Expose updateTimeAvailability to window for global access (replaces stub if it exists)
+window.updateTimeAvailability = updateTimeAvailability;
+window._updateTimeAvailability = updateTimeAvailability; // Backup reference
+
 function initializeTimeSlotPicker(gridId, inputId, displayId, pickerType) {
     const grid = document.getElementById(gridId);
     const hiddenInput = document.getElementById(inputId);
@@ -9410,8 +9772,15 @@ function initializeTimeSlotPicker(gridId, inputId, displayId, pickerType) {
     });
 
     updateSelectedTimeLabel(inputId, displayId);
-    refreshTimeSlotAvailability(pickerType);
+    if (typeof refreshTimeSlotAvailability === 'function') {
+        refreshTimeSlotAvailability(pickerType);
+    } else if (typeof window.refreshTimeSlotAvailability === 'function') {
+        window.refreshTimeSlotAvailability(pickerType);
+    }
 }
+
+// Expose initializeTimeSlotPicker to window for global access
+window.initializeTimeSlotPicker = initializeTimeSlotPicker;
 
 function clearTimeSlotSelection(gridId, inputId, displayId) {
     const grid = document.getElementById(gridId);
@@ -9487,6 +9856,48 @@ document.getElementById('emergencyForm').addEventListener('submit', function(e) 
 
         const duration = getRequestDuration();
         const requestedEnd = new Date(requestedStart.getTime() + duration * 60000);
+
+        // Check for appointment overlaps (exclude cancelled appointments)
+        const hasAppointmentConflict = (window.allAppointments || []).some(appointment => {
+            if (!appointment || !appointment.start_datetime || !appointment.end_datetime) return false;
+            
+            // Exclude cancelled appointments
+            const status = (appointment.status || '').toLowerCase();
+            if (status === 'cancelled') return false;
+            
+            const aptStart = parseLocalDateTime(appointment.start_datetime);
+            const aptEnd = parseLocalDateTime(appointment.end_datetime);
+            if (!aptStart || !aptEnd) return false;
+            
+            // Check if on the same date
+            if (aptStart.toDateString() !== requestedStart.toDateString()) return false;
+            
+            // Check for overlap (exclusive boundaries - allow slots that end exactly when another starts)
+            return (requestedStart < aptEnd && requestedEnd > aptStart);
+        });
+
+        if (hasAppointmentConflict) {
+            // Re-enable button
+            submitButton.disabled = false;
+            submitButton.innerHTML = originalText;
+            
+            // Show conflict modal
+            const conflictDate = new Date(selectedDate).toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            const conflictTime = selectedTime;
+
+            document.getElementById('patientConflictMessage').textContent = 'This time slot conflicts with an existing appointment. Please select a different time slot.';
+            document.getElementById('patientConflictDate').textContent = conflictDate;
+            document.getElementById('patientConflictTime').textContent = conflictTime;
+
+            // Show conflict modal
+            new bootstrap.Modal(document.getElementById('patientAppointmentConflictModal')).show();
+            return; // Stop submission
+        }
 
         // Check blocked times
         const isBlocked = window.blockedTimes.some(blockedTime => {
@@ -9593,8 +10004,14 @@ document.getElementById('emergencyForm').addEventListener('submit', function(e) 
             }
 
             clearTimeSlotSelection('emergencyTimeSlots', 'emergencyTime', 'emergencyTimeSelected');
-            refreshTimeSlotAvailability('emergency');
-            updateTimeAvailability();
+            if (typeof refreshTimeSlotAvailability === 'function') {
+                refreshTimeSlotAvailability('emergency');
+            } else if (typeof window.refreshTimeSlotAvailability === 'function') {
+                window.refreshTimeSlotAvailability('emergency');
+            }
+            if (typeof updateTimeAvailability === 'function') {
+                updateTimeAvailability();
+            }
 
             // Clear dataset values
             this.dataset.originalAppointmentId = '';
@@ -9656,22 +10073,42 @@ document.getElementById('emergencyForm').addEventListener('submit', function(e) 
                     // Show conflict modal
                     new bootstrap.Modal(document.getElementById('patientAppointmentConflictModal')).show();
                 }
-        } else {
-            throw new Error(data.message || 'Failed to submit request');
+            } else {
+                // Check if error is due to same procedure
+                if (data.message && (data.message.includes('same procedure') || data.message.includes('cannot book the same'))) {
+                    // Show same procedure error modal
+                    document.getElementById('patientSameProcedureErrorMessage').textContent = data.message;
+                    const sameProcedureModal = new bootstrap.Modal(document.getElementById('patientSameProcedureErrorModal'));
+                    sameProcedureModal.show();
+                    
+                    // Re-enable button
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = originalText;
+                } else {
+                    throw new Error(data.message || 'Failed to submit request');
+                }
             }
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        const alert = document.createElement('div');
-        alert.className = 'alert alert-danger alert-dismissible fade show';
-        alert.innerHTML = `
-            <i class="bi bi-x-circle me-2"></i>
-            <strong>Error!</strong> ${error.message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        `;
-        this.parentElement.insertBefore(alert, this.parentElement.firstChild);
-        this.parentElement.scrollIntoView({ behavior: 'smooth' });
+        // Check if error is due to same procedure
+        if (error.message && (error.message.includes('same procedure') || error.message.includes('cannot book the same'))) {
+            // Show same procedure error modal
+            document.getElementById('patientSameProcedureErrorMessage').textContent = error.message;
+            const sameProcedureModal = new bootstrap.Modal(document.getElementById('patientSameProcedureErrorModal'));
+            sameProcedureModal.show();
+        } else {
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-danger alert-dismissible fade show';
+            alert.innerHTML = `
+                <i class="bi bi-x-circle me-2"></i>
+                <strong>Error!</strong> ${error.message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            this.parentElement.insertBefore(alert, this.parentElement.firstChild);
+            this.parentElement.scrollIntoView({ behavior: 'smooth' });
+        }
 
         // Re-enable button
         submitButton.disabled = false;
@@ -9717,7 +10154,10 @@ document.getElementById('rescheduleForm').addEventListener('submit', function(e)
         if (appointmentStatus && appointmentStatus.toLowerCase() === 'missed') {
             submitButton.disabled = false;
             submitButton.innerHTML = originalText;
-            alert('Cannot reschedule missed appointments. Please book a new appointment instead.');
+            // Show warning modal instead of alert
+            document.getElementById('patientWarningMessage').textContent = 'Cannot reschedule missed appointments. Please book a new appointment instead.';
+            const warningModal = new bootstrap.Modal(document.getElementById('patientWarningModal'));
+            warningModal.show();
             return;
         }
 
@@ -9725,7 +10165,10 @@ document.getElementById('rescheduleForm').addEventListener('submit', function(e)
     } else {
         submitButton.disabled = false;
         submitButton.innerHTML = originalText;
-        alert('Please select an appointment to reschedule.');
+        // Show warning modal instead of alert
+        document.getElementById('patientWarningMessage').textContent = 'Please select an appointment to reschedule.';
+        const warningModal = new bootstrap.Modal(document.getElementById('patientWarningModal'));
+        warningModal.show();
         return;
     }
 
@@ -9843,8 +10286,14 @@ document.getElementById('rescheduleForm').addEventListener('submit', function(e)
             if (rescheduleSelectedAppointmentInfo) rescheduleSelectedAppointmentInfo.style.display = 'none';
 
             clearTimeSlotSelection('rescheduleTimeSlots', 'rescheduleTime', 'rescheduleTimeSelected');
-            refreshTimeSlotAvailability('reschedule');
-            updateTimeAvailability();
+            if (typeof refreshTimeSlotAvailability === 'function') {
+                refreshTimeSlotAvailability('reschedule');
+            } else if (typeof window.refreshTimeSlotAvailability === 'function') {
+                window.refreshTimeSlotAvailability('reschedule');
+            }
+            if (typeof updateTimeAvailability === 'function') {
+                updateTimeAvailability();
+            }
 
             // Show success modal
             const successMessage = data.message || 'Your reschedule request has been submitted successfully!';
@@ -9894,22 +10343,42 @@ document.getElementById('rescheduleForm').addEventListener('submit', function(e)
                     // Show conflict modal
                     new bootstrap.Modal(document.getElementById('patientAppointmentConflictModal')).show();
                 }
-        } else {
-            throw new Error(data.message || 'Failed to submit request');
+            } else {
+                // Check if error is due to same procedure
+                if (data.message && (data.message.includes('same procedure') || data.message.includes('cannot book the same'))) {
+                    // Show same procedure error modal
+                    document.getElementById('patientSameProcedureErrorMessage').textContent = data.message;
+                    const sameProcedureModal = new bootstrap.Modal(document.getElementById('patientSameProcedureErrorModal'));
+                    sameProcedureModal.show();
+                    
+                    // Re-enable button
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = originalText;
+                } else {
+                    throw new Error(data.message || 'Failed to submit request');
+                }
             }
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        const alert = document.createElement('div');
-        alert.className = 'alert alert-danger alert-dismissible fade show';
-        alert.innerHTML = `
-            <i class="bi bi-x-circle me-2"></i>
-            <strong>Error!</strong> ${error.message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        `;
-        this.parentElement.insertBefore(alert, this.parentElement.firstChild);
-        this.parentElement.scrollIntoView({ behavior: 'smooth' });
+        // Check if error is due to same procedure
+        if (error.message && (error.message.includes('same procedure') || error.message.includes('cannot book the same'))) {
+            // Show same procedure error modal
+            document.getElementById('patientSameProcedureErrorMessage').textContent = error.message;
+            const sameProcedureModal = new bootstrap.Modal(document.getElementById('patientSameProcedureErrorModal'));
+            sameProcedureModal.show();
+        } else {
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-danger alert-dismissible fade show';
+            alert.innerHTML = `
+                <i class="bi bi-x-circle me-2"></i>
+                <strong>Error!</strong> ${error.message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            this.parentElement.insertBefore(alert, this.parentElement.firstChild);
+            this.parentElement.scrollIntoView({ behavior: 'smooth' });
+        }
 
         // Re-enable button
         submitButton.disabled = false;
@@ -9945,6 +10414,61 @@ document.getElementById('rescheduleForm').addEventListener('submit', function(e)
             </div>
         </div>
 </div>
+</div>
+
+<!-- Same Procedure Error Modal -->
+<div class="modal fade" id="patientSameProcedureErrorModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modern-modal">
+            <div class="modal-header" style="background: linear-gradient(135deg, #ef4444, #dc2626); border: none;">
+                <h5 class="modal-title text-white">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Cannot Book Same Procedure
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-4">
+                    <div class="mx-auto mb-3" style="width: 80px; height: 80px; background: linear-gradient(135deg, #fee2e2, #fecaca); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-x-circle-fill text-danger" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-2">Same Procedure Already Booked</h4>
+                    <p class="text-muted mb-0" id="patientSameProcedureErrorMessage">You cannot book the same procedure twice on the same day.</p>
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+                    <i class="bi bi-check-circle me-1"></i>Understood
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Warning/Info Modal for Validation Messages -->
+<div class="modal fade" id="patientWarningModal" tabindex="-1" aria-labelledby="patientWarningModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; overflow: hidden;">
+            <div class="modal-header border-0 pb-0" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                <h5 class="modal-title text-white" id="patientWarningModalLabel">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Notice
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-4">
+                    <div class="mx-auto mb-3" style="width: 80px; height: 80px; background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-info-circle-fill text-warning" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <p class="text-muted mb-0" id="patientWarningMessage" style="font-size: 1.1rem;">Please check your selection.</p>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-warning w-100" data-bs-dismiss="modal">
+                    <i class="bi bi-check-circle me-1"></i>OK
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Cancellation Confirmation Modal -->
@@ -10155,6 +10679,9 @@ function parseLocalDateTime(datetimeStr) {
     if (isNaN(year) || isNaN(month) || isNaN(day) || isNaN(hours) || isNaN(minutes)) return null;
     return new Date(year, month - 1, day, hours, minutes, seconds || 0);
 }
+
+// Expose parseLocalDateTime to global scope for real-time updates
+window.parseLocalDateTime = parseLocalDateTime;
 
 // Pass appointments data to JavaScript
 var appointmentsData = @json($appointments ?? []);
@@ -10381,7 +10908,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Show success alert (you can replace this with a toast notification)
             setTimeout(() => {
-                alert('Cancellation request submitted successfully!\n\nThe clinic will contact you shortly to confirm.');
+                showPatientSuccessModal('Cancellation request submitted successfully!\n\nThe clinic will contact you shortly to confirm.');
             }, 300);
         });
     }
@@ -10429,8 +10956,18 @@ document.addEventListener('DOMContentLoaded', function() {
         const emergencyServiceSelect = document.getElementById('emergencyServiceSelect');
         if (emergencyServiceSelect) {
             emergencyServiceSelect.addEventListener('change', function() {
-                refreshTimeSlotAvailability('emergency');
-                updateTimeAvailability();
+                if (typeof refreshTimeSlotAvailability === 'function') {
+                    refreshTimeSlotAvailability('emergency');
+                } else if (typeof window.refreshTimeSlotAvailability === 'function') {
+                    window.refreshTimeSlotAvailability('emergency');
+                }
+                if (typeof updateTimeAvailability === 'function') {
+                    updateTimeAvailability();
+                }
+                // Update time label to show new end time based on service duration
+                if (typeof updateSelectedTimeLabel === 'function') {
+                    updateSelectedTimeLabel('emergencyTime', 'emergencyTimeSelected');
+                }
             });
         }
 
@@ -10438,16 +10975,32 @@ document.addEventListener('DOMContentLoaded', function() {
         const rescheduleAppointmentSelect = document.getElementById('rescheduleAppointmentSelect');
         if (rescheduleAppointmentSelect) {
             rescheduleAppointmentSelect.addEventListener('change', function() {
-                refreshTimeSlotAvailability('reschedule');
-                updateTimeAvailability();
+                if (typeof refreshTimeSlotAvailability === 'function') {
+                    refreshTimeSlotAvailability('reschedule');
+                } else if (typeof window.refreshTimeSlotAvailability === 'function') {
+                    window.refreshTimeSlotAvailability('reschedule');
+                }
+                if (typeof updateTimeAvailability === 'function') {
+                    updateTimeAvailability();
+                }
+                // Update time label to show new end time based on appointment duration
+                if (typeof updateSelectedTimeLabel === 'function') {
+                    updateSelectedTimeLabel('rescheduleTime', 'rescheduleTimeSelected');
+                }
             });
         }
 
         // Show suggested available times when date is selected (emergency)
         if (emergencyDateInput) {
             emergencyDateInput.addEventListener('change', function() {
-                refreshTimeSlotAvailability('emergency');
-                updateTimeAvailability();
+                if (typeof refreshTimeSlotAvailability === 'function') {
+                    refreshTimeSlotAvailability('emergency');
+                } else if (typeof window.refreshTimeSlotAvailability === 'function') {
+                    window.refreshTimeSlotAvailability('emergency');
+                }
+                if (typeof updateTimeAvailability === 'function') {
+                    updateTimeAvailability();
+                }
 
                 const selectedDate = this.value;
                 const suggestionId = 'emergencyTimeSuggestionMessage';
@@ -10474,7 +11027,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 ];
 
                 for (const time of businessHours) {
-                    if (isTimeSlotAvailable(dateObj, time)) {
+
+                    let isAvailable = false;
+                    if (typeof isTimeSlotAvailable === 'function') {
+                        isAvailable = isTimeSlotAvailable(dateObj, time);
+                    } else if (typeof window.isTimeSlotAvailable === 'function') {
+                        isAvailable = window.isTimeSlotAvailable(dateObj, time);
+                    }
+                    if (isAvailable) {
                         availableSlots.push(time);
                     }
                 }
@@ -10521,8 +11081,14 @@ document.addEventListener('DOMContentLoaded', function() {
         // Show suggested available times when date is selected (reschedule)
         if (rescheduleDateInput) {
             rescheduleDateInput.addEventListener('change', function() {
-                refreshTimeSlotAvailability('reschedule');
-                updateTimeAvailability();
+                if (typeof refreshTimeSlotAvailability === 'function') {
+                    refreshTimeSlotAvailability('reschedule');
+                } else if (typeof window.refreshTimeSlotAvailability === 'function') {
+                    window.refreshTimeSlotAvailability('reschedule');
+                }
+                if (typeof updateTimeAvailability === 'function') {
+                    updateTimeAvailability();
+                }
 
                 const selectedDate = this.value;
                 const suggestionId = 'rescheduleTimeSuggestionMessage';
@@ -10549,7 +11115,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 ];
 
                 for (const time of businessHours) {
-                    if (isTimeSlotAvailable(dateObj, time)) {
+                    let isAvailable = false;
+                    if (typeof isTimeSlotAvailable === 'function') {
+                        isAvailable = isTimeSlotAvailable(dateObj, time);
+                    } else if (typeof window.isTimeSlotAvailable === 'function') {
+                        isAvailable = window.isTimeSlotAvailable(dateObj, time);
+                    }
+                    if (isAvailable) {
                         availableSlots.push(time);
                     }
                 }
@@ -10593,9 +11165,22 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        initializeTimeSlotPicker('emergencyTimeSlots', 'emergencyTime', 'emergencyTimeSelected', 'emergency');
-        initializeTimeSlotPicker('rescheduleTimeSlots', 'rescheduleTime', 'rescheduleTimeSelected', 'reschedule');
-        updateTimeAvailability();
+        // Initialize time slot pickers - use window reference to ensure function is available
+        if (typeof window.initializeTimeSlotPicker === 'function') {
+            window.initializeTimeSlotPicker('emergencyTimeSlots', 'emergencyTime', 'emergencyTimeSelected', 'emergency');
+            window.initializeTimeSlotPicker('rescheduleTimeSlots', 'rescheduleTime', 'rescheduleTimeSelected', 'reschedule');
+        } else {
+            console.warn('initializeTimeSlotPicker not available yet, will retry...');
+            setTimeout(function() {
+                if (typeof window.initializeTimeSlotPicker === 'function') {
+                    window.initializeTimeSlotPicker('emergencyTimeSlots', 'emergencyTime', 'emergencyTimeSelected', 'emergency');
+                    window.initializeTimeSlotPicker('rescheduleTimeSlots', 'rescheduleTime', 'rescheduleTimeSelected', 'reschedule');
+                }
+            }, 100);
+        }
+        if (typeof updateTimeAvailability === 'function') {
+            updateTimeAvailability();
+        }
 });
 
 // ============================================
@@ -10676,8 +11261,8 @@ function isDayFullyBookedForDuration(dateObj, durationMinutes) {
                 if (end.getHours() > clinicCloseHour || (end.getHours() === clinicCloseHour && end.getMinutes() > 0)) {
                     continue;
                 }
-                // Inclusive overlap: treat boundary touching as conflict
-                const overlaps = busyIntervals.some(([bs, be]) => start <= be && end >= bs);
+                // Exclusive overlap: allow slots that end exactly when another starts (start < be && end > bs)
+                const overlaps = busyIntervals.some(([bs, be]) => start < be && end > bs);
                 if (!overlaps) {
                     // Found at least one free slot
                     return false;
@@ -10889,12 +11474,12 @@ class CustomDatePicker {
             let isDisabled = baseDisabled || isClosed;
 
             if (!isPastDate && !baseDisabled && !isClosed) {
-                const durationForCheck = typeof getRequestDuration === 'function' ? getRequestDuration() : 0;
-                if (durationForCheck > 0) {
-                    isFullyBooked = isDayFullyBookedForDuration(date, durationForCheck);
-                    if (isFullyBooked) {
-                        isDisabled = true;
-                    }
+                // Use minimum duration (15 minutes) for fully booked check
+                // A day should only be marked as "Full" if NO service can fit, not just the selected one
+                const minDuration = 15; // Minimum service duration in minutes
+                isFullyBooked = isDayFullyBookedForDuration(date, minDuration);
+                if (isFullyBooked) {
+                    isDisabled = true;
                 }
             }
 
@@ -11101,7 +11686,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const hours = Math.floor(duration / 60);
                     const mins = duration % 60;
                     const needText = `${hours > 0 ? hours + ' hr' + (hours > 1 ? 's' : '') : ''}${hours > 0 && mins > 0 ? ' ' : ''}${mins > 0 ? mins + ' min' : ''}`.trim() || 'selected duration';
-                    alert(`No continuous window available on this date for ${needText}. Please choose a different date.`);
+                    showPatientWarningModal(`No continuous window available on this date for ${needText}. Please choose a different date.`);
                     return false;
                 }
             }
@@ -12424,6 +13009,14 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <script>
+// GLOBAL: getAllGrids function - must be available immediately for button clicks
+function getAllGrids() {
+    return Array.from(document.querySelectorAll('.calendar-layout .calendar-grid'));
+}
+
+// Expose getAllGrids to window immediately so it's available for real-time updates
+window.getAllGrids = getAllGrids;
+
 // Style adjustments for Blocked Time display in the MAIN patient calendar
 // - "Clinic Closed" → ALL CAPS, bold, maroon
 // - "Blocked Off Time - Specific Time" → make the time maroon
@@ -12459,10 +13052,6 @@ document.addEventListener('DOMContentLoaded', function() {
             bodyTip = null;
         });
     });
-
-    function getAllGrids() {
-        return Array.from(document.querySelectorAll('.calendar-layout .calendar-grid'));
-    }
 
     function styleBlockedInMainCalendar() {
         const grids = getAllGrids();
@@ -12910,24 +13499,39 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }, 200);
 
+    // Expose applyAllFormatters to window immediately so it's available for real-time updates
+    window.applyAllFormatters = applyAllFormatters;
+
     // Initial passes - defer to improve initial load performance
     // Use requestIdleCallback if available, otherwise setTimeout
     if (window.requestIdleCallback) {
         requestIdleCallback(() => {
-            applyAllFormatters();
+            if (typeof applyAllFormatters === 'function') {
+                applyAllFormatters();
+            }
         }, { timeout: 500 });
     } else {
-        setTimeout(applyAllFormatters, 100);
+        setTimeout(() => {
+            if (typeof applyAllFormatters === 'function') {
+                applyAllFormatters();
+            }
+        }, 100);
     }
     
     // Also run on window load, but with debounce
     window.addEventListener('load', function() {
         if (window.requestIdleCallback) {
             requestIdleCallback(() => {
-                applyAllFormatters();
+                if (typeof applyAllFormatters === 'function') {
+                    applyAllFormatters();
+                }
             }, { timeout: 500 });
         } else {
-            setTimeout(applyAllFormatters, 200);
+            setTimeout(() => {
+                if (typeof applyAllFormatters === 'function') {
+                    applyAllFormatters();
+                }
+            }, 200);
         }
     }, { once: true });
 
@@ -13075,6 +13679,1175 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(hideLoadingOverlay, 3000);
 })();
 </script>
+
+<script>
+// Real-time update functions for patient calendar
+(function() {
+    'use strict';
+
+    // Helper function to parse datetime string as LOCAL time
+    function parseLocalDateTimeForUpdate(datetimeStr) {
+        if (!datetimeStr || typeof datetimeStr !== 'string') return null;
+        const parts = datetimeStr.split(' ');
+        if (parts.length !== 2) return null;
+        const [datePart, timePart] = parts;
+        const [year, month, day] = datePart.split('-').map(Number);
+        const [hours, minutes, seconds] = timePart.split(':').map(Number);
+        if (isNaN(year) || isNaN(month) || isNaN(day) || isNaN(hours) || isNaN(minutes)) return null;
+        return new Date(year, month - 1, day, hours, minutes, seconds || 0);
+    }
+
+    // Helper function to create a new appointment element in the calendar
+    function createAppointmentElement(appointmentData) {
+        if (!appointmentData || !appointmentData.id || !appointmentData.start_datetime) {
+            console.error('[Patient Real-Time] Cannot create appointment element - missing data');
+            return;
+        }
+
+        const aptDate = parseLocalDateTimeForUpdate(appointmentData.start_datetime);
+        if (!aptDate || isNaN(aptDate.getTime())) {
+            console.error('[Patient Real-Time] Cannot create appointment element - invalid date');
+            return;
+        }
+
+        const aptDay = aptDate.getDate();
+        const aptMonth = aptDate.getMonth();
+        const aptYear = aptDate.getFullYear();
+        const aptHour = aptDate.getHours();
+        const aptMinute = aptDate.getMinutes();
+        
+        // Format time for display
+        const timeStr = aptDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+        const serviceName = appointmentData.service?.service_name || appointmentData.reason_for_visit || 'Appointment';
+        const status = (appointmentData.status || 'Pending').toLowerCase();
+        const statusClass = status === 'confirmed' ? 'confirmed' : (status === 'pending' ? 'pending' : '');
+
+        // Find the calendar day element
+        const periodEl = document.getElementById('currentPeriodDisplay');
+        if (!periodEl) {
+            console.warn('[Patient Real-Time] Cannot find currentPeriodDisplay');
+            return;
+        }
+
+        const periodText = periodEl.textContent.trim();
+        const monthMap = {
+            january: 0, february: 1, march: 2, april: 3, may: 4, june: 5,
+            july: 6, august: 7, september: 8, october: 9, november: 10, december: 11
+        };
+
+        // Parse current period to get year and month
+        let currentYear, currentMonth;
+        const periodMatch = periodText.match(/^([A-Za-z]+)\s+(\d{4})/);
+        if (periodMatch) {
+            const monthName = periodMatch[1].toLowerCase();
+            currentYear = parseInt(periodMatch[2], 10);
+            currentMonth = monthMap[monthName];
+        } else {
+            // Try week/day view format
+            const weekMatch = periodText.match(/([A-Za-z]+)\s+(\d{1,2})\s*-\s*(?:([A-Za-z]+)\s*)?(\d{1,2}),\s*(\d{4})/);
+            if (weekMatch) {
+                const monthName = weekMatch[1].toLowerCase();
+                currentYear = parseInt(weekMatch[5], 10);
+                currentMonth = monthMap[monthName];
+            } else {
+                const dayMatch = periodText.match(/(?:[A-Za-z]+,\s*)?([A-Za-z]+)\s+(\d{1,2}),\s*(\d{4})/);
+                if (dayMatch) {
+                    const monthName = dayMatch[1].toLowerCase();
+                    currentYear = parseInt(dayMatch[3], 10);
+                    currentMonth = monthMap[monthName];
+                } else {
+                    console.warn('[Patient Real-Time] Cannot parse period:', periodText);
+                    return;
+                }
+            }
+        }
+
+        // Check if appointment is in current view
+        if (aptYear !== currentYear || aptMonth !== currentMonth) {
+            console.log('[Patient Real-Time] Appointment not in current view, skipping element creation');
+            // Still refresh upcoming list
+            refreshUpcomingAppointmentsList();
+            return;
+        }
+
+        // Find the calendar day element
+        const grids = document.querySelectorAll('.calendar-grid, .week-grid, .day-grid');
+        let targetDayElement = null;
+
+        grids.forEach(grid => {
+            const dayElements = grid.querySelectorAll('.calendar-day');
+            dayElements.forEach(dayEl => {
+                const dayNumberEl = dayEl.querySelector('.day-number, .date-number');
+                if (dayNumberEl) {
+                    const dayNumber = parseInt(dayNumberEl.textContent.trim(), 10);
+                    if (dayNumber === aptDay) {
+                        targetDayElement = dayEl;
+                    }
+                }
+            });
+        });
+
+        if (!targetDayElement) {
+            console.warn('[Patient Real-Time] Cannot find calendar day element for day', aptDay);
+            // Still refresh upcoming list
+            refreshUpcomingAppointmentsList();
+            return;
+        }
+
+        // Check if event-item already exists for this appointment
+        const existingItems = targetDayElement.querySelectorAll('.event-item');
+        let existingItem = null;
+        existingItems.forEach(item => {
+            const timeEl = item.querySelector('.event-time, .appointment-time');
+            if (timeEl) {
+                const itemTime = timeEl.textContent.trim();
+                // Check if time matches (allowing for range format)
+                if (itemTime.includes(timeStr.split(':')[0]) || itemTime.includes(timeStr)) {
+                    // Check if this is the same appointment
+                    const itemId = item.getAttribute('data-id') || item.getAttribute('data-appointment-id');
+                    if (itemId == appointmentData.id) {
+                        existingItem = item;
+                    }
+                }
+            }
+        });
+
+        if (existingItem) {
+            console.log('[Patient Real-Time] Appointment element already exists, updating instead');
+            updateAppointmentDOM(appointmentData);
+            return;
+        }
+
+        // Find or create day-events container
+        let dayEvents = targetDayElement.querySelector('.day-events');
+        if (!dayEvents) {
+            dayEvents = document.createElement('div');
+            dayEvents.className = 'day-events';
+            targetDayElement.appendChild(dayEvents);
+        }
+
+        // Calculate end time
+        let endDate = aptDate;
+        if (appointmentData.end_datetime) {
+            endDate = parseLocalDateTimeForUpdate(appointmentData.end_datetime);
+            if (!endDate || isNaN(endDate.getTime())) {
+                // Fallback to duration
+                const duration = parseInt(appointmentData.duration_minutes || 60, 10);
+                endDate = new Date(aptDate);
+                endDate.setMinutes(endDate.getMinutes() + duration);
+            }
+        } else {
+            // Use duration
+            const duration = parseInt(appointmentData.duration_minutes || 60, 10);
+            endDate = new Date(aptDate);
+            endDate.setMinutes(endDate.getMinutes() + duration);
+        }
+
+        const endTimeStr = endDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+
+        // Create the event item element
+        const eventItem = document.createElement('div');
+        eventItem.className = `event-item ${statusClass}`;
+        eventItem.setAttribute('data-id', appointmentData.id);
+        eventItem.setAttribute('data-appointment-id', appointmentData.id);
+
+        eventItem.innerHTML = `
+            <div class="event-time">${timeStr} - ${endTimeStr}</div>
+            <div class="event-title">${serviceName}</div>
+            ${appointmentData.notes ? `<div class="event-notes">${appointmentData.notes}</div>` : ''}
+        `;
+
+        // Insert the event item in the correct position (sorted by time)
+        const allEventItems = Array.from(dayEvents.querySelectorAll('.event-item'));
+        let inserted = false;
+        
+        for (let i = 0; i < allEventItems.length; i++) {
+            const item = allEventItems[i];
+            const itemTimeEl = item.querySelector('.event-time, .appointment-time');
+            if (itemTimeEl) {
+                const itemTime = itemTimeEl.textContent.trim();
+                // Parse time for comparison
+                const itemTimeMatch = itemTime.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+                if (itemTimeMatch) {
+                    let itemHour = parseInt(itemTimeMatch[1], 10);
+                    const itemMinute = parseInt(itemTimeMatch[2], 10);
+                    const itemAP = itemTimeMatch[3].toUpperCase();
+                    if (itemAP === 'PM' && itemHour !== 12) itemHour += 12;
+                    if (itemAP === 'AM' && itemHour === 12) itemHour = 0;
+                    
+                    const itemMinutes = itemHour * 60 + itemMinute;
+                    const aptMinutes = aptHour * 60 + aptMinute;
+                    
+                    if (aptMinutes < itemMinutes) {
+                        dayEvents.insertBefore(eventItem, item);
+                        inserted = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!inserted) {
+            dayEvents.appendChild(eventItem);
+        }
+
+        console.log('[Patient Real-Time] Created new appointment element in calendar');
+        
+        // Trigger formatters to style the new element
+        if (typeof applyAllFormatters === 'function') {
+            setTimeout(() => {
+                applyAllFormatters();
+            }, 50);
+        }
+    }
+
+    // Helper function to update appointment DOM elements
+    function updateAppointmentDOM(appointmentData) {
+        if (!appointmentData || !appointmentData.id) return;
+
+        const appointmentId = String(appointmentData.id);
+        const status = (appointmentData.status || 'Pending').toLowerCase();
+        
+        // Find all appointment elements with this ID - try multiple selectors
+        const selectors = [
+            `[data-appointment-id="${appointmentId}"]`,
+            `.event-item[data-id="${appointmentId}"]`,
+            `.day-appointment[data-id="${appointmentId}"]`,
+            `.week-appointment[data-id="${appointmentId}"]`,
+            `.upcoming-item[data-appointment-id="${appointmentId}"]`
+        ];
+        
+        let appointmentElements = [];
+        selectors.forEach(selector => {
+            try {
+                const elements = document.querySelectorAll(selector);
+                elements.forEach(el => appointmentElements.push(el));
+            } catch(e) {
+                // Ignore invalid selectors
+            }
+        });
+        
+        // If no elements found by ID, try to find by matching date/time and service name
+        if (appointmentElements.length === 0 && appointmentData.start_datetime) {
+            const aptDate = parseLocalDateTimeForUpdate(appointmentData.start_datetime);
+            if (aptDate && !isNaN(aptDate.getTime())) {
+                const aptDay = aptDate.getDate();
+                const aptMonth = aptDate.getMonth();
+                const aptYear = aptDate.getFullYear();
+                const aptTimeStr = aptDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+                const serviceName = appointmentData.service?.service_name || appointmentData.reason_for_visit || '';
+                
+                // Find event items by matching date, time and title
+                const allEventItems = document.querySelectorAll('.event-item, .day-appointment, .week-appointment');
+                allEventItems.forEach(function(item) {
+                    // Find the calendar day this item belongs to
+                    const dayElement = item.closest('.calendar-day, .day-cell, .week-cell');
+                    if (!dayElement) return;
+                    
+                    // Try to get the day number from the day element
+                    const dayNumberEl = dayElement.querySelector('.day-number, .date-number');
+                    if (!dayNumberEl) return;
+                    
+                    const dayNumber = parseInt(dayNumberEl.textContent.trim(), 10);
+                    if (isNaN(dayNumber)) return;
+                    
+                    // Check if this matches the appointment date
+                    const periodEl = document.getElementById('currentPeriodDisplay');
+                    if (periodEl) {
+                        const periodText = periodEl.textContent.trim();
+                        // Try to extract month/year from period display
+                        const monthMap = {
+                            january: 0, february: 1, march: 2, april: 3, may: 4, june: 5,
+                            july: 6, august: 7, september: 8, october: 9, november: 10, december: 11
+                        };
+                        const periodMatch = periodText.match(/^([A-Za-z]+)\s+(\d{4})/);
+                        if (periodMatch) {
+                            const monthName = periodMatch[1].toLowerCase();
+                            const year = parseInt(periodMatch[2], 10);
+                            if (monthMap[monthName] === aptMonth && year === aptYear && dayNumber === aptDay) {
+                                const timeEl = item.querySelector('.event-time, .appointment-time');
+                                const titleEl = item.querySelector('.event-title, .appointment-title');
+                                
+                                if (timeEl) {
+                                    const itemTime = timeEl.textContent.trim();
+                                    // Match by time (check if times are similar)
+                                    if (itemTime.includes(aptTimeStr.split(':')[0]) || 
+                                        itemTime.includes(aptTimeStr.split(' ')[0])) {
+                                        appointmentElements.push(item);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        
+        // Remove duplicates
+        appointmentElements = [...new Set(appointmentElements)];
+        
+        if (appointmentElements.length > 0) {
+            appointmentElements.forEach(function(element) {
+                // Update status classes
+                element.classList.remove('pending', 'confirmed', 'completed', 'cancelled', 'missed');
+                element.classList.add(status);
+                
+                // Update status badge if it exists
+                const statusBadge = element.querySelector('.status-badge');
+                if (statusBadge) {
+                    statusBadge.textContent = appointmentData.status || 'Pending';
+                    statusBadge.className = 'status-badge ' + status;
+                }
+                
+                // Update title if service name changed
+                const titleEl = element.querySelector('.event-title, .appointment-title, .upcoming-title');
+                if (titleEl) {
+                    if (appointmentData.service && appointmentData.service.service_name) {
+                        titleEl.textContent = appointmentData.service.service_name;
+                    } else if (appointmentData.reason_for_visit) {
+                        titleEl.textContent = appointmentData.reason_for_visit;
+                    }
+                }
+            });
+        }
+
+        // Force a re-render by triggering formatters
+        if (typeof applyAllFormatters === 'function') {
+            // Use setTimeout to ensure DOM updates are processed
+            setTimeout(() => {
+                applyAllFormatters();
+            }, 100);
+        }
+    }
+
+    // Function to refresh upcoming appointments list
+    function refreshUpcomingAppointmentsList() {
+        const upcomingList = document.getElementById('upcomingAppointments');
+        if (!upcomingList || !window.patientAppointments) return;
+
+        // Clear existing items (except empty state)
+        const existingItems = upcomingList.querySelectorAll('.upcoming-item');
+        existingItems.forEach(item => item.remove());
+
+        // Get upcoming appointments (future appointments - include all statuses so cancelled ones are removed)
+        const now = new Date();
+        const upcoming = window.patientAppointments
+            .filter(apt => {
+                if (!apt.start_datetime) return false;
+                const aptDate = parseLocalDateTimeForUpdate(apt.start_datetime);
+                if (!aptDate || isNaN(aptDate.getTime())) return false;
+                const status = (apt.status || 'Pending').toLowerCase();
+                // Include pending, confirmed, and also cancelled (so they can be removed from list)
+                // But exclude completed and missed
+                return aptDate >= now && (status === 'pending' || status === 'confirmed' || status === 'cancelled');
+            })
+            .filter(apt => {
+                // Filter out cancelled from display (they should be removed, not shown)
+                const status = (apt.status || 'Pending').toLowerCase();
+                return status !== 'cancelled';
+            })
+            .sort((a, b) => {
+                const dateA = parseLocalDateTimeForUpdate(a.start_datetime);
+                const dateB = parseLocalDateTimeForUpdate(b.start_datetime);
+                return (dateA || new Date(0)) - (dateB || new Date(0));
+            })
+            .slice(0, 15); // Limit to 15
+
+        if (upcoming.length === 0) {
+            // Show empty state
+            const emptyState = document.createElement('div');
+            emptyState.className = 'text-center text-muted py-3 empty-state';
+            emptyState.innerHTML = '<i class="bi bi-calendar-x mb-2"></i><p class="mb-0">No upcoming appointments</p>';
+            upcomingList.appendChild(emptyState);
+            return;
+        }
+
+        // Create appointment items
+        upcoming.forEach(apt => {
+            const aptDate = parseLocalDateTimeForUpdate(apt.start_datetime);
+            if (!aptDate || isNaN(aptDate.getTime())) return;
+
+            const status = (apt.status || 'Pending').toLowerCase();
+            const statusClass = status === 'confirmed' ? 'confirmed' : (status === 'pending' ? 'pending' : '');
+
+            const item = document.createElement('div');
+            item.className = `upcoming-item ${statusClass}`;
+            item.setAttribute('data-appointment-id', apt.id);
+
+            const dateDay = aptDate.getDate();
+            const dateMonth = aptDate.toLocaleDateString('en-US', { month: 'short' });
+            const timeStr = aptDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+            const serviceName = apt.service?.service_name || apt.reason_for_visit || 'Appointment';
+
+            item.innerHTML = `
+                <div class="upcoming-date">
+                    <span class="date-day">${dateDay}</span>
+                    <span class="date-month">${dateMonth}</span>
+                </div>
+                <div class="upcoming-info">
+                    <div class="upcoming-title">${serviceName}</div>
+                    <div class="upcoming-meta">
+                        <div class="upcoming-time">
+                            <i class="bi bi-clock me-1"></i>${timeStr}
+                        </div>
+                        <span class="status-badge ${status}">${apt.status || 'Pending'}</span>
+                    </div>
+                </div>
+            `;
+
+            upcomingList.appendChild(item);
+        });
+    }
+
+    // Function to update appointment in calendar
+    function updateAppointmentInCalendar(appointmentData) {
+        console.log('[Patient Real-Time] Updating appointment:', appointmentData);
+        
+        if (!appointmentData || !appointmentData.id) {
+            console.error('[Patient Real-Time] Invalid appointment data');
+            return;
+        }
+
+        // Ensure status is set
+        if (!appointmentData.status || appointmentData.status === '') {
+            appointmentData.status = 'Pending';
+        }
+
+        const status = (appointmentData.status || 'Pending').toLowerCase();
+        const isCancelled = status === 'cancelled';
+
+        // Check if this is a new appointment (not in arrays yet)
+        let isNewAppointment = false;
+        if (window.allAppointments) {
+            isNewAppointment = !window.allAppointments.find(apt => apt.id == appointmentData.id);
+        }
+
+        // Update in patientAppointments if it's the current patient's appointment
+        if (window.patientAppointments && window.currentPatientId) {
+            const index = window.patientAppointments.findIndex(apt => apt.id == appointmentData.id);
+            if (index !== -1) {
+                if (isCancelled) {
+                    // Remove cancelled appointments from patient list
+                    window.patientAppointments.splice(index, 1);
+                } else {
+                    window.patientAppointments[index] = { ...window.patientAppointments[index], ...appointmentData };
+                }
+            } else if (appointmentData.patient_id == window.currentPatientId && !isCancelled) {
+                // Add new appointment if it belongs to current patient and is not cancelled
+                window.patientAppointments.push(appointmentData);
+                isNewAppointment = true;
+            }
+        }
+
+        // Update in allAppointments
+        if (window.allAppointments) {
+            const index = window.allAppointments.findIndex(apt => apt.id == appointmentData.id);
+            if (index !== -1) {
+                if (isCancelled) {
+                    // Remove cancelled appointments from all appointments
+                    window.allAppointments.splice(index, 1);
+                } else {
+                    window.allAppointments[index] = { ...window.allAppointments[index], ...appointmentData };
+                }
+            } else if (!isCancelled) {
+                // Add new appointment if not cancelled
+                window.allAppointments.push(appointmentData);
+                isNewAppointment = true;
+            }
+        }
+
+        // If cancelled, remove from DOM (pass appointment data so it can find elements)
+        if (isCancelled) {
+            removeAppointmentFromCalendar(appointmentData.id, appointmentData);
+        } else {
+            // For new appointments, create DOM elements
+            // For existing appointments, try to update DOM elements first
+            if (isNewAppointment) {
+                console.log('[Patient Real-Time] New appointment added, creating calendar element');
+                createAppointmentElement(appointmentData);
+            } else {
+                // Update existing DOM elements
+                updateAppointmentDOM(appointmentData);
+            }
+        }
+
+        // Refresh upcoming appointments list
+        refreshUpcomingAppointmentsList();
+
+        // Trigger calendar refresh without page reload
+        // This is critical for new appointments - it matches appointments to time slots
+        if (typeof applyAllFormatters === 'function') {
+            // Use setTimeout to ensure arrays are updated first
+            setTimeout(() => {
+                applyAllFormatters();
+            }, 100);
+        }
+        
+        console.log('[Patient Real-Time] Appointment updated successfully. New status:', appointmentData.status, 'Is new:', isNewAppointment);
+    }
+
+    // Function to remove appointment from calendar
+    function removeAppointmentFromCalendar(appointmentId, appointmentDataParam = null) {
+        console.log('[Patient Real-Time] Removing appointment:', appointmentId);
+        
+        const idStr = String(appointmentId);
+        
+        // First, find the appointment data to get date/time for matching
+        // Use provided data if available, otherwise try to find it in arrays
+        let appointmentData = appointmentDataParam;
+        if (!appointmentData && window.allAppointments) {
+            appointmentData = window.allAppointments.find(apt => String(apt.id) === idStr);
+        }
+        if (!appointmentData && window.patientAppointments) {
+            appointmentData = window.patientAppointments.find(apt => String(apt.id) === idStr);
+        }
+        
+        // Remove from arrays
+        if (window.patientAppointments) {
+            const beforeCount = window.patientAppointments.length;
+            window.patientAppointments = window.patientAppointments.filter(apt => String(apt.id) != idStr);
+            const afterCount = window.patientAppointments.length;
+            console.log(`[Patient Real-Time] Removed from patientAppointments: ${beforeCount} -> ${afterCount}`);
+        }
+
+        if (window.allAppointments) {
+            const beforeCount = window.allAppointments.length;
+            window.allAppointments = window.allAppointments.filter(apt => String(apt.id) != idStr);
+            const afterCount = window.allAppointments.length;
+            console.log(`[Patient Real-Time] Removed from allAppointments: ${beforeCount} -> ${afterCount}`);
+        }
+
+        // Remove from DOM - try multiple selectors by ID first
+        const selectors = [
+            `[data-appointment-id="${idStr}"]`,
+            `.event-item[data-id="${idStr}"]`,
+            `.day-appointment[data-id="${idStr}"]`,
+            `.week-appointment[data-id="${idStr}"]`,
+            `.upcoming-item[data-appointment-id="${idStr}"]`
+        ];
+        
+        let removedCount = 0;
+        selectors.forEach(selector => {
+            try {
+                const elements = document.querySelectorAll(selector);
+                elements.forEach(element => {
+                    element.remove();
+                    removedCount++;
+                });
+            } catch(e) {
+                console.warn('[Patient Real-Time] Error removing elements with selector:', selector, e);
+            }
+        });
+        
+        // If no elements found by ID and we have appointment data, try matching by date/time
+        if (removedCount === 0 && appointmentData && appointmentData.start_datetime) {
+            const aptDate = parseLocalDateTimeForUpdate(appointmentData.start_datetime);
+            if (aptDate && !isNaN(aptDate.getTime())) {
+                const aptDay = aptDate.getDate();
+                const aptMonth = aptDate.getMonth();
+                const aptYear = aptDate.getFullYear();
+                const aptTimeStr = aptDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+                const serviceName = appointmentData.service?.service_name || appointmentData.reason_for_visit || '';
+                
+                // Find event items by matching date and time
+                const allEventItems = document.querySelectorAll('.event-item, .day-appointment, .week-appointment');
+                allEventItems.forEach(function(item) {
+                    // Find the calendar day this item belongs to
+                    const dayElement = item.closest('.calendar-day, .day-cell, .week-cell');
+                    if (!dayElement) return;
+                    
+                    // Try to get the day number from the day element
+                    const dayNumberEl = dayElement.querySelector('.day-number, .date-number');
+                    if (!dayNumberEl) return;
+                    
+                    const dayNumber = parseInt(dayNumberEl.textContent.trim(), 10);
+                    if (isNaN(dayNumber)) return;
+                    
+                    // Check if this matches the appointment date
+                    const periodEl = document.getElementById('currentPeriodDisplay');
+                    if (periodEl) {
+                        const periodText = periodEl.textContent.trim();
+                        // Try to extract month/year from period display
+                        const monthMap = {
+                            january: 0, february: 1, march: 2, april: 3, may: 4, june: 5,
+                            july: 6, august: 7, september: 8, october: 9, november: 10, december: 11
+                        };
+                        const periodMatch = periodText.match(/^([A-Za-z]+)\s+(\d{4})/);
+                        if (periodMatch) {
+                            const monthName = periodMatch[1].toLowerCase();
+                            const year = parseInt(periodMatch[2], 10);
+                            if (monthMap[monthName] === aptMonth && year === aptYear && dayNumber === aptDay) {
+                                const timeEl = item.querySelector('.event-time, .appointment-time');
+                                const titleEl = item.querySelector('.event-title, .appointment-title');
+                                
+                                if (timeEl) {
+                                    const itemTime = timeEl.textContent.trim();
+                                    // Match by time (check if times are similar)
+                                    if (itemTime.includes(aptTimeStr.split(':')[0]) || 
+                                        itemTime.includes(aptTimeStr.split(' ')[0]) ||
+                                        (serviceName && titleEl && titleEl.textContent.includes(serviceName))) {
+                                        item.remove();
+                                        removedCount++;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        
+        console.log(`[Patient Real-Time] Removed ${removedCount} DOM elements`);
+
+        // Refresh upcoming appointments list
+        refreshUpcomingAppointmentsList();
+
+        // Trigger calendar refresh without page reload
+        // The calendar is generated from window.allAppointments, so removing from array should be enough
+        // But we need to regenerate the calendar view
+        if (typeof applyAllFormatters === 'function') {
+            // Use setTimeout to ensure DOM updates are processed first
+            setTimeout(() => {
+                applyAllFormatters();
+            }, 100);
+        }
+        
+        console.log('[Patient Real-Time] Appointment removed successfully');
+    }
+
+    // Function to refresh appointments
+    function refreshAppointments(data) {
+        console.log('[Patient Real-Time] Refreshing appointments:', data);
+        
+        if (data && data.appointments && Array.isArray(data.appointments)) {
+            // Update appointments arrays and DOM
+            data.appointments.forEach(apt => {
+                // Check if this is a new appointment BEFORE adding to arrays
+                let isNew = false;
+                if (window.allAppointments) {
+                    isNew = !window.allAppointments.find(a => a.id == apt.id);
+                } else {
+                    isNew = true;
+                }
+
+                // Update in patientAppointments if it's the current patient's appointment
+                if (window.patientAppointments && apt.patient_id == window.currentPatientId) {
+                    const index = window.patientAppointments.findIndex(a => a.id == apt.id);
+                    if (index !== -1) {
+                        window.patientAppointments[index] = apt;
+                    } else {
+                        window.patientAppointments.push(apt);
+                    }
+                }
+
+                // Update in allAppointments
+                if (window.allAppointments) {
+                    const index = window.allAppointments.findIndex(a => a.id == apt.id);
+                    if (index !== -1) {
+                        window.allAppointments[index] = apt;
+                    } else {
+                        window.allAppointments.push(apt);
+                    }
+                }
+
+                if (!isNew) {
+                    // Update existing DOM elements
+                    updateAppointmentDOM(apt);
+                } else {
+                    console.log('[Patient Real-Time] New appointment in refreshAppointments, will be matched by applyAllFormatters');
+                }
+            });
+
+            // Refresh upcoming appointments list
+            refreshUpcomingAppointmentsList();
+        }
+
+        // Trigger calendar refresh without page reload
+        // This is critical for new appointments - it matches appointments to time slots
+        if (typeof applyAllFormatters === 'function') {
+            // Use setTimeout to ensure arrays are updated first
+            setTimeout(() => {
+                applyAllFormatters();
+            }, 100);
+        }
+    }
+
+    // Function to load appointments (no page reload needed - just refresh formatters)
+    function loadAppointments() {
+        console.log('[Patient Real-Time] Loading appointments - refreshing formatters');
+        if (typeof applyAllFormatters === 'function') {
+            applyAllFormatters();
+        }
+    }
+
+    // Helper function to create a blocked time event element
+    function createBlockedTimeElement(blockedTime) {
+        // Use window.parseLocalDateTime to ensure it's accessible (MUST use window, not local scope)
+        const parseFn = window.parseLocalDateTime;
+        if (!parseFn || typeof parseFn !== 'function') {
+            console.error('[Patient Real-Time] parseLocalDateTime function not found on window');
+            return null;
+        }
+        const startDate = parseFn(blockedTime.start_datetime);
+        const endDate = parseFn(blockedTime.end_datetime);
+        if (!startDate || !endDate) return null;
+
+        const timeStr = startDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+        const endTimeStr = endDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+        
+        const isFullDayClosure = startDate.getHours() === 0 && startDate.getMinutes() === 0 &&
+                                  endDate.getHours() === 23 && endDate.getMinutes() === 59 &&
+                                  startDate.toDateString() === endDate.toDateString();
+
+        const eventItem = document.createElement('div');
+        eventItem.className = `event-item blocked${isFullDayClosure ? ' full-day-closure' : ''}`;
+        eventItem.setAttribute('data-id', blockedTime.id);
+        eventItem.setAttribute('data-blocked-time-id', blockedTime.id);
+
+        const title = isFullDayClosure ? 'CLINIC CLOSED' : (blockedTime.title || 'Blocked Time');
+        eventItem.innerHTML = `
+            ${!isFullDayClosure ? `<div class="event-time">${timeStr} - ${endTimeStr}</div>` : ''}
+            <div class="event-title">${title}</div>
+            ${blockedTime.notes ? `<div class="event-notes">${blockedTime.notes}</div>` : ''}
+        `;
+
+        return eventItem;
+    }
+
+    // Helper function to find the correct day element for a blocked time
+    function findDayElementForBlockedTime(blockedTime) {
+        // Use window.parseLocalDateTime to ensure it's accessible (MUST use window, not local scope)
+        const parseFn = window.parseLocalDateTime;
+        if (!parseFn || typeof parseFn !== 'function') {
+            console.error('[Patient Real-Time] parseLocalDateTime function not found on window');
+            return null;
+        }
+        const startDate = parseFn(blockedTime.start_datetime);
+        if (!startDate) return null;
+
+        const year = startDate.getFullYear();
+        const month = startDate.getMonth();
+        const day = startDate.getDate();
+
+        // Use window.getAllGrids to ensure it's accessible (MUST use window, not local scope)
+        let grids;
+        const getAllGridsFn = window.getAllGrids;
+        
+        if (getAllGridsFn && typeof getAllGridsFn === 'function') {
+            try {
+                grids = getAllGridsFn();
+            } catch (e) {
+                console.warn('[Patient Real-Time] Error calling getAllGrids, using fallback:', e);
+                grids = Array.from(document.querySelectorAll('.calendar-layout .calendar-grid'));
+            }
+        } else {
+            // Fallback: direct querySelector (function might not be loaded yet)
+            console.warn('[Patient Real-Time] getAllGrids function not found on window, using fallback');
+            grids = Array.from(document.querySelectorAll('.calendar-layout .calendar-grid'));
+        }
+        
+        if (!grids || !grids.length) {
+            console.warn('[Patient Real-Time] No calendar grids found');
+            return null;
+        }
+        
+        for (const grid of grids) {
+            const dayElements = grid.querySelectorAll('.calendar-day');
+            for (const dayEl of dayElements) {
+                const dayNumEl = dayEl.querySelector('.day-number');
+                if (!dayNumEl) continue;
+                
+                const dayNum = parseInt(dayNumEl.textContent.trim(), 10);
+                if (isNaN(dayNum)) continue;
+
+                // Get current period to determine year/month
+                const periodEl = document.getElementById('currentPeriodDisplay');
+                if (!periodEl) continue;
+                
+                const periodText = periodEl.textContent.trim();
+                const monthMap = {
+                    january: 0, february: 1, march: 2, april: 3, may: 4, june: 5,
+                    july: 6, august: 7, september: 8, october: 9, november: 10, december: 11
+                };
+                const m = periodText.match(/^([A-Za-z]+)\s+(\d{4})$/);
+                if (m) {
+                    const monthName = m[1].toLowerCase();
+                    const periodYear = parseInt(m[2], 10);
+                    const periodMonth = monthMap[monthName];
+                    
+                    if (periodYear === year && periodMonth === month && dayNum === day) {
+                        return dayEl;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    // Function to refresh blocked times
+    function refreshBlockedTimes(blockedTimeData) {
+        console.log('[Patient Real-Time] Refreshing blocked times:', blockedTimeData);
+        
+        if (!blockedTimeData) {
+            console.warn('[Patient Real-Time] No blocked time data provided');
+            return;
+        }
+
+        // Ensure window.blockedTimes exists and is an array
+        if (!window.blockedTimes) {
+            window.blockedTimes = [];
+        }
+        if (!Array.isArray(window.blockedTimes)) {
+            window.blockedTimes = Object.values(window.blockedTimes || []);
+        }
+
+        // Normalize blocked time data to match expected format
+        const normalizedBlockedTime = {
+            id: blockedTimeData.id,
+            title: blockedTimeData.title || 'Blocked Time',
+            start_datetime: blockedTimeData.start_datetime,
+            end_datetime: blockedTimeData.end_datetime,
+            duration_minutes: blockedTimeData.duration_minutes,
+            notes: blockedTimeData.notes || null,
+        };
+
+        // Check if blocked time is in the past - if so, remove it instead of adding/updating
+        const parseFn = window.parseLocalDateTime;
+        if (parseFn && typeof parseFn === 'function') {
+            const endDate = parseFn(normalizedBlockedTime.end_datetime);
+            const now = typeof getServerTime === 'function' ? getServerTime() : new Date();
+            if (endDate && !isNaN(endDate.getTime()) && endDate < now) {
+                // Blocked time is in the past - remove it from the array and DOM
+                const index = window.blockedTimes.findIndex(bt => bt.id == normalizedBlockedTime.id);
+                if (index !== -1) {
+                    window.blockedTimes.splice(index, 1);
+                    console.log('[Patient Real-Time] Removed past blocked time:', normalizedBlockedTime.id);
+                }
+                const existingElement = document.querySelector(`[data-blocked-time-id="${normalizedBlockedTime.id}"]`);
+                if (existingElement) {
+                    existingElement.remove();
+                }
+                // Re-render calendar to reflect the removal
+                if (typeof renderCalendar === 'function') {
+                    renderCalendar();
+                }
+                return;
+            }
+        }
+
+        // Find existing blocked time by ID
+        const index = window.blockedTimes.findIndex(bt => bt.id == normalizedBlockedTime.id);
+        
+        if (index !== -1) {
+            // Update existing blocked time
+            window.blockedTimes[index] = normalizedBlockedTime;
+            console.log('[Patient Real-Time] Updated blocked time:', normalizedBlockedTime.id);
+        } else {
+            // Add new blocked time
+            window.blockedTimes.push(normalizedBlockedTime);
+            console.log('[Patient Real-Time] Added new blocked time:', normalizedBlockedTime.id);
+        }
+
+        // Remove existing DOM element if it exists
+        const existingElement = document.querySelector(`[data-blocked-time-id="${normalizedBlockedTime.id}"]`);
+        if (existingElement) {
+            existingElement.remove();
+        }
+
+        // Create and insert new DOM element (only if not in the past)
+        const dayEl = findDayElementForBlockedTime(normalizedBlockedTime);
+        if (dayEl) {
+            const eventItem = createBlockedTimeElement(normalizedBlockedTime);
+            if (eventItem) {
+                const dayEvents = dayEl.querySelector('.day-events') || (() => {
+                    const de = document.createElement('div');
+                    de.className = 'day-events';
+                    dayEl.appendChild(de);
+                    return de;
+                })();
+                
+                // Insert in correct time order
+                const allEvents = Array.from(dayEvents.querySelectorAll('.event-item'));
+                const startDate = (parseFn && typeof parseFn === 'function') ? parseFn(normalizedBlockedTime.start_datetime) : null;
+                if (startDate) {
+                    const startMinutes = startDate.getHours() * 60 + startDate.getMinutes();
+                    let inserted = false;
+                    for (const evt of allEvents) {
+                        const timeEl = evt.querySelector('.event-time');
+                        if (timeEl) {
+                            const timeText = timeEl.textContent.trim();
+                            const m = timeText.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+                            if (m) {
+                                let h = parseInt(m[1], 10);
+                                const min = parseInt(m[2], 10);
+                                const ap = m[3].toUpperCase();
+                                if (ap === 'PM' && h !== 12) h += 12;
+                                if (ap === 'AM' && h === 12) h = 0;
+                                const evtMinutes = h * 60 + min;
+                                if (startMinutes < evtMinutes) {
+                                    dayEvents.insertBefore(eventItem, evt);
+                                    inserted = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (!inserted) {
+                        dayEvents.appendChild(eventItem);
+                    }
+                } else {
+                    dayEvents.appendChild(eventItem);
+                }
+            }
+        }
+
+        // Trigger calendar refresh without page reload
+        const applyFn = window.applyAllFormatters || (typeof applyAllFormatters === 'function' ? applyAllFormatters : null);
+        if (applyFn) {
+            console.log('[Patient Real-Time] Refreshing calendar display');
+            setTimeout(() => applyFn(), 100);
+        } else {
+            console.warn('[Patient Real-Time] applyAllFormatters function not found');
+        }
+    }
+
+    // Function to remove blocked time from calendar
+    function removeBlockedTimeFromCalendar(blockedTimeId) {
+        console.log('[Patient Real-Time] Removing blocked time:', blockedTimeId);
+        
+        if (!blockedTimeId) {
+            console.warn('[Patient Real-Time] No blocked time ID provided');
+            return;
+        }
+
+        // Remove from DOM first
+        const existingElements = document.querySelectorAll(`[data-blocked-time-id="${blockedTimeId}"]`);
+        existingElements.forEach(el => {
+            el.remove();
+            console.log('[Patient Real-Time] Removed blocked time element from DOM:', blockedTimeId);
+        });
+
+        // Ensure window.blockedTimes exists and is an array
+        if (!window.blockedTimes) {
+            window.blockedTimes = [];
+        }
+        if (!Array.isArray(window.blockedTimes)) {
+            window.blockedTimes = Object.values(window.blockedTimes || []);
+        }
+
+        // Remove blocked time by ID from array
+        const beforeCount = window.blockedTimes.length;
+        window.blockedTimes = window.blockedTimes.filter(bt => bt.id != blockedTimeId);
+        const afterCount = window.blockedTimes.length;
+        
+        if (beforeCount > afterCount) {
+            console.log('[Patient Real-Time] Removed blocked time from array:', blockedTimeId, `(${beforeCount - afterCount} removed)`);
+        } else {
+            // This is not necessarily an error - the blocked time might have been removed already
+            // or might not have been loaded yet. Just log it for debugging.
+            console.log('[Patient Real-Time] Blocked time not found in array (may have been removed already):', blockedTimeId);
+        }
+
+        // Trigger calendar refresh without page reload
+        const applyFn = window.applyAllFormatters || (typeof applyAllFormatters === 'function' ? applyAllFormatters : null);
+        if (applyFn) {
+            console.log('[Patient Real-Time] Refreshing calendar display after removal');
+            setTimeout(() => applyFn(), 100);
+        } else {
+            console.warn('[Patient Real-Time] applyAllFormatters function not found');
+        }
+    }
+
+    // Periodic cleanup function to remove past blocked times
+    function cleanupPastBlockedTimes() {
+        if (!window.blockedTimes || !Array.isArray(window.blockedTimes)) {
+            return;
+        }
+        
+        const now = typeof getServerTime === 'function' ? getServerTime() : new Date();
+        const parseFn = window.parseLocalDateTime;
+        if (!parseFn || typeof parseFn !== 'function') {
+            return;
+        }
+        
+        const beforeCount = window.blockedTimes.length;
+        const pastBlockedTimes = [];
+        
+        // Find past blocked times
+        window.blockedTimes.forEach(function(blocked) {
+            if (!blocked || !blocked.end_datetime) return;
+            const endDate = parseFn(blocked.end_datetime);
+            if (endDate && !isNaN(endDate.getTime()) && endDate < now) {
+                pastBlockedTimes.push(blocked.id);
+            }
+        });
+        
+        // Remove past blocked times from array
+        if (pastBlockedTimes.length > 0) {
+            window.blockedTimes = window.blockedTimes.filter(function(bt) {
+                return !pastBlockedTimes.includes(bt.id);
+            });
+            
+            // Remove from DOM
+            pastBlockedTimes.forEach(function(blockedId) {
+                const element = document.querySelector(`[data-blocked-time-id="${blockedId}"]`);
+                if (element) {
+                    element.remove();
+                }
+            });
+            
+            const afterCount = window.blockedTimes.length;
+            if (beforeCount > afterCount) {
+                console.log('[Patient Calendar] Cleaned up', beforeCount - afterCount, 'past blocked times');
+                // Re-render calendar if function is available
+                if (typeof renderCalendar === 'function') {
+                    renderCalendar();
+                } else if (typeof applyAllFormatters === 'function') {
+                    setTimeout(() => applyAllFormatters(), 100);
+                }
+            }
+        }
+    }
+    
+    // Run cleanup every minute
+    setInterval(cleanupPastBlockedTimes, 60000);
+    // Also run cleanup immediately on page load
+    setTimeout(cleanupPastBlockedTimes, 5000);
+
+    // Expose functions to global scope for real-time updates
+    // (applyAllFormatters is already exposed above when defined)
+    // (getAllGrids is already exposed globally at the top of the script)
+    window.updateAppointmentInCalendar = updateAppointmentInCalendar;
+    window.refreshAppointments = refreshAppointments;
+    window.removeAppointmentFromCalendar = removeAppointmentFromCalendar;
+    window.loadAppointments = loadAppointments;
+    window.refreshBlockedTimes = refreshBlockedTimes;
+    window.removeBlockedTimeFromCalendar = removeBlockedTimeFromCalendar;
+    window.cleanupPastBlockedTimes = cleanupPastBlockedTimes;
+    // Note: getAllGrids is already exposed globally, no need to reassign here
+    
+    // Also listen directly for blocked time events as a backup
+    window.addEventListener('blockedTimeUpdated', function(event) {
+        console.log('[Patient Calendar] Direct event listener received blockedTimeUpdated:', event.detail);
+        const data = event.detail;
+        
+        if (data.action === 'deleted' && data.blocked_time && data.blocked_time.id) {
+            removeBlockedTimeFromCalendar(data.blocked_time.id);
+        } else if (data.blocked_time) {
+            refreshBlockedTimes(data.blocked_time);
+        }
+    });
+})();
+
+// Patient Modal Functions
+function showPatientWarningModal(message) {
+    document.getElementById('patientWarningMessage').textContent = message;
+    const modal = new bootstrap.Modal(document.getElementById('patientWarningModal'));
+    modal.show();
+}
+
+function showPatientErrorModal(message) {
+    document.getElementById('patientErrorMessage').textContent = message;
+    const modal = new bootstrap.Modal(document.getElementById('patientErrorModal'));
+    modal.show();
+}
+
+function showPatientSuccessModal(message) {
+    document.getElementById('patientSuccessMessage').textContent = message;
+    const modal = new bootstrap.Modal(document.getElementById('patientSuccessModal'));
+    modal.show();
+}
+</script>
+
+<!-- Patient Error Modal -->
+<div class="modal fade" id="patientErrorModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; overflow: hidden;">
+            <div class="modal-header border-0 pb-0" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                <h5 class="modal-title text-white">
+                    <i class="bi bi-exclamation-circle-fill me-2"></i>Error
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-4">
+                    <div class="mx-auto mb-3" style="width: 80px; height: 80px; background: linear-gradient(135deg, #fee2e2, #fecaca); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-x-circle-fill text-danger" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <p class="text-muted mb-0" id="patientErrorMessage" style="font-size: 1.1rem; white-space: pre-line;"></p>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-danger w-100" data-bs-dismiss="modal">
+                    <i class="bi bi-check-circle me-1"></i>OK
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Patient Success Modal -->
+<div class="modal fade" id="patientSuccessModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; overflow: hidden;">
+            <div class="modal-header border-0 pb-0" style="background: linear-gradient(135deg, #10b981, #059669);">
+                <h5 class="modal-title text-white">
+                    <i class="bi bi-check-circle-fill me-2"></i>Success
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-4">
+                    <div class="mx-auto mb-3" style="width: 80px; height: 80px; background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-check-circle-fill text-success" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <p class="text-muted mb-0" id="patientSuccessMessage" style="font-size: 1.1rem; white-space: pre-line;"></p>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-success w-100" data-bs-dismiss="modal">
+                    <i class="bi bi-check-circle me-1"></i>OK
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Dark Mode Styles for Patient Modals */
+[data-theme="dark"] #patientWarningModal .modal-content,
+[data-theme="dark"] #patientErrorModal .modal-content,
+[data-theme="dark"] #patientSuccessModal .modal-content {
+    background-color: #1e293b !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] #patientWarningModal .modal-body,
+[data-theme="dark"] #patientErrorModal .modal-body,
+[data-theme="dark"] #patientSuccessModal .modal-body {
+    background-color: #1e293b !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] #patientWarningModal .modal-footer,
+[data-theme="dark"] #patientErrorModal .modal-footer,
+[data-theme="dark"] #patientSuccessModal .modal-footer {
+    background-color: #1e293b !important;
+    border-top: 1px solid #334155 !important;
+}
+
+[data-theme="dark"] #patientWarningModal .text-muted,
+[data-theme="dark"] #patientErrorModal .text-muted,
+[data-theme="dark"] #patientSuccessModal .text-muted {
+    color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] #patientWarningModal #patientWarningMessage,
+[data-theme="dark"] #patientErrorModal #patientErrorMessage,
+[data-theme="dark"] #patientSuccessModal #patientSuccessMessage {
+    color: #cbd5e1 !important;
+}
+</style>
 
 @endsection
 

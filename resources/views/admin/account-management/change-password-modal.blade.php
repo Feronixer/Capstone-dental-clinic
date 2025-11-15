@@ -11,22 +11,32 @@
                     <input type="hidden" name="user_id" id="modalChangePasswordUserId">
                     {{-- Password --}}
                     <div class="form-floating mb-3">
-                        <input name="password" type="password"
-                               id="floatingPassword"
-                               placeholder="Enter password"
-                               autocomplete="new-password"
-                               class="form-control form-control-sm">
+                        <div class="input-group">
+                            <input name="password" type="password"
+                                   id="floatingPassword"
+                                   placeholder="Enter password"
+                                   autocomplete="new-password"
+                                   class="form-control form-control-sm">
+                            <button class="btn btn-outline-secondary" type="button" id="toggleChangePassword" aria-label="Show password">
+                                <i class="bi bi-eye" id="toggleChangePasswordIcon"></i>
+                            </button>
+                        </div>
                         <label for="floatingPassword">New Password</label>
                         <div class="invalid-feedback"></div>
                     </div>
 
                     {{-- Confirm Password --}}
                     <div class="form-floating">
-                        <input name="confirm_password" type="password"
-                               id="floatingConfirmPassword"
-                               placeholder="Confirm password"
-                               autocomplete="new-password"
-                               class="form-control form-control-sm">
+                        <div class="input-group">
+                            <input name="confirm_password" type="password"
+                                   id="floatingConfirmPassword"
+                                   placeholder="Confirm password"
+                                   autocomplete="new-password"
+                                   class="form-control form-control-sm">
+                            <button class="btn btn-outline-secondary" type="button" id="toggleChangeConfirmPassword" aria-label="Show password">
+                                <i class="bi bi-eye" id="toggleChangeConfirmPasswordIcon"></i>
+                            </button>
+                        </div>
                         <label for="floatingConfirmPassword">Confirm Password</label>
                         <div class="invalid-feedback"></div>
                     </div>

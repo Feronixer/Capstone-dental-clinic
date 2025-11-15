@@ -25,27 +25,33 @@
     .announcement-page {
         background: linear-gradient(135deg, #f8fafc 0%, #e3f2fd 100%);
         min-height: calc(100vh - 70px);
-        padding: 1rem 0;
+        padding: clamp(0.75rem, 1.5vw, 1rem) 0;
     }
 
     .announcement-content-wrapper {
         max-width: 100%;
         margin: 0 auto;
-        padding: 0 clamp(1rem, 3vw, 2rem);
+        padding: 0 clamp(0.75rem, 2vw, 1.5rem);
         width: 100%;
         box-sizing: border-box;
+    }
+
+    @media (min-width: 1200px) {
+        .announcement-content-wrapper {
+            padding: 0 clamp(1rem, 2.5vw, 2rem);
+        }
     }
 
     /* Page Header */
     .page-header {
         text-align: center;
-        margin-bottom: 1rem;
+        margin-bottom: clamp(0.75rem, 2vw, 1rem);
         animation: fadeInDown 0.6s ease-out;
     }
 
     .page-header h1 {
-        font-size: clamp(1.5rem, 3vw, 1.875rem);
-        font-weight: 800;
+        font-size: clamp(1.25rem, 3vw, 1.75rem);
+        font-weight: 700;
         background: linear-gradient(135deg, var(--primary-blue), var(--accent-teal));
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
@@ -55,33 +61,39 @@
 
     .page-header p {
         color: var(--text-medium);
-        font-size: clamp(0.8rem, 1.5vw, 0.9rem);
+        font-size: clamp(0.8rem, 1.8vw, 0.9rem);
+        margin-bottom: 0;
     }
 
     /* Main Announcement Card */
     .announcement-card {
         background: var(--bg-white);
-        border-radius: 16px;
+        border-radius: 12px;
         overflow: hidden;
-        box-shadow: var(--shadow-lg);
-        margin-bottom: 2rem;
+        box-shadow: var(--shadow-md);
+        margin-bottom: 1rem;
+        margin-left: 0;
+        margin-right: 0;
         border: 1px solid rgba(33, 150, 243, 0.1);
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all 0.3s ease;
         animation: fadeInUp 0.6s ease-out;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
     }
 
     .announcement-card:hover {
-        box-shadow: var(--shadow-xl);
-        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+        transform: translateY(-2px);
     }
 
     .announcement-banner {
         background: linear-gradient(135deg, #2196F3 0%, #1976D2 50%, #0d47a1 100%);
-        padding: clamp(1rem, 3vw, 1.5rem) clamp(1rem, 4vw, 2rem);
+        padding: clamp(0.75rem, 2vw, 1rem) clamp(1rem, 3vw, 1.5rem);
         text-align: center;
         position: relative;
         overflow: hidden;
-        min-height: clamp(70px, 15vw, 80px);
+        min-height: clamp(50px, 10vw, 60px);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -115,36 +127,50 @@
 
     .banner-title {
         color: white;
-        font-size: 1.75rem;
-        font-weight: 800;
+        font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+        font-weight: 700;
         margin: 0;
         position: relative;
-        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
-        letter-spacing: -0.5px;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        letter-spacing: -0.3px;
         line-height: 1.3;
         padding: 0 0.5rem;
     }
 
     .announcement-content-section {
-        padding: clamp(1rem, 3vw, 1.5rem) clamp(1rem, 4vw, 2rem);
+        padding: clamp(0.75rem, 2vw, 1rem) clamp(1rem, 3vw, 1.5rem);
         position: relative;
     }
 
     .announcement-image-wrapper {
-        margin-bottom: clamp(1rem, 2.5vw, 1.25rem);
+        margin-bottom: clamp(0.75rem, 2vw, 1rem);
         text-align: center;
-        border-radius: 12px;
+        border-radius: 8px;
         overflow: hidden;
-        box-shadow: var(--shadow-md);
-        max-width: 100%;
+        box-shadow: var(--shadow-sm);
+        max-width: 600px;
         margin-left: auto;
         margin-right: auto;
         position: relative;
         cursor: pointer;
         background: #f8f9fa;
-        aspect-ratio: 3840 / 2000;
+        aspect-ratio: 16 / 9;
         width: 100%;
         display: block;
+        max-height: 250px;
+    }
+    
+    @media (max-width: 768px) {
+        .announcement-image-wrapper {
+            max-height: 180px;
+            max-width: 100%;
+        }
+    }
+    
+    @media (min-width: 1200px) {
+        .announcement-image-wrapper {
+            max-width: 700px;
+        }
     }
 
     .announcement-image-wrapper::before {
@@ -169,14 +195,13 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
-        border-radius: 16px;
-        transition: transform 0.4s ease, filter 0.3s ease;
+        border-radius: 8px;
+        transition: transform 0.3s ease, filter 0.3s ease;
         display: block;
-        aspect-ratio: 3840 / 2000;
     }
 
     .announcement-image-wrapper:hover img {
-        transform: scale(1.03);
+        transform: scale(1.05);
         filter: brightness(0.95);
     }
 
@@ -191,16 +216,16 @@
 
     .announcement-message {
         background: linear-gradient(135deg, #f8fafc 0%, #e3f2fd 100%);
-        border-left: 4px solid var(--primary-blue);
-        padding: clamp(0.875rem, 2.5vw, 1.25rem) clamp(1rem, 3vw, 1.5rem);
-        border-radius: 10px;
+        border-left: 3px solid var(--primary-blue);
+        padding: clamp(0.75rem, 2vw, 1rem) clamp(0.875rem, 2.5vw, 1.25rem);
+        border-radius: 8px;
         color: var(--text-dark);
         line-height: 1.6;
-        font-size: clamp(0.85rem, 2vw, 0.95rem);
+        font-size: clamp(0.85rem, 1.8vw, 0.95rem);
         box-shadow: var(--shadow-sm);
         position: relative;
         margin-top: 0;
-        margin-bottom: 1rem;
+        margin-bottom: 0.75rem;
         word-wrap: break-word;
         overflow-wrap: break-word;
     }
@@ -234,11 +259,11 @@
 
     .announcement-details {
         display: flex;
-        gap: clamp(0.75rem, 2vw, 1rem);
+        gap: clamp(0.5rem, 1.5vw, 0.75rem);
         flex-wrap: wrap;
-        margin-top: clamp(1rem, 2.5vw, 1.25rem);
-        padding-top: clamp(1rem, 2.5vw, 1.25rem);
-        border-top: 2px solid #f0f0f0;
+        margin-top: clamp(0.75rem, 2vw, 1rem);
+        padding-top: clamp(0.75rem, 2vw, 1rem);
+        border-top: 1px solid #f0f0f0;
     }
 
     [data-theme="dark"] .announcement-details {
@@ -248,11 +273,11 @@
     .detail-item {
         display: flex;
         align-items: center;
-        gap: clamp(0.375rem, 1vw, 0.5rem);
+        gap: clamp(0.3rem, 0.8vw, 0.4rem);
         color: var(--text-medium);
-        font-weight: 600;
-        font-size: clamp(0.75rem, 1.75vw, 0.875rem);
-        padding: clamp(0.4rem, 1vw, 0.5rem) clamp(0.75rem, 2vw, 1rem);
+        font-weight: 500;
+        font-size: clamp(0.7rem, 1.5vw, 0.8rem);
+        padding: clamp(0.35rem, 0.8vw, 0.45rem) clamp(0.65rem, 1.5vw, 0.85rem);
         background: var(--bg-light);
         border-radius: 50px;
         transition: all 0.3s ease;
@@ -727,9 +752,15 @@
         }
 
         .announcement-content-wrapper {
-            padding: 0 clamp(1rem, 3vw, 1.5rem);
+            padding: 0 clamp(0.5rem, 1.5vw, 0.75rem);
             max-width: 100%;
             width: 100%;
+        }
+
+        .announcement-card {
+            margin-left: 0;
+            margin-right: 0;
+            border-radius: 12px;
         }
 
         .page-header {
@@ -757,7 +788,7 @@
         }
 
         .announcement-content-section {
-            padding: 1.25rem 1rem;
+            padding: 1.25rem clamp(1rem, 2.5vw, 1.5rem);
         }
 
         .announcement-image-wrapper {
@@ -856,13 +887,13 @@
     <div class="announcement-content-wrapper">
 
         <!-- Page Header -->
-        <div class="page-header">
+        <div class="page-header reveal-element reveal-slide-up">
             <h1><i class="bi bi-megaphone-fill me-2"></i>Announcements & Events</h1>
             <p>Stay updated with our latest news and upcoming activities</p>
         </div>
 
         @if($announcement)
-            <div class="announcement-card reveal-element reveal-slide-up">
+            <div class="announcement-card reveal-slide-up">
                 <div class="announcement-banner">
                     @if($announcement->created_at->diffInDays(now()) < 7)
                         <span class="new-badge">
@@ -931,7 +962,7 @@
 
         <!-- Upcoming Events -->
         @forelse($upcomingEvents as $event)
-            <div class="announcement-card reveal-element reveal-fade">
+            <div class="announcement-card reveal-fade">
                 <div class="announcement-content-section" style="padding-top: 0.875rem; padding-bottom: 0;">
                     <span class="event-badge">
                         <i class="bi bi-calendar-check"></i>
@@ -1195,64 +1226,6 @@ document.addEventListener('keydown', function(e) {
 }
 
 @media (max-width: 768px) {
-    .announcement-content-wrapper {
-        padding: 0 clamp(0.75rem, 2vw, 1rem);
-    }
-
-    .page-header h1 {
-        font-size: 1.5rem;
-    }
-
-    .page-header p {
-        font-size: 0.85rem;
-    }
-
-    .announcement-card {
-        margin-bottom: 1.5rem;
-    }
-
-    .announcement-banner {
-        padding: clamp(0.875rem, 2vw, 1rem) clamp(0.75rem, 2vw, 1rem);
-        min-height: clamp(60px, 12vw, 70px);
-    }
-
-    .banner-title {
-        font-size: 1.25rem;
-        padding: 0.25rem;
-    }
-
-    .announcement-content-section {
-        padding: clamp(0.875rem, 2vw, 1rem) clamp(0.75rem, 2vw, 1rem);
-    }
-
-    .announcement-image-wrapper {
-        margin-bottom: 0.875rem;
-    }
-
-    .announcement-message {
-        padding: 0.875rem 1rem;
-        font-size: 0.875rem;
-    }
-
-    .announcement-details {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    .detail-item {
-        width: 100%;
-        justify-content: flex-start;
-    }
-
-    .archive-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.75rem;
-    }
-
-    .archive-card {
-        min-height: 400px;
-    }
-
     .image-modal-content {
         max-width: 95vw;
         max-height: 95vh;
@@ -1275,10 +1248,15 @@ document.addEventListener('keydown', function(e) {
     }
 }
 
-@media (max-width: 480px) {
-    .announcement-content-wrapper {
-        padding: 0 0.75rem;
-    }
+    @media (max-width: 480px) {
+        .announcement-content-wrapper {
+            padding: 0 0.5rem;
+        }
+
+        .announcement-card {
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+        }
 
     .page-header h1 {
         font-size: 1.3rem;

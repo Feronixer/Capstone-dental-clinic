@@ -14,6 +14,9 @@ use App\Services\MailService;
 use App\Services\NotificationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Events\AppointmentCreated;
+use App\Events\AppointmentUpdated;
+use App\Events\AppointmentDeleted;
 // use Maatwebsite\Excel\Facades\Excel; // Removed - using CSV export instead
 
 class AppointmentController extends Controller
@@ -38,8 +41,26 @@ class AppointmentController extends Controller
         $patients = $this->getPatientsForView();
         $staff = $this->getStaffForView();
         $services = $this->getServicesForView();
+        
+        // Get roles for user management modal (Admin, Staff, Patient)
+        $roles = \App\Models\Role::whereIn('role', ['Admin', 'Staff', 'Patient'])
+            ->orderBy('id', 'asc')
+            ->get()
+            ->unique('role')
+            ->values();
 
-        return view("admin.appointment", compact('appointments', 'blockedTimes', 'patients', 'staff', 'services', 'currentMonth', 'currentYear'));
+        return view("admin.appointment", compact(
+            'appointments',
+            'blockedTimes',
+            'patients',
+            'staff',
+            'services',
+            'roles',
+            'currentMonth',
+            'currentYear',
+            'startDate',
+            'endDate'
+        ));
     }
 
     private function cleanupExpiredBlockedTimes(): void
@@ -59,7 +80,7 @@ class AppointmentController extends Controller
 
         if ($this->isInvalidDate($requestedDate, $serverNow, $requestedMonth, $requestedYear)) {
             return redirect()->route('admin-appointment', ['view' => request('view', 'month')])
-                ->with('error', 'Invalid date detected. Showing current month.');
+                ->with('error', 'Selected date is outside the supported range (past 12 months to future 24 months). Showing current month.');
         }
 
         $startDate = Carbon::create($requestedYear, $requestedMonth, 1)->startOfMonth()->subMonth();
@@ -71,16 +92,16 @@ class AppointmentController extends Controller
     private function isInvalidDate(Carbon $requestedDate, Carbon $serverNow, int $requestedMonth, int $requestedYear): bool
     {
         $maxFutureDate = $serverNow->copy()->addYears(2);
-        $suspiciousFutureDate = $serverNow->copy()->addDays(7);
         $minPastDate = $serverNow->copy()->subYear();
 
-        if (($requestedDate->gt($suspiciousFutureDate) && $requestedDate->month != $serverNow->month) ||
-            $requestedDate->gt($maxFutureDate) ||
-            $requestedDate->lt($minPastDate)) {
+        if ($requestedDate->gt($maxFutureDate) || $requestedDate->lt($minPastDate)) {
             \Log::warning('Invalid date requested', [
                 'requested_month' => $requestedMonth,
                 'requested_year' => $requestedYear,
-                'server_date' => $serverNow->format('Y-m-d H:i:s')
+                'server_date' => $serverNow->format('Y-m-d H:i:s'),
+                'max_future_allowed' => $maxFutureDate->format('Y-m-d'),
+                'min_past_allowed' => $minPastDate->format('Y-m-d'),
+                'days_difference' => $serverNow->diffInDays($requestedDate, false)
             ]);
             return true;
         }
@@ -93,7 +114,7 @@ class AppointmentController extends Controller
     private function getAppointmentsForView(Carbon $startDate, Carbon $endDate)
     {
         return Appointment::whereBetween('start_datetime', [$startDate, $endDate])
-            ->whereNotIn('status', ['blocked'])
+            ->whereNotIn('status', ['blocked', 'Cancelled'])
             ->with(['patient.info', 'service'])
             ->get()
             ->map(function($appointment) {
@@ -214,6 +235,7 @@ class AppointmentController extends Controller
         $end = Carbon::parse($request->end, 'Asia/Manila');
 
         $appointments = Appointment::whereBetween('start_datetime', [$start, $end])
+            ->where('status', '!=', 'Cancelled')
             ->with(['patient.info', 'service'])
             ->get()
             ->map(function($appointment) {
@@ -225,6 +247,54 @@ class AppointmentController extends Controller
             });
 
         return response()->json($appointments);
+    }
+
+    /**
+     * Get calendar data (appointments and blocked times) for a specific date range.
+     */
+    public function calendarData(Request $request): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'start' => 'required|date',
+                'end' => 'required|date',
+            ]);
+
+            $startDate = Carbon::parse($validated['start'], 'Asia/Manila')->startOfDay();
+            $endDate = Carbon::parse($validated['end'], 'Asia/Manila')->endOfDay();
+
+            if ($endDate->lt($startDate)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'The end date must be greater than or equal to the start date.',
+                ], 422);
+            }
+
+            $appointments = $this->getAppointmentsForView($startDate, $endDate)->values()->all();
+            $blockedTimes = $this->getBlockedTimesForView($startDate, $endDate)->values()->all();
+
+            return response()->json([
+                'success' => true,
+                'appointments' => $appointments,
+                'blocked_times' => $blockedTimes,
+                'range' => [
+                    'start' => $startDate->format('Y-m-d'),
+                    'end' => $endDate->format('Y-m-d'),
+                ],
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid date range supplied.',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Error fetching calendar data:', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load calendar data.'
+            ], 500);
+        }
     }
 
     /**
@@ -353,6 +423,16 @@ class AppointmentController extends Controller
                 ], 422);
             }
 
+            // Validate same-day procedure combinations
+            $sameDayValidation = $this->validateSameDayProcedureCombinations($request->patient_id, $request->service_id, $startDateTime);
+            if (!$sameDayValidation['valid']) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $sameDayValidation['message'],
+                    'errors' => ['service_id' => [$sameDayValidation['message']]]
+                ], 422);
+            }
+
             if ($overlappingAppointment) {
                 return response()->json([
                     'success' => false,
@@ -377,6 +457,18 @@ class AppointmentController extends Controller
             $appointment = Appointment::create($appointmentData);
 
             \Log::info('Appointment created successfully:', ['id' => $appointment->id]);
+
+            // Broadcast appointment created event
+            try {
+                $event = new AppointmentCreated(
+                    $appointment->fresh(['patient.info', 'service']),
+                    Auth::guard('admin')->id()
+                );
+                event($event);
+                \App\Http\Controllers\BroadcastController::storeEvent('appointment.created', $event->broadcastWith());
+            } catch (\Exception $e) {
+                \Log::error('Failed to broadcast appointment created event:', ['error' => $e->getMessage()]);
+            }
 
             // Send notification to patient
             try {
@@ -604,6 +696,20 @@ class AppointmentController extends Controller
             }
             
             $appointment->update($appointmentData);
+            $appointment->refresh();
+
+            // Broadcast appointment updated event
+            try {
+                $event = new AppointmentUpdated(
+                    $appointment->fresh(['patient.info', 'service']),
+                    $isRescheduling ? 'rescheduled' : 'updated',
+                    Auth::guard('admin')->id()
+                );
+                event($event);
+                \App\Http\Controllers\BroadcastController::storeEvent('appointment.updated', $event->broadcastWith());
+            } catch (\Exception $e) {
+                \Log::error('Failed to broadcast appointment updated event:', ['error' => $e->getMessage()]);
+            }
 
             // Send rescheduling email and notification if datetime changed
             if ($isRescheduling) {
@@ -700,7 +806,17 @@ class AppointmentController extends Controller
                 }
 
                 $appointment = Appointment::findOrFail($id);
+                $appointmentId = $appointment->id;
                 $appointment->delete();
+
+                // Broadcast appointment deleted event
+                try {
+                    $event = new AppointmentDeleted($appointmentId, Auth::guard('admin')->id());
+                    event($event);
+                    \App\Http\Controllers\BroadcastController::storeEvent('appointment.deleted', $event->broadcastWith());
+                } catch (\Exception $e) {
+                    \Log::error('Failed to broadcast appointment deleted event:', ['error' => $e->getMessage()]);
+                }
 
                 \Log::info('Appointment force deleted:', [
                     'appointment_id' => $id,
@@ -743,8 +859,17 @@ class AppointmentController extends Controller
             $oldStatus = $appointment->status;
             \Log::info('Cancelling appointment:', ['appointment_id' => $appointment->id, 'old_status' => $oldStatus]);
 
+            // Get cancellation reason if provided
+            $cancellationReason = $request->input('cancellation_reason') ?? $request->input('notes');
+
             // Update status to Cancelled instead of deleting
             $appointment->update(['status' => 'Cancelled']);
+
+            // Store cancellation reason in notes if provided
+            if (!empty($cancellationReason)) {
+                $currentNotes = $appointment->notes ?? '';
+                $appointment->update(['notes' => $currentNotes . ($currentNotes ? "\n\n" : '') . $cancellationReason]);
+            }
 
             // Reload relationships for email/notification
             $appointment->load(['patient.info', 'service']);
@@ -757,9 +882,9 @@ class AppointmentController extends Controller
                 \Log::error('Failed to send cancellation email:', ['error' => $e->getMessage()]);
             }
 
-            // Send cancellation notification
+            // Send cancellation notification with reason
             try {
-                NotificationService::appointmentCancelled($appointment);
+                NotificationService::appointmentCancelled($appointment, $cancellationReason);
                 \Log::info("Cancellation notification sent for appointment {$appointment->id}");
             } catch (\Exception $e) {
                 \Log::error('Failed to send cancellation notification:', ['error' => $e->getMessage()]);
@@ -871,6 +996,20 @@ class AppointmentController extends Controller
             }
             
             $appointment->update($updateData);
+            $appointment->refresh();
+
+            // Broadcast appointment updated event
+            try {
+                $event = new AppointmentUpdated(
+                    $appointment->fresh(['patient.info', 'service']),
+                    'status_changed',
+                    Auth::guard('admin')->id()
+                );
+                event($event);
+                \App\Http\Controllers\BroadcastController::storeEvent('appointment.updated', $event->broadcastWith());
+            } catch (\Exception $e) {
+                \Log::error('Failed to broadcast appointment status updated event:', ['error' => $e->getMessage()]);
+            }
 
             // Add status change note if provided
             if (!empty($validated['notes'])) {
@@ -901,21 +1040,37 @@ class AppointmentController extends Controller
                     'Missed' => "Your appointment for {$serviceName} on {$appointmentDate} has been marked as missed."
                 ];
 
+                // Build notification message
+                $notificationMessage = $notificationMessages[$validated['status']] ?? "Your appointment status has been updated to {$validated['status']}.";
+                
+                // Include cancellation reason if status is Cancelled and reason is provided
+                if ($validated['status'] === 'Cancelled' && !empty($validated['notes'])) {
+                    $notificationMessage .= " Reason: {$validated['notes']}";
+                }
+
+                // Build notification data
+                $notificationData = [
+                    'appointment_id' => $appointment->id,
+                    'old_status' => $oldStatus,
+                    'new_status' => $validated['status'],
+                    'service' => $serviceName,
+                    'date' => $appointmentDate
+                ];
+
+                // Include cancellation reason in data if status is Cancelled
+                if ($validated['status'] === 'Cancelled' && !empty($validated['notes'])) {
+                    $notificationData['cancellation_reason'] = $validated['notes'];
+                }
+
                 Notification::create([
                     'user_id' => $appointment->patient_id,
                     'type' => 'appointment_status',
                     'title' => "Appointment {$validated['status']}",
-                    'message' => $notificationMessages[$validated['status']] ?? "Your appointment status has been updated to {$validated['status']}.",
+                    'message' => $notificationMessage,
                     'icon' => $validated['status'] === 'Confirmed' ? 'bi-check-circle' :
                              ($validated['status'] === 'Cancelled' ? 'bi-x-circle' :
                              ($validated['status'] === 'Missed' ? 'bi-exclamation-triangle' : 'bi-info-circle')),
-                    'data' => json_encode([
-                        'appointment_id' => $appointment->id,
-                        'old_status' => $oldStatus,
-                        'new_status' => $validated['status'],
-                        'service' => $serviceName,
-                        'date' => $appointmentDate
-                    ])
+                    'data' => json_encode($notificationData)
                 ]);
 
                 // Send automated email based on status change
@@ -1452,5 +1607,39 @@ class AppointmentController extends Controller
         } catch (\Exception $e) {
             \Log::error('Error auto-cancelling stale pending appointments (admin):', ['error' => $e->getMessage()]);
         }
+    }
+
+    /**
+     * Validate that the same procedure cannot be booked twice on the same day
+     */
+    private function validateSameDayProcedureCombinations($patientId, $serviceId, $startDateTime)
+    {
+        // If no service is selected, allow it (might be a custom reason_for_visit)
+        if (!$serviceId) {
+            return ['valid' => true, 'message' => ''];
+        }
+
+        // Get all appointments for this patient on the same day (excluding cancelled)
+        $sameDay = Carbon::parse($startDateTime)->startOfDay();
+        $sameDayEnd = Carbon::parse($startDateTime)->endOfDay();
+
+        $existingAppointment = Appointment::where('patient_id', $patientId)
+            ->where('service_id', $serviceId)
+            ->where('status', '!=', 'Cancelled')
+            ->whereBetween('start_datetime', [$sameDay, $sameDayEnd])
+            ->first();
+
+        // If patient already has the same procedure booked on this day, prevent booking
+        if ($existingAppointment) {
+            $service = Service::find($serviceId);
+            $serviceName = $service ? $service->service_name : 'this procedure';
+            
+            return [
+                'valid' => false,
+                'message' => "You cannot book the same procedure ({$serviceName}) twice on the same day."
+            ];
+        }
+
+        return ['valid' => true, 'message' => ''];
     }
 }

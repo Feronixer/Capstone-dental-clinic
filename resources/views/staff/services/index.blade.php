@@ -1,10 +1,6 @@
 @extends('layout.staff.app')
 
 @section('content')
-@php
-    $serviceCollection = $clinicServices->getCollection();
-    $latestService = $serviceCollection->sortByDesc('created_at')->first();
-@endphp
 
 <style>
     .services-hero {
@@ -31,28 +27,28 @@
 
     .services-metric-card {
         border: none;
-        border-radius: 16px;
-        padding: 22px;
+        border-radius: 12px;
+        padding: 16px;
         height: 100%;
         background: #ffffff;
-        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
         transition: transform 0.25s ease, box-shadow 0.25s ease;
     }
 
     .services-metric-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 18px 35px rgba(15, 23, 42, 0.12);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.1);
     }
 
     .services-metric-card .metric-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.35rem;
-        margin-bottom: 14px;
+        font-size: 1rem;
+        margin-bottom: 10px;
     }
 
     .services-table-wrapper {
@@ -276,31 +272,6 @@
             <a href="{{ route('staff-dashboard') }}" class="btn btn-light btn-sm px-3">
                 <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
             </a>
-        </div>
-    </div>
-
-    <div class="row g-4 mb-4">
-        <div class="col-12 col-md-6 col-xl-4">
-            <div class="services-metric-card">
-                <div class="metric-icon bg-info text-white">
-                    <i class="bi bi-list-check"></i>
-                </div>
-                <h6 class="text-muted text-uppercase mb-1">Total Services</h6>
-                <h3 class="fw-bold mb-0">{{ $clinicServices->total() }}</h3>
-                <small class="text-muted">Available for staff scheduling</small>
-            </div>
-        </div>
-        <div class="col-12 col-md-6 col-xl-4">
-            <div class="services-metric-card">
-                <div class="metric-icon bg-warning text-white">
-                    <i class="bi bi-stars"></i>
-                </div>
-                <h6 class="text-muted text-uppercase mb-1">Latest Addition</h6>
-                <h3 class="fw-bold mb-0">{{ $latestService?->service_name ?? '—' }}</h3>
-                <small class="text-muted">
-                    {{ $latestService && $latestService->created_at ? 'Added on ' . $latestService->created_at->timezone('Asia/Manila')->format('M j, Y') : 'No recent services' }}
-                </small>
-            </div>
         </div>
     </div>
 

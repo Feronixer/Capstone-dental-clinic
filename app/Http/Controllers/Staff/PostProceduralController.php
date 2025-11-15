@@ -28,9 +28,10 @@ class PostProceduralController extends Controller
             abort(403, 'Unauthorized access');
         }
 
+        $perPage = request()->get('per_page', 10);
         $records = PatientRecord::with(['user.info', 'appointment.service', 'progressNotes', 'patientHistories'])
             ->orderBy('created_at', 'desc')
-            ->paginate(5);
+            ->paginate($perPage);
 
         $accessControl = $user->accessControl ?? null;
 
@@ -47,7 +48,58 @@ class PostProceduralController extends Controller
         try {
             $allRecords = $this->prepareRecordsCollection();
 
-            return response()->json(['success' => true, 'records' => $allRecords->values()]);
+            // Get all unique user IDs from records
+            $userIds = $allRecords->pluck('user_id')->unique()->filter();
+
+            // Get all completed appointments with treatments for these users
+            $completedAppointments = Appointment::with('service')
+                ->whereIn('patient_id', $userIds)
+                ->where('status', 'Completed')
+                ->get()
+                ->groupBy('patient_id');
+
+            // Build treatments map for each user with dates and appointment IDs
+            $treatmentsMap = [];
+            foreach ($completedAppointments as $patientId => $appointments) {
+                $treatments = [];
+                foreach ($appointments as $appointment) {
+                    $treatmentName = $appointment->service?->service_name 
+                        ?? $appointment->service?->name 
+                        ?? 'N/A';
+                    if ($treatmentName !== 'N/A') {
+                        // Check if this treatment already exists (by name and date)
+                        $treatmentDate = $appointment->start_datetime ? $appointment->start_datetime->format('Y-m-d') : null;
+                        $exists = false;
+                        foreach ($treatments as $existingTreatment) {
+                            if ($existingTreatment['name'] === $treatmentName && 
+                                $existingTreatment['date'] === $treatmentDate) {
+                                $exists = true;
+                                break;
+                            }
+                        }
+                        if (!$exists) {
+                            $treatments[] = [
+                                'name' => $treatmentName,
+                                'date' => $treatmentDate,
+                                'appointment_id' => $appointment->id,
+                                'start_datetime' => $appointment->start_datetime ? $appointment->start_datetime->toDateTimeString() : null
+                            ];
+                        }
+                    }
+                }
+                // Sort by date descending (most recent first)
+                usort($treatments, function($a, $b) {
+                    if ($a['date'] === $b['date']) return 0;
+                    return ($a['date'] > $b['date']) ? -1 : 1;
+                });
+                $treatmentsMap[$patientId] = $treatments;
+            }
+
+            return response()->json([
+                'success' => true, 
+                'records' => $allRecords->values(),
+                'treatments' => $treatmentsMap
+            ]);
         } catch (\Exception $e) {
             \Log::error('Error fetching records', ['error' => $e->getMessage()]);
             return response()->json(['success' => false, 'message' => 'Error loading records'], 500);
@@ -56,16 +108,28 @@ class PostProceduralController extends Controller
 
     private function prepareRecordsCollection(): \Illuminate\Support\Collection
     {
+            // Get all user IDs who have at least one completed appointment
+            $usersWithCompletedAppointments = Appointment::whereRaw('LOWER(status) = ?', ['completed'])
+                ->distinct()
+                ->pluck('patient_id')
+                ->filter();
+
+            // Get patient records for users who have completed appointments
             $patientRecords = PatientRecord::with(['user.info', 'appointment.service'])
             ->whereHas('user')
+            ->whereIn('user_id', $usersWithCompletedAppointments)
                 ->orderBy('created_at', 'desc')
                 ->get()
                 ->map(function($record) {
                     return $this->mapPatientRecord($record);
                 });
 
-            $patientHistories = PatientHistory::with(['patientRecord.user.info'])
+            // Get patient histories for users who have completed appointments
+            $patientHistories = PatientHistory::with(['patientRecord.user.info', 'patientRecord.appointment'])
             ->whereHas('patientRecord.user')
+            ->whereHas('patientRecord', function($query) use ($usersWithCompletedAppointments) {
+                $query->whereIn('user_id', $usersWithCompletedAppointments);
+            })
                 ->orderBy('created_at', 'desc')
                 ->get()
                 ->map(function($history) {
@@ -75,8 +139,12 @@ class PostProceduralController extends Controller
                 return $history['user_id'] !== null;
                 });
 
-            $progressNotes = ProgressNote::with(['patientRecord.user.info'])
+            // Get progress notes for users who have completed appointments
+            $progressNotes = ProgressNote::with(['patientRecord.user.info', 'patientRecord.appointment'])
             ->whereHas('patientRecord.user')
+            ->whereHas('patientRecord', function($query) use ($usersWithCompletedAppointments) {
+                $query->whereIn('user_id', $usersWithCompletedAppointments);
+            })
                 ->orderBy('created_at', 'desc')
                 ->get()
                 ->map(function($note) {
@@ -227,6 +295,19 @@ class PostProceduralController extends Controller
      */
     public function storePatientRecord(Request $request)
     {
+        // Check access control
+        $user = Auth::guard('staff')->user();
+        $accessControl = $user->accessControl ?? null;
+        if (!$accessControl || $accessControl->can_edit_patient_records === false) {
+            \Log::warning('Staff user attempted to store patient record without permission', [
+                'user_id' => $user?->id ?? 'unknown',
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Access denied. You do not have permission to edit patient records.'
+            ], 403);
+        }
+
         try {
             \Log::info('Staff Store Patient Record Request', $request->all());
 
@@ -325,15 +406,25 @@ class PostProceduralController extends Controller
 
             // Automatically set appointment_id to the latest confirmed or completed appointment if not provided
             if (empty($data['appointment_id'])) {
-                // First, try to find the latest confirmed or completed appointment
+                // First, try to find the latest confirmed or completed appointment that doesn't have a record yet
                 $latestAppointment = Appointment::where('patient_id', $data['user_id'])
                     ->whereIn('status', ['Confirmed', 'Completed', 'confirmed', 'completed'])
+                    ->whereDoesntHave('patientRecord') // Only get appointments without existing records
                     ->orderBy('start_datetime', 'desc')
                     ->first();
 
-                // If no confirmed/completed appointment found, try to find any appointment
+                // If no unrecorded confirmed/completed appointment found, try to find any appointment without a record
                 if (!$latestAppointment) {
                     $latestAppointment = Appointment::where('patient_id', $data['user_id'])
+                        ->whereDoesntHave('patientRecord')
+                        ->orderBy('start_datetime', 'desc')
+                        ->first();
+                }
+
+                // If still no appointment found, get the latest one (even if it has a record)
+                if (!$latestAppointment) {
+                    $latestAppointment = Appointment::where('patient_id', $data['user_id'])
+                        ->whereIn('status', ['Confirmed', 'Completed', 'confirmed', 'completed'])
                         ->orderBy('start_datetime', 'desc')
                         ->first();
                 }
@@ -349,8 +440,18 @@ class PostProceduralController extends Controller
 
             // Disallow creating post-procedural record if appointment is not confirmed/completed
             if (!empty($data['appointment_id'])) {
-                $appointment = Appointment::find($data['appointment_id']);
+                $appointment = Appointment::with('service')->find($data['appointment_id']);
                 if ($appointment) {
+                    // Check if a record already exists for this specific appointment (iterative - each appointment gets its own record)
+                    $existingRecordForAppointment = PatientRecord::where('appointment_id', $appointment->id)->first();
+                    if ($existingRecordForAppointment && empty($data['id'])) {
+                        // If updating an existing record, allow it. Otherwise, prevent duplicate records for same appointment
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'A post-procedural record already exists for this appointment. Each appointment should have only one record. Please edit the existing record instead.'
+                        ], 422);
+                    }
+
                     // Normalize status: trim whitespace and convert to lowercase for comparison
                     $status = strtolower(trim((string) $appointment->status));
                     \Log::info('Staff checking appointment status', [
@@ -360,17 +461,19 @@ class PostProceduralController extends Controller
                     ]);
                     
                     if (!in_array($status, ['confirmed', 'completed'])) {
-                        // Check if there are any confirmed or completed appointments for this patient
+                        // Check if there are any confirmed or completed appointments for this patient without records
                         $validAppointments = Appointment::where('patient_id', $data['user_id'])
                             ->whereIn('status', ['Confirmed', 'Completed', 'confirmed', 'completed'])
+                            ->whereDoesntHave('patientRecord')
                             ->orderBy('start_datetime', 'desc')
                             ->get();
                         
                         if ($validAppointments->count() > 0) {
-                            // Use the latest valid appointment instead
+                            // Use the latest valid appointment without a record
                             $validAppointment = $validAppointments->first();
                             $data['appointment_id'] = $validAppointment->id;
-                            \Log::info('Staff switched to valid appointment', [
+                            $appointment = $validAppointment->load('service');
+                            \Log::info('Staff switched to valid appointment without record', [
                                 'old_appointment_id' => $appointment->id,
                                 'new_appointment_id' => $validAppointment->id,
                                 'status' => $validAppointment->status
@@ -378,8 +481,26 @@ class PostProceduralController extends Controller
                         } else {
                             return response()->json([
                                 'success' => false,
-                                'message' => 'Post-procedural records can only be created for Confirmed or Completed appointments. This patient has no confirmed or completed appointments.'
+                                'message' => 'Post-procedural records can only be created for Confirmed or Completed appointments. This patient has no confirmed or completed appointments without existing records.'
                             ], 422);
+                        }
+                    }
+
+                    // Automatically populate treatment_done from appointment service if not provided
+                    if (empty($data['treatment_done']) && $appointment->service) {
+                        $data['treatment_done'] = $appointment->service->service_name;
+                        \Log::info('Staff auto-populated treatment_done from appointment service', [
+                            'treatment_done' => $data['treatment_done'],
+                            'appointment_id' => $appointment->id
+                        ]);
+                    } elseif (empty($data['treatment_done']) && $appointment->service_id) {
+                        $service = \App\Models\Service::find($appointment->service_id);
+                        if ($service) {
+                            $data['treatment_done'] = $service->service_name;
+                            \Log::info('Staff auto-populated treatment_done from service_id', [
+                                'treatment_done' => $data['treatment_done'],
+                                'service_id' => $appointment->service_id
+                            ]);
                         }
                     }
                 } else {
@@ -397,18 +518,63 @@ class PostProceduralController extends Controller
                 ], 422);
             }
 
-            // Generate patient number if not exists
+            // For iterative records: Each appointment gets its own unique record number
+            // Format: PN-{patient_base_number}-{appointment_sequence}
             if (empty($data['patient_number']) && empty($data['id'])) {
-                // Creating new record - generate patient number
-                $maxId = PatientRecord::max('id') ?? 0;
-                $data['patient_number'] = 'PN-' . str_pad($maxId + 1, 6, '0', STR_PAD_LEFT);
-                \Log::info('Staff generated NEW patient number', ['patient_number' => $data['patient_number']]);
+                // Creating new record - generate iterative patient number based on appointment
+                $basePatientNumber = null;
+                
+                // Check if patient has any existing records to get base number
+                $existingPatientRecord = PatientRecord::where('user_id', $data['user_id'])
+                    ->orderBy('created_at', 'asc')
+                    ->first();
+                
+                if ($existingPatientRecord && $existingPatientRecord->patient_number) {
+                    // Extract base number (before the dash if it exists)
+                    $baseParts = explode('-', $existingPatientRecord->patient_number);
+                    if (count($baseParts) >= 2) {
+                        $basePatientNumber = $baseParts[0] . '-' . $baseParts[1]; // e.g., "PN-000001"
+                    } else {
+                        $basePatientNumber = $existingPatientRecord->patient_number;
+                    }
+                } else {
+                    // First record for this patient - generate base number
+                    $maxId = PatientRecord::max('id') ?? 0;
+                    $basePatientNumber = 'PN-' . str_pad($maxId + 1, 6, '0', STR_PAD_LEFT);
+                }
+                
+                // Count how many records this patient already has for this appointment sequence
+                $recordCount = PatientRecord::where('user_id', $data['user_id'])
+                    ->where('patient_number', 'like', $basePatientNumber . '%')
+                    ->count();
+                
+                // Generate unique number: base number + sequence (if multiple records)
+                if ($recordCount > 0) {
+                    $data['patient_number'] = $basePatientNumber . '-' . str_pad($recordCount + 1, 3, '0', STR_PAD_LEFT);
+                } else {
+                    $data['patient_number'] = $basePatientNumber;
+                }
+                
+                \Log::info('Staff generated iterative patient number', [
+                    'patient_number' => $data['patient_number'],
+                    'base_number' => $basePatientNumber,
+                    'record_count' => $recordCount,
+                    'appointment_id' => $data['appointment_id'] ?? 'N/A'
+                ]);
+            } elseif (!empty($data['patient_number'])) {
+                // Patient number already exists
+                \Log::info('Using EXISTING patient number', ['patient_number' => $data['patient_number']]);
             } elseif (!empty($data['id'])) {
-                // Updating existing record - get patient number from database if not provided
+                // Updating existing record - get patient number from database
                 $existingRecord = PatientRecord::find($data['id']);
-                if ($existingRecord && $existingRecord->patient_number && empty($data['patient_number'])) {
+                if ($existingRecord && $existingRecord->patient_number) {
                     $data['patient_number'] = $existingRecord->patient_number;
                     \Log::info('Staff loaded patient_number from existing record', ['patient_number' => $data['patient_number']]);
+                } else {
+                    // Shouldn't happen, but generate if missing
+                    $maxId = PatientRecord::max('id') ?? 0;
+                    $data['patient_number'] = 'PN-' . str_pad($maxId + 1, 6, '0', STR_PAD_LEFT);
+                    \Log::warning('Had to generate patient_number for existing record', ['patient_number' => $data['patient_number']]);
                 }
             }
 
@@ -565,11 +731,20 @@ class PostProceduralController extends Controller
                 ->where('user_id', $userId)
                 ->first();
 
+            $completedAppointments = Appointment::with('service')
+                ->where('patient_id', $userId)
+                ->whereRaw('LOWER(status) = ?', ['completed'])
+                ->orderBy('start_datetime', 'desc')
+                ->get();
+
             if ($record) {
+                $record->completed_appointments = $completedAppointments;
+
                 return response()->json([
                     'success' => true,
                     'data' => $record,
-                    'userInfo' => $record->user->info ?? null
+                    'userInfo' => $record->user->info ?? null,
+                    'completed_appointments' => $completedAppointments
                 ]);
             } else {
                 // Return user info even if no record exists
@@ -577,7 +752,8 @@ class PostProceduralController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'No patient record found for this user',
-                    'userInfo' => $user->info ?? null
+                    'userInfo' => $user->info ?? null,
+                    'completed_appointments' => $completedAppointments
                 ]);
             }
         } catch (\Exception $e) {
@@ -595,10 +771,19 @@ class PostProceduralController extends Controller
     public function getPatientRecord($recordId)
     {
         try {
-            $record = PatientRecord::with(['user.info', 'appointment.service', 'progressNotes', 'patientHistories'])
+            $record = PatientRecord::with(['user.info', 'appointment.service', 'progressNotes.appointment.service', 'patientHistories'])
                 ->find($recordId);
 
             if ($record) {
+                // Get all completed appointments for this patient
+                $completedAppointments = Appointment::with('service')
+                    ->where('patient_id', $record->user_id)
+                    ->whereRaw('LOWER(status) = ?', ['completed'])
+                    ->orderBy('start_datetime', 'desc')
+                    ->get();
+
+                $record->completed_appointments = $completedAppointments;
+
                 return response()->json([
                     'success' => true,
                     'data' => $record
@@ -635,6 +820,19 @@ class PostProceduralController extends Controller
      */
     public function storePatientHistory(Request $request)
     {
+        // Check access control
+        $user = Auth::guard('staff')->user();
+        $accessControl = $user->accessControl ?? null;
+        if (!$accessControl || $accessControl->can_edit_patient_records === false) {
+            \Log::warning('Staff user attempted to store patient history without permission', [
+                'user_id' => $user?->id ?? 'unknown',
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Access denied. You do not have permission to edit patient records.'
+            ], 403);
+        }
+
         try {
             \Log::info('Staff Store Patient History Request', $request->all());
 
@@ -817,6 +1015,20 @@ class PostProceduralController extends Controller
 
     public function updatePatientHistory(Request $request, $id)
     {
+        // Check access control
+        $user = Auth::guard('staff')->user();
+        $accessControl = $user->accessControl ?? null;
+        if (!$accessControl || $accessControl->can_edit_patient_records === false) {
+            \Log::warning('Staff user attempted to update patient history without permission', [
+                'user_id' => $user?->id ?? 'unknown',
+                'history_id' => $id
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Access denied. You do not have permission to edit patient records.'
+            ], 403);
+        }
+
         try {
             \Log::info('Staff Update Patient History Request', $request->all());
 
@@ -1000,7 +1212,15 @@ class PostProceduralController extends Controller
      */
     public function getProgressNotes($patientRecordId)
     {
-        $notes = ProgressNote::where('patient_record_id', $patientRecordId)
+        $appointmentId = request()->query('appointment_id');
+        
+        $query = ProgressNote::where('patient_record_id', $patientRecordId);
+        
+        if ($appointmentId) {
+            $query->where('appointment_id', $appointmentId);
+        }
+        
+        $notes = $query->with('appointment.service')
             ->orderBy('note_date', 'desc')
             ->get();
 
@@ -1015,13 +1235,28 @@ class PostProceduralController extends Controller
      */
     public function storeProgressNote(Request $request)
     {
+        // Check access control
+        $user = Auth::guard('staff')->user();
+        $accessControl = $user->accessControl ?? null;
+        if (!$accessControl || $accessControl->can_edit_patient_records === false) {
+            \Log::warning('Staff user attempted to store progress note without permission', [
+                'user_id' => $user?->id ?? 'unknown',
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Access denied. You do not have permission to edit patient records.'
+            ], 403);
+        }
+
+        try {
             $validator = Validator::make($request->all(), [
                 'patient_record_id' => 'required|exists:patient_records,id',
+                'appointment_id' => 'nullable|exists:appointments,id',
                 'note_date' => 'required|date',
                 'progress_description' => 'required|string',
                 'treatment_response' => 'nullable|string',
                 'next_steps' => 'nullable|string',
-            'other_notes' => 'nullable|string'
+                'other_notes' => 'nullable|string'
             ]);
 
             if ($validator->fails()) {
@@ -1073,15 +1308,37 @@ class PostProceduralController extends Controller
                 'message' => 'Progress note saved successfully',
                 'data' => $note
             ]);
+        } catch (\Exception $e) {
+            \Log::error('Error saving progress note: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error saving progress note: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function updateProgressNote(Request $request, $id)
     {
+        // Check access control
+        $user = Auth::guard('staff')->user();
+        $accessControl = $user->accessControl ?? null;
+        if (!$accessControl || $accessControl->can_edit_patient_records === false) {
+            \Log::warning('Staff user attempted to update progress note without permission', [
+                'user_id' => $user?->id ?? 'unknown',
+                'note_id' => $id
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Access denied. You do not have permission to edit patient records.'
+            ], 403);
+        }
+
         try {
             \Log::info('Staff Update Progress Note Request', $request->all());
 
             $validator = Validator::make($request->all(), [
                 'patient_record_id' => 'required|exists:patient_records,id',
+                'appointment_id' => 'nullable|exists:appointments,id',
                 'note_date' => 'required|date',
                 'progress_description' => 'required|string',
                 'treatment_response' => 'nullable|string',
@@ -1192,6 +1449,7 @@ class PostProceduralController extends Controller
             $validator = Validator::make($request->all(), [
                 'patient_id' => 'required|exists:users,id',
                 'notes' => 'required|array|min:1',
+                'notes.*.appointmentId' => 'required|exists:appointments,id',
                 'notes.*.date' => 'required|date',
                 'notes.*.progressNote' => 'nullable|string',
                 'notes.*.amountPaid' => 'nullable|numeric|min:0',
@@ -1240,6 +1498,7 @@ class PostProceduralController extends Controller
                 $user = Auth::user();
                 $note = ProgressNote::create([
                     'patient_record_id' => $patientRecord->id,
+                    'appointment_id' => $noteData['appointmentId'],
                     'note_date' => $noteData['date'],
                     'progress_description' => $noteData['progressNote'] ?? null,
                     'amount_paid' => isset($noteData['amountPaid']) && $noteData['amountPaid'] !== '' ? $noteData['amountPaid'] : null,

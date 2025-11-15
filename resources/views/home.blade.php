@@ -90,8 +90,28 @@
             color: #2196F3;
         }
 
+        .logo-text-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
         .logo span {
             font-weight: 800;
+        }
+
+        .clinic-subtitle {
+            font-size: 0.8rem;
+            opacity: 1;
+            color: #1976D2;
+            font-weight: 600;
+            margin-top: 1px;
+            line-height: 1.2;
+            display: block !important;
+            letter-spacing: 0.01em;
+            white-space: nowrap;
         }
 
         .logo-img {
@@ -711,7 +731,8 @@
                 width: 100%;
             }
 
-            .logo { flex: 1; }
+            .logo { flex: 1; font-size: 1.3rem; }
+            .clinic-subtitle { font-size: 0.7rem !important; }
             .nav-links { display: none; }
             .menu-toggle { display: inline-flex; margin-left: auto; }
 
@@ -2289,7 +2310,10 @@
     <nav class="navbar">
         <div class="logo">
             <img src="{{ asset('images/logo4.png') }}" alt="ToothTalk" class="logo-img">
-            <span>Tooth<span style="color: #26a69a;">Talk</span></span>
+            <div class="logo-text-wrapper">
+                <span>Tooth<span style="color: #26a69a;">Talk</span></span>
+                <span class="clinic-subtitle">JValera Dental Clinic</span>
+            </div>
         </div>
         <div class="nav-links">
             <a href="{{ url('/') }}" class="nav-btn primary">
@@ -2320,7 +2344,10 @@
         <div class="mobile-menu-header">
             <div class="logo" style="gap: 0.5rem; font-size: 1.1rem;">
                 <img src="{{ asset('images/logo4.png') }}" alt="ToothTalk" class="logo-img" style="width:40px;height:40px;">
-                <span>Tooth<span style="color:#26a69a;">Talk</span></span>
+                <div class="logo-text-wrapper">
+                    <span>Tooth<span style="color:#26a69a;">Talk</span></span>
+                    <span class="clinic-subtitle" style="font-size: 0.7rem;">JValera Dental Clinic</span>
+                </div>
             </div>
             <button id="homeMenuClose" class="mobile-menu-close" aria-label="Close menu">
                 <span class="burger-icon" id="homeMenuCloseIcon">
@@ -2405,8 +2432,6 @@
                         <p>Highest safety standards</p>
                     </div>
                 </div>
-
-                <h2 class="card-title">JValera Dental Clinic</h2>
             </div>
         </div>
 </section>

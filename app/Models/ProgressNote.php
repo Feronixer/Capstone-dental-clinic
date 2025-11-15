@@ -8,6 +8,7 @@ class ProgressNote extends Model
 {
     protected $fillable = [
         'patient_record_id',
+        'appointment_id',
         'note_date',
         'progress_description',
         'treatment_response',
@@ -36,6 +37,11 @@ class ProgressNote extends Model
     public function patientRecord()
     {
         return $this->belongsTo(PatientRecord::class);
+    }
+
+    public function appointment()
+    {
+        return $this->belongsTo(Appointment::class);
     }
 
     public function createdBy()

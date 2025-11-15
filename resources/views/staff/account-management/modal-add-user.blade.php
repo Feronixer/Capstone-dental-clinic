@@ -85,14 +85,18 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-floating">
-                                        <input name="phone" type="text"
+                                        <input name="phone" type="tel"
                                                id="floatingPhone"
-                                               placeholder="Enter phone number"
+                                               placeholder="09XXXXXXXXX"
                                                value="{{ old('phone') }}"
+                                               pattern="09[0-9]{9}"
+                                               maxlength="11"
+                                               oninput="this.value = this.value.replace(/[^0-9]/g, ''); if(this.value.length > 0) { if(!this.value.startsWith('09')) { if(this.value.startsWith('0')) { this.value = '09' + this.value.substring(1).substring(0, 9); } else { this.value = '09' + this.value.substring(0, 9); } } else { this.value = this.value.substring(0, 11); } }"
                                                class="form-control @error('phone') is-invalid @enderror">
                                         <label for="floatingPhone">
                                             <i class="bi bi-phone me-1"></i>Phone Number <span class="text-danger">*</span>
                                         </label>
+                                        <small class="text-muted">Format: 09XXXXXXXXX (must start with 09)</small>
                                         @error('phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                     </div>
                                 </div>

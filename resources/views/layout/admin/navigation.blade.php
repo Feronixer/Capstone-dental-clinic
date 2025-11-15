@@ -293,9 +293,9 @@ document.addEventListener('DOMContentLoaded', function() {
         will-change: width;
         backface-visibility: hidden;
         transform: translateZ(0);
-        transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
-                    min-width 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
-                    max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: width 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+                    min-width 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+                    max-width 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         margin: 0 !important;
         padding: 0 !important;
         border: none !important;
@@ -303,6 +303,33 @@ document.addEventListener('DOMContentLoaded', function() {
         overflow-x: hidden;
         background-color: var(--navigation-bar-color, #003B46);
     }
+
+    /* Disable transitions and animations during theme switch */
+    html.theme-switching .navigation-bar-container,
+    html.theme-switching .navigation-bar-container *,
+    html.theme-switching .navigation-bar-container *::before,
+    html.theme-switching .navigation-bar-container *::after,
+    html.theme-switching .nav-item-text,
+    html.theme-switching .user-profile-info,
+    html.theme-switching .user-profile-name,
+    html.theme-switching .user-profile-role,
+    html.theme-switching .nav-section-label,
+    html.theme-switching .nav-section-label span,
+    html.theme-switching .nav-section-label i,
+    html.theme-switching .nav-item-link,
+    html.theme-switching .nav-logout-btn,
+    html.theme-switching .user-profile-link,
+    html.theme-switching .user-profile-avatar,
+    html.theme-switching .user-initials-avatar,
+    html.theme-switching .nav-icon-wrapper,
+    html.theme-switching .nav-icon-wrapper i,
+    html.theme-switching .nav-active-indicator {
+        transition: none !important;
+        animation: none !important;
+    }
+
+    /* Preserve current state during theme switch - just disable transitions */
+    /* Don't override hover state, just prevent animations */
 
     /* Sidebar Toggle Button - Hidden when using hover */
     .sidebar-toggle-btn {
@@ -335,10 +362,10 @@ document.addEventListener('DOMContentLoaded', function() {
         will-change: opacity, max-width;
         backface-visibility: hidden;
         transform: translateZ(0);
-        transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1) 0.05s, 
-                    max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
-                    margin 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
-                    padding 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: opacity 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s, 
+                    max-width 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s, 
+                    margin 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s, 
+                    padding 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s;
     }
 
     .navigation-bar-container .user-profile-link,
@@ -349,8 +376,8 @@ document.addEventListener('DOMContentLoaded', function() {
         will-change: padding, justify-content;
         backface-visibility: hidden;
         transform: translateZ(0);
-        transition: padding 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
-                    justify-content 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: padding 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+                    justify-content 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
     .navigation-bar-container .nav-section-label {
@@ -360,8 +387,8 @@ document.addEventListener('DOMContentLoaded', function() {
         will-change: padding, justify-content;
         backface-visibility: hidden;
         transform: translateZ(0);
-        transition: padding 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
-                    justify-content 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: padding 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+                    justify-content 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
     .navigation-bar-container .nav-section-label i {
@@ -369,7 +396,7 @@ document.addEventListener('DOMContentLoaded', function() {
         will-change: margin;
         backface-visibility: hidden;
         transform: translateZ(0);
-        transition: margin 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: margin 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
     /* Expanded state on hover - show text */
@@ -380,10 +407,10 @@ document.addEventListener('DOMContentLoaded', function() {
         max-width: 200px;
         margin: initial;
         padding: initial;
-        transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1) 0.1s, 
-                    max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1) 0.05s, 
-                    margin 0.35s cubic-bezier(0.4, 0, 0.2, 1) 0.05s, 
-                    padding 0.35s cubic-bezier(0.4, 0, 0.2, 1) 0.05s;
+        transition: opacity 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.08s, 
+                    max-width 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.08s, 
+                    margin 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.08s, 
+                    padding 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.08s;
     }
 
     .navigation-bar-container:hover .user-profile-link,
@@ -391,21 +418,21 @@ document.addEventListener('DOMContentLoaded', function() {
         justify-content: flex-start;
         padding-left: 0.75rem;
         padding-right: 0.75rem;
-        transition: padding 0.35s cubic-bezier(0.4, 0, 0.2, 1) 0.05s, 
-                    justify-content 0.35s cubic-bezier(0.4, 0, 0.2, 1) 0.05s;
+        transition: padding 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.08s, 
+                    justify-content 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.08s;
     }
 
     .navigation-bar-container:hover .nav-section-label {
         justify-content: flex-start;
         padding-left: 0.75rem;
         padding-right: 0.75rem;
-        transition: padding 0.35s cubic-bezier(0.4, 0, 0.2, 1) 0.05s, 
-                    justify-content 0.35s cubic-bezier(0.4, 0, 0.2, 1) 0.05s;
+        transition: padding 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.08s, 
+                    justify-content 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.08s;
     }
 
     .navigation-bar-container:hover .nav-section-label i {
         margin-right: 0.5rem;
-        transition: margin 0.35s cubic-bezier(0.4, 0, 0.2, 1) 0.05s;
+        transition: margin 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.08s;
     }
 
     /* Dark Mode Toggle Button */
@@ -425,11 +452,11 @@ document.addEventListener('DOMContentLoaded', function() {
         will-change: opacity, max-width, max-height, margin, padding;
         backface-visibility: hidden;
         transform: translateZ(0);
-        transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
-                    max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
-                    max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
-                    margin 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
-                    padding 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+                    max-width 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+                    max-height 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+                    margin 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+                    padding 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
     .nav-item-link,
@@ -438,10 +465,10 @@ document.addEventListener('DOMContentLoaded', function() {
         will-change: padding, margin, justify-content, gap;
         backface-visibility: hidden;
         transform: translateZ(0);
-        transition: padding 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
-                    margin 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
-                    justify-content 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
-                    gap 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: padding 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+                    margin 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+                    justify-content 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+                    gap 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
     /* User Profile Section - Compact */

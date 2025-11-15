@@ -1252,6 +1252,14 @@
                     <span class="notification-status-badge" id="viewNotificationStatus"></span>
                 </div>
                 <div class="notification-message-view" id="viewNotificationMessage"></div>
+                <!-- Cancellation Reason Section (shown only for cancellations) -->
+                <div class="cancellation-reason-container" id="cancellationReasonContainer" style="display: none;">
+                    <div class="cancellation-reason-header">
+                        <i class="bi bi-info-circle-fill"></i>
+                        <span>Cancellation Reason</span>
+                    </div>
+                    <div class="cancellation-reason-content" id="cancellationReasonContent"></div>
+                </div>
             </div>
             <div class="notification-modal-footer">
                 <button type="button" class="btn-close-modal" data-bs-dismiss="modal">Close</button>
@@ -1810,10 +1818,126 @@
 
 .notification-modal-header.bg-danger {
     background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+    box-shadow: 0 4px 20px rgba(239, 68, 68, 0.3);
+}
+
+/* Enhanced styling for cancellation modal */
+.notification-modal-content.has-cancellation-reason {
+    border: 2px solid rgba(239, 68, 68, 0.2);
+    box-shadow: 0 15px 50px rgba(239, 68, 68, 0.15);
+    animation: modalPulse 0.5s ease-out;
+}
+
+@keyframes modalPulse {
+    0% {
+        transform: scale(0.98);
+        opacity: 0.9;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 .notification-modal-header.bg-primary {
     background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+}
+
+/* Cancellation Reason Styling */
+.cancellation-reason-container {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid #fee2e2;
+    animation: fadeInUp 0.4s ease-out;
+}
+
+.cancellation-reason-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #dc2626;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.cancellation-reason-header i {
+    font-size: 1.1rem;
+    color: #ef4444;
+}
+
+.cancellation-reason-content {
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    border-left: 4px solid #ef4444;
+    padding: 1rem 1.25rem;
+    border-radius: 8px;
+    color: #991b1b;
+    font-size: 1rem;
+    line-height: 1.6;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.cancellation-reason-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #ef4444, #dc2626, #ef4444);
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+/* Enhanced modal styling for cancellation notifications */
+.notification-modal-header.bg-danger .notification-icon-wrapper-view {
+    background: rgba(255, 255, 255, 0.25) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Dark mode support for cancellation reason */
+[data-theme="dark"] .cancellation-reason-container {
+    border-top-color: rgba(239, 68, 68, 0.3);
+}
+
+[data-theme="dark"] .cancellation-reason-header {
+    color: #fca5a5;
+}
+
+[data-theme="dark"] .cancellation-reason-header i {
+    color: #ef4444;
+}
+
+[data-theme="dark"] .cancellation-reason-content {
+    background: linear-gradient(135deg, rgba(127, 29, 29, 0.3) 0%, rgba(153, 27, 27, 0.2) 100%);
+    border-left-color: #ef4444;
+    color: #fca5a5;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
 }
 
 /* ========================================
@@ -1864,12 +1988,71 @@ async function viewNotification(id) {
             const header = document.getElementById('viewNotificationHeader');
             header.className = `notification-modal-header ${notification.icon_color}`;
 
+            // Parse cancellation reason
+            let cancellationReason = null;
+            let messageWithoutReason = notification.message;
+            
+            // Check if cancellation reason is in the data field
+            if (notification.data) {
+                try {
+                    const notificationData = typeof notification.data === 'string' 
+                        ? JSON.parse(notification.data) 
+                        : notification.data;
+                    if (notificationData.cancellation_reason) {
+                        cancellationReason = notificationData.cancellation_reason;
+                    }
+                } catch (e) {
+                    // If parsing fails, try to extract from message
+                }
+            }
+            
+            // If not in data, try to extract from message (format: "message. Reason: reason")
+            if (!cancellationReason && notification.message.includes('Reason:')) {
+                const reasonMatch = notification.message.match(/Reason:\s*(.+)$/i);
+                if (reasonMatch) {
+                    cancellationReason = reasonMatch[1].trim();
+                    messageWithoutReason = notification.message.replace(/\s*Reason:.*$/i, '').trim();
+                }
+            }
+
             // Update modal content
             document.getElementById('viewNotificationTitle').textContent = notification.title;
-            document.getElementById('viewNotificationMessage').textContent = notification.message;
+            document.getElementById('viewNotificationMessage').textContent = messageWithoutReason;
             document.getElementById('viewNotificationTime').textContent = notification.created_at;
             document.getElementById('viewNotificationIconClass').className = `bi ${notification.icon_class}`;
             document.getElementById('viewNotificationIcon').className = `notification-icon-wrapper-view ${notification.icon_color}`;
+
+            // Show/hide cancellation reason section
+            const cancellationContainer = document.getElementById('cancellationReasonContainer');
+            const cancellationContent = document.getElementById('cancellationReasonContent');
+            
+            // Check if this is a cancellation notification
+            const isCancellation = notification.title === 'Appointment Cancelled' || 
+                                  notification.title.includes('Cancelled') ||
+                                  notification.type === 'appointment_cancelled' ||
+                                  (notification.type === 'appointment_status' && 
+                                   notification.data && 
+                                   (() => {
+                                       try {
+                                           const data = typeof notification.data === 'string' 
+                                               ? JSON.parse(notification.data) 
+                                               : notification.data;
+                                           return data.new_status === 'Cancelled';
+                                       } catch (e) {
+                                           return false;
+                                       }
+                                   })());
+            
+            if (cancellationReason && isCancellation) {
+                cancellationContent.textContent = cancellationReason;
+                cancellationContainer.style.display = 'block';
+                // Add class to modal for enhanced styling
+                document.querySelector('.notification-modal-content').classList.add('has-cancellation-reason');
+            } else {
+                cancellationContainer.style.display = 'none';
+                // Remove class if not cancellation
+                document.querySelector('.notification-modal-content').classList.remove('has-cancellation-reason');
+            }
 
             // Update status badge
             const statusBadge = document.getElementById('viewNotificationStatus');
@@ -1894,7 +2077,7 @@ async function viewNotification(id) {
         }
     } catch (error) {
         console.error('Error:', error);
-        alert('Failed to load notification details');
+        showPatientErrorModal('Failed to load notification details');
     }
 }
 
@@ -1916,7 +2099,7 @@ async function markAsRead(id) {
         }
     } catch (error) {
         console.error('Error:', error);
-        alert('Failed to mark notification as read');
+        showPatientErrorModal('Failed to mark notification as read');
     }
 }
 
@@ -1938,7 +2121,7 @@ async function markAsUnread(id) {
         }
     } catch (error) {
         console.error('Error:', error);
-        alert('Failed to mark notification as unread');
+        showPatientErrorModal('Failed to mark notification as unread');
     }
 }
 
@@ -1969,7 +2152,7 @@ async function confirmMarkAllAsRead() {
         }
     } catch (error) {
         console.error('Error:', error);
-        alert('Failed to mark all as read');
+        showPatientErrorModal('Failed to mark all as read');
     }
 }
 
@@ -2001,7 +2184,7 @@ async function confirmDeleteNotification() {
         }
     } catch (error) {
         console.error('Error:', error);
-        alert('Failed to delete notification');
+        showPatientErrorModal('Failed to delete notification');
     }
 }
 
@@ -2032,7 +2215,7 @@ async function confirmClearRead() {
         }
     } catch (error) {
         console.error('Error:', error);
-        alert('Failed to clear notifications');
+        showPatientErrorModal('Failed to clear notifications');
     }
 }
 </script>
@@ -2053,7 +2236,68 @@ async function confirmClearRead() {
         el.style.transform = 'none';
     });
 })();
+
+// Patient Error Modal Function
+function showPatientErrorModal(message) {
+    if (!document.getElementById('patientErrorModal')) {
+        // Create modal if it doesn't exist
+        const modalHtml = `
+            <div class="modal fade" id="patientErrorModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content" style="border-radius: 16px; overflow: hidden;">
+                        <div class="modal-header border-0 pb-0" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                            <h5 class="modal-title text-white">
+                                <i class="bi bi-exclamation-circle-fill me-2"></i>Error
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body text-center py-4">
+                            <div class="mb-4">
+                                <div class="mx-auto mb-3" style="width: 80px; height: 80px; background: linear-gradient(135deg, #fee2e2, #fecaca); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                    <i class="bi bi-x-circle-fill text-danger" style="font-size: 2.5rem;"></i>
+                                </div>
+                                <p class="text-muted mb-0" id="patientErrorMessage" style="font-size: 1.1rem;"></p>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 pt-0">
+                            <button type="button" class="btn btn-danger w-100" data-bs-dismiss="modal">
+                                <i class="bi bi-check-circle me-1"></i>OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+    }
+    document.getElementById('patientErrorMessage').textContent = message;
+    const modal = new bootstrap.Modal(document.getElementById('patientErrorModal'));
+    modal.show();
+}
 </script>
+
+<style>
+/* Dark Mode Styles for Patient Error Modal */
+[data-theme="dark"] #patientErrorModal .modal-content {
+    background-color: #1e293b !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] #patientErrorModal .modal-body {
+    background-color: #1e293b !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] #patientErrorModal .modal-footer {
+    background-color: #1e293b !important;
+    border-top: 1px solid #334155 !important;
+}
+
+[data-theme="dark"] #patientErrorModal .text-muted,
+[data-theme="dark"] #patientErrorModal #patientErrorMessage {
+    color: #cbd5e1 !important;
+}
+</style>
 
 @endsection
 

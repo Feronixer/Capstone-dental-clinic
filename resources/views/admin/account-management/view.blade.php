@@ -132,7 +132,12 @@
                     <label for="editPasswordVerify" class="form-label fw-semibold">
                         <i class="bi bi-key me-1"></i>Your Password
                     </label>
-                    <input type="password" class="form-control" id="editPasswordVerify" autocomplete="current-password" required placeholder="Enter your password">
+                    <div class="input-group">
+                        <input type="password" class="form-control" id="editPasswordVerify" autocomplete="current-password" required placeholder="Enter your password">
+                        <button class="btn btn-outline-secondary" type="button" id="toggleEditPasswordVerify" aria-label="Show password">
+                            <i class="bi bi-eye" id="toggleEditPasswordVerifyIcon"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="text-danger small" id="editPasswordVerifyError" style="display:none;"></div>
             </div>
@@ -163,7 +168,12 @@
                     <label for="adminConfirmPassword" class="form-label fw-semibold">
                         <i class="bi bi-key me-1"></i>Your Password
                     </label>
-                    <input type="password" class="form-control" id="adminConfirmPassword" autocomplete="current-password" required placeholder="Enter your password">
+                    <div class="input-group">
+                        <input type="password" class="form-control" id="adminConfirmPassword" autocomplete="current-password" required placeholder="Enter your password">
+                        <button class="btn btn-outline-secondary" type="button" id="toggleAdminConfirmPassword" aria-label="Show password">
+                            <i class="bi bi-eye" id="toggleAdminConfirmPasswordIcon"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="text-danger small" id="adminConfirmError" style="display:none;"></div>
             </div>
@@ -189,7 +199,12 @@
                     <input type="hidden" name="user_id" id="viewEmailUserId">
                     <div class="mb-3">
                         <label for="verifyPassword" class="form-label">Your Password</label>
-                        <input type="password" class="form-control" id="verifyPassword" name="password" required>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="verifyPassword" name="password" required>
+                            <button class="btn btn-outline-secondary" type="button" id="toggleVerifyPassword" aria-label="Show password">
+                                <i class="bi bi-eye" id="toggleVerifyPasswordIcon"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="text-danger small" id="viewEmailError" style="display:none;"></div>
                 </form>
@@ -204,73 +219,205 @@
 </div>
 
 <script>
-document.addEventListener('click', function(e) {
-    const btn = e.target.closest('.view-email-btn');
-    if (!btn) return;
+(function() {
+    // Wait for DOM to be ready
+    function initEmailReveal() {
+        // Handle click on view email button
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.view-email-btn');
+            if (!btn) return;
 
-    const userId = btn.getAttribute('data-user-id');
-    const emailSpan = document.querySelector(`.masked-email[data-user-id="${userId}"]`);
-    const icon = btn.querySelector('[data-icon]');
+            const userId = btn.getAttribute('data-user-id');
+            if (!userId) return;
 
-    // If currently visible, mask immediately without asking password
-    if (emailSpan && emailSpan.getAttribute('data-visible') === '1') {
-        emailSpan.textContent = '••••••••';
-        emailSpan.setAttribute('data-visible', '0');
-        if (icon) {
-            icon.classList.remove('bi-eye-slash');
-            icon.classList.add('bi-eye');
-            icon.setAttribute('data-icon', 'eye');
+            const emailSpan = document.querySelector(`.masked-email[data-user-id="${userId}"]`);
+            const icon = btn.querySelector('[data-icon]');
+
+            // If currently visible, mask immediately without asking password
+            if (emailSpan && emailSpan.getAttribute('data-visible') === '1') {
+                emailSpan.textContent = '••••••••';
+                emailSpan.setAttribute('data-visible', '0');
+                if (icon) {
+                    icon.classList.remove('bi-eye-slash');
+                    icon.classList.add('bi-eye');
+                    icon.setAttribute('data-icon', 'eye');
+                }
+                return;
+            }
+
+            // Otherwise, show modal to verify and reveal
+            const userIdInput = document.getElementById('viewEmailUserId');
+            const passwordInput = document.getElementById('verifyPassword');
+            const errorBox = document.getElementById('viewEmailError');
+            const modalElement = document.getElementById('viewEmailModal');
+
+            if (!userIdInput || !passwordInput || !errorBox || !modalElement) {
+                console.error('Email reveal modal elements not found');
+                return;
+            }
+
+            userIdInput.value = userId;
+            passwordInput.value = '';
+            errorBox.style.display = 'none';
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+            
+            // Initialize password toggle when modal is shown
+            const toggleBtn = document.getElementById('toggleVerifyPassword');
+            const toggleIcon = document.getElementById('toggleVerifyPasswordIcon');
+            if (toggleBtn && toggleIcon) {
+                // Reset to password type and eye icon when modal opens
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('bi-eye-slash');
+                toggleIcon.classList.add('bi-eye');
+                toggleBtn.setAttribute('aria-label', 'Show password');
+            }
+        });
+
+        // Handle confirm button click
+        const confirmBtn = document.getElementById('confirmViewEmailBtn');
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', async function () {
+                const userIdInput = document.getElementById('viewEmailUserId');
+                const passwordInput = document.getElementById('verifyPassword');
+                const errorBox = document.getElementById('viewEmailError');
+                const modalElement = document.getElementById('viewEmailModal');
+
+                if (!userIdInput || !passwordInput || !errorBox || !modalElement) {
+                    console.error('Email reveal modal elements not found');
+                    return;
+                }
+
+                const userId = userIdInput.value;
+                const password = passwordInput.value;
+
+                if (!userId || !password) {
+                    errorBox.textContent = 'Please enter your password.';
+                    errorBox.style.display = 'block';
+                    return;
+                }
+
+                try {
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]');
+                    if (!csrfToken) {
+                        errorBox.textContent = 'CSRF token not found. Please refresh the page.';
+                        errorBox.style.display = 'block';
+                        return;
+                    }
+
+                    const res = await fetch(`/admin/account-management/${userId}/reveal-email`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken.getAttribute('content')
+                        },
+                        body: JSON.stringify({ password })
+                    });
+                    const data = await res.json();
+                    if (!res.ok || data.success === false) {
+                        errorBox.textContent = data.message || 'Verification failed.';
+                        errorBox.style.display = 'block';
+                        return;
+                    }
+                    const cell = document.querySelector(`.masked-email[data-user-id="${userId}"]`);
+                    if (cell) {
+                        cell.textContent = data.email;
+                        cell.setAttribute('data-visible', '1');
+                    }
+                    const btn = document.querySelector(`.view-email-btn[data-user-id="${userId}"]`);
+                    if (btn) {
+                        const icon = btn.querySelector('[data-icon]');
+                        if (icon) {
+                            icon.classList.remove('bi-eye');
+                            icon.classList.add('bi-eye-slash');
+                            icon.setAttribute('data-icon', 'eye-slash');
+                        }
+                    }
+                    const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                    if (modalInstance) {
+                        modalInstance.hide();
+                    }
+                } catch (err) {
+                    console.error('Error revealing email:', err);
+                    errorBox.textContent = 'Please enter your password to view the email.';
+                    errorBox.style.display = 'block';
+                }
+            });
         }
-        return;
     }
 
-    // Otherwise, show modal to verify and reveal
-    document.getElementById('viewEmailUserId').value = userId;
-    document.getElementById('verifyPassword').value = '';
-    document.getElementById('viewEmailError').style.display = 'none';
-    const modal = new bootstrap.Modal(document.getElementById('viewEmailModal'));
-    modal.show();
-});
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initEmailReveal);
+    } else {
+        initEmailReveal();
+    }
 
-document.getElementById('confirmViewEmailBtn')?.addEventListener('click', async function () {
-    const userId = document.getElementById('viewEmailUserId').value;
-    const password = document.getElementById('verifyPassword').value;
-    const errorBox = document.getElementById('viewEmailError');
-    try {
-        const res = await fetch(`/admin/account-management/${userId}/reveal-email`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: JSON.stringify({ password })
-        });
-        const data = await res.json();
-        if (!res.ok || data.success === false) {
-            errorBox.textContent = data.message || 'Verification failed.';
-            errorBox.style.display = 'block';
-            return;
-        }
-        const cell = document.querySelector(`.masked-email[data-user-id="${userId}"]`);
-        if (cell) {
-            cell.textContent = data.email;
-            cell.setAttribute('data-visible', '1');
-        }
-        const btn = document.querySelector(`.view-email-btn[data-user-id="${userId}"]`);
-        if (btn) {
-            const icon = btn.querySelector('[data-icon]');
-            if (icon) {
-                icon.classList.remove('bi-eye');
-                icon.classList.add('bi-eye-slash');
-                icon.setAttribute('data-icon', 'eye-slash');
+    // Password toggle for verify password field - use event delegation
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('#toggleVerifyPassword')) {
+            const toggleBtn = document.getElementById('toggleVerifyPassword');
+            const verifyPasswordInput = document.getElementById('verifyPassword');
+            const toggleIcon = document.getElementById('toggleVerifyPasswordIcon');
+            
+            if (toggleBtn && verifyPasswordInput && toggleIcon) {
+                if (verifyPasswordInput.type === 'password') {
+                    verifyPasswordInput.type = 'text';
+                    toggleIcon.classList.remove('bi-eye');
+                    toggleIcon.classList.add('bi-eye-slash');
+                    toggleBtn.setAttribute('aria-label', 'Hide password');
+                } else {
+                    verifyPasswordInput.type = 'password';
+                    toggleIcon.classList.remove('bi-eye-slash');
+                    toggleIcon.classList.add('bi-eye');
+                    toggleBtn.setAttribute('aria-label', 'Show password');
+                }
             }
         }
-        bootstrap.Modal.getInstance(document.getElementById('viewEmailModal')).hide();
-    } catch (err) {
-        errorBox.textContent = 'Please enter your password to view the email.';
-        errorBox.style.display = 'block';
-    }
-});
+        
+        // Toggle for edit password verify
+        if (e.target.closest('#toggleEditPasswordVerify')) {
+            const toggleBtn = document.getElementById('toggleEditPasswordVerify');
+            const passwordInput = document.getElementById('editPasswordVerify');
+            const toggleIcon = document.getElementById('toggleEditPasswordVerifyIcon');
+            
+            if (toggleBtn && passwordInput && toggleIcon) {
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    toggleIcon.classList.remove('bi-eye');
+                    toggleIcon.classList.add('bi-eye-slash');
+                    toggleBtn.setAttribute('aria-label', 'Hide password');
+                } else {
+                    passwordInput.type = 'password';
+                    toggleIcon.classList.remove('bi-eye-slash');
+                    toggleIcon.classList.add('bi-eye');
+                    toggleBtn.setAttribute('aria-label', 'Show password');
+                }
+            }
+        }
+        
+        // Toggle for admin confirm password
+        if (e.target.closest('#toggleAdminConfirmPassword')) {
+            const toggleBtn = document.getElementById('toggleAdminConfirmPassword');
+            const passwordInput = document.getElementById('adminConfirmPassword');
+            const toggleIcon = document.getElementById('toggleAdminConfirmPasswordIcon');
+            
+            if (toggleBtn && passwordInput && toggleIcon) {
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    toggleIcon.classList.remove('bi-eye');
+                    toggleIcon.classList.add('bi-eye-slash');
+                    toggleBtn.setAttribute('aria-label', 'Hide password');
+                } else {
+                    passwordInput.type = 'password';
+                    toggleIcon.classList.remove('bi-eye-slash');
+                    toggleIcon.classList.add('bi-eye');
+                    toggleBtn.setAttribute('aria-label', 'Show password');
+                }
+            }
+        }
+    });
+})();
 </script>
 
 <!-- Validation Help Modal -->
@@ -1407,7 +1554,7 @@ $(document).ready(function () {
                 }, 500);
             },
             error: function () {
-                alert("Failed to load data.");
+                showErrorModal("Failed to load data.");
                 $("#loader").hide();
                 $("#users-table-body").show();
                 $("#users-pagination .pagination a").removeClass("disabled").css("pointer-events", "auto");
@@ -1646,6 +1793,55 @@ $(document).ready(function () {
         }
     });
 
+    // Handle Enter key in edit user form
+    $(document).on('keydown', '#editUserForm input, #editUserForm select', function(e) {
+        if (e.key === 'Enter' || e.keyCode === 13) {
+            e.preventDefault();
+            $('#editUserForm').trigger('submit');
+        }
+    });
+
+    // Handle Enter key in change password form
+    $(document).on('keydown', '#changePasswordForm input', function(e) {
+        if (e.key === 'Enter' || e.keyCode === 13) {
+            e.preventDefault();
+            $('#changePasswordForm').trigger('submit');
+        }
+    });
+
+    // Handle Enter key in email reveal modal password field
+    $(document).on('keydown', '#verifyPassword', function(e) {
+        if (e.key === 'Enter' || e.keyCode === 13) {
+            e.preventDefault();
+            const confirmBtn = document.getElementById('confirmViewEmailBtn');
+            if (confirmBtn) {
+                confirmBtn.click();
+            }
+        }
+    });
+
+    // Handle Enter key in edit password verify modal
+    $(document).on('keydown', '#editPasswordVerify', function(e) {
+        if (e.key === 'Enter' || e.keyCode === 13) {
+            e.preventDefault();
+            const verifyBtn = document.getElementById('editPasswordVerifyBtn');
+            if (verifyBtn) {
+                verifyBtn.click();
+            }
+        }
+    });
+
+    // Handle Enter key in admin confirm password modal
+    $(document).on('keydown', '#adminConfirmPassword', function(e) {
+        if (e.key === 'Enter' || e.keyCode === 13) {
+            e.preventDefault();
+            const confirmBtn = document.getElementById('adminConfirmSubmitBtn');
+            if (confirmBtn) {
+                confirmBtn.click();
+            }
+        }
+    });
+
     // Intercept delete submit
     let pendingDeleteUserId = null;
     $('#deleteUserForm').on('submit', function (e) {
@@ -1807,6 +2003,127 @@ $(document).ready(function () {
         });
         wrapper.append(icon);
     }
+
+    // Password toggle for change password modal
+    document.addEventListener('click', function(e) {
+        // Toggle for new password
+        if (e.target.closest('#toggleChangePassword')) {
+            const toggleBtn = document.getElementById('toggleChangePassword');
+            const passwordInput = document.getElementById('floatingPassword');
+            const toggleIcon = document.getElementById('toggleChangePasswordIcon');
+            
+            if (toggleBtn && passwordInput && toggleIcon) {
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    toggleIcon.classList.remove('bi-eye');
+                    toggleIcon.classList.add('bi-eye-slash');
+                    toggleBtn.setAttribute('aria-label', 'Hide password');
+                } else {
+                    passwordInput.type = 'password';
+                    toggleIcon.classList.remove('bi-eye-slash');
+                    toggleIcon.classList.add('bi-eye');
+                    toggleBtn.setAttribute('aria-label', 'Show password');
+                }
+            }
+        }
+        
+        // Toggle for confirm password
+        if (e.target.closest('#toggleChangeConfirmPassword')) {
+            const toggleBtn = document.getElementById('toggleChangeConfirmPassword');
+            const passwordInput = document.getElementById('floatingConfirmPassword');
+            const toggleIcon = document.getElementById('toggleChangeConfirmPasswordIcon');
+            
+            if (toggleBtn && passwordInput && toggleIcon) {
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    toggleIcon.classList.remove('bi-eye');
+                    toggleIcon.classList.add('bi-eye-slash');
+                    toggleBtn.setAttribute('aria-label', 'Hide password');
+                } else {
+                    passwordInput.type = 'password';
+                    toggleIcon.classList.remove('bi-eye-slash');
+                    toggleIcon.classList.add('bi-eye');
+                    toggleBtn.setAttribute('aria-label', 'Show password');
+                }
+            }
+        }
+    });
 });
+
+// Generic Error Modal Function
+function showErrorModal(message) {
+    const modal = new bootstrap.Modal(document.getElementById('genericErrorModal'));
+    document.getElementById('genericErrorMessage').textContent = message;
+    modal.show();
+}
 </script>
+
+<!-- Generic Error Modal -->
+<div class="modal fade" id="genericErrorModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                <h5 class="modal-title text-white">
+                    <i class="bi bi-exclamation-circle-fill me-2"></i>Error
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-4">
+                    <div class="mx-auto mb-3" style="width: 80px; height: 80px; background: linear-gradient(135deg, #fee2e2, #fecaca); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-x-circle-fill text-danger" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <p class="text-muted mb-0" id="genericErrorMessage"></p>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+                    <i class="bi bi-check-circle me-1"></i>OK
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Dark Mode Styles for Generic Modals */
+[data-theme="dark"] #genericWarningModal .modal-content,
+[data-theme="dark"] #genericErrorModal .modal-content,
+[data-theme="dark"] #genericInfoModal .modal-content,
+[data-theme="dark"] #genericConfirmModal .modal-content {
+    background-color: #1e293b !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] #genericWarningModal .modal-body,
+[data-theme="dark"] #genericErrorModal .modal-body,
+[data-theme="dark"] #genericInfoModal .modal-body,
+[data-theme="dark"] #genericConfirmModal .modal-body {
+    background-color: #1e293b !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] #genericWarningModal .modal-footer,
+[data-theme="dark"] #genericErrorModal .modal-footer,
+[data-theme="dark"] #genericInfoModal .modal-footer,
+[data-theme="dark"] #genericConfirmModal .modal-footer {
+    background-color: #1e293b !important;
+    border-top: 1px solid #334155 !important;
+}
+
+[data-theme="dark"] #genericWarningModal .text-muted,
+[data-theme="dark"] #genericErrorModal .text-muted,
+[data-theme="dark"] #genericInfoModal .text-muted,
+[data-theme="dark"] #genericConfirmModal .text-muted {
+    color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] #genericWarningModal #genericWarningMessage,
+[data-theme="dark"] #genericErrorModal #genericErrorMessage,
+[data-theme="dark"] #genericInfoModal #genericInfoMessage,
+[data-theme="dark"] #genericConfirmModal #genericConfirmMessage {
+    color: #cbd5e1 !important;
+}
+</style>
+
 @endsection

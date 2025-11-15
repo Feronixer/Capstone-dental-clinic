@@ -217,6 +217,9 @@ class DashboardController extends Controller
             ->where('status', 'Pending')
             ->count();
 
+        // Get cancelled appointments count
+        $cancelledAppointments = Appointment::where('status', 'Cancelled')->count();
+
         // Get current services list (limit to 5 for dashboard)
         $clinicServices = Service::orderBy('created_at', 'desc')->get();
 
@@ -225,6 +228,7 @@ class DashboardController extends Controller
             'todayAppointments',
             'totalAppointments',
             'pendingAppointments',
+            'cancelledAppointments',
             'staffMembers',
             'todayAppointmentsList',
             'upcomingAppointments',

@@ -1889,17 +1889,17 @@ document.getElementById('confirmApproveBtn').addEventListener('click', function(
     // For booking requests, validate time
     if (requestType === 'book') {
         if (!time || time.trim() === '') {
-            alert('Please select an appointment time');
+            showWarningModal('Please select an appointment time');
             return;
         }
         if (!duration || duration < 15 || duration > 480) {
-            alert('Please enter a valid duration between 15 and 480 minutes');
+            showWarningModal('Please enter a valid duration between 15 and 480 minutes');
             return;
         }
     } else if (requestType === 'walk-in') {
     // Only validate duration for walk-in requests
         if (!duration || duration < 15 || duration > 480) {
-            alert('Please enter a valid duration between 15 and 480 minutes');
+            showWarningModal('Please enter a valid duration between 15 and 480 minutes');
             return;
         }
     }
@@ -2125,5 +2125,81 @@ function showToast(title, message, type) {
         alert.remove();
     }, 5000);
 }
+
+// Generic Warning Modal Function
+function showWarningModal(message) {
+    const modal = new bootstrap.Modal(document.getElementById('genericWarningModal'));
+    document.getElementById('genericWarningMessage').textContent = message;
+    modal.show();
+}
 </script>
+
+<!-- Generic Warning Modal -->
+<div class="modal fade" id="genericWarningModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                <h5 class="modal-title text-white">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Warning
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-4">
+                    <div class="mx-auto mb-3" style="width: 80px; height: 80px; background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-exclamation-triangle-fill text-warning" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <p class="text-muted mb-0" id="genericWarningMessage"></p>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-warning" data-bs-dismiss="modal">
+                    <i class="bi bi-check-circle me-1"></i>OK
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Dark Mode Styles for Generic Modals */
+[data-theme="dark"] #genericWarningModal .modal-content,
+[data-theme="dark"] #genericErrorModal .modal-content,
+[data-theme="dark"] #genericInfoModal .modal-content,
+[data-theme="dark"] #genericConfirmModal .modal-content {
+    background-color: #1e293b !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] #genericWarningModal .modal-body,
+[data-theme="dark"] #genericErrorModal .modal-body,
+[data-theme="dark"] #genericInfoModal .modal-body,
+[data-theme="dark"] #genericConfirmModal .modal-body {
+    background-color: #1e293b !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] #genericWarningModal .modal-footer,
+[data-theme="dark"] #genericErrorModal .modal-footer,
+[data-theme="dark"] #genericInfoModal .modal-footer,
+[data-theme="dark"] #genericConfirmModal .modal-footer {
+    background-color: #1e293b !important;
+    border-top: 1px solid #334155 !important;
+}
+
+[data-theme="dark"] #genericWarningModal .text-muted,
+[data-theme="dark"] #genericErrorModal .text-muted,
+[data-theme="dark"] #genericInfoModal .text-muted,
+[data-theme="dark"] #genericConfirmModal .text-muted {
+    color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] #genericWarningModal #genericWarningMessage,
+[data-theme="dark"] #genericErrorModal #genericErrorMessage,
+[data-theme="dark"] #genericInfoModal #genericInfoMessage,
+[data-theme="dark"] #genericConfirmModal #genericConfirmMessage {
+    color: #cbd5e1 !important;
+}
+</style>
+
 @endsection

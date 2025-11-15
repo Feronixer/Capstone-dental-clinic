@@ -105,21 +105,32 @@ class NotificationService
     /**
      * Create an appointment cancelled notification
      */
-    public static function appointmentCancelled(Appointment $appointment): void
+    public static function appointmentCancelled(Appointment $appointment, ?string $cancellationReason = null): void
     {
         $appointmentDate = $appointment->start_datetime->format('F j, Y');
         $appointmentTime = $appointment->start_datetime->format('g:i A');
+
+        $message = "Your appointment on {$appointmentDate} at {$appointmentTime} has been cancelled.";
+        if (!empty($cancellationReason)) {
+            $message .= " Reason: {$cancellationReason}";
+        }
+
+        $data = [
+            'appointment_id' => $appointment->id,
+            'appointment_date' => $appointmentDate,
+            'appointment_time' => $appointmentTime,
+        ];
+
+        if (!empty($cancellationReason)) {
+            $data['cancellation_reason'] = $cancellationReason;
+        }
 
         Notification::create([
             'user_id' => $appointment->patient_id,
             'type' => Notification::TYPE_APPOINTMENT_CANCELLED,
             'title' => 'Appointment Cancelled',
-            'message' => "Your appointment on {$appointmentDate} at {$appointmentTime} has been cancelled.",
-            'data' => [
-                'appointment_id' => $appointment->id,
-                'appointment_date' => $appointmentDate,
-                'appointment_time' => $appointmentTime,
-            ],
+            'message' => $message,
+            'data' => $data,
         ]);
     }
 

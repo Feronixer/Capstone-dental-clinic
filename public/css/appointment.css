@@ -296,6 +296,32 @@
     max-height: calc(100vh - 250px);
     overflow-y: auto;
     flex: 1;
+    opacity: 1;
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+    transform: translateX(0);
+}
+
+.calendar-grid.fade-out {
+    opacity: 0;
+    transform: translateX(-10px);
+    pointer-events: none;
+}
+
+.calendar-grid.fade-in {
+    opacity: 0;
+    transform: translateX(10px);
+    animation: fadeIn 0.3s ease-in-out forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 .calendar-grid.month-view {

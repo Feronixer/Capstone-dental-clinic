@@ -36,9 +36,28 @@
                     @error('password')
                         <div class="invalid-feedback d-block">{{ $message }}</div>
                     @enderror
-                    <div class="form-text">
-                        <i class="bi bi-info-circle me-1"></i>
-                        Password must be at least 8 characters long
+                    <div id="passwordRequirements" class="mt-2 small">
+                        <div class="text-muted mb-2"><strong>Password Requirements:</strong></div>
+                        <div id="req-length" class="d-flex align-items-center mb-1">
+                            <i class="bi bi-circle me-2"></i>
+                            <span>At least 8 characters</span>
+                        </div>
+                        <div id="req-uppercase" class="d-flex align-items-center mb-1">
+                            <i class="bi bi-circle me-2"></i>
+                            <span>At least 1 uppercase letter</span>
+                        </div>
+                        <div id="req-lowercase" class="d-flex align-items-center mb-1">
+                            <i class="bi bi-circle me-2"></i>
+                            <span>At least 1 lowercase letter</span>
+                        </div>
+                        <div id="req-number" class="d-flex align-items-center mb-1">
+                            <i class="bi bi-circle me-2"></i>
+                            <span>At least 1 number</span>
+                        </div>
+                        <div id="req-special" class="d-flex align-items-center mb-1">
+                            <i class="bi bi-circle me-2"></i>
+                            <span>At least 1 special character</span>
+                        </div>
                     </div>
                     <div id="passwordStrength" class="mt-2"></div>
                 </div>
@@ -107,61 +126,115 @@ document.addEventListener('DOMContentLoaded', function() {
         toggleIconConfirmation.classList.toggle('bi-eye-slash');
     });
 
-    // Password strength indicator
-    passwordInput.addEventListener('input', function() {
-        const password = this.value;
-        const strength = getPasswordStrength(password);
-        updatePasswordStrengthIndicator(strength);
-    });
-
-    function getPasswordStrength(password) {
-        let strength = 0;
-        if (password.length >= 8) strength++;
-        if (password.length >= 12) strength++;
-        if (/[a-z]/.test(password)) strength++;
-        if (/[A-Z]/.test(password)) strength++;
-        if (/[0-9]/.test(password)) strength++;
-        if (/[^A-Za-z0-9]/.test(password)) strength++;
-        return strength;
+    // Password validation and strength indicator
+    if (passwordInput) {
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+            validatePasswordRequirements(password);
+            updatePasswordStrength(password);
+        });
     }
 
-    function updatePasswordStrengthIndicator(strength) {
+    function validatePasswordRequirements(password) {
+        const requirements = {
+            length: password.length >= 8,
+            uppercase: /[A-Z]/.test(password),
+            lowercase: /[a-z]/.test(password),
+            number: /[0-9]/.test(password),
+            special: /[^A-Za-z0-9]/.test(password)
+        };
+
+        updateRequirementIcon('req-length', requirements.length);
+        updateRequirementIcon('req-uppercase', requirements.uppercase);
+        updateRequirementIcon('req-lowercase', requirements.lowercase);
+        updateRequirementIcon('req-number', requirements.number);
+        updateRequirementIcon('req-special', requirements.special);
+    }
+
+    function updateRequirementIcon(id, met) {
+        const element = document.getElementById(id);
+        if (element) {
+            const icon = element.querySelector('i');
+            if (icon) {
+                if (met) {
+                    icon.classList.remove('bi-circle');
+                    icon.classList.add('bi-check-circle-fill', 'text-success');
+                } else {
+                    icon.classList.remove('bi-check-circle-fill', 'text-success');
+                    icon.classList.add('bi-circle');
+                }
+            }
+        }
+    }
+
+    function updatePasswordStrength(password) {
         const strengthDiv = document.getElementById('passwordStrength');
+        if (!strengthDiv) return;
+
+        if (!password) {
+            strengthDiv.innerHTML = '';
+            return;
+        }
+
+        let strength = 0;
+        let checks = 0;
+
+        if (password.length >= 8) {
+            strength += 2;
+            checks++;
+        }
+        if (password.length >= 12) {
+            strength += 1;
+        }
+        if (/[a-z]/.test(password)) {
+            strength += 1;
+            checks++;
+        }
+        if (/[A-Z]/.test(password)) {
+            strength += 1;
+            checks++;
+        }
+        if (/[0-9]/.test(password)) {
+            strength += 1;
+            checks++;
+        }
+        if (/[^A-Za-z0-9]/.test(password)) {
+            strength += 1;
+            checks++;
+        }
+
         let strengthText = '';
         let strengthClass = '';
+        let progressColor = '';
         let progressPercentage = 0;
 
-        if (strength === 0) {
-            strengthText = '';
-            strengthClass = '';
-            progressPercentage = 0;
-        } else if (strength <= 2) {
+        if (checks < 3 || strength < 3) {
             strengthText = 'Weak';
             strengthClass = 'text-danger';
-            progressPercentage = 33;
-        } else if (strength <= 4) {
-            strengthText = 'Medium';
+            progressColor = 'bg-danger';
+            progressPercentage = Math.min(33, (strength / 6) * 33);
+        } else if (checks < 5 || strength < 5) {
+            strengthText = 'Average';
             strengthClass = 'text-warning';
-            progressPercentage = 66;
+            progressColor = 'bg-warning';
+            progressPercentage = 33 + ((strength - 3) / 2) * 33;
         } else {
             strengthText = 'Strong';
             strengthClass = 'text-success';
-            progressPercentage = 100;
+            progressColor = 'bg-success';
+            progressPercentage = 66 + ((strength - 5) / 1) * 34;
         }
 
-        if (strengthText) {
-            strengthDiv.innerHTML = `
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                    <small class="${strengthClass} fw-bold">Password Strength: ${strengthText}</small>
-                </div>
-                <div class="progress" style="height: 5px;">
-                    <div class="progress-bar ${strengthClass === 'text-danger' ? 'bg-danger' : strengthClass === 'text-warning' ? 'bg-warning' : 'bg-success'}"
-                         role="progressbar" style="width: ${progressPercentage}%" aria-valuenow="${progressPercentage}" aria-valuemin="0" aria-valuemax="100"></div>
-                </div>
-            `;
-        } else {
-            strengthDiv.innerHTML = '';
-        }
+        strengthDiv.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <small class="${strengthClass} fw-bold">Password Strength: ${strengthText}</small>
+            </div>
+            <div class="progress" style="height: 6px; border-radius: 3px;">
+                <div class="progress-bar ${progressColor}" role="progressbar" 
+                     style="width: ${Math.min(100, progressPercentage)}%; transition: width 0.3s ease;" 
+                     aria-valuenow="${progressPercentage}" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+        `;
     }
 });
 </script>

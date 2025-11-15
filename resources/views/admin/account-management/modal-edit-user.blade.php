@@ -133,10 +133,11 @@
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <div class="form-floating">
-                                    <input name="phone" type="text" class="form-control" id="editFloatingPhone" placeholder="Enter phone number">
+                                    <input name="phone" type="tel" class="form-control" id="editFloatingPhone" placeholder="09XXXXXXXXX" pattern="09[0-9]{9}" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, ''); if(this.value.length > 0) { if(!this.value.startsWith('09')) { if(this.value.startsWith('0')) { this.value = '09' + this.value.substring(1).substring(0, 9); } else { this.value = '09' + this.value.substring(0, 9); } } else { this.value = this.value.substring(0, 11); } }">
                                     <label for="editFloatingPhone">
                                         <i class="bi bi-phone me-1"></i>Phone Number
                                     </label>
+                                    <small class="text-muted">Format: 09XXXXXXXXX (must start with 09)</small>
                         <div class="invalid-feedback"></div>
                     </div>
                             </div>

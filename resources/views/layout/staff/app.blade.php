@@ -201,6 +201,35 @@
             color: var(--dm-text-primary, #f1f5f9);
         }
 
+        /* Fix input-group alignment in session lock modal */
+        .inactivity-password-content .input-group {
+            display: flex;
+            align-items: stretch;
+            margin-bottom: 1rem;
+        }
+
+        .inactivity-password-content .input-group input {
+            width: auto;
+            flex: 1;
+            margin-bottom: 0;
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        .inactivity-password-content .input-group .btn {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+            border-left: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem;
+        }
+
+        .inactivity-password-content .input-group .btn i {
+            font-size: 1rem;
+        }
+
         .inactivity-password-content .error-message {
             color: #ef4444;
             font-size: 0.875rem;
@@ -211,13 +240,64 @@
         .inactivity-password-content .error-message.show {
             display: block;
         }
+
+        /* Page Transition Styles */
+        .page-transition {
+            animation: fadeIn 0.4s ease-in-out;
+            opacity: 1;
+        }
+
+        .page-transition.fade-out {
+            animation: fadeOut 0.3s ease-in-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+        }
+
+        /* Smooth navigation link transitions */
+        .nav-item-link,
+        .navigation-bar a {
+            transition: all 0.3s ease;
+        }
+
+        .nav-item-link:hover,
+        .navigation-bar a:hover {
+            transform: translateX(3px);
+        }
+
+        /* Exclude sidebar navigation from hover transform */
+        .navigation-bar-container .nav-item-link:hover,
+        .navigation-bar-container .nav-item-link,
+        .navigation-bar-container a:hover,
+        .navigation-bar-container a {
+            transform: none !important;
+        }
     </style>
 </head>
 <body class="staff-body">
     {{-- Navigation Menu --}}
     @include('layout.staff.navigation')
     {{-- Main Content --}}
-    <main>
+    <main id="main-content" class="page-transition">
         @yield('content')
     </main>
 
@@ -269,28 +349,42 @@
             const currentTheme = html.getAttribute('data-theme');
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
 
-            html.setAttribute('data-theme', newTheme);
-            localStorage.setItem('darkMode', newTheme);
+            // Disable sidebar transitions during theme switch - use requestAnimationFrame to ensure it's applied before DOM update
+            requestAnimationFrame(function() {
+                html.classList.add('theme-switching');
+                
+                // Force a reflow to ensure the class is applied
+                void html.offsetHeight;
+                
+                // Now change the theme
+                html.setAttribute('data-theme', newTheme);
+                localStorage.setItem('darkMode', newTheme);
 
-            // Update icon in navigation
-            const darkModeLinks = document.querySelectorAll('.dark-mode-toggle-btn');
-            darkModeLinks.forEach(link => {
-                const icon = link.querySelector('i');
-                const span = link.querySelector('span');
-                if (newTheme === 'dark') {
-                    if (icon) icon.className = 'bi bi-sun';
-                    if (span) span.textContent = 'Light Mode';
-                } else {
-                    if (icon) icon.className = 'bi bi-moon-stars';
-                    if (span) span.textContent = 'Dark Mode';
+                // Update icon in navigation
+                const darkModeLinks = document.querySelectorAll('.dark-mode-toggle-btn');
+                darkModeLinks.forEach(link => {
+                    const icon = link.querySelector('i');
+                    const span = link.querySelector('span');
+                    if (newTheme === 'dark') {
+                        if (icon) icon.className = 'bi bi-sun';
+                        if (span) span.textContent = 'Light Mode';
+                    } else {
+                        if (icon) icon.className = 'bi bi-moon-stars';
+                        if (span) span.textContent = 'Dark Mode';
+                    }
+                });
+
+                // Update icon in patient header
+                const darkModeIcon = document.getElementById('darkModeIcon');
+                if (darkModeIcon) {
+                    darkModeIcon.className = newTheme === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
                 }
-            });
 
-            // Update icon in patient header
-            const darkModeIcon = document.getElementById('darkModeIcon');
-            if (darkModeIcon) {
-                darkModeIcon.className = newTheme === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
-            }
+                // Re-enable transitions after theme switch completes
+                setTimeout(function() {
+                    html.classList.remove('theme-switching');
+                }, 200);
+            });
         }
 
         // Update icon on page load
@@ -317,7 +411,12 @@
             <h3><i class="bi bi-shield-lock"></i> Session Locked</h3>
             <p>Your session has been locked due to inactivity. Please enter your password to continue.</p>
             <form id="inactivityPasswordForm">
-                <input type="password" id="inactivityPassword" placeholder="Enter your password" autocomplete="current-password" required autofocus>
+                <div class="input-group mb-3">
+                    <input type="password" id="inactivityPassword" placeholder="Enter your password" autocomplete="current-password" required autofocus>
+                    <button class="btn btn-outline-secondary" type="button" id="toggleInactivityPasswordStaff" aria-label="Show password">
+                        <i class="bi bi-eye" id="toggleInactivityPasswordStaffIcon"></i>
+                    </button>
+                </div>
                 <div class="error-message" id="inactivityPasswordError"></div>
                 <button type="submit" class="btn btn-primary w-100" style="padding: 0.75rem; border-radius: 8px; font-weight: 600;">Unlock</button>
             </form>
@@ -509,6 +608,100 @@
 
             // Initialize on page load
             restoreInactivityState();
+        })();
+    </script>
+
+    {{-- Real-Time Broadcasting Script --}}
+    <script>
+        // Set user role and ID for real-time updates
+        window.userRole = 'staff';
+        window.currentUserId = {{ auth('staff')->id() ?? 'null' }};
+    </script>
+    <script src="{{ asset('js/realtime-broadcast.js') }}"></script>
+    <script src="{{ asset('js/staff-access-control-handler.js') }}"></script>
+
+    {{-- Page Transition Script --}}
+    <script>
+        (function() {
+            const mainContent = document.getElementById('main-content');
+            if (!mainContent) return;
+
+            // Initialize fade-in on page load
+            function initFadeIn() {
+                mainContent.classList.remove('fade-out');
+                mainContent.classList.add('page-transition');
+            }
+
+            // Use DOMContentLoaded for faster initialization
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initFadeIn);
+            } else {
+                initFadeIn();
+            }
+
+            // Handle navigation link clicks
+            document.addEventListener('click', function(e) {
+                const link = e.target.closest('a[href]');
+                if (!link) return;
+
+                // Skip if it's an external link, anchor, or has special attributes
+                if (link.target === '_blank' || 
+                    link.href.startsWith('javascript:') || 
+                    link.href.startsWith('#') ||
+                    link.hasAttribute('data-no-transition') ||
+                    link.getAttribute('href')?.startsWith('mailto:') ||
+                    link.getAttribute('href')?.startsWith('tel:')) {
+                    return;
+                }
+
+                // Check if it's an internal staff route
+                const href = link.getAttribute('href');
+                const currentHost = window.location.host;
+                const isInternalStaff = href && (
+                    href.startsWith('/staff/') || 
+                    href.includes('/staff/') ||
+                    (href.startsWith('http') && href.includes(currentHost) && href.includes('/staff/'))
+                );
+
+                if (isInternalStaff) {
+                    e.preventDefault();
+                    // Add fade-out class
+                    mainContent.classList.add('fade-out');
+                    
+                    // Navigate after fade-out animation
+                    setTimeout(function() {
+                        window.location.href = href;
+                    }, 300);
+                }
+            });
+        })();
+    </script>
+
+    {{-- Inactivity Password Toggle Script --}}
+    <script>
+        (function() {
+            // Password toggle for inactivity password field
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('#toggleInactivityPasswordStaff')) {
+                    const toggleBtn = document.getElementById('toggleInactivityPasswordStaff');
+                    const passwordInput = document.getElementById('inactivityPassword');
+                    const toggleIcon = document.getElementById('toggleInactivityPasswordStaffIcon');
+                    
+                    if (toggleBtn && passwordInput && toggleIcon) {
+                        if (passwordInput.type === 'password') {
+                            passwordInput.type = 'text';
+                            toggleIcon.classList.remove('bi-eye');
+                            toggleIcon.classList.add('bi-eye-slash');
+                            toggleBtn.setAttribute('aria-label', 'Hide password');
+                        } else {
+                            passwordInput.type = 'password';
+                            toggleIcon.classList.remove('bi-eye-slash');
+                            toggleIcon.classList.add('bi-eye');
+                            toggleBtn.setAttribute('aria-label', 'Show password');
+                        }
+                    }
+                }
+            });
         })();
     </script>
 </body>

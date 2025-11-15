@@ -204,6 +204,9 @@ function escapeHtml(text) {
 let currentConversationId = null;
 let pollingInterval = null;
 let lastMessageId = null;
+
+// Expose pollingInterval to window for access control handler
+// We'll update window.pollingInterval whenever pollingInterval changes
 const canAttachFiles = @json($canAttachFiles);
 const CURRENT_STAFF_ID = @json(Auth::guard('staff')->id());
 const CURRENT_STAFF_NAME = @json(optional(Auth::guard('staff')->user())->info ? (trim(optional(Auth::guard('staff')->user())->info->first_name . ' ' . optional(Auth::guard('staff')->user())->info->last_name)) : (optional(Auth::guard('staff')->user())->username ?? 'You'));
@@ -285,7 +288,7 @@ async function toggleOnlineStatus(isOnline) {
         console.error('Error toggling online status:', error);
         // Revert toggle on error
         updateToggleUI(!isOnline);
-        alert('Failed to update chat status. Please try again.');
+        showErrorModal('Failed to update chat status. Please try again.');
     } finally {
         isTogglingStatus = false;
         // Re-enable toggle
@@ -413,7 +416,7 @@ async function toggleCensorship(isEnabled) {
     } catch (error) {
         console.error('Error toggling censorship:', error);
         updateCensorToggleUI(!isEnabled);
-        alert('Failed to update censorship setting. Please try again.');
+        showErrorModal('Failed to update censorship setting. Please try again.');
     } finally {
         isTogglingCensorship = false;
         if (toggle) {
@@ -1010,6 +1013,12 @@ async function sendMessage() {
     }
     
     try {
+        // Create AbortController to track this request
+        const abortController = new AbortController();
+        window.pendingMessageSend = abortController;
+        window.activeFetchControllers = window.activeFetchControllers || [];
+        window.activeFetchControllers.push(abortController);
+        
         // Create FormData
         const formData = new FormData();
         
@@ -1040,7 +1049,8 @@ async function sendMessage() {
                 'X-CSRF-TOKEN': '{{ csrf_token() }}',
                 'Accept': 'application/json'
             },
-            body: formData
+            body: formData,
+            signal: abortController.signal
         });
         
         const responseText = await response.text();
@@ -1093,7 +1103,7 @@ async function sendMessage() {
             document.getElementById('chat-file-input').value = '';
         } else {
             console.error('Error sending message:', data);
-            alert('Error: ' + (data.message || 'Failed to send message'));
+            showErrorModal('Error: ' + (data.message || 'Failed to send message'));
             // Remove the placeholder message on error
             const messagesEl = document.getElementById('chat-messages');
             const messageWrappers = messagesEl.querySelectorAll('.message-wrapper');
@@ -1102,7 +1112,29 @@ async function sendMessage() {
             }
             // Don't clear files on error - keep them for retry
         }
+        
+        // Clean up abort controller
+        if (window.pendingMessageSend === abortController) {
+            window.pendingMessageSend = null;
+        }
+        const index = window.activeFetchControllers.indexOf(abortController);
+        if (index > -1) {
+            window.activeFetchControllers.splice(index, 1);
+        }
     } catch (error) {
+        // Check if this was an abort (access revoked)
+        if (error.name === 'AbortError' || abortController.signal.aborted) {
+            console.log('[Chat] Message send aborted - access revoked');
+            // Remove the placeholder message
+            const messagesEl = document.getElementById('chat-messages');
+            const messageWrappers = messagesEl.querySelectorAll('.message-wrapper');
+            if (messageWrappers.length > 0) {
+                messageWrappers[messageWrappers.length - 1].remove();
+            }
+            // Don't show error modal for aborted requests
+            return;
+        }
+        
         console.error('Error sending message:', error);
         showErrorModal(error.message);
         // Remove the placeholder message on error
@@ -1112,12 +1144,23 @@ async function sendMessage() {
             messageWrappers[messageWrappers.length - 1].remove();
         }
         // Don't clear files on error - keep them for retry
+        
+        // Clean up abort controller
+        if (window.pendingMessageSend === abortController) {
+            window.pendingMessageSend = null;
+        }
+        const index = window.activeFetchControllers.indexOf(abortController);
+        if (index > -1) {
+            window.activeFetchControllers.splice(index, 1);
+        }
     }
 }
 
 function startPolling() {
     if (pollingInterval) clearInterval(pollingInterval);
     pollingInterval = setInterval(async () => {
+        // Sync with window for access control handler
+        window.pollingInterval = pollingInterval;
         if (!currentConversationId) return;
         try {
             const response = await fetch(`{{ url('/staff/chat/conversations') }}/${currentConversationId}/messages`);
@@ -1212,18 +1255,17 @@ function showFileSizeWarningModal(invalidFiles) {
 // Function to show error modal
 function showErrorModal(message) {
     const errorMessage = escapeHtml(message);
-    if (fileSizeWarningModal) {
-        document.getElementById('fileSizeWarningModalLabel').innerHTML = '<i class="bi bi-exclamation-circle-fill me-2"></i>Error';
-        document.getElementById('file-size-warning-list').innerHTML = `
-            <div class="file-size-warning-item">
-                <i class="bi bi-exclamation-circle text-danger me-2"></i>
-                <span class="file-size-warning-name">${errorMessage}</span>
-            </div>
-        `;
-        fileSizeWarningModal.show();
-    } else {
-        alert('Error: ' + message);
-    }
+    const modal = new bootstrap.Modal(document.getElementById('genericErrorModal'));
+    document.getElementById('genericErrorMessage').textContent = errorMessage;
+    modal.show();
+}
+
+// Function to show info modal
+function showInfoModal(message) {
+    const infoMessage = escapeHtml(message);
+    const modal = new bootstrap.Modal(document.getElementById('genericInfoModal'));
+    document.getElementById('genericInfoMessage').textContent = infoMessage;
+    modal.show();
 }
 
 function updateAttachedFilesDisplay() {
@@ -1291,10 +1333,77 @@ document.getElementById('chat-messages').addEventListener('click', function(e) {
             tip.show();
             setTimeout(() => { try { tip.dispose(); } catch(_) {} }, 1500);
         } catch (_) {
-            alert(`Sent by: ${label}`);
+            showInfoModal(`Sent by: ${label}`);
         }
     } else {
         alert(`Sent by: ${label}`);
+    }
+});
+
+// Track active fetch requests to cancel them
+window.activeFetchControllers = window.activeFetchControllers || [];
+window.pendingMessageSend = null;
+
+// Listen for access revocation events
+window.addEventListener('staffAccessRevoked', function(event) {
+    if (event.detail && event.detail.feature === 'chat') {
+        console.log('[Chat] Access revoked, disconnecting immediately...');
+        
+        // Cancel any pending message send
+        if (window.pendingMessageSend && window.pendingMessageSend.abort) {
+            try {
+                window.pendingMessageSend.abort();
+            } catch (e) {
+                // Ignore
+            }
+            window.pendingMessageSend = null;
+        }
+        
+        // Cancel all active fetch requests
+        if (window.activeFetchControllers) {
+            window.activeFetchControllers.forEach(controller => {
+                try {
+                    controller.abort();
+                } catch (e) {
+                    // Ignore
+                }
+            });
+            window.activeFetchControllers = [];
+        }
+        
+        // Stop polling
+        if (pollingInterval) {
+            clearInterval(pollingInterval);
+            pollingInterval = null;
+            window.pollingInterval = null;
+        }
+        
+        // If immediate redirect, don't do anything else - just let the redirect happen
+        if (event.detail.immediate) {
+            return; // Let the main handler redirect immediately
+        }
+        
+        // Clear conversation
+        currentConversationId = null;
+        window.currentConversationId = null;
+        
+        // Disable inputs
+        const chatInput = document.getElementById('chat-input');
+        if (chatInput) {
+            chatInput.disabled = true;
+            chatInput.placeholder = 'Access to live chat has been revoked';
+            chatInput.value = '';
+        }
+        
+        const sendBtn = document.getElementById('send-message-btn');
+        if (sendBtn) {
+            sendBtn.disabled = true;
+        }
+        
+        const attachBtn = document.getElementById('chat-attach-btn');
+        if (attachBtn) {
+            attachBtn.disabled = true;
+        }
     }
 });
 
@@ -2818,5 +2927,101 @@ setInterval(loadConversations, 10000); // Refresh list every 10 seconds
     color: var(--dm-text-secondary, #cbd5e1) !important;
 }
 </style>
+
+<!-- Generic Error Modal -->
+<div class="modal fade" id="genericErrorModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                <h5 class="modal-title text-white">
+                    <i class="bi bi-exclamation-circle-fill me-2"></i>Error
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-4">
+                    <div class="mx-auto mb-3" style="width: 80px; height: 80px; background: linear-gradient(135deg, #fee2e2, #fecaca); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-x-circle-fill text-danger" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <p class="text-muted mb-0" id="genericErrorMessage"></p>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+                    <i class="bi bi-check-circle me-1"></i>OK
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Generic Info Modal -->
+<div class="modal fade" id="genericInfoModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
+                <h5 class="modal-title text-white">
+                    <i class="bi bi-info-circle-fill me-2"></i>Information
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-4">
+                    <div class="mx-auto mb-3" style="width: 80px; height: 80px; background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-info-circle-fill text-primary" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <p class="text-muted mb-0" id="genericInfoMessage"></p>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                    <i class="bi bi-check-circle me-1"></i>OK
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Dark Mode Styles for Generic Modals */
+[data-theme="dark"] #genericWarningModal .modal-content,
+[data-theme="dark"] #genericErrorModal .modal-content,
+[data-theme="dark"] #genericInfoModal .modal-content,
+[data-theme="dark"] #genericConfirmModal .modal-content {
+    background-color: #1e293b !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] #genericWarningModal .modal-body,
+[data-theme="dark"] #genericErrorModal .modal-body,
+[data-theme="dark"] #genericInfoModal .modal-body,
+[data-theme="dark"] #genericConfirmModal .modal-body {
+    background-color: #1e293b !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] #genericWarningModal .modal-footer,
+[data-theme="dark"] #genericErrorModal .modal-footer,
+[data-theme="dark"] #genericInfoModal .modal-footer,
+[data-theme="dark"] #genericConfirmModal .modal-footer {
+    background-color: #1e293b !important;
+    border-top: 1px solid #334155 !important;
+}
+
+[data-theme="dark"] #genericWarningModal .text-muted,
+[data-theme="dark"] #genericErrorModal .text-muted,
+[data-theme="dark"] #genericInfoModal .text-muted,
+[data-theme="dark"] #genericConfirmModal .text-muted {
+    color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] #genericWarningModal #genericWarningMessage,
+[data-theme="dark"] #genericErrorModal #genericErrorMessage,
+[data-theme="dark"] #genericInfoModal #genericInfoMessage,
+[data-theme="dark"] #genericConfirmModal #genericConfirmMessage {
+    color: #cbd5e1 !important;
+}
+</style>
+
 @endsection
 

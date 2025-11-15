@@ -1177,7 +1177,8 @@ html, body {
                         <div class="details-row">
                             <div class="detail-block">
                                 <span class="detail-block-label">Phone Number *</span>
-                                <input type="text" name="phone" id="phone" value="{{ $userInfo->phone ?? '' }}" required>
+                                <input type="tel" name="phone" id="phone" value="{{ $userInfo->phone ?? '' }}" pattern="09[0-9]{9}" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, ''); if(this.value.length > 0) { if(!this.value.startsWith('09')) { if(this.value.startsWith('0')) { this.value = '09' + this.value.substring(1).substring(0, 9); } else { this.value = '09' + this.value.substring(0, 9); } } else { this.value = this.value.substring(0, 11); } }" placeholder="09XXXXXXXXX" required>
+                                <small class="text-muted" style="font-size: 0.75rem; display: block; margin-top: 0.25rem;">Format: 09XXXXXXXXX (must start with 09)</small>
                                 <div class="invalid-feedback"></div>
                             </div>
                             <div class="detail-block">
@@ -1516,6 +1517,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
         }, 250);
+    });
+
+    // Handle Enter key in profile form
+    $(document).on('keydown', '#profileForm input, #profileForm select', function(e) {
+        if (e.key === 'Enter' || e.keyCode === 13) {
+            e.preventDefault();
+            const submitBtn = document.querySelector('#profileForm button[type="submit"]');
+            if (submitBtn && !submitBtn.disabled) {
+                submitBtn.click();
+            }
+        }
     });
 })();
 </script>

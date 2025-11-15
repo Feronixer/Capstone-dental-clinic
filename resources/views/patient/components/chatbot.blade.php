@@ -3069,22 +3069,171 @@
                     
                     // Extract attachments FIRST (before getting message content)
                     const attachmentDivs = messageDiv.querySelectorAll('.message-attachments .attachment-item');
+                    console.log('Live-chat: Found attachment divs:', attachmentDivs.length, 'for message:', messageDiv);
                     const attachments = attachmentDivs.length > 0 ? Array.from(attachmentDivs).map(attDiv => {
                         const link = attDiv.querySelector('a');
                         const img = attDiv.querySelector('img');
                         const nameSpan = attDiv.querySelector('.attachment-name');
                         const sizeSpan = attDiv.querySelector('.attachment-size');
                         
-                        if (link && nameSpan) {
-                            return {
-                                url: link.href,
-                                name: nameSpan.textContent,
-                                size: sizeSpan ? parseFloat(sizeSpan.textContent.match(/[\d.]+/)?.[0] || 0) * 1024 : 0,
-                                mime_type: img ? 'image/' + (link.href.match(/\.(jpg|jpeg|png|gif|webp)/i)?.[1] || 'jpeg') : 'application/pdf'
-                            };
+                        // Get attachment name - for images, check img alt and onclick; for files, check nameSpan, download, etc.
+                        let attachmentName = null;
+                        
+                        // For images, try img alt attribute first, then onclick parameter
+                        if (img && img.alt) {
+                            attachmentName = img.alt.trim();
+                        } else if (link) {
+                            // Try to extract name from onclick attribute for images
+                            let onclickStr = null;
+                            if (link.onclick && typeof link.onclick === 'function') {
+                                onclickStr = link.onclick.toString();
+                            } else if (link.getAttribute('onclick')) {
+                                onclickStr = link.getAttribute('onclick');
+                            }
+                            
+                            if (onclickStr) {
+                                // Extract both URL and name from onclick: openChatbotImageModal('url', 'name')
+                                const onclickMatch = onclickStr.match(/openChatbotImageModal\(['"]([^'"]+)['"]\s*,\s*['"]([^'"]+)['"]/);
+                                if (onclickMatch && onclickMatch[2]) {
+                                    attachmentName = onclickMatch[2].trim();
+                                }
+                            }
                         }
+                        
+                        // For non-image files, try nameSpan, download attribute, then link text
+                        if (!attachmentName) {
+                            if (nameSpan && nameSpan.textContent) {
+                                attachmentName = nameSpan.textContent.trim();
+                            } else if (link && link.getAttribute('download')) {
+                                attachmentName = link.getAttribute('download');
+                            } else if (link && link.textContent) {
+                                attachmentName = link.textContent.trim();
+                            }
+                        }
+                        
+                        // For images, we can still proceed even without a name (use filename from URL)
+                        // For files, we need a name
+                        const isImage = img && img.src;
+                        if (!attachmentName && !isImage) {
+                            console.warn('No attachment name found for non-image file');
+                            return null;
+                        }
+                        
+                        // For images without a name, try to extract from URL
+                        if (!attachmentName && isImage && img.src) {
+                            const urlMatch = img.src.match(/\/([^\/]+\.(jpg|jpeg|png|gif|webp|bmp|svg))$/i);
+                            if (urlMatch) {
+                                attachmentName = urlMatch[1];
+                            } else {
+                                attachmentName = 'image';
+                            }
+                        }
+                        
+                        // For images, get URL from img.src (since link.href is javascript:void(0))
+                        // For other files, get URL from link.href or link.getAttribute('href')
+                        let attachmentUrl = null;
+                        let mimeType = 'application/pdf';
+                        
+                        if (img && img.src) {
+                            // Image attachment - get URL from img.src
+                            attachmentUrl = img.src;
+                            // Determine mime type from image src or extension
+                            const urlMatch = attachmentUrl.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)/i);
+                            const ext = urlMatch ? urlMatch[1].toLowerCase() : 'jpeg';
+                            mimeType = `image/${ext === 'jpg' ? 'jpeg' : ext}`;
+                        } else if (link) {
+                            // Try to get URL from href attribute (more reliable than link.href property)
+                            const hrefAttr = link.getAttribute('href');
+                            const hrefProp = link.href; // Browser-resolved URL
+                            
+                            console.log('Live-chat: Extracting file attachment - hrefAttr:', hrefAttr, 'hrefProp:', hrefProp);
+                            
+                            // Check if hrefAttr is a valid file URL (not javascript:void(0) or #)
+                            if (hrefAttr && hrefAttr !== 'javascript:void(0)' && hrefAttr !== '#' && !hrefAttr.startsWith('javascript:')) {
+                                // Non-image file attachment - get URL from href attribute
+                                // If it's a relative URL, use the resolved href property
+                                if (hrefAttr.startsWith('http://') || hrefAttr.startsWith('https://') || hrefAttr.startsWith('/')) {
+                                    attachmentUrl = hrefAttr;
+                                } else if (hrefProp && hrefProp !== window.location.href && !hrefProp.endsWith('#')) {
+                                    // Use resolved URL if attribute is relative
+                                    attachmentUrl = hrefProp;
+                                } else {
+                                    attachmentUrl = hrefAttr;
+                                }
+                                
+                                // Try to determine mime type from file extension
+                                const urlMatch = attachmentUrl.match(/\.([a-z0-9]+)/i);
+                                if (urlMatch) {
+                                    const ext = urlMatch[1].toLowerCase();
+                                    const mimeMap = {
+                                        'pdf': 'application/pdf',
+                                        'doc': 'application/msword',
+                                        'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                                        'txt': 'text/plain',
+                                        'zip': 'application/zip',
+                                        'rar': 'application/x-rar-compressed',
+                                        'xls': 'application/vnd.ms-excel',
+                                        'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                                    };
+                                    mimeType = mimeMap[ext] || 'application/pdf';
+                                }
+                            } else if (hrefProp && hrefProp !== 'javascript:void(0)' && hrefProp !== window.location.href && !hrefProp.endsWith('#') && !hrefProp.includes('#')) {
+                                // Fallback to link.href property if attribute didn't work
+                                // Make sure it's not just the current page URL
+                                attachmentUrl = hrefProp;
+                                const urlMatch = attachmentUrl.match(/\.([a-z0-9]+)/i);
+                                if (urlMatch) {
+                                    const ext = urlMatch[1].toLowerCase();
+                                    const mimeMap = {
+                                        'pdf': 'application/pdf',
+                                        'doc': 'application/msword',
+                                        'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                                        'txt': 'text/plain',
+                                        'zip': 'application/zip',
+                                        'rar': 'application/x-rar-compressed'
+                                    };
+                                    mimeType = mimeMap[ext] || 'application/pdf';
+                                }
+                            } else {
+                                // Try to extract URL from onclick attribute for images (check both function and attribute)
+                                let onclickStr = null;
+                                if (link.onclick && typeof link.onclick === 'function') {
+                                    onclickStr = link.onclick.toString();
+                                } else if (link.getAttribute('onclick')) {
+                                    onclickStr = link.getAttribute('onclick');
+                                }
+                                
+                                if (onclickStr) {
+                                    const onclickMatch = onclickStr.match(/openChatbotImageModal\(['"]([^'"]+)['"]/);
+                                    if (onclickMatch && onclickMatch[1]) {
+                                        attachmentUrl = onclickMatch[1];
+                                        const urlMatch = attachmentUrl.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)/i);
+                                        const ext = urlMatch ? urlMatch[1].toLowerCase() : 'jpeg';
+                                        mimeType = `image/${ext === 'jpg' ? 'jpeg' : ext}`;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if (attachmentUrl) {
+                            const attachment = {
+                                url: attachmentUrl,
+                                name: attachmentName,
+                                size: sizeSpan ? parseFloat(sizeSpan.textContent.match(/[\d.]+/)?.[0] || 0) * 1024 : 0,
+                                mime_type: mimeType
+                            };
+                            console.log('Successfully extracted attachment:', attachment);
+                            return attachment;
+                        }
+                        console.warn('Failed to extract attachment URL for:', attachmentName, 'hrefAttr:', link?.getAttribute('href'), 'hrefProp:', link?.href, 'img:', img?.src);
                         return null;
                     }).filter(Boolean) : null;
+                    
+                    if (attachments && attachments.length > 0) {
+                        console.log('Live-chat: Total attachments extracted for this message:', attachments.length, attachments);
+                    } else if (attachmentDivs.length > 0) {
+                        console.warn('Live-chat: Found attachment divs but failed to extract any attachments!');
+                    }
                     
                     // Get message content WITHOUT attachments HTML
                     // Clone the message div to avoid modifying the original
@@ -3112,7 +3261,7 @@
                     else if (isStaff) senderType = 'staff';
                     else if (isAdmin) senderType = 'admin';
                     
-                    return {
+                    const savedMsg = {
                         id: messageId || null,
                         sender_type: senderType,
                         message: messageContent,
@@ -3121,15 +3270,28 @@
                         created_at: originalTimestamp || new Date().toISOString(),
                         isUser: isUser
                     };
-                }).filter(msg => msg && msg.message && msg.message.trim());
+                    console.log('Live-chat: Saving message:', savedMsg.id, 'with attachments:', savedMsg.attachments?.length || 0, 'Full message:', savedMsg);
+                    return savedMsg;
+                }).filter(msg => {
+                    // Keep message if it has content OR attachments (files-only messages are valid)
+                    const isValid = msg && (msg.message?.trim() || (msg.attachments && msg.attachments.length > 0));
+                    if (!isValid) {
+                        console.warn('Filtered out message (no content or attachments):', msg);
+                    }
+                    return isValid;
+                });
                 
                 // Only update if we have messages (not just welcome message)
                 if (currentMessages.length > 0) {
+                    console.log('Saving', currentMessages.length, 'messages to liveChatMessagesMap');
                     // Add messages to Map (Map prevents duplicates automatically)
                     currentMessages.forEach(msg => {
+                        console.log('Adding message to map:', msg.id, 'attachments:', msg.attachments?.length || 0);
                         addMessageToMap(liveChatMessagesMap, msg);
                     });
                     console.log('Saved messages to map:', liveChatMessagesMap.size);
+                } else {
+                    console.warn('No messages to save to liveChatMessagesMap');
                 }
             } else if (currentMode === 'faqs') {
                 // Clear Map first
@@ -3153,14 +3315,141 @@
                         const nameSpan = attDiv.querySelector('.attachment-name');
                         const sizeSpan = attDiv.querySelector('.attachment-size');
                         
-                        if (link && nameSpan) {
-                            return {
-                                url: link.href,
-                                name: nameSpan.textContent,
-                                size: sizeSpan ? parseFloat(sizeSpan.textContent.match(/[\d.]+/)?.[0] || 0) * 1024 : 0,
-                                mime_type: img ? 'image/' + (link.href.match(/\.(jpg|jpeg|png|gif|webp)/i)?.[1] || 'jpeg') : 'application/pdf'
-                            };
+                        // Get attachment name - for images, check img alt and onclick; for files, check nameSpan, download, etc.
+                        let attachmentName = null;
+                        
+                        // For images, try img alt attribute first, then onclick parameter
+                        if (img && img.alt) {
+                            attachmentName = img.alt.trim();
+                        } else if (link) {
+                            // Try to extract name from onclick attribute for images
+                            let onclickStr = null;
+                            if (link.onclick && typeof link.onclick === 'function') {
+                                onclickStr = link.onclick.toString();
+                            } else if (link.getAttribute('onclick')) {
+                                onclickStr = link.getAttribute('onclick');
+                            }
+                            
+                            if (onclickStr) {
+                                // Extract both URL and name from onclick: openChatbotImageModal('url', 'name')
+                                const onclickMatch = onclickStr.match(/openChatbotImageModal\(['"]([^'"]+)['"]\s*,\s*['"]([^'"]+)['"]/);
+                                if (onclickMatch && onclickMatch[2]) {
+                                    attachmentName = onclickMatch[2].trim();
+                                }
+                            }
                         }
+                        
+                        // For non-image files, try nameSpan, download attribute, then link text
+                        if (!attachmentName) {
+                            if (nameSpan && nameSpan.textContent) {
+                                attachmentName = nameSpan.textContent.trim();
+                            } else if (link && link.getAttribute('download')) {
+                                attachmentName = link.getAttribute('download');
+                            } else if (link && link.textContent) {
+                                attachmentName = link.textContent.trim();
+                            }
+                        }
+                        
+                        // For images, we can still proceed even without a name (use filename from URL)
+                        // For files, we need a name
+                        const isImage = img && img.src;
+                        if (!attachmentName && !isImage) {
+                            console.warn('FAQ: No attachment name found for non-image file');
+                            return null;
+                        }
+                        
+                        // For images without a name, try to extract from URL
+                        if (!attachmentName && isImage && img.src) {
+                            const urlMatch = img.src.match(/\/([^\/]+\.(jpg|jpeg|png|gif|webp|bmp|svg))$/i);
+                            if (urlMatch) {
+                                attachmentName = urlMatch[1];
+                            } else {
+                                attachmentName = 'image';
+                            }
+                        }
+                        
+                        // For images, get URL from img.src (since link.href is javascript:void(0))
+                        // For other files, get URL from link.href or link.getAttribute('href')
+                        let attachmentUrl = null;
+                        let mimeType = 'application/pdf';
+                        
+                        if (img && img.src) {
+                            // Image attachment - get URL from img.src
+                            attachmentUrl = img.src;
+                            // Determine mime type from image src or extension
+                            const urlMatch = attachmentUrl.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)/i);
+                            const ext = urlMatch ? urlMatch[1].toLowerCase() : 'jpeg';
+                            mimeType = `image/${ext === 'jpg' ? 'jpeg' : ext}`;
+                        } else if (link) {
+                            // Try to get URL from href attribute (more reliable than link.href property)
+                            const hrefAttr = link.getAttribute('href');
+                            if (hrefAttr && hrefAttr !== 'javascript:void(0)' && hrefAttr !== '#') {
+                                // Non-image file attachment - get URL from href attribute
+                                attachmentUrl = hrefAttr;
+                                // Try to determine mime type from file extension
+                                const urlMatch = attachmentUrl.match(/\.([a-z0-9]+)/i);
+                                if (urlMatch) {
+                                    const ext = urlMatch[1].toLowerCase();
+                                    const mimeMap = {
+                                        'pdf': 'application/pdf',
+                                        'doc': 'application/msword',
+                                        'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                                        'txt': 'text/plain',
+                                        'zip': 'application/zip',
+                                        'rar': 'application/x-rar-compressed',
+                                        'xls': 'application/vnd.ms-excel',
+                                        'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                                    };
+                                    mimeType = mimeMap[ext] || 'application/pdf';
+                                }
+                            } else if (link.href && link.href !== 'javascript:void(0)' && link.href !== window.location.href + '#') {
+                                // Fallback to link.href property if attribute didn't work
+                                attachmentUrl = link.href;
+                                const urlMatch = attachmentUrl.match(/\.([a-z0-9]+)/i);
+                                if (urlMatch) {
+                                    const ext = urlMatch[1].toLowerCase();
+                                    const mimeMap = {
+                                        'pdf': 'application/pdf',
+                                        'doc': 'application/msword',
+                                        'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                                        'txt': 'text/plain',
+                                        'zip': 'application/zip',
+                                        'rar': 'application/x-rar-compressed'
+                                    };
+                                    mimeType = mimeMap[ext] || 'application/pdf';
+                                }
+                            } else {
+                                // Try to extract URL from onclick attribute for images (check both function and attribute)
+                                let onclickStr = null;
+                                if (link.onclick && typeof link.onclick === 'function') {
+                                    onclickStr = link.onclick.toString();
+                                } else if (link.getAttribute('onclick')) {
+                                    onclickStr = link.getAttribute('onclick');
+                                }
+                                
+                                if (onclickStr) {
+                                    const onclickMatch = onclickStr.match(/openChatbotImageModal\(['"]([^'"]+)['"]/);
+                                    if (onclickMatch && onclickMatch[1]) {
+                                        attachmentUrl = onclickMatch[1];
+                                        const urlMatch = attachmentUrl.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)/i);
+                                        const ext = urlMatch ? urlMatch[1].toLowerCase() : 'jpeg';
+                                        mimeType = `image/${ext === 'jpg' ? 'jpeg' : ext}`;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if (attachmentUrl) {
+                            const attachment = {
+                                url: attachmentUrl,
+                                name: attachmentName,
+                                size: sizeSpan ? parseFloat(sizeSpan.textContent.match(/[\d.]+/)?.[0] || 0) * 1024 : 0,
+                                mime_type: mimeType
+                            };
+                            console.log('Successfully extracted attachment:', attachment);
+                            return attachment;
+                        }
+                        console.warn('Failed to extract attachment URL for:', attachmentName, 'hrefAttr:', link?.getAttribute('href'), 'hrefProp:', link?.href, 'img:', img?.src);
                         return null;
                     }).filter(Boolean) : null;
                     
@@ -3193,7 +3482,10 @@
                         created_at: originalTimestamp || new Date().toISOString(),
                         isUser: isUser
                     };
-                }).filter(msg => msg && msg.message && msg.message.trim());
+                }).filter(msg => {
+                    // Keep message if it has content OR attachments (files-only messages are valid)
+                    return msg && (msg.message?.trim() || (msg.attachments && msg.attachments.length > 0));
+                });
                 
                 if (currentMessages.length > 0) {
                     // Add messages to Map (Map prevents duplicates automatically)

@@ -111,7 +111,20 @@ class StaffAuthController extends Controller
     {
         $request->validate([
             'current_password' => ['required'],
-            'new_password' => ['required', 'min:8', 'confirmed'],
+            'new_password' => [
+                'required',
+                'min:8',
+                'regex:/[a-z]/',      // At least one lowercase letter
+                'regex:/[A-Z]/',      // At least one uppercase letter
+                'regex:/[0-9]/',      // At least one number
+                'regex:/[^A-Za-z0-9]/', // At least one special character
+                'confirmed'
+            ],
+        ], [
+            'new_password.required' => 'Please enter a new password.',
+            'new_password.min' => 'Password must be at least 8 characters long.',
+            'new_password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
+            'new_password.confirmed' => 'Password confirmation does not match.',
         ]);
 
         $user = Auth::guard('staff')->user();
@@ -264,11 +277,22 @@ class StaffAuthController extends Controller
         }
 
         $request->validate([
-            'password' => 'required|string|min:8|confirmed',
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'regex:/[a-z]/',      // At least one lowercase letter
+                'regex:/[A-Z]/',      // At least one uppercase letter
+                'regex:/[0-9]/',      // At least one number
+                'regex:/[^A-Za-z0-9]/', // At least one special character
+                'confirmed'
+            ],
             'password_confirmation' => 'required'
         ], [
+            'password.required' => 'Please enter a new password.',
+            'password.min' => 'Password must be at least 8 characters long.',
+            'password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
             'password.confirmed' => 'Password confirmation does not match.',
-            'password.min' => 'Password must be at least 8 characters long.'
         ]);
 
         $email = session('staff_reset_email');

@@ -203,6 +203,9 @@ class StaffDashboard extends Controller
         // Get total appointments count (all time)
         $totalAppointments = Appointment::where('status', '!=', 'blocked')->count();
 
+        // Get cancelled appointments count
+        $cancelledAppointments = Appointment::where('status', 'Cancelled')->count();
+
         // Get current services list (limit to 5 for dashboard)
         $clinicServices = Service::orderBy('created_at', 'desc')->get();
 
@@ -211,6 +214,7 @@ class StaffDashboard extends Controller
             'todayAppointments',
             'totalAppointments',
             'pendingAppointments',
+            'cancelledAppointments',
             'todayAppointmentsList',
             'recentPatients',
             'appointments',

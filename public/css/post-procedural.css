@@ -1752,3 +1752,70 @@ textarea.border-0.border-bottom {
     color: var(--dm-text-primary, #f1f5f9) !important;
 }
 
+/* Treatment Dropdown Styling */
+.treatment-dropdown-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.treatment-dropdown {
+    font-size: 0.75rem !important;
+    padding: 0.25rem 2rem 0.25rem 0.5rem !important;
+    min-width: 140px !important;
+    max-width: 220px !important;
+    border: 1px solid hsl(216, 100%, 67%) !important;
+    background-color:   hsl(216, 100%, 67%) !important;
+    color: #000000 !important;
+    font-weight: 500 !important;
+    border-radius: 0.375rem !important;
+    cursor: pointer !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='%23000' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 0.5rem center !important;
+    background-size: 14px !important;
+    transition: all 0.2s ease !important;
+}
+
+.treatment-dropdown:hover {
+    background-color: #0a58ca !important;
+    border-color: #0a58ca !important;
+}
+
+.treatment-dropdown:focus {
+    background-color: #0a58ca !important;
+    border-color: #084298 !important;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25) !important;
+    outline: none !important;
+}
+
+.treatment-dropdown option {
+    background-color: white !important;
+    color: #000 !important;
+    padding: 0.5rem !important;
+    font-weight: 500 !important;
+}
+
+.treatment-dropdown option:hover {
+    background-color: #e7f1ff !important;
+}
+
+/* Dark Mode Treatment Dropdown */
+[data-theme="dark"] .treatment-dropdown {
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+    color: #000 !important;
+}
+
+[data-theme="dark"] .treatment-dropdown:hover {
+    background-color: #0a58ca !important;
+    border-color: #0a58ca !important;
+}
+
+[data-theme="dark"] .treatment-dropdown option {
+    background-color: #1e293b !important;
+    color: #f1f5f9 !important;
+}
+

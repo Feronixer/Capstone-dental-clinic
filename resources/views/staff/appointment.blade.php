@@ -20,63 +20,67 @@
     <!-- Control Panel -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <!-- Top Row: View Toggles, Date Navigation, Action Buttons -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3" style="min-height: 50px;">
                 <!-- View Toggles -->
-                <div class="d-flex gap-2">
-                    <button class="btn btn-primary view-toggle active" data-view="month" id="month-btn">Month</button>
-                    <button class="btn btn-outline-secondary view-toggle" data-view="week" id="week-btn">Week</button>
-                    <button class="btn btn-outline-secondary view-toggle" data-view="day" id="day-btn">Day</button>
-                </div>
-
-                <!-- Status Legend -->
-                <div class="d-flex gap-2 align-items-center flex-wrap">
-                    <div class="d-flex align-items-center gap-1">
-                        <div class="status-dot bg-warning"></div>
-                        <small class="text-muted" style="font-size: 0.75rem;">Pending</small>
-                    </div>
-                    <div class="d-flex align-items-center gap-1">
-                        <div class="status-dot bg-primary"></div>
-                        <small class="text-muted" style="font-size: 0.75rem;">Confirmed</small>
-                    </div>
-                    <div class="d-flex align-items-center gap-1">
-                        <div class="status-dot bg-success"></div>
-                        <small class="text-muted" style="font-size: 0.75rem;">Completed</small>
-                    </div>
-                    <div class="d-flex align-items-center gap-1">
-                        <div class="status-dot bg-brown"></div>
-                        <small class="text-muted" style="font-size: 0.75rem;">Cancelled</small>
-                    </div>
-                    <div class="d-flex align-items-center gap-1">
-                        <div class="status-dot bg-secondary"></div>
-                        <small class="text-muted" style="font-size: 0.75rem;">Missed</small>
-                    </div>
-                    <div class="d-flex align-items-center gap-1">
-                        <div class="status-dot bg-danger"></div>
-                        <small class="text-muted" style="font-size: 0.75rem;">Blocked</small>
-                    </div>
+                <div class="d-flex gap-2 align-items-center" style="flex-shrink: 0;">
+                    <button class="btn btn-primary view-toggle active" data-view="month" id="month-btn" style="min-width: 80px;">Month</button>
+                    <button class="btn btn-outline-secondary view-toggle" data-view="week" id="week-btn" style="min-width: 80px;">Week</button>
+                    <button class="btn btn-outline-secondary view-toggle" data-view="day" id="day-btn" style="min-width: 80px;">Day</button>
                 </div>
 
                 <!-- Calendar Navigation -->
-                <div class="d-flex align-items-center gap-2">
-                    <button class="btn btn-outline-secondary btn-sm" id="prev-period">
+                <div class="d-flex align-items-center gap-2" style="flex-shrink: 0;">
+                    <button class="btn btn-outline-secondary btn-sm" id="prev-period" style="min-width: 38px;">
                         <i class="bi bi-chevron-left"></i>
                     </button>
-                    <h5 class="mb-0 text-dark" id="current-period">
+                    <h5 class="mb-0 text-dark" id="current-period" style="min-width: 180px; text-align: center; font-size: 1rem;">
                         {{ \Carbon\Carbon::createFromDate($currentYear, $currentMonth, 1)->format('F Y') }}
                     </h5>
-                    <button class="btn btn-outline-secondary btn-sm" id="next-period">
+                    <button class="btn btn-outline-secondary btn-sm" id="next-period" style="min-width: 38px;">
                         <i class="bi bi-chevron-right"></i>
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm" id="today-button" style="min-width: 80px;">
+                        Today
                     </button>
                 </div>
 
                 <!-- Action Buttons -->
-                <div class="d-flex gap-2">
-                    <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#blockTimeModal">
+                <div class="d-flex gap-2 align-items-center" style="flex-shrink: 0;">
+                    <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#blockTimeModal" style="white-space: nowrap;">
                         <i class="bi bi-x-circle me-1"></i>Block Off Time
                     </button>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#appointmentModal">
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#appointmentModal" style="white-space: nowrap;">
                         <i class="bi bi-plus-circle me-1"></i>Add Appointment
                     </button>
+                </div>
+            </div>
+
+            <!-- Bottom Row: Status Legend -->
+            <div class="d-flex gap-3" style="flex-wrap: nowrap;">
+                <div class="d-flex align-items-center gap-1" style="flex-shrink: 0;">
+                    <div class="status-dot bg-warning"></div>
+                    <small class="text-muted" style="font-size: 0.75rem; white-space: nowrap;">Pending</small>
+                </div>
+                <div class="d-flex align-items-center gap-1" style="flex-shrink: 0;">
+                    <div class="status-dot bg-primary"></div>
+                    <small class="text-muted" style="font-size: 0.75rem; white-space: nowrap;">Confirmed</small>
+                </div>
+                <div class="d-flex align-items-center gap-1" style="flex-shrink: 0;">
+                    <div class="status-dot bg-success"></div>
+                    <small class="text-muted" style="font-size: 0.75rem; white-space: nowrap;">Completed</small>
+                </div>
+                <div class="d-flex align-items-center gap-1" style="flex-shrink: 0;">
+                    <div class="status-dot bg-brown"></div>
+                    <small class="text-muted" style="font-size: 0.75rem; white-space: nowrap;">Cancelled</small>
+                </div>
+                <div class="d-flex align-items-center gap-1" style="flex-shrink: 0;">
+                    <div class="status-dot bg-secondary"></div>
+                    <small class="text-muted" style="font-size: 0.75rem; white-space: nowrap;">Missed</small>
+                </div>
+                <div class="d-flex align-items-center gap-1" style="flex-shrink: 0;">
+                    <div class="status-dot bg-danger"></div>
+                    <small class="text-muted" style="font-size: 0.75rem; white-space: nowrap;">Blocked</small>
                 </div>
             </div>
         </div>
@@ -132,28 +136,54 @@
                                     <!-- Patient search results will appear here -->
                                 </div>
                             </div>
-                            <a href="#" class="btn btn-link text-primary btn-sm p-1" id="add-new-patient" style="font-size: 0.75rem; white-space: nowrap;">
+                            <button type="button" class="btn btn-link text-primary btn-sm p-1" id="add-new-patient" style="font-size: 0.75rem; white-space: nowrap;">
                                 <i class="bi bi-box-arrow-up-right me-1"></i>Add New Patient
-                            </a>
+                            </button>
                         </div>
                         <input type="hidden" id="patient_id" name="patient_id">
                     </div>
 
+                    <!-- Service Name -->
+                    <div class="mb-3">
+                        <label for="service_name" class="form-label fw-bold appointment-label mb-1">Service Name *</label>
+                        <select class="form-select form-select-sm" id="service_name" name="service_name" required>
+                            <option value="">Select a service</option>
+                            @foreach($services as $service)
+                                <option value="{{ $service->id }}"
+                                        data-duration="{{ $service->default_duration_minutes }}"
+                                        data-description="{{ $service->description }}">
+                                    {{ $service->service_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <div id="service-info" class="mt-1" style="display: none;">
+                            <small class="text-muted" id="service-description" style="font-size: 0.75rem;"></small>
+                            <br>
+                            <small class="text-muted" id="service-duration" style="font-size: 0.75rem;"></small>
+                        </div>
+                    </div>
+
                     <!-- Date and Time Selection -->
-                    <div class="row g-2">
-                        <!-- Date Picker -->
-                        <div class="col-md-6 mb-2">
-                            <label class="form-label fw-bold appointment-label mb-1">Date</label>
+                    <div class="row g-3 mb-3">
+                        <!-- Select Date Section -->
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-calendar-check me-2" style="font-size: 1rem;"></i>
+                                <label class="form-label fw-bold appointment-label mb-0">Select Date:</label>
+                            </div>
                             <div class="date-picker-container appointment-calendar">
                                 <div class="calendar-widget" id="calendar-widget">
-                                    <div class="calendar-header">
-                                        <button type="button" class="btn btn-sm btn-outline-secondary p-1" id="prev-month" style="width: 24px; height: 24px; padding: 0 !important;">
-                                            <i class="bi bi-chevron-left" style="font-size: 0.75rem;"></i>
-                                        </button>
-                                        <span id="current-month-year" style="font-size: 0.8rem;">October 2025</span>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary p-1" id="next-month" style="width: 24px; height: 24px; padding: 0 !important;">
-                                            <i class="bi bi-chevron-right" style="font-size: 0.75rem;"></i>
-                                        </button>
+                                    <div class="calendar-header d-flex justify-content-between align-items-center mb-2">
+                                        <span style="font-size: 0.8rem;">Date</span>
+                                        <div class="d-flex align-items-center">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary p-1 me-2" id="prev-month" style="width: 24px; height: 24px; padding: 0 !important;">
+                                                <i class="bi bi-chevron-left" style="font-size: 0.75rem;"></i>
+                                            </button>
+                                            <span id="current-month-year" style="font-size: 0.8rem; font-weight: 500;">October 2025</span>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary p-1 ms-2" id="next-month" style="width: 24px; height: 24px; padding: 0 !important;">
+                                                <i class="bi bi-chevron-right" style="font-size: 0.75rem;"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                     <div class="calendar-grid" id="modal-calendar">
                                         <!-- Calendar will be generated by JavaScript -->
@@ -161,57 +191,103 @@
                                 </div>
                             </div>
                             <input type="hidden" id="selected_date" name="selected_date">
-                            <div class="form-text" style="font-size: 0.7rem; margin-top: 0.25rem;">Click on a date to select it</div>
+                            <div class="form-text" style="font-size: 0.7rem; margin-top: 0.5rem;">Click on a date to select it</div>
                         </div>
 
-                        <!-- Service Name -->
-                        <div class="col-md-6 mb-2">
-                            <label for="service_name" class="form-label fw-bold appointment-label mb-1">Service Name *</label>
-                            <select class="form-select form-select-sm" id="service_name" name="service_name" required>
-                                <option value="">Select a service</option>
-                                @foreach($services as $service)
-                                    <option value="{{ $service->id }}"
-                                            data-duration="{{ $service->default_duration_minutes }}"
-                                            data-price="{{ $service->price }}"
-                                            data-description="{{ $service->description }}">
-                                        {{ $service->service_name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            <div id="service-info" class="mt-1" style="display: none;">
-                                <small class="text-muted" id="service-description" style="font-size: 0.75rem;"></small>
-                                <br>
-                                <small class="text-muted" id="service-duration" style="font-size: 0.75rem;"></small>
+                        <!-- Select Time Section -->
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-clock me-2" style="font-size: 1rem;"></i>
+                                    <label class="form-label fw-bold appointment-label mb-0">Select Time:</label>
+                                </div>
+                                <span id="time-selected-status" class="text-muted" style="font-size: 0.8rem;">No time selected</span>
                             </div>
-                        </div>
-
-                        <!-- Time Slot Selection -->
-                        <style>
-                            .time-slots-list .form-check { cursor: pointer; border: 1px solid #e2e8f0; border-radius: 8px; padding: 6px 10px; margin-bottom: 6px; transition: background-color .15s ease, border-color .15s ease; }
-                            .time-slots-list .form-check:hover { background-color: #f1f5f9; border-color: #cbd5e1; }
-                            .time-slots-list .form-check.selected { background-color: #e0f2fe; border-color: #38bdf8; }
-                            [data-theme="dark"] .time-slots-list .form-check { border-color: #334155; }
-                            [data-theme="dark"] .time-slots-list .form-check:hover { background-color: #1f2937; border-color: #475569; }
-                            [data-theme="dark"] .time-slots-list .form-check.selected { background-color: #0b3b52; border-color: #0ea5e9; }
-                            .time-slots-list .form-check.time-slot-disabled { opacity: .55; text-decoration: line-through; cursor: not-allowed; }
-                            .time-slots-list .form-check.time-slot-disabled label { text-decoration: line-through; }
-                            .time-slots-list .form-check.time-slot-blocked { opacity: .6; cursor: not-allowed; }
-                            #end-time-preview { color: #0f172a !important; }
-                            [data-theme="dark"] #end-time-preview { color: #e2e8f0 !important; }
-                        </style>
-                        <div class="col-md-6 mb-2">
-                            <label class="form-label fw-bold appointment-label mb-1">Select Time Slot</label>
-                            <div class="time-slots-container">
-                                <div class="time-slots-list" id="time-slots-list">
+                            <div class="time-slots-container" style="max-height: 300px; overflow-y: auto;">
+                                <div class="time-slots-grid" id="time-slots-list">
                                     <!-- Time slots will be generated dynamically based on selected service duration and date -->
-                                    <div class="text-muted text-center" style="padding: 20px;">
+                                    <div class="text-muted text-center w-100" style="padding: 20px;">
                                         <small>Please select a service and date to view available time slots</small>
                                     </div>
                                 </div>
                                 <div id="end-time-preview" class="mt-2" style="display: none; font-size: 0.8rem; color: #6c757d;"></div>
                             </div>
+                            <div class="mt-2" style="font-size: 0.75rem; color: #6c757d;">
+                                <small>Clinic hours: 11:00 AM – 6:00 PM</small>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- Time Slot Styles -->
+                    <style>
+                        .time-slots-grid {
+                            display: grid;
+                            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+                            gap: 8px;
+                        }
+                        .time-slots-grid > div:only-child {
+                            grid-column: 1 / -1;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            min-height: 150px;
+                        }
+                        .time-slot-btn {
+                            cursor: pointer;
+                            border: 1px solid #e2e8f0;
+                            border-radius: 8px;
+                            padding: 8px 12px;
+                            text-align: center;
+                            background-color: #fff;
+                            transition: all 0.15s ease;
+                            font-size: 0.875rem;
+                            color: #1e293b;
+                        }
+                        .time-slot-btn:hover:not(:disabled) {
+                            background-color: #f1f5f9;
+                            border-color: #cbd5e1;
+                        }
+                        .time-slot-btn.selected {
+                            background-color: #0ea5e9;
+                            border-color: #0ea5e9;
+                            color: #fff;
+                        }
+                        .time-slot-btn:disabled,
+                        .time-slot-btn.time-slot-disabled,
+                        .time-slot-btn.time-slot-blocked {
+                            opacity: 0.6;
+                            cursor: not-allowed;
+                            text-decoration: line-through;
+                            border-color: #dc2626;
+                            color: #991b1b;
+                        }
+                        [data-theme="dark"] .time-slot-btn {
+                            background-color: #1e293b;
+                            border-color: #334155;
+                            color: #e2e8f0;
+                        }
+                        [data-theme="dark"] .time-slot-btn:hover:not(:disabled) {
+                            background-color: #1f2937;
+                            border-color: #475569;
+                        }
+                        [data-theme="dark"] .time-slot-btn.selected {
+                            background-color: #0ea5e9;
+                            border-color: #0ea5e9;
+                            color: #fff;
+                        }
+                        [data-theme="dark"] .time-slot-btn:disabled,
+                        [data-theme="dark"] .time-slot-btn.time-slot-disabled,
+                        [data-theme="dark"] .time-slot-btn.time-slot-blocked {
+                            opacity: 0.6;
+                            cursor: not-allowed;
+                            text-decoration: line-through;
+                            border-color: #dc2626;
+                            color: #fca5a5;
+                        }
+                        #time-slots-list .form-check {
+                            display: none;
+                        }
+                    </style>
 
                     
 
@@ -232,7 +308,9 @@
                     </div> --}}
                 </div>
                 <div class="modal-footer py-2">
-                    <button type="submit" class="btn btn-primary btn-sm">Schedule</button>
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="bi bi-check-circle me-1"></i>Create Appointment
+                    </button>
                 </div>
             </form>
         </div>
@@ -696,8 +774,8 @@
                             <small class="text-muted fw-semibold">Quick Actions:</small>
                         </div>
                         <div class="d-flex flex-row flex-nowrap gap-2">
-                            <button type="button" class="btn btn-orange btn-sm px-3" id="clear-block-off-time-btn" title="Clear all future block off times (partial time blocks only)">
-                                <i class="bi bi-clock-history me-1"></i>Clear Specific Time
+                            <button type="button" class="btn btn-orange btn-sm px-3" id="clear-block-off-time-btn" title="Clear all future clinic closed days (full day closures only)">
+                                <i class="bi bi-calendar-x me-1"></i>Clear Specific Time
                             </button>
                             <button type="button" class="btn btn-danger btn-sm px-3" id="clear-clinic-closed-btn" title="Clear all future clinic closed days (full day closures only)">
                                 <i class="bi bi-calendar-x me-1"></i>Clear Clinic Closed
@@ -836,32 +914,101 @@
 
 <!-- Clear Block Off Time Modal -->
 <div class="modal fade" id="clearBlockOffTimeModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Clear Specific Clinic Closed Days</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body py-4">
+                <p class="text-muted mb-3">Select the specific clinic closed days you want to clear. You can select multiple dates.</p>
+                
+                <!-- List of clinic closed dates -->
+                <div class="mb-3">
+                    <div id="clear-specific-dates-loading" class="text-center py-3">
+                        <div class="spinner-border spinner-border-sm text-warning" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <span class="ms-2 text-muted">Loading dates...</span>
+                    </div>
+                    <div id="clear-specific-dates-list" style="display: none; max-height: 400px; overflow-y: auto;">
+                        <!-- Dates list will be generated by JavaScript -->
+                    </div>
+                    <div id="clear-specific-no-dates" class="text-center py-4 text-muted" style="display: none;">
+                        <i class="bi bi-calendar-x" style="font-size: 2rem;"></i>
+                        <p class="mt-2 mb-0">No clinic closed days found</p>
+                    </div>
+                </div>
+
+                <div class="alert alert-info border-0 bg-light py-2 mb-0">
+                    <i class="bi bi-info-circle me-1"></i>
+                    <small class="text-muted">Only dates with clinic closed entries are shown. Past dates are disabled.</small>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-orange" id="confirm-clear-block-off-time-btn" disabled>
+                    <i class="bi bi-calendar-x me-1"></i>Clear Selected Days
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Same Procedure Warning Modal -->
+<div class="modal fade" id="sameProcedureWarningModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                <h5 class="modal-title text-white">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Cannot Book Duplicate Procedure
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body text-center py-4">
                 <div class="mb-4">
-                    <div class="mx-auto mb-3" style="width: 80px; height: 80px; background: linear-gradient(135deg, #dc2626, #b91c1c); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                        <i class="bi bi-clock-history text-white" style="font-size: 2.5rem;"></i>
+                    <div class="mx-auto mb-3" style="width: 80px; height: 80px; background: linear-gradient(135deg, #fee2e2, #fecaca); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-x-circle-fill text-danger" style="font-size: 2.5rem;"></i>
                     </div>
-                    <h4 class="fw-bold text-dark mb-2">Clear Specific Times</h4>
-                    <p class="text-muted mb-0">Are you sure you want to delete all future block off times (partial time blocks only)? This action cannot be undone.</p>
-                    <p class="text-warning mt-2 mb-0">
-                        <i class="bi bi-info-circle me-1"></i><strong>Note:</strong> Past dates will not be affected. This will only clear partial time blocks, not full-day clinic closures.
-                    </p>
-                </div>
-                <div class="bg-light rounded p-3 mb-4">
-                    <div class="d-flex align-items-center justify-content-center">
-                        <i class="bi bi-clock-history text-danger me-2"></i>
-                        <span class="fw-medium" id="block-off-time-count">Loading...</span>
+                    <h4 class="fw-bold text-dark mb-2">Duplicate Procedure Detected</h4>
+                    <p class="text-muted mb-3" id="sameProcedureWarningMessage">This patient already has the same procedure booked on this day.</p>
+                    <div class="alert alert-danger mb-0" style="background: #fee2e2; border: 1px solid #ef4444;">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Not Allowed:</strong> You cannot book the same procedure twice on the same day for a patient.
                     </div>
                 </div>
             </div>
             <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-orange" id="confirm-clear-block-off-time-btn">
-                    <i class="bi bi-clock-history me-1"></i>Clear Specific Time
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+                    <i class="bi bi-check-circle me-1"></i>Understood
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Same Procedure Error Modal (for backend validation) -->
+<div class="modal fade" id="sameProcedureErrorModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                <h5 class="modal-title text-white">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Cannot Book Same Procedure
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-4">
+                    <div class="mx-auto mb-3" style="width: 80px; height: 80px; background: linear-gradient(135deg, #fee2e2, #fecaca); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-x-circle-fill text-danger" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-2">Same Procedure Already Booked</h4>
+                    <p class="text-muted mb-0" id="sameProcedureErrorMessage">You cannot book the same procedure twice on the same day.</p>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+                    <i class="bi bi-check-circle me-1"></i>Understood
                 </button>
             </div>
         </div>
@@ -903,9 +1050,50 @@
 </div>
 
 
+@php
+    $requestedDay = (int) request()->input('day', 1);
+    if ($requestedDay < 1) {
+        $requestedDay = 1;
+    } elseif ($requestedDay > 31) {
+        $requestedDay = 31;
+    }
+
+    $initialRangeStart = $startDate->copy()->format('Y-m-d');
+    $initialRangeEnd = $endDate->copy()->format('Y-m-d');
+@endphp
+
+<style>
+    .calendar-container.calendar-loading {
+        position: relative;
+        pointer-events: none;
+        opacity: 0.6;
+        transition: opacity 0.2s ease-in-out;
+    }
+
+    .calendar-container.calendar-loading::after {
+        content: 'Loading...';
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(15, 23, 42, 0.3);
+        color: #fff;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+</style>
+
 <script>
+// Generic Warning Modal Function
+function showWarningModal(message) {
+    const modal = new bootstrap.Modal(document.getElementById('genericWarningModal'));
+    document.getElementById('genericWarningMessage').textContent = message;
+    modal.show();
+}
 document.addEventListener('DOMContentLoaded', function() {
-    let currentDate = new Date({{ $currentYear }}, {{ $currentMonth - 1 }}, 1);
+    let currentDate = new Date({{ $currentYear }}, {{ $currentMonth - 1 }}, {{ $requestedDay }});
 
     // Get view from URL parameter, default to 'month'
     const urlParams = new URLSearchParams(window.location.search);
@@ -914,9 +1102,358 @@ document.addEventListener('DOMContentLoaded', function() {
     let appointments = @json($appointments);
     let blockedTimes = @json($blockedTimes);
 
-    // Server time synchronization - CRITICAL for fault tolerance
+    const initialRangeStart = new Date('{{ $initialRangeStart }}T00:00:00');
+    const initialRangeEnd = new Date('{{ $initialRangeEnd }}T23:59:59');
+    let loadedRangeStart = initialRangeStart;
+    let loadedRangeEnd = initialRangeEnd;
+    let filteredAppointments = [];
+    let allCalendarItems = [];
+    let isLoadingData = false;
+    
+    // Server time synchronization variables - declared early to avoid initialization errors
     let serverTimeData = null;
     let serverTimeOffset = 0; // Offset between server time and client time (in ms)
+
+    const calendarContainer = document.querySelector('.calendar-container');
+
+    const CALENDAR_DATA_ENDPOINT = '/staff/appointment/calendar-data';
+
+    const normalizeBlockedTimes = (items = []) => {
+        return items
+            .filter(Boolean)
+            .map(blockedTime => ({
+                ...blockedTime,
+                status: 'blocked',
+                reason_for_visit: blockedTime.title,
+                notes: blockedTime.notes
+            }));
+    };
+
+    function mergeAppointments(incoming = []) {
+        if (!Array.isArray(incoming)) {
+            return;
+        }
+
+        const map = new Map(appointments.map(apt => [`apt-${apt.id}`, apt]));
+
+        incoming.forEach(apt => {
+            if (!apt) {
+                return;
+            }
+            if (!apt.status || apt.status === '') {
+                apt.status = 'Pending';
+            }
+            map.set(`apt-${apt.id}`, apt);
+        });
+
+        appointments = Array.from(map.values());
+    }
+
+    function mergeBlockedTimes(incoming = []) {
+        if (!Array.isArray(incoming)) {
+            return;
+        }
+
+        const normalized = normalizeBlockedTimes(incoming);
+        const map = new Map(blockedTimes.map(bt => [`bt-${bt.id}`, bt]));
+
+        normalized.forEach(bt => {
+            map.set(`bt-${bt.id}`, bt);
+        });
+
+        blockedTimes = Array.from(map.values());
+    }
+
+    function getMonthLabel(date) {
+        return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    }
+
+    function getMonthAppointmentCount(date) {
+        const month = date.getMonth();
+        const year = date.getFullYear();
+
+        return appointments.reduce((count, apt) => {
+            if (!apt || !apt.start_datetime) {
+                return count;
+            }
+
+            const start = parseLocalDateTime(apt.start_datetime);
+            if (!start) {
+                return count;
+            }
+
+            if (start.getMonth() === month && start.getFullYear() === year) {
+                const statusLower = (apt.status || 'pending').toLowerCase();
+                if (statusLower !== 'blocked') {
+                    return count + 1;
+                }
+            }
+
+            return count;
+        }, 0);
+    }
+
+    function updateAppointmentSummary() {
+        const summaryEl = document.getElementById('appointment-summary');
+        if (!summaryEl) {
+            return;
+        }
+
+        const total = getMonthAppointmentCount(currentDate);
+        const monthLabel = getMonthLabel(currentDate);
+        const suffix = total === 1 ? '' : 's';
+        summaryEl.textContent = `${total} Appointment${suffix} are set for ${monthLabel}`;
+    }
+
+    function rebuildCalendarItems() {
+        filteredAppointments = appointments.filter(apt => {
+            if (!apt.start_datetime || !apt.end_datetime) return true;
+
+            const aptStart = parseLocalDateTime(apt.start_datetime);
+            const aptEnd = parseLocalDateTime(apt.end_datetime);
+            if (!aptStart || !aptEnd) return true;
+
+            const overlaps = blockedTimes.some(bt => {
+                if (!bt.start_datetime || !bt.end_datetime) return false;
+
+                const btStart = parseLocalDateTime(bt.start_datetime);
+                const btEnd = parseLocalDateTime(bt.end_datetime);
+                if (!btStart || !btEnd) return false;
+
+                const isFullDayClosure = btStart.getHours() === 0 && btStart.getMinutes() === 0 &&
+                                         (btEnd.getHours() === 23 && btEnd.getMinutes() >= 59);
+
+                if (isFullDayClosure) {
+                    const sameDate = aptStart.toDateString() === btStart.toDateString();
+                    if (sameDate) {
+                        console.log('Filtering appointment on clinic closed day:', apt.start_datetime, 'Blocked:', bt.start_datetime);
+                    }
+                    return sameDate;
+                }
+
+                const hasOverlap = aptStart < btEnd && aptEnd > btStart;
+                if (hasOverlap) {
+                    console.log('Filtering overlapping appointment:', apt.start_datetime, 'Blocked:', bt.start_datetime);
+                }
+                return hasOverlap;
+            });
+
+            return !overlaps;
+        });
+
+        console.log('Filtered appointments:', filteredAppointments.length, 'out of', appointments.length);
+        
+        // Filter out past blocked times
+        const now = typeof getServerTime === 'function' ? getServerTime() : new Date();
+        const activeBlockedTimes = blockedTimes.filter(bt => {
+            if (!bt || !bt.start_datetime || !bt.end_datetime) return false;
+            const btEnd = parseLocalDateTime(bt.end_datetime);
+            if (!btEnd || isNaN(btEnd.getTime())) return false;
+            return btEnd >= now;
+        });
+        
+        allCalendarItems = [...filteredAppointments, ...activeBlockedTimes];
+        updateAppointmentSummary();
+    }
+
+    function setLoadingState(state) {
+        isLoadingData = state;
+        if (calendarContainer) {
+            calendarContainer.classList.toggle('calendar-loading', state);
+        }
+    }
+
+    function formatDateParam(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    function getRangeForView(date, view) {
+        const target = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        let rangeStart;
+        let rangeEnd;
+
+        if (view === 'month') {
+            rangeStart = new Date(target.getFullYear(), target.getMonth() - 1, 1);
+            rangeEnd = new Date(target.getFullYear(), target.getMonth() + 2, 0);
+        } else if (view === 'week') {
+            rangeStart = new Date(target);
+            rangeStart.setDate(rangeStart.getDate() - rangeStart.getDay());
+            rangeEnd = new Date(rangeStart);
+            rangeEnd.setDate(rangeStart.getDate() + 6);
+        } else {
+            rangeStart = new Date(target);
+            rangeEnd = new Date(target);
+        }
+
+        rangeStart.setHours(0, 0, 0, 0);
+        rangeEnd.setHours(23, 59, 59, 999);
+
+        return { start: rangeStart, end: rangeEnd };
+    }
+
+    async function ensureDataForRange(rangeStart, rangeEnd) {
+        const needsEarlierData = rangeStart.getTime() < loadedRangeStart.getTime();
+        const needsLaterData = rangeEnd.getTime() > loadedRangeEnd.getTime();
+
+        if (!needsEarlierData && !needsLaterData) {
+            return;
+        }
+
+        const params = new URLSearchParams({
+            start: formatDateParam(rangeStart),
+            end: formatDateParam(rangeEnd)
+        });
+
+        const response = await fetch(`${CALENDAR_DATA_ENDPOINT}?${params.toString()}`, {
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch calendar data.');
+        }
+
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(data.message || 'Unable to load calendar data.');
+        }
+
+        mergeAppointments(data.appointments || []);
+        mergeBlockedTimes(data.blocked_times || []);
+
+        if (needsEarlierData) {
+            loadedRangeStart = new Date(rangeStart);
+        }
+
+        if (needsLaterData) {
+            loadedRangeEnd = new Date(rangeEnd);
+        }
+    }
+
+    // Real-time update functions
+    function refreshAppointments(data) {
+        if (data && data.appointments && Array.isArray(data.appointments)) {
+            mergeAppointments(data.appointments);
+            rebuildCalendarItems();
+            generateCalendar();
+        } else if (data && data.deleted_ids && Array.isArray(data.deleted_ids)) {
+            // Remove deleted appointments
+            data.deleted_ids.forEach(id => {
+                appointments = appointments.filter(apt => apt.id !== id);
+            });
+            rebuildCalendarItems();
+            generateCalendar();
+        } else {
+            // Full refresh
+            loadDataForCurrentView();
+        }
+    }
+
+    function updateAppointmentInCalendar(appointmentData) {
+        if (!appointmentData || !appointmentData.id) {
+            console.warn('[Real-Time] Invalid appointment data:', appointmentData);
+            return;
+        }
+        
+        console.log('[Real-Time] Updating appointment in calendar:', appointmentData);
+        
+        // Ensure status is set
+        if (!appointmentData.status || appointmentData.status === '') {
+            appointmentData.status = 'Pending';
+        }
+        
+        // Use mergeAppointments to properly merge the data
+        mergeAppointments([appointmentData]);
+        
+        // Rebuild calendar items and regenerate view
+        rebuildCalendarItems();
+        generateCalendar();
+        
+        console.log('[Real-Time] Appointment updated successfully. New status:', appointmentData.status);
+    }
+
+    function removeAppointmentFromCalendar(appointmentId) {
+        appointments = appointments.filter(apt => apt.id !== appointmentId);
+        rebuildCalendarItems();
+        generateCalendar();
+    }
+
+    function loadAppointments() {
+        loadDataForCurrentView();
+    }
+
+    // Function to refresh blocked times
+    function refreshBlockedTimes(blockedTimeData) {
+        if (blockedTimeData) {
+            // Normalize blocked time data
+            const normalized = normalizeBlockedTimes([blockedTimeData]);
+            mergeBlockedTimes(normalized);
+            rebuildCalendarItems();
+            generateCalendar();
+        } else {
+            // Full refresh
+            loadDataForCurrentView();
+        }
+    }
+
+    // Function to remove blocked time from calendar
+    function removeBlockedTimeFromCalendar(blockedTimeId) {
+        blockedTimes = blockedTimes.filter(bt => bt.id !== blockedTimeId);
+        rebuildCalendarItems();
+        generateCalendar();
+    }
+
+    // Expose functions to global scope for real-time updates
+    window.updateAppointmentInCalendar = updateAppointmentInCalendar;
+    window.refreshAppointments = refreshAppointments;
+    window.removeAppointmentFromCalendar = removeAppointmentFromCalendar;
+    window.loadAppointments = loadAppointments;
+    window.refreshBlockedTimes = refreshBlockedTimes;
+    window.removeBlockedTimeFromCalendar = removeBlockedTimeFromCalendar;
+
+    async function loadDataForCurrentView() {
+        const { start, end } = getRangeForView(currentDate, currentView);
+        const needsLoad = start.getTime() < loadedRangeStart.getTime() || end.getTime() > loadedRangeEnd.getTime();
+
+        if (needsLoad) {
+            setLoadingState(true);
+        }
+
+        try {
+            if (needsLoad) {
+                await ensureDataForRange(start, end);
+            }
+            rebuildCalendarItems();
+        } catch (error) {
+            console.error('Error loading calendar data:', error);
+            showValidationMessage(error.message || 'Error loading calendar data. Please try again.', 'error');
+        } finally {
+            if (needsLoad) {
+                setLoadingState(false);
+            }
+        }
+    }
+
+    function updateUrlParams() {
+        const url = new URL(window.location.href);
+        url.searchParams.set('month', currentDate.getMonth() + 1);
+        url.searchParams.set('year', currentDate.getFullYear());
+        url.searchParams.set('day', currentDate.getDate());
+        url.searchParams.set('view', currentView);
+        window.history.replaceState({}, '', url);
+    }
+
+    blockedTimes = normalizeBlockedTimes(blockedTimes);
+    rebuildCalendarItems();
+
+    // Server time synchronization - CRITICAL for fault tolerance
+    // (serverTimeData and serverTimeOffset already declared above)
 
     // Function to fetch and sync server time
     async function syncServerTime() {
@@ -952,6 +1489,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         skew_minutes: Math.round(skewSeconds / 60)
                     });
                 }
+                
+                // Rebuild calendar items to filter out past blocked times with accurate server time
+                rebuildCalendarItems();
             }
         } catch (error) {
             console.error('Error syncing server time:', error);
@@ -962,7 +1502,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Function to get current server time as Date object
     function getServerTime() {
-        if (serverTimeData) {
+        // Check if serverTimeData exists and is initialized (safe check for real-time events)
+        if (typeof serverTimeData !== 'undefined' && serverTimeData) {
             // Calculate server time: client time + offset
             const serverTimestampMs = (serverTimeData.server_timestamp * 1000) + (Date.now() - (serverTimeData.server_timestamp * 1000) + serverTimeOffset);
             return new Date(serverTimestampMs);
@@ -999,70 +1540,97 @@ document.addEventListener('DOMContentLoaded', function() {
         // Calculate difference in days
         const daysDiff = Math.round((displayedDate - serverDate) / (1000 * 60 * 60 * 24));
 
-        // CRITICAL: If displayed date is more than 7 days in the future, likely manipulation detected
-        // (allow small buffer for legitimate future viewing, but catch obvious manipulation)
-        if (daysDiff > 7) {
-            console.warn('Date manipulation detected - forcing reload to server date', {
+        const MAX_FUTURE_DAYS = 365 * 2; // Match server-side 2 year future window
+        const MAX_PAST_DAYS = 365; // Match server-side 1 year past window
+
+        // Guard against dates outside the supported window
+        if (daysDiff > MAX_FUTURE_DAYS) {
+            console.warn('Requested date beyond allowed future range - forcing reload to server date', {
                 displayed_month: displayedMonth,
                 displayed_year: displayedYear,
                 server_month: serverMonth,
                 server_year: serverYear,
-                days_diff: daysDiff
+                days_diff: daysDiff,
+                max_future_days: MAX_FUTURE_DAYS
             });
 
-            // Force reload to server's current date
             const url = new URL(window.location.href);
             url.searchParams.delete('month');
             url.searchParams.delete('year');
-            // Keep view parameter if present
+            url.searchParams.delete('day');
             const view = urlParams.get('view');
             if (view) {
                 url.searchParams.set('view', view);
             }
 
-            // Show error message and reload
-            alert('Invalid date detected. Redirecting to current month...');
-            window.location.href = url.toString();
+            showWarningModal('Selected date is too far in the future. Showing the current month instead.');
+            setTimeout(() => {
+                window.location.href = url.toString();
+            }, 1500);
             return;
         }
 
-        // Also check if displayed date is more than 30 days in the past (likely manipulation)
-        if (daysDiff < -30) {
-            console.warn('Invalid past date detected - forcing reload to server date', {
+        if (daysDiff < -MAX_PAST_DAYS) {
+            console.warn('Requested date beyond allowed past range - forcing reload to server date', {
                 displayed_month: displayedMonth,
                 displayed_year: displayedYear,
                 server_month: serverMonth,
                 server_year: serverYear,
-                days_diff: daysDiff
+                days_diff: daysDiff,
+                max_past_days: MAX_PAST_DAYS
             });
 
-            // Force reload to server's current date
             const url = new URL(window.location.href);
             url.searchParams.delete('month');
             url.searchParams.delete('year');
+            url.searchParams.delete('day');
             const view = urlParams.get('view');
             if (view) {
                 url.searchParams.set('view', view);
             }
 
-            alert('Invalid date detected. Redirecting to current month...');
-            window.location.href = url.toString();
+            showWarningModal('Selected date is too far in the past. Showing the current month instead.');
+            setTimeout(() => {
+                window.location.href = url.toString();
+            }, 1500);
             return;
         }
     }
 
     // Sync server time on page load and validate date
-    validateAndFixDate().then(() => {
-        // Only generate calendar after date validation passes
+    validateAndFixDate().then(async () => {
+        updateUrlParams();
+        await loadDataForCurrentView();
         generateCalendar();
-    }).catch((error) => {
+    }).catch(async (error) => {
         console.error('Error validating date:', error);
-        // Fallback: generate calendar anyway, but server-side validation will catch errors
+        await loadDataForCurrentView();
         generateCalendar();
     });
 
     // Re-sync server time periodically (every 5 minutes) and before critical operations
     setInterval(syncServerTime, 5 * 60 * 1000);
+    
+    // Periodic cleanup to remove past blocked times
+    function cleanupPastBlockedTimes() {
+        const now = typeof getServerTime === 'function' ? getServerTime() : new Date();
+        const beforeCount = blockedTimes.length;
+        blockedTimes = blockedTimes.filter(bt => {
+            if (!bt || !bt.start_datetime || !bt.end_datetime) return false;
+            const btEnd = parseLocalDateTime(bt.end_datetime);
+            if (!btEnd || isNaN(btEnd.getTime())) return false;
+            return btEnd >= now;
+        });
+        if (beforeCount > blockedTimes.length) {
+            console.log('[Staff Calendar] Cleaned up', beforeCount - blockedTimes.length, 'past blocked times');
+            rebuildCalendarItems();
+        }
+    }
+    
+    // Run cleanup every minute
+    setInterval(cleanupPastBlockedTimes, 60000);
+    // Also run cleanup after initial server time sync
+    setTimeout(cleanupPastBlockedTimes, 10000);
 
     // Debug: Check appointments data
     console.log('Appointments loaded:', appointments);
@@ -1075,11 +1643,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const url = new URL(window.location.href);
         url.searchParams.set('month', month);
         url.searchParams.set('year', year);
+        url.searchParams.set('day', currentDate.getDate());
         window.location.href = url.toString();
     }
 
     // Helper function to parse datetime strings as LOCAL time (not UTC)
-    const parseLocalDateTime = (datetimeStr) => {
+    function parseLocalDateTime(datetimeStr) {
         // Handle null, undefined, or non-string values
         if (!datetimeStr || typeof datetimeStr !== 'string') {
             console.warn('Invalid datetime string:', datetimeStr);
@@ -1111,60 +1680,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error parsing datetime:', datetimeStr, error);
             return null;
         }
-    };
-
-    // Convert blocked times to format compatible with appointments for display
-    blockedTimes = blockedTimes.map(bt => ({
-        ...bt,
-        status: 'blocked',
-        reason_for_visit: bt.title,
-        notes: bt.notes
-    }));
-
-    // Filter out appointments that overlap with blocked times
-    const filteredAppointments = appointments.filter(apt => {
-        if (!apt.start_datetime || !apt.end_datetime) return true;
-        
-        const aptStart = parseLocalDateTime(apt.start_datetime);
-        const aptEnd = parseLocalDateTime(apt.end_datetime);
-        if (!aptStart || !aptEnd) return true;
-
-        // Check if appointment overlaps with any blocked time
-        const overlaps = blockedTimes.some(bt => {
-            if (!bt.start_datetime || !bt.end_datetime) return false;
-            
-            const btStart = parseLocalDateTime(bt.start_datetime);
-            const btEnd = parseLocalDateTime(bt.end_datetime);
-            if (!btStart || !btEnd) return false;
-
-            // Check if it's a full-day closure (starts at 00:00 and ends at 23:59 or later)
-            const isFullDayClosure = btStart.getHours() === 0 && btStart.getMinutes() === 0 &&
-                                     (btEnd.getHours() === 23 && btEnd.getMinutes() >= 59);
-
-            // If full-day closure, check if appointment is on the same date
-            if (isFullDayClosure) {
-                const sameDate = aptStart.toDateString() === btStart.toDateString();
-                if (sameDate) {
-                    console.log('Filtering appointment on clinic closed day:', apt.start_datetime, 'Blocked:', bt.start_datetime);
-                }
-                return sameDate;
-            }
-
-            // For partial blocks, check for overlap: appointment starts before blocked ends AND appointment ends after blocked starts
-            const hasOverlap = aptStart < btEnd && aptEnd > btStart;
-            if (hasOverlap) {
-                console.log('Filtering overlapping appointment:', apt.start_datetime, 'Blocked:', bt.start_datetime);
-            }
-            return hasOverlap;
-        });
-
-        return !overlaps;
-    });
-
-    console.log('Filtered appointments:', filteredAppointments.length, 'out of', appointments.length);
-
-    // Merge for display purposes (only non-overlapping appointments)
-    let allCalendarItems = [...filteredAppointments, ...blockedTimes];
+    }
 
     // Initialize calendar view button
     setActiveButton(currentView);
@@ -1172,26 +1688,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // View toggle functionality
     document.querySelectorAll('.view-toggle').forEach(button => {
-        button.addEventListener('click', function() {
-            // Remove active class from all buttons
+        button.addEventListener('click', async function() {
+            if (this.classList.contains('active') || isLoadingData) {
+                return;
+            }
+
             document.querySelectorAll('.view-toggle').forEach(btn => {
                 btn.classList.remove('active');
                 btn.classList.remove('btn-primary');
                 btn.classList.add('btn-outline-secondary');
             });
 
-            // Add active class to clicked button
             this.classList.add('active');
             this.classList.remove('btn-outline-secondary');
             this.classList.add('btn-primary');
 
             currentView = this.dataset.view;
+            updateUrlParams();
 
-            // Update URL with the new view parameter
-            const url = new URL(window.location.href);
-            url.searchParams.set('view', currentView);
-            window.history.pushState({}, '', url);
-
+            await loadDataForCurrentView();
             generateCalendar();
         });
     });
@@ -1213,13 +1728,26 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Navigation buttons
-    document.getElementById('prev-period').addEventListener('click', function() {
-        navigatePeriod(-1);
-    });
+    document.getElementById('prev-period').addEventListener('click', () => navigatePeriod(-1));
 
-    document.getElementById('next-period').addEventListener('click', function() {
-        navigatePeriod(1);
-    });
+    document.getElementById('next-period').addEventListener('click', () => navigatePeriod(1));
+
+    const todayButton = document.getElementById('today-button');
+    if (todayButton) {
+        todayButton.addEventListener('click', async function() {
+            if (isLoadingData) {
+                return;
+            }
+
+            const serverNow = getServerTime();
+            currentDate = new Date(serverNow.getFullYear(), serverNow.getMonth(), serverNow.getDate());
+
+            updateUrlParams();
+            await loadDataForCurrentView();
+            setActiveButton(currentView);
+            generateCalendar();
+        });
+    }
 
 
     // Appointment form handling
@@ -1760,7 +2288,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Clear slots
             const timeSlotsList = document.getElementById('time-slots-list');
             if (timeSlotsList) {
-                timeSlotsList.innerHTML = '<div class="text-muted text-center" style="padding: 20px;"><small>Please select a service and date to view available time slots</small></div>';
+                timeSlotsList.innerHTML = '<div class="text-muted text-center w-100" style="padding: 20px; grid-column: 1 / -1; display: flex; justify-content: center; align-items: center; min-height: 150px;"><small>Please select a service and date to view available time slots</small></div>';
             }
         }
     });
@@ -1771,9 +2299,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!timeSlotsList) return;
 
         timeSlotsList.innerHTML = '';
+        updateTimeSelectedStatus('');
 
         if (!durationMinutes || !selectedDate) {
-            timeSlotsList.innerHTML = '<div class="text-muted text-center" style="padding: 20px;"><small>Please select a service and date to view available time slots</small></div>';
+            timeSlotsList.innerHTML = '<div class="text-muted text-center w-100" style="padding: 20px; grid-column: 1 / -1; display: flex; justify-content: center; align-items: center; min-height: 150px;"><small>Please select a service and date to view available time slots</small></div>';
             return;
         }
 
@@ -1794,72 +2323,70 @@ document.addEventListener('DOMContentLoaded', function() {
                 const val = `${String(start.getHours()).padStart(2,'0')}:${String(start.getMinutes()).padStart(2,'0')}-${String(end.getHours()).padStart(2,'0')}:${String(end.getMinutes()).padStart(2,'0')}`;
                 const startLabel = start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 
-                const slotDiv = document.createElement('div');
-                slotDiv.className = 'form-check';
-                slotDiv.innerHTML = `
-                    <input class=\"form-check-input\" type=\"radio\" name=\"time_slot\" id=\"slot${slotIndex}\" value=\"${val}\">\n                    <label class=\"form-check-label\" for=\"slot${slotIndex}\">${startLabel}</label>
-                `;
-                timeSlotsList.appendChild(slotDiv);
-
-                const radio = slotDiv.querySelector('input[type=\"radio\"]');
-                if (radio) {
-                    radio.addEventListener('change', function() {
-                        document.querySelectorAll('.time-slots-list .form-check').forEach(s => s.classList.remove('selected'));
-                        slotDiv.classList.add('selected');
-                        if (typeof updateEndTimePreview === 'function') updateEndTimePreview();
+                // Create button instead of radio
+                const slotBtn = document.createElement('button');
+                slotBtn.type = 'button';
+                slotBtn.className = 'time-slot-btn';
+                slotBtn.setAttribute('data-time-value', val);
+                slotBtn.textContent = startLabel;
+                
+                // Create hidden radio input for form submission
+                const hiddenRadio = document.createElement('input');
+                hiddenRadio.type = 'radio';
+                hiddenRadio.name = 'time_slot';
+                hiddenRadio.id = `slot${slotIndex}`;
+                hiddenRadio.value = val;
+                hiddenRadio.style.display = 'none';
+                
+                slotBtn.addEventListener('click', function() {
+                    // Remove selected class from all buttons
+                    document.querySelectorAll('.time-slot-btn').forEach(btn => {
+                        btn.classList.remove('selected');
                     });
-                }
+                    
+                    // Uncheck all radios
+                    document.querySelectorAll('input[name="time_slot"]').forEach(radio => {
+                        radio.checked = false;
+                    });
+                    
+                    // Select this button and radio
+                    this.classList.add('selected');
+                    hiddenRadio.checked = true;
+                    
+                    // Update status
+                    updateTimeSelectedStatus(startLabel);
+                    
+                    if (typeof updateEndTimePreview === 'function') updateEndTimePreview();
+                });
+                
+                timeSlotsList.appendChild(slotBtn);
+                timeSlotsList.appendChild(hiddenRadio);
                 slotIndex++;
             }
         }
 
         if (slotIndex === 1) {
-            timeSlotsList.innerHTML = '<div class="text-muted text-center" style="padding: 20px;"><small>No available time slots for this date</small></div>';
+            timeSlotsList.innerHTML = '<div class="text-muted text-center w-100" style="padding: 20px; grid-column: 1 / -1; display: flex; justify-content: center; align-items: center; min-height: 150px;"><small>No available time slots for this date</small></div>';
         }
-
-        document.querySelectorAll('.time-slots-list .form-check').forEach(slot => {
-            slot.addEventListener('click', function(e) {
-                if (e.target.type === 'radio') return;
-                const radio = this.querySelector('input[type="radio"]');
-                if (radio) {
-                    radio.checked = true;
-                    radio.dispatchEvent(new Event('change'));
-                }
-            });
-        });
     }
 
-    // Time slot selection highlighting
-    document.querySelectorAll('input[name="time_slot"]').forEach(radio => {
-        radio.addEventListener('change', function() {
-            // Remove selected class from all time slots
-            document.querySelectorAll('.time-slots-list .form-check').forEach(slot => {
-                slot.classList.remove('selected');
-            });
-
-            // Add selected class to the checked slot
-            if (this.checked) {
-                this.closest('.form-check').classList.add('selected');
+    // Update time selected status
+    function updateTimeSelectedStatus(timeLabel) {
+        const statusEl = document.getElementById('time-selected-status');
+        if (statusEl) {
+            if (timeLabel) {
+                statusEl.textContent = timeLabel;
+                statusEl.classList.remove('text-muted');
+                statusEl.style.color = '#0ea5e9';
+            } else {
+                statusEl.textContent = 'No time selected';
+                statusEl.classList.add('text-muted');
+                statusEl.style.color = '';
             }
+        }
+    }
 
-            // Update end time preview
-            updateEndTimePreview();
-        });
-    });
-
-    // Make entire time slot row clickable
-    document.querySelectorAll('.time-slots-list .form-check').forEach(slot => {
-        slot.addEventListener('click', function(e) {
-            // Don't trigger if clicking the radio button itself
-            if (e.target.type === 'radio') return;
-
-            const radio = this.querySelector('input[type="radio"]');
-            if (radio) {
-                radio.checked = true;
-                radio.dispatchEvent(new Event('change'));
-            }
-        });
-    });
+    // Time slot selection is now handled in generateTimeSlots function
 
     // Update end-time preview whenever service or date changes
     document.getElementById('selected_date').addEventListener('change', updateEndTimePreview);
@@ -1930,12 +2457,71 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('input[name="time_slot"]').forEach(radio => {
             radio.checked = false;
         });
-        document.querySelectorAll('.time-slots-list .form-check').forEach(slot => {
-            slot.classList.remove('selected');
+        document.querySelectorAll('.time-slot-btn').forEach(btn => {
+            btn.classList.remove('selected');
         });
+        updateTimeSelectedStatus('');
 
         // Reset form for new appointment
         resetAppointmentForm();
+    });
+
+    // Handle "Add New Patient" button click
+    document.getElementById('add-new-patient').addEventListener('click', function(e) {
+        e.preventDefault();
+        // Store reference to appointment modal
+        const appointmentModalEl = document.getElementById('appointmentModal');
+        const appointmentModal = bootstrap.Modal.getInstance(appointmentModalEl);
+        
+        // Close appointment modal if open
+        if (appointmentModal) {
+            appointmentModal.hide();
+        }
+        
+        // Open user management modal
+        const addUserModal = new bootstrap.Modal(document.getElementById('addUserModal'));
+        addUserModal.show();
+    });
+
+    // Listen for successful patient creation from user management modal
+    $(document).on('ajaxSuccess', function(event, xhr, settings) {
+        // Check if this is the add user form submission for a patient
+        if (settings.url && settings.url.includes('/staff/account-management') && settings.method === 'POST') {
+            try {
+                const response = typeof xhr.responseJSON !== 'undefined' ? xhr.responseJSON : JSON.parse(xhr.responseText);
+                
+                if (response.status === 'success' && response.user) {
+                    const user = response.user;
+                    
+                    // Auto-fill patient in appointment form
+                    const patientSearch = document.getElementById('patient_search');
+                    const patientId = document.getElementById('patient_id');
+                    
+                    if (patientSearch && patientId) {
+                        // Get the full name from user info if available
+                        const patientName = user.name || user.username;
+                        
+                        patientSearch.value = patientName;
+                        patientId.value = user.id;
+                        
+                        // Hide patient results if visible
+                        const patientResults = document.getElementById('patient-results');
+                        if (patientResults) {
+                            patientResults.style.display = 'none';
+                        }
+                        
+                        // Reopen appointment modal if it was closed
+                        const appointmentModalEl = document.getElementById('appointmentModal');
+                        if (appointmentModalEl && !appointmentModalEl.classList.contains('show')) {
+                            const appointmentModal = new bootstrap.Modal(appointmentModalEl);
+                            appointmentModal.show();
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error('Error processing patient creation response:', e);
+            }
+        }
     });
 
     // Generate calendar on page load
@@ -1945,11 +2531,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Function to disable blocked time slots and booked appointments
     function updateTimeSlotAvailability(selectedDate) {
+        // If we have a selected service, regenerate slots first for this date
+        const serviceSelect = document.getElementById('service_name');
+        if (serviceSelect && serviceSelect.value) {
+            const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
+            const duration = parseInt(selectedOption.getAttribute('data-duration') || '0', 10);
+            generateTimeSlots(duration, selectedDate);
+        }
         if (!selectedDate) {
             // If no date selected, enable all time slots
+            document.querySelectorAll('.time-slot-btn').forEach(btn => {
+                btn.disabled = false;
+                btn.classList.remove('time-slot-blocked', 'time-slot-disabled');
+            });
             document.querySelectorAll('input[name="time_slot"]').forEach(radio => {
                 radio.disabled = false;
-                radio.closest('.form-check').classList.remove('disabled', 'time-slot-blocked', 'time-slot-booked', 'time-slot-disabled');
             });
             return;
         }
@@ -1959,26 +2555,27 @@ document.addEventListener('DOMContentLoaded', function() {
         const selectedDateObj = new Date(year, month - 1, day);
 
         // Find blocked times on the selected date
-        const blockedTimesOnDate = allCalendarItems.filter(apt => {
-            const aptDate = parseLocalDateTime(apt.start_datetime);
-            return apt.status === 'blocked' && aptDate.toDateString() === selectedDateObj.toDateString();
+        const blockedTimesOnDate = blockedTimes.filter(blockedTime => {
+            const btStart = parseLocalDateTime(blockedTime.start_datetime);
+            return btStart && btStart.toDateString() === selectedDateObj.toDateString();
         });
 
         // Find booked appointments on the selected date (exclude cancelled and blocked)
-        const bookedOnDate = allCalendarItems.filter(apt => {
+        const bookedOnDate = appointments.filter(apt => {
             const aptDate = parseLocalDateTime(apt.start_datetime);
             if (!aptDate) return false;
             const statusLower = (apt.status || 'pending').toLowerCase();
-            return aptDate.toDateString() === selectedDateObj.toDateString() && statusLower !== 'cancelled' && apt.status !== 'blocked';
+            return aptDate.toDateString() === selectedDateObj.toDateString() && statusLower !== 'cancelled';
         });
 
-        // Check each time slot
-        document.querySelectorAll('input[name="time_slot"]').forEach(radio => {
-            if (radio.value === 'custom') {
+        // Check each time slot button
+        document.querySelectorAll('.time-slot-btn').forEach(btn => {
+            const timeValue = btn.getAttribute('data-time-value');
+            if (!timeValue || timeValue === 'custom') {
                 return; // Don't disable custom time option
             }
 
-            const [startTime, endTime] = radio.value.split('-');
+            const [startTime, endTime] = timeValue.split('-');
             const [startHours, startMinutes] = startTime.split(':').map(Number);
             const [endHours, endMinutes] = endTime.split(':').map(Number);
 
@@ -1995,10 +2592,15 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             if (isBlocked) {
-                radio.disabled = true;
-                radio.checked = false;
-                radio.closest('.form-check').classList.add('disabled', 'time-slot-blocked', 'time-slot-disabled');
-                radio.closest('.form-check').title = 'This time slot is blocked';
+                btn.disabled = true;
+                btn.classList.add('time-slot-blocked', 'time-slot-disabled');
+                btn.title = 'This time slot is blocked';
+                // Also disable the associated radio
+                const radio = document.querySelector(`input[name="time_slot"][value="${timeValue}"]`);
+                if (radio) {
+                    radio.disabled = true;
+                    radio.checked = false;
+                }
                 return;
             }
 
@@ -2011,17 +2613,27 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             if (isBooked) {
-                radio.disabled = true;
-                radio.checked = false;
-                radio.closest('.form-check').classList.add('disabled', 'time-slot-booked', 'time-slot-disabled');
-                radio.closest('.form-check').title = 'This time slot is already booked';
+                btn.disabled = true;
+                btn.classList.add('time-slot-blocked', 'time-slot-disabled');
+                btn.title = 'This time slot is already booked';
+                // Also disable the associated radio
+                const radio = document.querySelector(`input[name="time_slot"][value="${timeValue}"]`);
+                if (radio) {
+                    radio.disabled = true;
+                    radio.checked = false;
+                }
                 return;
             }
 
             // If not blocked or booked, ensure it's enabled
-            radio.disabled = false;
-            radio.closest('.form-check').classList.remove('disabled', 'time-slot-blocked', 'time-slot-booked', 'time-slot-disabled');
-            radio.closest('.form-check').title = '';
+            btn.disabled = false;
+            btn.classList.remove('time-slot-blocked', 'time-slot-disabled');
+            btn.title = '';
+            // Also enable the associated radio
+            const radio = document.querySelector(`input[name="time_slot"][value="${timeValue}"]`);
+            if (radio) {
+                radio.disabled = false;
+            }
         });
     }
 
@@ -2047,26 +2659,25 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    function navigatePeriod(direction) {
+    async function navigatePeriod(direction) {
+        if (isLoadingData) {
+            return;
+        }
+
         console.log('Navigate Period:', direction, 'Current View:', currentView, 'Current Date:', currentDate);
 
         // Adjust current date based on active view
         if (currentView === 'month') {
             currentDate.setMonth(currentDate.getMonth() + direction);
+            currentDate.setDate(1);
         } else if (currentView === 'week') {
             currentDate.setDate(currentDate.getDate() + (direction * 7));
         } else if (currentView === 'day') {
             currentDate.setDate(currentDate.getDate() + direction);
         }
 
-        // Update URL params without reloading the page
-        const url = new URL(window.location.href);
-        url.searchParams.set('month', currentDate.getMonth() + 1);
-        url.searchParams.set('year', currentDate.getFullYear());
-        url.searchParams.set('view', currentView);
-        window.history.pushState({}, '', url);
-
-        // Re-render the calendar in-place
+        updateUrlParams();
+        await loadDataForCurrentView();
         generateCalendar();
     }
 
@@ -2074,18 +2685,29 @@ document.addEventListener('DOMContentLoaded', function() {
         // Ensure the correct button is active
         setActiveButton(currentView);
 
-        // Hide all views first
-        document.querySelectorAll('.calendar-grid').forEach(grid => {
-            grid.classList.add('d-none');
+        // Fade out all views first with smooth transition
+        const allGrids = document.querySelectorAll('.calendar-grid');
+        allGrids.forEach(grid => {
+            if (!grid.classList.contains('d-none')) {
+                grid.classList.add('fade-out');
+            }
         });
 
-        if (currentView === 'month') {
-            generateMonthView();
-        } else if (currentView === 'week') {
-            generateWeekView();
-        } else if (currentView === 'day') {
-            generateDayView();
-        }
+        // Wait for fade-out animation to complete, then hide and show new view
+        setTimeout(() => {
+            allGrids.forEach(grid => {
+                grid.classList.add('d-none');
+                grid.classList.remove('fade-out', 'fade-in');
+            });
+
+            if (currentView === 'month') {
+                generateMonthView();
+            } else if (currentView === 'week') {
+                generateWeekView();
+            } else if (currentView === 'day') {
+                generateDayView();
+            }
+        }, 150); // Half of transition duration for smoother effect
     }
 
     function generateMonthView() {
@@ -2097,7 +2719,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         console.log('Generating month view for:', currentDate);
         calendarGrid.classList.remove('d-none');
+        calendarGrid.classList.add('fade-in');
         calendarGrid.innerHTML = '';
+        
+        // Remove fade-in class after animation completes
+        setTimeout(() => {
+            calendarGrid.classList.remove('fade-in');
+        }, 300);
 
         // Add day headers
         const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -2153,7 +2781,13 @@ document.addEventListener('DOMContentLoaded', function() {
     function generateWeekView() {
         const calendarGrid = document.getElementById('week-calendar');
         calendarGrid.classList.remove('d-none');
+        calendarGrid.classList.add('fade-in');
         calendarGrid.innerHTML = '';
+        
+        // Remove fade-in class after animation completes
+        setTimeout(() => {
+            calendarGrid.classList.remove('fade-in');
+        }, 300);
 
         // Get start of week (Sunday)
         const startOfWeek = new Date(currentDate);
@@ -2201,7 +2835,13 @@ document.addEventListener('DOMContentLoaded', function() {
     function generateDayView() {
         const calendarGrid = document.getElementById('day-calendar');
         calendarGrid.classList.remove('d-none');
+        calendarGrid.classList.add('fade-in');
         calendarGrid.innerHTML = '';
+        
+        // Remove fade-in class after animation completes
+        setTimeout(() => {
+            calendarGrid.classList.remove('fade-in');
+        }, 300);
 
         // Add day header
         const dayHeader = document.createElement('div');
@@ -2904,6 +3544,49 @@ document.addEventListener('DOMContentLoaded', function() {
             isValid = false;
         }
 
+        // Check for duplicate procedure on the same day
+        if (selectedDate && appointmentData.patient_id && serviceSelect && serviceSelect.value) {
+            const selectedServiceId = serviceSelect.value;
+            const [year, month, day] = selectedDate.split('-').map(Number);
+            const selectedDateStart = new Date(year, month - 1, day, 0, 0, 0);
+            const selectedDateEnd = new Date(year, month - 1, day, 23, 59, 59);
+
+            // Check if patient already has the same procedure on this day
+            const duplicateProcedure = allCalendarItems.find(apt => {
+                // Must match patient
+                if (String(apt.patient_id) !== String(appointmentData.patient_id)) return false;
+                // Must match service
+                if (String(apt.service_id) !== String(selectedServiceId)) return false;
+                // Ignore cancelled
+                const statusLower = (apt.status || 'pending').toLowerCase();
+                if (statusLower === 'cancelled') return false;
+                // Check if appointment is on the same day
+                const existingStart = parseLocalDateTime(apt.start_datetime);
+                if (!existingStart) return false;
+                return existingStart >= selectedDateStart && existingStart <= selectedDateEnd;
+            });
+
+            if (duplicateProcedure) {
+                const serviceName = serviceSelect.options[serviceSelect.selectedIndex].text;
+                const formattedDate = new Date(selectedDate).toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
+                
+                // Show error modal (no proceed option)
+                document.getElementById('sameProcedureWarningMessage').textContent = `This patient already has "${serviceName}" booked on ${formattedDate}.`;
+                
+                // Show error modal
+                const errorModal = new bootstrap.Modal(document.getElementById('sameProcedureWarningModal'));
+                errorModal.show();
+                
+                isValid = false; // Prevent submission
+                return; // Exit early
+            }
+        }
+
         if (!isValid) {
             // Only show generic message if no specific field errors were shown
             const hasFieldErrors = document.querySelectorAll('.is-invalid').length > 0;
@@ -3004,6 +3687,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Close modal after a short delay
                 setTimeout(() => {
                     bootstrap.Modal.getInstance(document.getElementById('appointmentModal')).hide();
+                    if (selectedDate) {
+                        const [year, month, day] = selectedDate.split('-').map(Number);
+                        currentDate = new Date(year, month - 1, day);
+                    }
                     reloadWithCurrentMonth();
                 }, 1500);
             } else if (!ok || (data && typeof data === 'object' && data.success === false)) {
@@ -3020,8 +3707,33 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 console.error('Appointment operation failed:', errorMessage);
 
+                // Check if error is due to same procedure
+                if (errorMessage.includes('same procedure') || errorMessage.includes('cannot book the same')) {
+                    // Show same procedure error modal
+                    document.getElementById('sameProcedureErrorMessage').textContent = errorMessage;
+
+                    // Close appointment modal temporarily
+                    const appointmentModal = bootstrap.Modal.getInstance(document.getElementById('appointmentModal'));
+                    if (appointmentModal) {
+                        appointmentModal.hide();
+                    }
+
+                    // Show error modal after a short delay
+                    setTimeout(() => {
+                        const sameProcedureModal = new bootstrap.Modal(document.getElementById('sameProcedureErrorModal'));
+                        sameProcedureModal.show();
+
+                        // When error modal is closed, reopen appointment modal
+                        document.getElementById('sameProcedureErrorModal').addEventListener('hidden.bs.modal', function onHidden() {
+                            if (appointmentModal) {
+                                appointmentModal.show();
+                            }
+                            document.getElementById('sameProcedureErrorModal').removeEventListener('hidden.bs.modal', onHidden);
+                        }, { once: true });
+                    }, 300);
+                }
                 // Check if error is due to blocked/closed time
-                if (errorMessage.includes('closed') || errorMessage.includes('blocked')) {
+                else if (errorMessage.includes('closed') || errorMessage.includes('blocked')) {
                     // Show conflict modal
                     const selectedDate = document.getElementById('selected_date').value;
                     const timeSlot = document.querySelector('input[name="time_slot"]:checked');
@@ -3079,6 +3791,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 showValidationMessage(successMessage, 'success');
                 setTimeout(() => {
                     bootstrap.Modal.getInstance(document.getElementById('appointmentModal')).hide();
+                    if (selectedDate) {
+                        const [year, month, day] = selectedDate.split('-').map(Number);
+                        currentDate = new Date(year, month - 1, day);
+                    }
                     reloadWithCurrentMonth();
                 }, 1500);
             }
@@ -3732,6 +4448,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function deleteBlockTime(blockId) {
+        // Ensure blockId is a valid number/string
+        blockId = String(blockId).trim();
+        if (!blockId || blockId === 'undefined' || blockId === 'null') {
+            console.error('Invalid block ID:', blockId);
+            showValidationMessage('Invalid blocked time ID', 'error');
+            return;
+        }
+
         console.log('Deleting block time:', blockId);
 
         // Show loading state
@@ -3740,7 +4464,10 @@ document.addEventListener('DOMContentLoaded', function() {
         deleteBtn.disabled = true;
         deleteBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Deleting...';
 
-        fetch(`/staff/blocked-time/${blockId}/delete`, {
+        const url = `/staff/blocked-time/${encodeURIComponent(blockId)}/delete`;
+        console.log('Delete URL:', url);
+
+        fetch(url, {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -3751,7 +4478,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content')
             })
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                // If response is not ok, try to get error message
+                return response.json().then(err => {
+                    throw new Error(err.message || `Server error: ${response.status}`);
+                }).catch(() => {
+                    throw new Error(`Server error: ${response.status} ${response.statusText}`);
+                });
+            }
+            return response.json();
+        })
         .then(data => {
             console.log('Delete response:', data);
             if (data.success) {
@@ -3761,17 +4498,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Show success message
                 showValidationMessage('Blocked time deleted successfully!', 'success');
 
-                // Reload page
-                setTimeout(() => {
-                    reloadWithCurrentMonth();
-                }, 1500);
+                // Remove from calendar and refresh (no page reload needed)
+                if (typeof removeBlockedTimeFromCalendar === 'function') {
+                    removeBlockedTimeFromCalendar(blockId);
+                } else {
+                    // Fallback to page reload
+                    setTimeout(() => {
+                        reloadWithCurrentMonth();
+                    }, 1500);
+                }
             } else {
                 showValidationMessage(data.message || 'Error deleting blocked time', 'error');
             }
         })
         .catch(error => {
             console.error('Error deleting blocked time:', error);
-            showValidationMessage('Error deleting blocked time. Please try again.', 'error');
+            showValidationMessage(error.message || 'Error deleting blocked time. Please try again.', 'error');
         })
         .finally(() => {
             // Reset button state
@@ -3783,39 +4525,163 @@ document.addEventListener('DOMContentLoaded', function() {
     // Flag to track if we're editing a blocked time
     let isEditingBlockedTime = false;
 
-    // Clear Clinic Closed button
-    document.getElementById('clear-clinic-closed-btn').addEventListener('click', function() {
-        // Fetch count of future clinic closed days
-        fetch('/staff/blocked-time/future/clinic-closed/count', {
-            method: 'GET',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
+    // Clear Clinic Closed button - use event delegation to handle clicks even if button is inside modal
+    function setupClearClinicClosedButton() {
+        const clearBtn = document.getElementById('clear-clinic-closed-btn');
+        if (!clearBtn) {
+            console.warn('Clear Clinic Closed button not found');
+            return;
+        }
+
+        // Remove any existing listeners by cloning the button
+        const newBtn = clearBtn.cloneNode(true);
+        clearBtn.parentNode.replaceChild(newBtn, clearBtn);
+
+        newBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            console.log('Clear Clinic Closed button clicked');
+            
+            // Show loading state in modal count
+            const countElement = document.getElementById('clinic-closed-count');
+            if (countElement) {
+                countElement.textContent = 'Loading...';
             }
-        })
-        .then(response => response.json())
-        .then(data => {
-            const count = data.count || 0;
-            const countText = count === 0
-                ? 'No future clinic closed days found'
-                : `${count} future clinic closed day(s) will be deleted`;
 
-            document.getElementById('clinic-closed-count').textContent = countText;
-
-            if (count === 0) {
-                // Show message that there are no future clinic closed days
-                showValidationMessage('No future clinic closed days to clear.', 'info');
+            // Show confirmation modal first
+            const modalElement = document.getElementById('clearClinicClosedModal');
+            if (!modalElement) {
+                console.error('Clear Clinic Closed modal not found');
+                showValidationMessage('Error: Confirmation modal not found.', 'error');
                 return;
             }
 
-            // Show confirmation modal
-            new bootstrap.Modal(document.getElementById('clearClinicClosedModal')).show();
-        })
-        .catch(error => {
-            console.error('Error fetching future clinic closed count:', error);
-            showValidationMessage('Error loading future clinic closed days count.', 'error');
+            // Show the modal immediately
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+            
+            // Fetch count of future clinic closed days
+            fetch('/staff/blocked-time/future/clinic-closed/count', {
+                method: 'GET',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                const count = data.count || 0;
+                const countText = count === 0
+                    ? 'No future clinic closed days found'
+                    : `${count} future clinic closed day(s) will be deleted`;
+
+                if (countElement) {
+                    countElement.textContent = countText;
+                }
+
+                // Disable confirm button if count is 0
+                const confirmBtn = document.getElementById('confirm-clear-clinic-closed-btn');
+                if (confirmBtn) {
+                    if (count === 0) {
+                        confirmBtn.disabled = true;
+                        confirmBtn.innerHTML = '<i class="bi bi-calendar-x me-1"></i>Nothing to Clear';
+                    } else {
+                        confirmBtn.disabled = false;
+                        confirmBtn.innerHTML = '<i class="bi bi-calendar-x me-1"></i>Clear Clinic Closed';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching future clinic closed count:', error);
+                if (countElement) {
+                    countElement.textContent = 'Error loading count';
+                }
+                showValidationMessage('Error loading future clinic closed days count.', 'error');
+            });
         });
+    }
+
+    // Setup button on page load
+    setupClearClinicClosedButton();
+
+    // Fallback: Use event delegation for the clear clinic closed button (in case button is dynamically added or direct handler fails)
+    // This ensures the modal always shows when the button is clicked
+    document.addEventListener('click', function(e) {
+        // Check if the clicked element or its parent is the clear clinic closed button
+        const clearBtn = e.target.closest('#clear-clinic-closed-btn');
+        if (clearBtn && !clearBtn.dataset.delegationHandled) {
+            // Mark to prevent double execution if direct handler also fires
+            clearBtn.dataset.delegationHandled = 'true';
+            setTimeout(() => {
+                clearBtn.dataset.delegationHandled = '';
+            }, 100);
+            
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Show loading state
+            const countElement = document.getElementById('clinic-closed-count');
+            if (countElement) {
+                countElement.textContent = 'Loading...';
+            }
+
+            // Show modal immediately
+            const modalElement = document.getElementById('clearClinicClosedModal');
+            if (modalElement) {
+                const modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
+                modal.show();
+                
+                // Fetch count
+                fetch('/staff/blocked-time/future/clinic-closed/count', {
+                    method: 'GET',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const count = data.count || 0;
+                    const countText = count === 0
+                        ? 'No future clinic closed days found'
+                        : `${count} future clinic closed day(s) will be deleted`;
+
+                    if (countElement) {
+                        countElement.textContent = countText;
+                    }
+
+                    const confirmBtn = document.getElementById('confirm-clear-clinic-closed-btn');
+                    if (confirmBtn) {
+                        if (count === 0) {
+                            confirmBtn.disabled = true;
+                            confirmBtn.innerHTML = '<i class="bi bi-calendar-x me-1"></i>Nothing to Clear';
+                        } else {
+                            confirmBtn.disabled = false;
+                            confirmBtn.innerHTML = '<i class="bi bi-calendar-x me-1"></i>Clear Clinic Closed';
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching future clinic closed count:', error);
+                    if (countElement) {
+                        countElement.textContent = 'Error loading count';
+                    }
+                });
+            }
+        }
     });
 
     // Confirm clear clinic closed
@@ -3833,14 +4699,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 'Content-Type': 'application/json'
             }
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => {
+                    throw new Error(err.message || `Server error: ${response.status}`);
+                }).catch(() => {
+                    throw new Error(`Server error: ${response.status} ${response.statusText}`);
+                });
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
                 // Close confirmation modal
-                bootstrap.Modal.getInstance(document.getElementById('clearClinicClosedModal')).hide();
+                const clearModal = bootstrap.Modal.getInstance(document.getElementById('clearClinicClosedModal'));
+                if (clearModal) {
+                    clearModal.hide();
+                }
 
-                // Close block time modal
-                bootstrap.Modal.getInstance(document.getElementById('blockTimeModal')).hide();
+                // Close block time modal if open
+                const blockTimeModal = bootstrap.Modal.getInstance(document.getElementById('blockTimeModal'));
+                if (blockTimeModal) {
+                    blockTimeModal.hide();
+                }
 
                 // Show success message
                 showValidationMessage(data.message || `Successfully cleared ${data.deleted_count || 0} future clinic closed day(s)!`, 'success');
@@ -3857,96 +4738,267 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => {
             console.error('Error clearing future clinic closed days:', error);
-            showValidationMessage('Error clearing future clinic closed days. Please try again.', 'error');
+            showValidationMessage(error.message || 'Error clearing future clinic closed days. Please try again.', 'error');
             confirmBtn.innerHTML = originalText;
             confirmBtn.disabled = false;
         });
     });
 
-    // Clear Specific Time button
-    document.getElementById('clear-block-off-time-btn').addEventListener('click', function() {
-        // Fetch count of future block off times
-        fetch('/staff/blocked-time/future/block-off-time/count', {
-            method: 'GET',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            const count = data.count || 0;
-            const countText = count === 0
-                ? 'No future block off times found'
-                : `${count} future block off time(s) will be deleted`;
+    // Clear Specific Time button - with date selection
+    let clearSpecificSelectedDates = [];
+    let clearSpecificClinicClosedDates = [];
+    let clearSpecificCurrentDate = new Date();
 
-            document.getElementById('block-off-time-count').textContent = countText;
+    function setupClearBlockOffTimeButton() {
+        const clearBtn = document.getElementById('clear-block-off-time-btn');
+        if (!clearBtn) {
+            console.warn('Clear Block Off Time button not found');
+            return;
+        }
 
-            if (count === 0) {
-                // Show message that there are no future block off times
-                showValidationMessage('No future block off times to clear.', 'info');
+        // Remove any existing listeners by cloning the button
+        const newBtn = clearBtn.cloneNode(true);
+        clearBtn.parentNode.replaceChild(newBtn, clearBtn);
+
+        newBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            console.log('Clear Specific Time button clicked');
+            
+            // Reset selection
+            clearSpecificSelectedDates = [];
+            clearSpecificCurrentDate = new Date();
+
+            // Show confirmation modal first
+            const modalElement = document.getElementById('clearBlockOffTimeModal');
+            if (!modalElement) {
+                console.error('Clear Specific Time modal not found');
+                showValidationMessage('Error: Confirmation modal not found.', 'error');
                 return;
             }
 
-            // Show confirmation modal
-            new bootstrap.Modal(document.getElementById('clearBlockOffTimeModal')).show();
-        })
-        .catch(error => {
-            console.error('Error fetching future block off time count:', error);
-            showValidationMessage('Error loading future block off times count.', 'error');
+            // Show the modal immediately
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+            
+            // Show loading state
+            const loadingDiv = document.getElementById('clear-specific-dates-loading');
+            const listDiv = document.getElementById('clear-specific-dates-list');
+            const noDatesDiv = document.getElementById('clear-specific-no-dates');
+            
+            if (loadingDiv) loadingDiv.style.display = 'block';
+            if (listDiv) listDiv.style.display = 'none';
+            if (noDatesDiv) noDatesDiv.style.display = 'none';
+            
+            // Fetch list of future clinic closed dates
+            fetch('/staff/blocked-time/future/clinic-closed/dates', {
+                method: 'GET',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (loadingDiv) loadingDiv.style.display = 'none';
+                
+                if (data.success && data.dates && data.dates.length > 0) {
+                    clearSpecificClinicClosedDates = data.dates;
+                    generateClearSpecificDatesList();
+                    if (listDiv) listDiv.style.display = 'block';
+                } else {
+                    clearSpecificClinicClosedDates = [];
+                    if (noDatesDiv) noDatesDiv.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching future clinic closed dates:', error);
+                clearSpecificClinicClosedDates = [];
+                if (loadingDiv) loadingDiv.style.display = 'none';
+                if (noDatesDiv) noDatesDiv.style.display = 'block';
+                showValidationMessage('Error loading future clinic closed days.', 'error');
+            });
         });
-    });
+    }
 
-    // Confirm clear block off time
+    function generateClearSpecificDatesList() {
+        const listDiv = document.getElementById('clear-specific-dates-list');
+        const confirmBtn = document.getElementById('confirm-clear-block-off-time-btn');
+        
+        if (!listDiv) return;
+
+        // Clear the list
+        listDiv.innerHTML = '';
+
+        // Get today's date for comparison
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Sort dates chronologically
+        const sortedDates = [...clearSpecificClinicClosedDates].sort((a, b) => {
+            return new Date(a.date) - new Date(b.date);
+        });
+
+        sortedDates.forEach(dateItem => {
+            const date = new Date(dateItem.date);
+            const isPast = date < today;
+            const isSelected = clearSpecificSelectedDates.includes(dateItem.date);
+
+            const listItem = document.createElement('div');
+            listItem.className = `d-flex align-items-center p-3 border-bottom ${isSelected ? 'bg-warning bg-opacity-10' : ''}`;
+            listItem.style.cursor = isPast ? 'not-allowed' : 'pointer';
+            listItem.style.opacity = isPast ? '0.5' : '1';
+            
+            if (!isPast) {
+                listItem.addEventListener('click', function() {
+                    toggleClearSpecificDateSelection(dateItem.date);
+                });
+            }
+
+            // Checkbox
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'form-check-input me-3';
+            checkbox.checked = isSelected;
+            checkbox.disabled = isPast;
+            checkbox.style.cursor = isPast ? 'not-allowed' : 'pointer';
+            checkbox.addEventListener('change', function(e) {
+                e.stopPropagation();
+                toggleClearSpecificDateSelection(dateItem.date);
+            });
+            listItem.appendChild(checkbox);
+
+            // Date info
+            const dateInfo = document.createElement('div');
+            dateInfo.className = 'flex-grow-1';
+            
+            const dateText = document.createElement('div');
+            dateText.className = 'fw-medium';
+            dateText.textContent = dateItem.formatted;
+            dateInfo.appendChild(dateText);
+
+            const dayName = document.createElement('div');
+            dayName.className = 'text-muted small';
+            dayName.textContent = date.toLocaleDateString('en-US', { weekday: 'long' });
+            dateInfo.appendChild(dayName);
+
+            listItem.appendChild(dateInfo);
+
+            // Selected indicator
+            if (isSelected) {
+                const checkIcon = document.createElement('i');
+                checkIcon.className = 'bi bi-check-circle-fill text-warning';
+                checkIcon.style.fontSize = '1.25rem';
+                listItem.appendChild(checkIcon);
+            }
+
+            listDiv.appendChild(listItem);
+        });
+
+        // Update confirm button state
+        if (confirmBtn) {
+            confirmBtn.disabled = clearSpecificSelectedDates.length === 0;
+        }
+    }
+
+    function toggleClearSpecificDateSelection(dateKey) {
+        const index = clearSpecificSelectedDates.indexOf(dateKey);
+        if (index > -1) {
+            clearSpecificSelectedDates.splice(index, 1);
+        } else {
+            clearSpecificSelectedDates.push(dateKey);
+        }
+        generateClearSpecificDatesList();
+    }
+
+    // Setup button on page load
+    setupClearBlockOffTimeButton();
+
+    // Re-setup buttons when modal is shown (in case modal content is reset)
+    const blockTimeModalElement = document.getElementById('blockTimeModal');
+    if (blockTimeModalElement) {
+        blockTimeModalElement.addEventListener('shown.bs.modal', function() {
+            setupClearClinicClosedButton();
+            setupClearBlockOffTimeButton();
+        });
+    }
+
+    // Confirm clear specific time (clinic closed)
     document.getElementById('confirm-clear-block-off-time-btn').addEventListener('click', function() {
+        if (clearSpecificSelectedDates.length === 0) {
+            showValidationMessage('Please select at least one date to clear.', 'error');
+            return;
+        }
+
         const confirmBtn = this;
         const originalText = confirmBtn.innerHTML;
         confirmBtn.disabled = true;
         confirmBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Clearing...';
 
-        fetch('/staff/blocked-time/future/block-off-time/clear', {
+        fetch('/staff/blocked-time/future/clinic-closed/clear-specific', {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
-            }
+            },
+            body: JSON.stringify({
+                dates: clearSpecificSelectedDates
+            })
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => {
+                    throw new Error(err.message || `Server error: ${response.status}`);
+                }).catch(() => {
+                    throw new Error(`Server error: ${response.status} ${response.statusText}`);
+                });
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
                 // Close confirmation modal
                 bootstrap.Modal.getInstance(document.getElementById('clearBlockOffTimeModal')).hide();
 
-                // Close block time modal
-                bootstrap.Modal.getInstance(document.getElementById('blockTimeModal')).hide();
+                // Close block time modal if open
+                const blockTimeModal = bootstrap.Modal.getInstance(document.getElementById('blockTimeModal'));
+                if (blockTimeModal) {
+                    blockTimeModal.hide();
+                }
 
                 // Show success message
-                showValidationMessage(data.message || `Successfully cleared ${data.deleted_count || 0} future block off time(s)!`, 'success');
+                showValidationMessage(data.message || `Successfully cleared ${data.deleted_count || 0} clinic closed day(s)!`, 'success');
 
                 // Reload page after delay
                 setTimeout(() => {
                     reloadWithCurrentMonth();
                 }, 1500);
             } else {
-                showValidationMessage(data.message || 'Error clearing future block off times.', 'error');
+                showValidationMessage(data.message || 'Error clearing clinic closed days.', 'error');
                 confirmBtn.innerHTML = originalText;
                 confirmBtn.disabled = false;
             }
         })
         .catch(error => {
-            console.error('Error clearing future block off times:', error);
-            showValidationMessage('Error clearing future block off times. Please try again.', 'error');
+            console.error('Error clearing clinic closed days:', error);
+            showValidationMessage(error.message || 'Error clearing clinic closed days. Please try again.', 'error');
             confirmBtn.innerHTML = originalText;
             confirmBtn.disabled = false;
         });
     });
 
     // Initialize tooltips for the info icon
-    const blockTimeModal = document.getElementById('blockTimeModal');
-    if (blockTimeModal) {
-        const infoIcon = blockTimeModal.querySelector('[data-bs-toggle="tooltip"]');
+    const blockTimeModalForTooltip = document.getElementById('blockTimeModal');
+    if (blockTimeModalForTooltip) {
+        const infoIcon = blockTimeModalForTooltip.querySelector('[data-bs-toggle="tooltip"]');
         if (infoIcon) {
             new bootstrap.Tooltip(infoIcon);
         }
@@ -5157,6 +6209,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     // Reload the page to update the calendar
                     setTimeout(() => {
+                        if (selectedDate) {
+                            const [year, month, day] = selectedDate.split('-').map(Number);
+                            currentDate = new Date(year, month - 1, day);
+                        }
                         reloadWithCurrentMonth();
                     }, 1500);
                 } else {
@@ -6780,6 +7836,77 @@ document.addEventListener('DOMContentLoaded', function() {
         font-size: 0.6rem;
         padding: 0.2rem 0.4rem;
     }
+}
+</style>
+
+<!-- Include User Management Modal -->
+@include('staff.account-management.modal-add-user')
+
+<!-- Generic Warning Modal -->
+<div class="modal fade" id="genericWarningModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                <h5 class="modal-title text-white">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Warning
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-4">
+                    <div class="mx-auto mb-3" style="width: 80px; height: 80px; background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-exclamation-triangle-fill text-warning" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <p class="text-muted mb-0" id="genericWarningMessage"></p>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-warning" data-bs-dismiss="modal">
+                    <i class="bi bi-check-circle me-1"></i>OK
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Dark Mode Styles for Generic Modals */
+[data-theme="dark"] #genericWarningModal .modal-content,
+[data-theme="dark"] #genericErrorModal .modal-content,
+[data-theme="dark"] #genericInfoModal .modal-content,
+[data-theme="dark"] #genericConfirmModal .modal-content {
+    background-color: #1e293b !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] #genericWarningModal .modal-body,
+[data-theme="dark"] #genericErrorModal .modal-body,
+[data-theme="dark"] #genericInfoModal .modal-body,
+[data-theme="dark"] #genericConfirmModal .modal-body {
+    background-color: #1e293b !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] #genericWarningModal .modal-footer,
+[data-theme="dark"] #genericErrorModal .modal-footer,
+[data-theme="dark"] #genericInfoModal .modal-footer,
+[data-theme="dark"] #genericConfirmModal .modal-footer {
+    background-color: #1e293b !important;
+    border-top: 1px solid #334155 !important;
+}
+
+[data-theme="dark"] #genericWarningModal .text-muted,
+[data-theme="dark"] #genericErrorModal .text-muted,
+[data-theme="dark"] #genericInfoModal .text-muted,
+[data-theme="dark"] #genericConfirmModal .text-muted {
+    color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] #genericWarningModal #genericWarningMessage,
+[data-theme="dark"] #genericErrorModal #genericErrorMessage,
+[data-theme="dark"] #genericInfoModal #genericInfoMessage,
+[data-theme="dark"] #genericConfirmModal #genericConfirmMessage {
+    color: #cbd5e1 !important;
 }
 </style>
 

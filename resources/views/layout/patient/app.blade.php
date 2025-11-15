@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>ToothTalk JValera - Patient Portal</title>
+    <title>ToothTalk - Patient Portal</title>
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="{{ asset('images/logo4.png') }}">
     <link rel="shortcut icon" type="image/png" href="{{ asset('images/logo4.png') }}">
@@ -201,6 +201,49 @@
                 font-size: 1rem;
             }
         }
+
+        /* Page Transition Styles */
+        .page-transition {
+            animation: fadeIn 0.4s ease-in-out;
+            opacity: 1;
+        }
+
+        .page-transition.fade-out {
+            animation: fadeOut 0.3s ease-in-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+        }
+
+        /* Smooth navigation link transitions */
+        .nav-link,
+        .header-nav a {
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover,
+        .header-nav a:hover {
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 <body>
@@ -211,7 +254,7 @@
     @include('layout.patient.header')
 
     {{-- Main Content --}}
-    <main class="main-wrapper">
+    <main class="main-wrapper page-transition" id="main-content">
         @yield('content')
     </main>
 
@@ -227,11 +270,13 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ asset('js/app.js') }}"></script>
-    <script src="{{ asset('js/realtime-updates.js') }}"></script>
+    {{-- Real-Time Broadcasting Script --}}
     <script>
-        // Set user role for real-time updates
+        // Set user role and ID for real-time updates
         window.userRole = 'patient';
+        window.currentUserId = {{ auth()->id() ?? 'null' }};
     </script>
+    <script src="{{ asset('js/realtime-broadcast.js') }}"></script>
 
     {{-- Session monitoring for cross-tab logout detection --}}
     <script>
@@ -438,6 +483,64 @@
                 }
             }
         });
+    </script>
+
+    {{-- Page Transition Script --}}
+    <script>
+        (function() {
+            const mainContent = document.getElementById('main-content');
+            if (!mainContent) return;
+
+            // Initialize fade-in on page load
+            function initFadeIn() {
+                mainContent.classList.remove('fade-out');
+                mainContent.classList.add('page-transition');
+            }
+
+            // Use DOMContentLoaded for faster initialization
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initFadeIn);
+            } else {
+                initFadeIn();
+            }
+
+            // Handle navigation link clicks
+            document.addEventListener('click', function(e) {
+                const link = e.target.closest('a[href]');
+                if (!link) return;
+
+                // Skip if it's an external link, anchor, or has special attributes
+                if (link.target === '_blank' || 
+                    link.href.startsWith('javascript:') || 
+                    link.href.startsWith('#') ||
+                    link.hasAttribute('data-no-transition') ||
+                    link.getAttribute('href')?.startsWith('mailto:') ||
+                    link.getAttribute('href')?.startsWith('tel:')) {
+                    return;
+                }
+
+                // Check if it's an internal patient route
+                const href = link.getAttribute('href');
+                const currentHost = window.location.host;
+                const isInternalPatient = href && (
+                    href.startsWith('/patient/') || 
+                    href.includes('/patient/') ||
+                    href.includes('patient-') ||
+                    (href.startsWith('http') && href.includes(currentHost) && (href.includes('/patient/') || href.includes('patient-')))
+                );
+
+                if (isInternalPatient) {
+                    e.preventDefault();
+                    // Add fade-out class
+                    mainContent.classList.add('fade-out');
+                    
+                    // Navigate after fade-out animation
+                    setTimeout(function() {
+                        window.location.href = href;
+                    }, 300);
+                }
+            });
+        })();
     </script>
 </body>
 </html>

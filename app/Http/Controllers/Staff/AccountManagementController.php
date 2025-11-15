@@ -95,14 +95,26 @@ class AccountManagementController extends Controller
             $userInfoData['address'] = $request->address;
         }
 
-        UserInfo::create($userInfoData);
+        $userInfo = UserInfo::create($userInfoData);
+        
+        // Reload user with info to get full name
+        $user->load('info');
 
         \Log::info('Staff created patient account', ['username' => $request->username, 'staff_user' => auth()->user()->username]);
 
         if ($request->ajax()) {
+            // Get full name from UserInfo if available
+            $fullName = $userInfo ? trim($userInfo->first_name . ' ' . ($userInfo->middle_name ? $userInfo->middle_name . ' ' : '') . $userInfo->last_name) : $user->name;
+            
             return response()->json([
                 'status' => 'success',
-                'message' => 'Patient account added successfully.'
+                'message' => 'Patient account added successfully.',
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $fullName,
+                    'username' => $user->username,
+                    'email' => $user->email,
+                ]
             ]);
         }
 

@@ -6,9 +6,9 @@
 @if($showTicker)
 <div class="top-header-bar">
     <div class="announcement-ticker">
-        <i class="bi bi-megaphone-fill me-2"></i>
         <div class="announcement-content">
             <span class="announcement-text">
+                <i class="bi bi-megaphone-fill me-2 announcement-bell"></i>
                 <strong>Announcement:</strong> {{ $announcement->ticker_text }}
             </span>
         </div>
@@ -39,12 +39,15 @@
 <script>
 (function() {
     const STORAGE_KEY = 'patient_announce_snooze_until';
+    const ANIMATION_START_KEY = 'patient_ticker_animation_start';
+    const ANIMATION_DURATION = 30000; // 30 seconds in milliseconds
     const bar = document.querySelector('.top-header-bar');
     const modal = document.getElementById('announceModal');
     const btnClose = document.getElementById('announcementCloseBtn');
     const btnIgnore = document.getElementById('announceIgnore');
     const btnConfirm = document.getElementById('announceConfirm');
     const btnModalClose = document.getElementById('announceModalClose');
+    const announcementText = document.querySelector('.announcement-text');
 
     function nowMs() { return Date.now(); }
     function isSnoozed() {
@@ -57,7 +60,49 @@
     function snooze10Minutes(){
         try { localStorage.setItem(STORAGE_KEY, String(nowMs() + 10*60*1000)); } catch(e){}
     }
-    if (isSnoozed()) { hideBar(); }
+    
+    // Continuous animation logic
+    function initContinuousAnimation() {
+        if (!announcementText) return;
+        
+        try {
+            let animationStart = Number(localStorage.getItem(ANIMATION_START_KEY));
+            const currentTime = nowMs();
+            
+            // If no start time exists or it's been too long, start fresh
+            if (!animationStart || (currentTime - animationStart) > ANIMATION_DURATION * 10) {
+                animationStart = currentTime;
+                localStorage.setItem(ANIMATION_START_KEY, String(animationStart));
+            }
+            
+            // Calculate elapsed time within the current animation cycle
+            const elapsed = (currentTime - animationStart) % ANIMATION_DURATION;
+            
+            // Calculate negative delay to start animation at the correct point
+            const negativeDelay = -(elapsed / 1000); // Convert to seconds
+            
+            // Apply the animation with negative delay to continue from where it left off
+            announcementText.style.animationDelay = negativeDelay + 's';
+            announcementText.style.animationPlayState = 'running';
+            
+            // Update start time periodically to prevent drift
+            setTimeout(function() {
+                const newStart = nowMs() - (elapsed % ANIMATION_DURATION);
+                localStorage.setItem(ANIMATION_START_KEY, String(newStart));
+            }, 1000);
+            
+        } catch(e) {
+            console.warn('Could not initialize continuous animation:', e);
+        }
+    }
+    
+    if (isSnoozed()) { 
+        hideBar(); 
+    } else {
+        // Initialize continuous animation if ticker is visible
+        initContinuousAnimation();
+    }
+    
     if (btnClose) btnClose.addEventListener('click', function(e){ e.preventDefault(); showModal(); });
     if (btnModalClose) btnModalClose.addEventListener('click', hideModal);
     if (btnIgnore) btnIgnore.addEventListener('click', function(){ hideModal(); hideBar(); });
@@ -86,15 +131,47 @@
     gap: 1rem;
 }
 
-.announcement-ticker i {
+.announcement-bell {
     font-size: 1.1rem;
     color: #ffffff;
-    animation: pulse 2s infinite;
+    animation: bell-ring 2s ease-in-out infinite;
+    transform-origin: center center;
+    display: inline-block;
+    vertical-align: middle;
+    position: relative;
 }
 
-@keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.7; }
+@keyframes bell-ring {
+    0%, 100% {
+        transform: rotate(0deg);
+    }
+    10% {
+        transform: rotate(-15deg);
+    }
+    20% {
+        transform: rotate(12deg);
+    }
+    30% {
+        transform: rotate(-10deg);
+    }
+    40% {
+        transform: rotate(8deg);
+    }
+    50% {
+        transform: rotate(-6deg);
+    }
+    60% {
+        transform: rotate(4deg);
+    }
+    70% {
+        transform: rotate(-3deg);
+    }
+    80% {
+        transform: rotate(2deg);
+    }
+    90% {
+        transform: rotate(-1deg);
+    }
 }
 
 .announcement-content { flex: 1; overflow: hidden; }

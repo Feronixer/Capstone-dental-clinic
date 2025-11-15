@@ -1,4 +1,4 @@
-@extends('layout.staff.app')
+﻿@extends('layout.staff.app')
 @section('content')
 <link rel="stylesheet" href="{{ asset('css/post-procedural.css') }}">
 
@@ -27,7 +27,7 @@
         <div class="main-content">
             <!-- Header -->
             <div class="content-header">
-                <h4 class="page-title" style="font-size: 28px; font-weight: bold; color: #0d6efd;">Post-Procedure Form</h4>
+                <h4 class="page-title" style="font-size: 28px; font-weight: bold; color: #3498db;">Post-Procedure Form</h4>
             </div>
 
             <!-- Medical Documents Section (Table) -->
@@ -36,16 +36,15 @@
                     <div class="d-flex align-items-center gap-2">
                         <label for="entriesPerPage" class="mb-0">Show</label>
                         <select class="form-select form-select-sm" id="entriesPerPage" name="entries_per_page" style="width: 80px;">
-                            <option value="5" selected>5</option>
-                            <option value="10">10</option>
-                            <option value="25">25</option>
-                            <option value="50">50</option>
-                            <option value="100">100</option>
+                            <option value="10" {{ request('per_page', 10) == 10 ? 'selected' : '' }}>10</option>
+                            <option value="25" {{ request('per_page', 10) == 25 ? 'selected' : '' }}>25</option>
+                            <option value="50" {{ request('per_page', 10) == 50 ? 'selected' : '' }}>50</option>
+                            <option value="100" {{ request('per_page', 10) == 100 ? 'selected' : '' }}>100</option>
                         </select>
                         <span class="mb-0">entries</span>
                         </div>
 
-                    <div class="input-group" style="width: 200px;">
+                    <div class="input-group" style="width: 250px;">
                         <label for="searchInput" class="input-group-text bg-white">
                             <i class="bi bi-search"></i>
                         </label>
@@ -57,12 +56,13 @@
                     <table class="table table-hover align-middle post-procedural-table">
                         <thead>
                             <tr>
-                                <th class="text-center" style="width: 5%; min-width: 45px;">No.</th>
-                                <th style="width: 20%; min-width: 180px;">Patient Name</th>
-                                <th class="text-center" style="width: 13%; min-width: 100px;">Treatment</th>
-                                <th class="text-center" style="width: 18%; min-width: 110px; font-size: 0.8rem;">Patient Info</th>
-                                <th class="text-center" style="width: 17%; min-width: 100px; font-size: 0.8rem;">History</th>
-                                <th class="text-center" style="width: 17%; min-width: 100px; font-size: 0.8rem;">Notes</th>
+                                <th class="text-center" style="width: 4%; min-width: 45px;">No.</th>
+                                <th style="width: 18%; min-width: 160px;">Patient Name</th>
+                                <th class="text-center" style="width: 12%; min-width: 100px;">Treatment</th>
+                                <th class="text-center" style="width: 12%; min-width: 100px; font-size: 0.8rem;">Date</th>
+                                <th class="text-center" style="width: 14%; min-width: 100px; font-size: 0.8rem;">Patient Info</th>
+                                <th class="text-center" style="width: 13%; min-width: 90px; font-size: 0.8rem;">History</th>
+                                <th class="text-center" style="width: 13%; min-width: 90px; font-size: 0.8rem;">Notes</th>
                             </tr>
                         </thead>
                         <tbody id="recordsTableBody">
@@ -73,9 +73,17 @@
 
                 <!-- Pagination -->
                 <div class="d-flex justify-content-between align-items-center mt-3">
-                    <div class="text-muted" id="paginationInfo">
-                        Showing 0 to 0 of 0 entries
+                    <div class="text-muted" id="recordsSummary">
+                        Showing <span id="recordsShowingStart">{{ $records->firstItem() ?? 0 }}</span>
+                        to <span id="recordsShowingEnd">{{ $records->lastItem() ?? 0 }}</span>
+                        of <span id="recordsTotal">{{ $records->total() }}</span> entries
+                        <span id="recordsFilteredInfo" class="ms-1 text-muted small d-none">
+                            (filtered from <span id="recordsFilteredTotal">{{ $records->total() }}</span> total)
+                        </span>
                     </div>
+                    <nav>
+                        {{ $records->links('pagination::bootstrap-5') }}
+                    </nav>
                 </div>
             </div>
 
@@ -261,10 +269,16 @@
                                     style="border-radius: 8px; padding: 10px 24px; font-weight: 600;">
                                 <i class="bi bi-x-circle me-2"></i> CLEAR
                             </button>
+                            ${canEditPatientRecord ? `
                             <button type="button" class="btn btn-primary btn-lg" onclick="savePatientRecordFromTab()"
                                     style="background: linear-gradient(135deg, #198754 0%, #146c43 100%); border: none; border-radius: 8px; padding: 10px 24px; font-weight: 600;">
                                 <i class="bi bi-floppy-fill me-2"></i> SAVE RECORD
                             </button>
+                            ` : `
+                                <div class="alert alert-warning mb-0 d-inline-block" style="padding: 10px 24px; border-radius: 8px;">
+                                    <i class="bi bi-exclamation-triangle me-2"></i>View Only - No Edit Permission
+                                </div>
+                            `}
                         </div>
                     </div>
                 </div>
@@ -384,22 +398,35 @@
                     </div>
                 </div>
 
+                <!-- Treatment Selector -->
+                <div id="progressNoteTreatmentSelector" class="alert alert-warning d-none mb-4" style="background: linear-gradient(135deg, #fff3cd 0%, #ffe8a1 100%); border: 1px solid #ffecb5; border-radius: 8px;">
+                    <div class="row align-items-center g-3">
+                        <div class="col-md-8">
+                            <strong>Step 2: Choose the completed treatment for this progress note</strong>
+                            <p class="mb-0 text-muted" style="font-size: 0.85rem;">All progress notes you create will be linked to the selected procedure.</p>
+                        </div>
+                        <div class="col-md-4">
+                            <select id="progressNoteTreatmentSelect" class="form-select">
+                                <option value="">Select treatment...</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Progress Notes Table -->
                 <div id="progressNotesTableContainer">
                     <div class="card mb-4" style="border: 2px solid #0d6efd; border-radius: 12px;">
                         <div class="card-header" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); color: white;">
                             <div class="d-flex justify-content-between align-items-center">
-                                <h6 class="mb-0 fw-bold">
-                                    <i class="bi bi-table me-2"></i>Progress Notes History
-                                </h6>
-                                <div class="d-flex gap-2">
-                                    <button type="button" class="btn btn-sm btn-success" id="downloadProgressNotesBtn" onclick="downloadProgressNotes()" style="display: none;">
-                                        <i class="bi bi-download me-1"></i>Download PDF
-                                    </button>
+                                <div>
+                                    <h6 class="mb-0 fw-bold">
+                                        <i class="bi bi-table me-2"></i>Progress Notes History
+                                    </h6>
+                                    <span id="selectedProgressTreatmentLabel" class="badge bg-light text-primary fw-semibold d-none"></span>
+                                </div>
                                     <button type="button" class="btn btn-sm btn-light" id="addProgressNoteRowBtn">
                                         <i class="bi bi-plus-circle me-1"></i>Add Row
                                     </button>
-                                </div>
                             </div>
                         </div>
                         <div class="card-body p-0">
@@ -407,11 +434,12 @@
                                 <table class="table table-bordered mb-0" id="progressNotesTable">
                                     <thead class="table-light">
                                         <tr>
+                                            <th style="width: 5%;" class="text-center">#</th>
                                             <th style="width: 12%;" class="text-center">DATE</th>
-                                            <th style="width: 30%;" class="text-center">PROGRESS NOTES</th>
+                                            <th style="width: 28%;" class="text-center">PROGRESS NOTES</th>
                                             <th style="width: 15%;" class="text-center">AMOUNT<br>PAID</th>
                                             <th style="width: 15%;" class="text-center">BALANCE</th>
-                                            <th style="width: 18%;" class="text-center">CONFORME</th>
+                                            <th style="width: 15%;" class="text-center">CONFORME</th>
                                             <th style="width: 10%;" class="text-center">Actions</th>
                                         </tr>
                                     </thead>
@@ -542,8 +570,24 @@
 </div>
 
 
-<!-- Delete Confirmation Modal - Removed for Staff -->
-<!-- Staff members do not have permission to delete post-procedural records -->
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content delete-modal-content">
+            <div class="modal-body text-center p-4">
+                <div class="delete-icon-wrapper mb-3">
+                    <i class="bi bi-exclamation-triangle text-warning"></i>
+                </div>
+                <h5 class="delete-modal-title mb-2">Delete Record</h5>
+                <p class="delete-modal-message mb-4">Are you sure you want to delete this record?</p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <button type="button" class="btn btn-cancel" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-delete" id="confirmDeleteBtn">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
 // Access control from PHP
@@ -567,50 +611,38 @@ function debounce(func, wait) {
 let recordToDelete = null;
 
 // Load Patient Records Function
-let allRecords = @json($initialRecords ?? []); // Store all records for sorting
+let allRecords = []; // Store all records for sorting
+let allGroupedPatientRecords = [];
+let treatmentsMap = {}; // Store treatments map for each patient
+let selectedTreatmentsMap = {}; // Store selected treatment for each recordId
+let treatmentToAppointmentMap = {}; // Map treatment names to appointment data
+let treatmentHasProgressNotesMap = {}; // Map to track which treatments have progress notes (userId -> {treatment: hasNotes})
 
 function loadPatientRecords() {
     fetch('/staff/post-procedural/records')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Server responded with status ${response.status}`);
-            }
-            return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
             if (data.success) {
                 allRecords = data.records; // Store records globally
+                treatmentsMap = data.treatments || {}; // Store treatments map
                 renderPatientRecords(allRecords);
             } else {
                 console.error('Failed to load records:', data.message);
-                showNotification(data.message || 'Failed to load records.', 'error');
             }
         })
         .catch(error => {
             console.error('Error loading records:', error);
-            showNotification('Unable to refresh records. Displaying last known data.', 'warning');
-            renderPatientRecords(allRecords || []);
         });
 }
 
 // Render patient records in table
 function renderPatientRecords(records) {
-    const tbody = document.getElementById('recordsTableBody');
-    if (!tbody) return;
+    const hasTableBody = !!document.getElementById('recordsTableBody');
+    if (!hasTableBody) return;
 
-    if (!Array.isArray(records)) {
-        records = [];
-    }
-
-    if (records.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="7" class="text-center text-muted py-5">
-                    <i class="bi bi-inbox" style="font-size: 3rem;"></i>
-                    <p class="mt-2">No patient records found</p>
-                </td>
-            </tr>
-        `;
+    if (!Array.isArray(records) || records.length === 0) {
+        allGroupedPatientRecords = [];
+        displayPatientGroups([]);
         return;
     }
 
@@ -699,26 +731,132 @@ function renderPatientRecords(records) {
         new Date(b.created_at) - new Date(a.created_at)
     );
 
-    tbody.innerHTML = patientGroups.map((group, index) => {
+    allGroupedPatientRecords = patientGroups;
+    displayPatientGroups(patientGroups);
+}
+
+function displayPatientGroups(patientGroups) {
+    const tbody = document.getElementById('recordsTableBody');
+    if (!tbody) return;
+
+    const totalRecords = allGroupedPatientRecords.length;
+    const hasFilter = totalRecords > 0 && patientGroups.length < totalRecords;
+
+    // Expand patient groups into treatment rows (one row per treatment)
+    const treatmentRows = [];
+    let rowIndex = 0;
+    
+    patientGroups.forEach((group) => {
         const patientName = group.patient_name || '<span class="text-muted">N/A</span>';
         const username = group.username || '<span class="text-muted">N/A</span>';
-        const treatment = group.treatment || '<span class="text-muted">N/A</span>';
-        const patientNumber = group.patient_number || '<span class="text-muted">N/A</span>';
+        const userId = group.user_id;
 
-        // Get record IDs for each type - use the main patient record ID for all views
+        // Get treatments for this patient (now includes name, date, appointment_id)
+        const patientTreatments = treatmentsMap[userId] || [];
+
+        // Get record IDs - use the main patient record ID for all views (shared across treatments)
         const recordId = group.patient_record?.id || group.patient_record?.patient_record_id || group.user_id || 'N/A';
-        const historyId = recordId; // Use same ID for history
-        const notesId = recordId; // Use same ID for notes
+        const historyId = recordId; // Use same ID for history (shared)
 
-        const createdDate = new Date(group.created_at).toLocaleDateString('en-US', {
+        // If patient has no treatments, show one row with N/A
+        if (patientTreatments.length === 0) {
+            treatmentRows.push({
+                rowIndex: ++rowIndex,
+                patientName,
+                username,
+                userId,
+                treatment: 'N/A',
+                treatmentDate: null,
+                appointmentId: null,
+                recordId,
+                historyId,
+                group
+            });
+        } else {
+            // Create one row for each treatment
+            patientTreatments.forEach((treatment) => {
+                treatmentRows.push({
+                    rowIndex: ++rowIndex,
+                    patientName,
+                    username,
+                    userId,
+                    treatment: treatment.name || treatment,
+                    treatmentDate: treatment.date || null,
+                    appointmentId: treatment.appointment_id || null,
+                    recordId,
+                    historyId,
+                    group
+                });
+            });
+        }
+    });
+
+    if (treatmentRows.length === 0) {
+        const message = hasFilter ? 'No matching patient records found' : 'No patient records found';
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" class="text-center text-muted py-5">
+                    <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                    <p class="mt-2">${message}</p>
+                </td>
+            </tr>
+        `;
+        updateRecordsSummary(0, totalRecords, hasFilter);
+        return;
+    }
+
+    tbody.innerHTML = treatmentRows.map((row) => {
+        const { rowIndex, patientName, username, userId, treatment, treatmentDate, appointmentId, recordId, historyId, group } = row;
+        
+        // Format date for display
+        let formattedDate = '<span class="text-muted">N/A</span>';
+        if (treatmentDate) {
+            try {
+                const date = new Date(treatmentDate);
+                formattedDate = date.toLocaleDateString('en-US', { 
             year: 'numeric',
             month: 'short',
             day: 'numeric'
         });
+            } catch(e) {
+                formattedDate = treatmentDate;
+            }
+        }
+
+        // Check if this specific treatment has progress notes
+        let hasProgressNotesForTreatment = false;
+        const notesId = recordId; // Use same recordId but filter by treatment
+        
+        if (treatment && treatment !== 'N/A' && userId) {
+            // Check if there are progress notes for this specific treatment/appointment
+            const treatmentNotesMap = treatmentHasProgressNotesMap[userId];
+            
+            // Check by appointmentId if available (most accurate for duplicate treatments)
+            if (appointmentId && treatmentNotesMap) {
+                // First check by treatment name + appointment ID (for duplicate treatments like multiple consultations)
+                const treatmentKey = `${treatment}_${appointmentId}`;
+                if (treatmentNotesMap[treatmentKey] === true) {
+                    hasProgressNotesForTreatment = true;
+                } else if (treatmentNotesMap[treatment] === true) {
+                    // Fallback: check by treatment name only (includes old notes without appointment_id)
+                    hasProgressNotesForTreatment = true;
+                }
+            } else if (treatmentNotesMap && treatmentNotesMap[treatment] === true) {
+                // Check by treatment name only (includes old notes without appointment_id)
+                hasProgressNotesForTreatment = true;
+            }
+            
+            // Only check group.progress_notes if we haven't found notes yet and we need to verify
+            // Don't automatically show icon just because patient has some notes - must match treatment
+            if (!hasProgressNotesForTreatment && group.progress_notes && appointmentId) {
+                // Double-check by making a quick async verification (but don't block rendering)
+                // For now, we'll rely on the map which should be accurate
+            }
+        }
 
         return `
-            <tr>
-                <td class="text-center">${index + 1}</td>
+            <tr data-user-id="${userId}" data-treatment="${treatment}" data-appointment-id="${appointmentId || ''}" data-record-id="${recordId}">
+                <td class="text-center">${rowIndex}</td>
                 <td style="padding: 0.65rem 0.5rem;">
                     <div class="d-flex align-items-center" style="gap: 0.6rem;">
                         <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; font-size: 14px; font-weight: 600;">
@@ -731,7 +869,15 @@ function renderPatientRecords(records) {
                     </div>
                 </td>
                 <td class="text-center">
-                    <span class="badge bg-info text-wrap" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; max-width: 100%; word-break: break-word;">${treatment}</span>
+                    <span class="badge treatment-badge" style="background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%); color: white; font-size: 0.8rem; padding: 0.4rem 0.75rem; font-weight: 600; border-radius: 6px; box-shadow: 0 2px 4px rgba(32, 201, 151, 0.2); white-space: normal; word-wrap: break-word; max-width: 100%; display: inline-block;">
+                        ${treatment}
+                    </span>
+                </td>
+                <td class="text-center">
+                    <div style="font-size: 0.85rem; color: #495057; font-weight: 500;">
+                        <i class="bi bi-calendar3 me-1" style="color: #6c757d; font-size: 0.75rem;"></i>
+                        <span>${formattedDate}</span>
+                    </div>
                 </td>
                 <td class="text-center">
                     ${group.patient_record ? `
@@ -740,44 +886,366 @@ function renderPatientRecords(records) {
                                 <i class="bi bi-pencil-square"></i>
                             </button>
                         ` : `
-                            <button type="button" class="btn btn-sm btn-outline-info view-action-btn" onclick="openViewRecordModal(${recordId})" title="View Patient Info">
+                            <button type="button" class="btn btn-sm btn-outline-info" onclick="openViewRecordModal(${recordId})" title="View Only - No Edit Permission">
                                 <i class="bi bi-eye"></i>
                             </button>
                         `}
                     ` : `
-                        <span class="badge bg-light text-muted no-data-badge">No data</span>
+                        <span class="badge bg-light text-muted no-data-badge">No record</span>
                     `}
                 </td>
                 <td class="text-center">
                     ${group.patient_history ? `
-                        <button type="button" class="btn btn-sm btn-outline-info edit-action-btn" onclick="openEditHistoryModal(${historyId})" title="Edit History">
-                            <i class="bi bi-pencil-square"></i>
-                        </button>
+                        ${canEditPatientRecord ? `
+                            <button type="button" class="btn btn-sm btn-outline-info edit-action-btn" onclick="openEditHistoryModal(${historyId})" title="Edit History">
+                                <i class="bi bi-pencil-square"></i>
+                            </button>
+                        ` : `
+                            <button type="button" class="btn btn-sm btn-outline-info" onclick="openViewHistoryModal(${historyId})" title="View Only - No Edit Permission">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        `}
                     ` : `
-                        <span class="badge bg-light text-muted no-data-badge">No data</span>
+                        <span class="badge bg-light text-muted no-data-badge">No record</span>
                     `}
                 </td>
                 <td class="text-center">
-                    ${group.progress_notes ? `
-                        <button type="button" class="btn btn-sm btn-outline-secondary edit-action-btn" onclick="openEditNotesModal(${notesId})" title="Edit Notes">
-                            <i class="bi bi-pencil-square"></i>
-                        </button>
+                    ${hasProgressNotesForTreatment ? `
+                        ${canEditPatientRecord ? `
+                            <button type="button" class="btn btn-sm btn-outline-secondary edit-action-btn" onclick="openEditNotesModal(${notesId}, '${recordId}', '${appointmentId || ''}', '${treatment}')" title="Edit Notes">
+                                <i class="bi bi-pencil-square"></i>
+                            </button>
+                        ` : `
+                            <button type="button" class="btn btn-sm btn-outline-info" onclick="openViewNotesModal(${notesId}, '${recordId}', '${appointmentId || ''}', '${treatment}')" title="View Only - No Edit Permission">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        `}
                     ` : `
-                        <span class="badge bg-light text-muted no-data-badge">No data</span>
+                        <span class="text-muted" style="font-size: 0.85rem;">No record</span>
                     `}
                 </td>
             </tr>
         `;
     }).join('');
 
-    // Update pagination info
-    const paginationInfo = document.getElementById('paginationInfo');
-    if (paginationInfo) {
-        const total = patientGroups.length;
-        if (total > 0) {
-            paginationInfo.textContent = `Showing 1 to ${total} of ${total} entries`;
+    updateRecordsSummary(treatmentRows.length, totalRecords, hasFilter);
+    
+    // Build treatment-to-appointment mapping and update notes column after map is built
+    setTimeout(async () => {
+        await buildTreatmentToAppointmentMap();
+        // After map is built, re-render the table to update notes column
+        updateNotesColumnsAfterMapBuilt();
+    }, 100);
+}
+
+// Update notes columns after treatment map is built
+function updateNotesColumnsAfterMapBuilt() {
+    const tbody = document.getElementById('recordsTableBody');
+    if (!tbody) return;
+    
+    const rows = tbody.querySelectorAll('tr[data-user-id]');
+    rows.forEach(row => {
+        const notesCell = row.querySelectorAll('td')[6]; // Notes column (7th column, index 6)
+        if (!notesCell) return;
+        
+        // Get data from row attributes
+        const userId = row.getAttribute('data-user-id');
+        const treatment = row.getAttribute('data-treatment');
+        const appointmentId = row.getAttribute('data-appointment-id') || null;
+        const recordId = row.getAttribute('data-record-id');
+        
+        if (!userId || !treatment || treatment === 'N/A') return;
+        
+        // Check if this treatment has notes
+        const treatmentNotesMap = treatmentHasProgressNotesMap[userId];
+        let hasNotes = false;
+        
+        if (treatmentNotesMap) {
+            if (appointmentId) {
+                // First check by treatment name + appointment ID
+                const treatmentKey = `${treatment}_${appointmentId}`;
+                hasNotes = treatmentNotesMap[treatmentKey] === true;
+                if (!hasNotes) {
+                    // Fallback: check by treatment name only
+                    hasNotes = treatmentNotesMap[treatment] === true;
+                }
+            } else {
+                // Check by treatment name only
+                hasNotes = treatmentNotesMap[treatment] === true;
+            }
+        }
+        
+              // Update the cell based on whether notes exist
+              if (hasNotes) {
+                      notesCell.innerHTML = `
+                ${canEditPatientRecord ? `
+                          <button type="button" class="btn btn-sm btn-outline-secondary edit-action-btn" onclick="openEditNotesModal(${recordId}, '${recordId}', '${appointmentId || ''}', '${treatment}')" title="Edit Notes">
+                              <i class="bi bi-pencil-square"></i>
+                          </button>
+                ` : `
+                    <button type="button" class="btn btn-sm btn-outline-info" onclick="openViewNotesModal(${recordId}, '${recordId}', '${appointmentId || ''}', '${treatment}')" title="View Only - No Edit Permission">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                `}
+                      `;
+                  } else {
+            notesCell.innerHTML = `<span class="text-muted" style="font-size: 0.85rem;">No record</span>`;
+        }
+    });
+}
+
+// Setup event listeners for treatment dropdowns
+function setupTreatmentDropdowns() {
+    const dropdowns = document.querySelectorAll('.treatment-dropdown');
+    dropdowns.forEach(dropdown => {
+        const recordId = dropdown.getAttribute('data-record-id');
+        const userId = dropdown.getAttribute('data-user-id');
+        
+        // Load saved treatment from localStorage
+        const savedTreatment = localStorage.getItem(`treatment_${recordId}`);
+        if (savedTreatment && dropdown.querySelector(`option[value="${savedTreatment}"]`)) {
+            dropdown.value = savedTreatment;
+            if (recordId) {
+                selectedTreatmentsMap[recordId] = savedTreatment;
+            }
         } else {
-            paginationInfo.textContent = 'Showing 0 to 0 of 0 entries';
+            // Initialize selected treatment from dropdown value
+            if (recordId && !selectedTreatmentsMap[recordId]) {
+                selectedTreatmentsMap[recordId] = dropdown.value;
+            }
+        }
+        
+        // Add change event listener
+        dropdown.addEventListener('change', function() {
+            const selectedTreatment = this.value;
+            if (recordId && recordId !== 'N/A') {
+                selectedTreatmentsMap[recordId] = selectedTreatment;
+                // Save to localStorage for persistence
+                localStorage.setItem(`treatment_${recordId}`, selectedTreatment);
+                
+                // Update the Notes column for this row based on selected treatment
+                updateNotesColumnForRow(recordId, userId, selectedTreatment);
+            }
+        });
+    });
+}
+
+// Update Notes column for a specific row based on selected treatment
+function updateNotesColumnForRow(recordId, userId, selectedTreatment) {
+    // Find the dropdown with this recordId
+    const dropdown = document.querySelector(`select.treatment-dropdown[data-record-id="${recordId}"]`);
+    if (!dropdown) return;
+    
+    // Find the row (parent tr)
+    const row = dropdown.closest('tr');
+    if (!row) return;
+    
+    // Find the Notes column (6th column, index 5)
+    const notesCell = row.querySelectorAll('td')[5];
+    if (!notesCell) return;
+    
+    // Check if selected treatment has progress notes
+    let hasProgressNotesForTreatment = false;
+    if (selectedTreatment && selectedTreatment !== 'N/A' && userId) {
+        const treatmentNotesMap = treatmentHasProgressNotesMap[userId];
+        if (treatmentNotesMap && treatmentNotesMap[selectedTreatment]) {
+            hasProgressNotesForTreatment = true;
+        }
+    }
+    
+    // Get notesId (same as recordId)
+    const notesId = recordId;
+    
+    // Update the cell content
+    if (hasProgressNotesForTreatment) {
+                      notesCell.innerHTML = `
+            ${canEditPatientRecord ? `
+                <button type="button" class="btn btn-sm btn-outline-secondary edit-action-btn" onclick="openEditNotesModal(${notesId}, '${recordId}')" title="Edit Notes">
+                    <i class="bi bi-pencil-square"></i>
+                </button>
+            ` : `
+                <button type="button" class="btn btn-sm btn-outline-info" onclick="openViewNotesModal(${notesId}, '${recordId}')" title="View Only - No Edit Permission">
+                    <i class="bi bi-eye"></i>
+                </button>
+            `}
+                      `;
+              } else {
+        notesCell.innerHTML = `
+            <span class="badge bg-light text-muted no-data-badge">No record</span>
+        `;
+              }
+}
+
+// Build mapping of treatment names to appointment data and track which treatments have progress notes
+async function buildTreatmentToAppointmentMap() {
+    const userIds = Object.keys(treatmentsMap);
+    
+    for (const userId of userIds) {
+        try {
+            // Fetch patient record to get completed appointments
+            const recordResponse = await fetch(`/staff/post-procedural/patient-record-by-user/${userId}`);
+            const recordData = await recordResponse.json();
+            
+            if (recordData.success && recordData.data) {
+                const recordId = recordData.data.id;
+                const appointments = recordData.data.completed_appointments || [];
+                const treatments = treatmentsMap[userId] || [];
+                
+                // Build mapping for this user
+                if (!treatmentToAppointmentMap[userId]) {
+                    treatmentToAppointmentMap[userId] = {};
+                }
+                
+                // Initialize treatment notes map for this user
+                if (!treatmentHasProgressNotesMap[userId]) {
+                    treatmentHasProgressNotesMap[userId] = {};
+                }
+                
+                // Fetch all progress notes for this patient
+                try {
+                    const notesResponse = await fetch(`/staff/post-procedural/progress-notes/${recordId}`);
+                    const notesData = await notesResponse.json();
+                    const allProgressNotes = (notesData.success && notesData.data) ? (Array.isArray(notesData.data) ? notesData.data : [notesData.data]) : [];
+                    
+                    // Get appointment IDs that have progress notes
+                    const appointmentIdsWithNotes = new Set(
+                        allProgressNotes
+                            .map(note => note.appointment_id)
+                            .filter(id => id !== null && id !== undefined)
+                    );
+                    
+                    // Also check for notes without appointment_id (old records)
+                    const hasNotesWithoutAppointmentId = allProgressNotes.some(note => 
+                        note.appointment_id === null || note.appointment_id === undefined
+                    );
+                    
+                    treatments.forEach(treatment => {
+                        // Handle both old format (string) and new format (object with name, date, appointment_id)
+                        const treatmentName = typeof treatment === 'object' ? treatment.name : treatment;
+                        const treatmentAppointmentId = typeof treatment === 'object' ? treatment.appointment_id : null;
+                        
+                        // Find appointment with matching service name or use appointment_id if available
+                        let matchingAppointment = null;
+                        if (treatmentAppointmentId) {
+                            matchingAppointment = appointments.find(appt => appt.id === treatmentAppointmentId);
+                        } else {
+                            matchingAppointment = appointments.find(appt => {
+                            const serviceName = appt.service?.service_name || appt.service?.name || '';
+                                return serviceName === treatmentName;
+                        });
+                        }
+                        
+                        if (matchingAppointment) {
+                            treatmentToAppointmentMap[userId][treatmentName] = matchingAppointment;
+                            
+                            // Check if this specific appointment has progress notes
+                            let hasNotes = appointmentIdsWithNotes.has(matchingAppointment.id);
+                            
+                            // Also check if there are notes without appointment_id for this treatment
+                            // This handles old records where appointment_id might not be set
+                            if (!hasNotes && hasNotesWithoutAppointmentId) {
+                                // Check if any note without appointment_id matches this treatment
+                                const notesForTreatment = allProgressNotes.filter(note => {
+                                    if (note.appointment_id !== null && note.appointment_id !== undefined) {
+                                        return false; // Skip notes with appointment_id
+                                    }
+                                    // Check if note's appointment service matches treatment name
+                                    if (note.appointment && note.appointment.service) {
+                                        const noteServiceName = note.appointment.service.service_name || note.appointment.service.name || '';
+                                        return noteServiceName === treatmentName;
+                                    }
+                                    return false;
+                                });
+                                hasNotes = notesForTreatment.length > 0;
+                            }
+                            
+                            // Store by treatment name (for backward compatibility)
+                            treatmentHasProgressNotesMap[userId][treatmentName] = hasNotes;
+                            
+                            // Also store by treatment name + appointment ID (for duplicate treatments like multiple consultations)
+                            if (treatmentAppointmentId) {
+                                const treatmentKey = `${treatmentName}_${treatmentAppointmentId}`;
+                                treatmentHasProgressNotesMap[userId][treatmentKey] = hasNotes;
+                            }
+                        } else {
+                            // Even if no matching appointment found, check if there are notes for this treatment name
+                            // This handles cases where old notes exist but appointment relationship is missing
+                            let hasNotes = false;
+                            if (hasNotesWithoutAppointmentId) {
+                                const notesForTreatment = allProgressNotes.filter(note => {
+                                    if (note.appointment_id !== null && note.appointment_id !== undefined) {
+                                        return false;
+                                    }
+                                    if (note.appointment && note.appointment.service) {
+                                        const noteServiceName = note.appointment.service.service_name || note.appointment.service.name || '';
+                                        return noteServiceName === treatmentName;
+                                    }
+                                    return false;
+                                });
+                                hasNotes = notesForTreatment.length > 0;
+                            }
+                            
+                            treatmentHasProgressNotesMap[userId][treatmentName] = hasNotes;
+                            if (treatmentAppointmentId) {
+                                const treatmentKey = `${treatmentName}_${treatmentAppointmentId}`;
+                                treatmentHasProgressNotesMap[userId][treatmentKey] = hasNotes;
+                            }
+                        }
+                    });
+                } catch (notesError) {
+                    console.error(`Error fetching progress notes for user ${userId}:`, notesError);
+                    // If we can't fetch notes, assume no notes for any treatment
+                    treatments.forEach(treatment => {
+                        const treatmentName = typeof treatment === 'object' ? treatment.name : treatment;
+                        treatmentHasProgressNotesMap[userId][treatmentName] = false;
+                    });
+                }
+            }
+        } catch (error) {
+            console.error(`Error building treatment map for user ${userId}:`, error);
+        }
+    }
+    
+    // Note: No need to update columns since we now show one row per treatment
+    // The Notes column is already set correctly during row rendering
+}
+
+// Update all Notes columns based on selected treatments
+function updateAllNotesColumns() {
+    const dropdowns = document.querySelectorAll('.treatment-dropdown');
+    dropdowns.forEach(dropdown => {
+        const recordId = dropdown.getAttribute('data-record-id');
+        const userId = dropdown.getAttribute('data-user-id');
+        const selectedTreatment = dropdown.value;
+        
+        if (recordId && userId && selectedTreatment) {
+            updateNotesColumnForRow(recordId, userId, selectedTreatment);
+        }
+    });
+}
+
+function updateRecordsSummary(visibleCount, totalCount, isFiltered = false) {
+    const startEl = document.getElementById('recordsShowingStart');
+    const endEl = document.getElementById('recordsShowingEnd');
+    const totalEl = document.getElementById('recordsTotal');
+    const filteredInfoEl = document.getElementById('recordsFilteredInfo');
+    const filteredTotalEl = document.getElementById('recordsFilteredTotal');
+
+    const hasRecords = visibleCount > 0;
+    const startValue = hasRecords ? 1 : 0;
+    const endValue = hasRecords ? visibleCount : 0;
+    const totalValue = isFiltered ? visibleCount : (typeof totalCount === 'number' ? totalCount : visibleCount);
+
+    if (startEl) startEl.textContent = startValue;
+    if (endEl) endEl.textContent = endValue;
+    if (totalEl) totalEl.textContent = totalValue;
+
+    if (filteredInfoEl && filteredTotalEl) {
+        if (isFiltered && typeof totalCount === 'number' && totalCount > 0) {
+            filteredInfoEl.classList.remove('d-none');
+            filteredTotalEl.textContent = totalCount;
+        } else {
+            filteredInfoEl.classList.add('d-none');
         }
     }
 }
@@ -822,6 +1290,7 @@ function showNotification(message, type = 'info') {
     let bgColor = '';
     let textColor = '';
     let borderColor = '';
+    let closeButtonColor = '';
 
     switch(type) {
         case 'success':
@@ -829,6 +1298,7 @@ function showNotification(message, type = 'info') {
             bgColor = 'rgba(25, 135, 84, 0.1)';
             textColor = '#0f5132';
             borderColor = 'rgba(25, 135, 84, 0.2)';
+            closeButtonColor = '#0f5132';
             break;
         case 'error':
         case 'danger':
@@ -836,12 +1306,14 @@ function showNotification(message, type = 'info') {
             bgColor = 'rgba(220, 53, 69, 0.1)';
             textColor = '#842029';
             borderColor = 'rgba(220, 53, 69, 0.2)';
+            closeButtonColor = '#dc3545';
             break;
         case 'warning':
             icon = '<i class="bi bi-exclamation-triangle-fill me-2" style="font-size: 1.1rem;"></i>';
             bgColor = 'rgba(255, 193, 7, 0.1)';
             textColor = '#664d03';
             borderColor = 'rgba(255, 193, 7, 0.2)';
+            closeButtonColor = '#ffc107';
             break;
         case 'info':
         default:
@@ -849,6 +1321,7 @@ function showNotification(message, type = 'info') {
             bgColor = 'rgba(13, 202, 240, 0.1)';
             textColor = '#055160';
             borderColor = 'rgba(13, 202, 240, 0.2)';
+            closeButtonColor = '#0dcaf0';
             break;
     }
 
@@ -860,8 +1333,10 @@ function showNotification(message, type = 'info') {
         <div class="d-flex align-items-center">
             ${icon}
             <span style="flex: 1; line-height: 1.4;">${message}</span>
-            <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="alert" style="margin-left: 10px; opacity: 0.7;"></button>
-                </div>
+            <button type="button" class="btn-close-custom" data-bs-dismiss="alert" style="margin-left: 10px; background: transparent; border: none; font-size: 1.25rem; line-height: 1; color: ${closeButtonColor}; opacity: 0.75; cursor: pointer; padding: 0.25rem; width: 1.5rem; height: 1.5rem; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;" onmouseover="this.style.opacity='1'; this.style.transform='scale(1.1)';" onmouseout="this.style.opacity='0.75'; this.style.transform='scale(1)';" aria-label="Close">
+                <span style="font-weight: bold;">&times;</span>
+            </button>
+        </div>
     `;
 
     // Add to body
@@ -1072,25 +1547,345 @@ if (detailsModal) {
 
 
 
-// Remove patient record - DISABLED FOR STAFF (Admin Only)
+// Remove patient record - with selective deletion
 async function removeRecord(recordId) {
+    if (!recordId || recordId === 'N/A') return;
+    
+    // Staff cannot delete patient records
     showNotification('Access denied. Only administrators can delete patient records.', 'error');
     return;
+}
+
+// Show delete form selection modal
+async function showDeleteFormSelectionModal(recordId) {
+    return new Promise(async (resolve) => {
+        // Fetch patient record to get completed appointments
+        let completedAppointments = [];
+        let appointmentsWithProgressNotes = [];
+        
+        try {
+            // Fetch patient record
+            const recordResponse = await fetch(`/staff/post-procedural/patient-record/${recordId}`);
+            const recordData = await recordResponse.json();
+            if (recordData.success && recordData.data && recordData.data.completed_appointments) {
+                completedAppointments = recordData.data.completed_appointments;
+            }
+
+            // Fetch progress notes to get appointment_ids that have notes
+            const notesResponse = await fetch(`/staff/post-procedural/progress-notes/${recordId}`);
+            const notesData = await notesResponse.json();
+            
+            if (notesData.success && notesData.data && Array.isArray(notesData.data)) {
+                // Get unique appointment_ids from progress notes
+                const appointmentIdsWithNotes = [...new Set(
+                    notesData.data
+                        .map(note => note.appointment_id)
+                        .filter(id => id !== null && id !== undefined)
+                )];
+                
+                // Filter completed appointments to only include those with progress notes
+                appointmentsWithProgressNotes = completedAppointments.filter(appointment => 
+                    appointmentIdsWithNotes.includes(appointment.id)
+                );
+            }
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+
+        const modalHtml = `
+            <div class="modal fade" id="deleteFormSelectionModal" tabindex="-1" aria-labelledby="deleteFormSelectionModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header bg-danger text-white">
+                            <h5 class="modal-title" id="deleteFormSelectionModalLabel">
+                                <i class="bi bi-trash me-2"></i>Select Forms to Delete
+                            </h5>
+                          
+                        </div>
+                        <div class="modal-body">
+                            <p class="mb-3 text-muted">Please select which form(s) you want to delete for this patient:</p>
+                            <div class="form-check mb-3 p-3 border rounded" style="background: #f8f9fa;">
+                                <input class="form-check-input" type="checkbox" id="deletePatientRecord" value="patient_record" checked>
+                                <label class="form-check-label fw-bold" for="deletePatientRecord">
+                                    <i class="bi bi-file-person me-2 text-primary"></i>Patient Information Record
+                                </label>
+                                <small class="d-block text-muted ms-4 mt-1">Basic patient information and details</small>
+                            </div>
+                            <div class="form-check mb-3 p-3 border rounded" style="background: #f8f9fa;">
+                                <input class="form-check-input" type="checkbox" id="deletePatientHistory" value="patient_history" checked>
+                                <label class="form-check-label fw-bold" for="deletePatientHistory">
+                                    <i class="bi bi-clock-history me-2 text-info"></i>Patient History
+                                </label>
+                                <small class="d-block text-muted ms-4 mt-1">All visit records and medical history</small>
+                            </div>
+                            <div class="form-check mb-3 p-3 border rounded" style="background: #f8f9fa;">
+                                <input class="form-check-input" type="checkbox" id="deleteProgressNotes" value="progress_notes" checked>
+                                <label class="form-check-label fw-bold" for="deleteProgressNotes">
+                                    <i class="bi bi-file-text me-2 text-success"></i>Progress Notes
+                                </label>
+                                <small class="d-block text-muted ms-4 mt-1">All progress notes and treatment records</small>
+                                <div id="progressNotesProcedureSelectContainer" class="mt-3 ms-4" style="display: none;">
+                                    <label for="progressNotesProcedureSelect" class="form-label small fw-bold text-muted">Select Procedure:</label>
+                                    <select class="form-select form-select-sm" id="progressNotesProcedureSelect">
+                                        <option value="all">All Progress Notes</option>
+                                        ${appointmentsWithProgressNotes.map(appointment => {
+                                            const serviceName = appointment.service?.service_name || appointment.service?.name || 'N/A';
+                                            const appointmentDate = appointment.appointment_date ? new Date(appointment.appointment_date).toLocaleDateString() : '';
+                                            const startDate = appointment.start_datetime ? new Date(appointment.start_datetime).toLocaleDateString() : '';
+                                            const dateStr = appointmentDate || startDate || '';
+                                            return `<option value="${appointment.id}">${serviceName}${dateStr ? ' - ' + dateStr : ''}</option>`;
+                                        }).join('')}
+                                    </select>
+                                    <small class="text-muted d-block mt-1">Choose a specific procedure or delete all progress notes</small>
+                                </div>
+                            </div>
+                            <div class="alert alert-warning mt-3 mb-0">
+                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                <strong>Warning:</strong> This action cannot be undone!
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-danger" id="confirmDeleteFormsBtn">
+                                <i class="bi bi-trash me-1"></i>Delete Selected
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Remove existing modal if any
+        const existingModal = document.getElementById('deleteFormSelectionModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        // Add modal to body
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        const modalElement = document.getElementById('deleteFormSelectionModal');
+        const modal = new bootstrap.Modal(modalElement);
+
+        // Handle progress notes checkbox change
+        const progressNotesCheckbox = document.getElementById('deleteProgressNotes');
+        const procedureSelectContainer = document.getElementById('progressNotesProcedureSelectContainer');
+        
+        progressNotesCheckbox.addEventListener('change', function() {
+            if (this.checked && appointmentsWithProgressNotes.length > 0) {
+                procedureSelectContainer.style.display = 'block';
+            } else {
+                procedureSelectContainer.style.display = 'none';
+            }
+        });
+
+        // Show dropdown if progress notes is checked by default and there are procedures with notes
+        if (progressNotesCheckbox.checked && appointmentsWithProgressNotes.length > 0) {
+            procedureSelectContainer.style.display = 'block';
+        }
+
+        // Handle confirm button
+        document.getElementById('confirmDeleteFormsBtn').addEventListener('click', function() {
+            const selectedForms = [];
+            const formDetails = {};
+            
+            if (document.getElementById('deletePatientRecord').checked) {
+                selectedForms.push('patient_record');
+            }
+            if (document.getElementById('deletePatientHistory').checked) {
+                selectedForms.push('patient_history');
+            }
+            if (document.getElementById('deleteProgressNotes').checked) {
+                const procedureSelect = document.getElementById('progressNotesProcedureSelect');
+                const selectedProcedure = procedureSelect ? procedureSelect.value : 'all';
+                selectedForms.push('progress_notes');
+                formDetails.progress_notes = {
+                    appointment_id: selectedProcedure === 'all' ? null : selectedProcedure
+                };
+            }
+
+            if (selectedForms.length === 0) {
+                showNotification('Please select at least one form to delete', 'warning');
+                return;
+            }
+
+            modal.hide();
+            modalElement.remove();
+            resolve({ forms: selectedForms, details: formDetails });
+        });
+
+        // Handle cancel/close
+        modalElement.addEventListener('hidden.bs.modal', function() {
+            modalElement.remove();
+            if (!document.getElementById('deleteFormSelectionModal')) {
+                resolve(null);
+            }
+        });
+
+        modal.show();
+    });
+}
+
+async function removeRecordDirect(recordId, formsToDelete = null) {
+    // If formsToDelete is not provided, show selection modal
+    if (!formsToDelete) {
+        const result = await showDeleteFormSelectionModal(recordId);
+        if (!result || !result.forms || result.forms.length === 0) {
+            return; // User cancelled or didn't select anything
+        }
+        formsToDelete = result;
+    }
+
+    // Handle both old format (array) and new format (object with forms and details)
+    let selectedForms = [];
+    let formDetails = {};
+    if (Array.isArray(formsToDelete)) {
+        selectedForms = formsToDelete;
+    } else if (formsToDelete.forms) {
+        selectedForms = formsToDelete.forms;
+        formDetails = formsToDelete.details || {};
+    } else {
+        return;
+    }
+
+    // Build confirmation message with procedure details
+    const formNames = selectedForms.map(form => {
+        if (form === 'patient_record') return 'Patient Information Record';
+        if (form === 'patient_history') return 'Patient History';
+        if (form === 'progress_notes') {
+            const progressNotesDetail = formDetails.progress_notes;
+            if (progressNotesDetail && progressNotesDetail.appointment_id) {
+                // Fetch appointment details for better confirmation message
+                return `Progress Notes (Specific Procedure)`;
+            }
+            return 'Progress Notes (All)';
+        }
+        return form;
+    });
+
+    const confirmed = await showConfirmModal(
+        `Are you sure you want to delete the following form(s)?\n\n• ${formNames.join('\n• ')}\n\nThis action cannot be undone!`,
+        {
+            title: 'Confirm Deletion',
+            icon: 'trash',
+            type: 'danger',
+            okText: 'Yes, Delete'
+        }
+    );
+
+    if (!confirmed) return;
+
+    // Show loading notification
+    showNotification(`Deleting selected forms...`, 'info');
+
+    // Build records to delete with proper URLs
+    const recordsToDelete = [];
+    
+    selectedForms.forEach(form => {
+        let url = '';
+        let type = '';
+        
+        if (form === 'patient_record') {
+            url = `/staff/post-procedural/patient-record/${recordId}`;
+            type = 'Patient Record';
+        } else if (form === 'patient_history') {
+            url = `/staff/post-procedural/patient-history/${recordId}`;
+            type = 'Patient History';
+        } else if (form === 'progress_notes') {
+            const progressNotesDetail = formDetails.progress_notes;
+            if (progressNotesDetail && progressNotesDetail.appointment_id) {
+                // Delete specific procedure's progress notes
+                url = `/staff/post-procedural/progress-notes/${recordId}?appointment_id=${progressNotesDetail.appointment_id}`;
+                type = 'Progress Notes (Specific Procedure)';
+            } else {
+                // Delete all progress notes
+                url = `/staff/post-procedural/progress-notes/${recordId}`;
+                type = 'Progress Notes (All)';
+            }
+        }
+        
+        if (url) {
+            recordsToDelete.push({ type, url });
+        }
+    });
+
+    if (recordsToDelete.length === 0) {
+        showNotification('No valid forms selected for deletion', 'warning');
+        return;
+    }
+
+    // Delete selected records
+    const deletePromises = recordsToDelete.map(record => {
+        return fetch(record.url, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            }
+        })
+        .then(response => {
+            if (response.status === 200 || response.status === 204) {
+                console.log(`${record.type} deleted successfully`);
+                return { success: true, type: record.type };
+            }
+            if (response.status === 404) {
+                console.log(`${record.type} not found - skipping`);
+                return { success: true, type: record.type, skipped: true };
+            }
+            console.warn(`${record.type} delete returned status ${response.status}`);
+            return { success: false, type: record.type };
+        })
+        .catch(error => {
+            console.error(`Error deleting ${record.type}:`, error);
+            return { success: false, type: record.type, error: error.message };
+        });
+    });
+
+    // Wait for all deletions to complete
+    Promise.allSettled(deletePromises)
+    .then(results => {
+        const successes = results.filter(r => r.value && r.value.success);
+        const failures = results.filter(r => r.value && !r.value.success);
+
+        if (failures.length > 0) {
+            showNotification('Some records could not be deleted', 'warning');
+        } else {
+            const deletedCount = successes.length;
+            showNotification(`${deletedCount} form(s) deleted successfully!`, 'success');
+        }
+
+        // Reload the patient records list
+        loadPatientRecords();
+    })
+    .catch(error => {
+        console.error('Unexpected error during deletion:', error);
+        showNotification('An unexpected error occurred during deletion', 'error');
+    });
 }
 
 // Delete record (old function - keeping for compatibility)
 function deleteRecord(id) {
-    showNotification('Access denied. Only administrators can delete patient records.', 'error');
-    return;
+    removeRecord(id);
 }
 
-// Confirm delete - DISABLED FOR STAFF
-// Delete functionality is restricted to administrators only
-/*
-document.getElementById('confirmDeleteBtn')?.addEventListener('click', function() {
-    showNotification('Access denied. Only administrators can delete records.', 'error');
+// Confirm delete
+document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+    if (!recordToDelete) return;
+
+    fetch(`/staff/post-procedural/patient-record/${recordToDelete}`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            if (document.activeElement) document.activeElement.blur();
+            bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
+            location.reload();
+        }
+    })
+    .catch(error => console.error('Error:', error));
 });
-*/
 
 // Archive record (placeholder)
 function archiveRecord(id) {
@@ -1479,9 +2274,9 @@ function renderPatientHistoryEditList(history, recordId) {
         <div class="p-3">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h6 class="mb-0"><i class="bi bi-clock-history me-2"></i>Patient History Records</h6>
-                <button type="button" class="btn btn-sm btn-primary" onclick="showAddHistoryForm()">
-                    <i class="bi bi-plus-circle me-1"></i>Add New Visit
-                </button>
+                    <button type="button" class="btn btn-sm btn-primary" onclick="showAddHistoryForm()">
+                        <i class="bi bi-plus-circle me-1"></i>Add New Visit
+                    </button>
             </div>
 
             <div id="addHistoryFormContainer" class="d-none mb-3">
@@ -1810,7 +2605,7 @@ function renderAddPatientHistoryForm(recordId) {
                                 </div>
                                 <div id="treatmentConditionContainer" class="ps-4 mt-3 mb-2" style="display: none; border-left: 3px solid #0d6efd; padding-left: 1rem; background-color: #f8f9fa; border-radius: 4px; padding-top: 0.75rem; padding-bottom: 0.75rem;">
                                     <label class="form-label fw-semibold text-primary mb-2" style="font-size: 0.9rem;">
-                                        <i class="bi bi-arrow-return-right me-1"></i>If YES, please specify:
+                                        <i class="bi bi-arrow-return-right me-1"></i>If YES, please specify: <span style="color: #dc3545; font-weight: bold;">*</span>
                                     </label>
                                     <input type="text" class="form-control form-control-sm" name="treatment_condition" id="treatmentCondition" placeholder="What condition is being treated?" style="border: 1px solid #0d6efd;">
                                 </div>
@@ -1831,7 +2626,7 @@ function renderAddPatientHistoryForm(recordId) {
                                 </div>
                                 <div id="illnessDetailsContainer" class="ps-4 mt-3 mb-2" style="display: none; border-left: 3px solid #0d6efd; padding-left: 1rem; background-color: #f8f9fa; border-radius: 4px; padding-top: 0.75rem; padding-bottom: 0.75rem;">
                                     <label class="form-label fw-semibold text-primary mb-2" style="font-size: 0.9rem;">
-                                        <i class="bi bi-arrow-return-right me-1"></i>If YES, please specify:
+                                        <i class="bi bi-arrow-return-right me-1"></i>If YES, please specify: <span style="color: #dc3545; font-weight: bold;">*</span>
                                     </label>
                                     <input type="text" class="form-control form-control-sm" name="illness_details" id="illnessDetails" placeholder="What illness or surgery?" style="border: 1px solid #0d6efd;">
                                 </div>
@@ -1852,7 +2647,7 @@ function renderAddPatientHistoryForm(recordId) {
                                 </div>
                                 <div id="hospitalizationReasonContainer" class="ps-4 mt-3 mb-2" style="display: none; border-left: 3px solid #0d6efd; padding-left: 1rem; background-color: #f8f9fa; border-radius: 4px; padding-top: 0.75rem; padding-bottom: 0.75rem;">
                                     <label class="form-label fw-semibold text-primary mb-2" style="font-size: 0.9rem;">
-                                        <i class="bi bi-arrow-return-right me-1"></i>If YES, please specify:
+                                        <i class="bi bi-arrow-return-right me-1"></i>If YES, please specify: <span style="color: #dc3545; font-weight: bold;">*</span>
                                     </label>
                                     <input type="text" class="form-control form-control-sm" name="hospitalization_reason" id="hospitalizationReason" placeholder="When and why were you hospitalized?" style="border: 1px solid #0d6efd;">
                                 </div>
@@ -1873,7 +2668,7 @@ function renderAddPatientHistoryForm(recordId) {
                                 </div>
                                 <div id="medicationsContainer" class="ps-4 mt-3 mb-2" style="display: none; border-left: 3px solid #0d6efd; padding-left: 1rem; background-color: #f8f9fa; border-radius: 4px; padding-top: 0.75rem; padding-bottom: 0.75rem;">
                                     <label class="form-label fw-semibold text-primary mb-2" style="font-size: 0.9rem;">
-                                        <i class="bi bi-arrow-return-right me-1"></i>If YES, please specify:
+                                        <i class="bi bi-arrow-return-right me-1"></i>If YES, please specify: <span style="color: #dc3545; font-weight: bold;">*</span>
                                     </label>
                                     <input type="text" class="form-control form-control-sm" name="medications" id="medications" placeholder="What medications are you taking?" style="border: 1px solid #0d6efd;">
                                 </div>
@@ -2040,7 +2835,6 @@ function renderAddPatientHistoryForm(recordId) {
                         </div>
                     </div>
 
-
                     <div class="col-12 mt-3">
                         <button type="button" class="btn btn-primary btn-lg" onclick="addNewPatientHistory(${recordId})" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); border: none; padding: 10px 24px; font-weight: 600;">
                             <i class="bi bi-plus-circle me-1"></i>Add Medical History Record
@@ -2069,81 +2863,145 @@ function renderProgressNotesView(notes) {
     }
 
     return `
+        <style>
+            .progress-notes-view-card {
+                border: none;
+                overflow: hidden;
+                margin-bottom: 1rem;
+            }
+            [data-theme="dark"] .progress-notes-view-card {
+                background: #1e293b;
+                border: 1px solid #334155;
+            }
+            .progress-notes-view-body {
+                background: #f8f9fa;
+                padding: 1.5rem;
+            }
+            [data-theme="dark"] .progress-notes-view-body {
+                background: #1e293b;
+                color: #e2e8f0;
+            }
+            .progress-notes-view-label {
+                color: #495057;
+                font-weight: 600;
+                font-size: 0.875rem;
+                margin-bottom: 0.5rem;
+                display: block;
+            }
+            [data-theme="dark"] .progress-notes-view-label {
+                color: #cbd5e1;
+            }
+            .progress-notes-view-content {
+                background: white;
+                padding: 0.75rem 1rem;
+                border-radius: 0.375rem;
+                color: #212529;
+                border: 1px solid #dee2e6;
+                min-height: 2.5rem;
+                display: flex;
+                align-items: center;
+            }
+            [data-theme="dark"] .progress-notes-view-content {
+                background: #0f172a;
+                color: #e2e8f0;
+                border: 1px solid #334155;
+            }
+            .progress-notes-view-content.textarea-content {
+                min-height: 5rem;
+                align-items: flex-start;
+                padding-top: 0.75rem;
+            }
+            .progress-notes-view-note-title {
+                color: #0a4275;
+                font-weight: 600;
+                font-size: 1rem;
+            }
+            [data-theme="dark"] .progress-notes-view-note-title {
+                color: #60a5fa;
+            }
+            .progress-notes-view-procedure {
+                color: #6c757d;
+                font-size: 0.875rem;
+            }
+            [data-theme="dark"] .progress-notes-view-procedure {
+                color: #94a3b8;
+            }
+        </style>
         <div class="progress-notes-list p-3">
-            ${notes.map((n, index) => `
-                <div class="card mb-4 shadow-sm" style="border: none; overflow: hidden;">
-                    <div class="card-header d-flex justify-content-between align-items-center" style="background: #6f42c1; color: white; padding: 12px 20px;">
-                        <h6 class="mb-0">
-                            <i class="bi bi-journal-medical me-2"></i>Progress Note #${index + 1} - ${(() => {
-                                try {
-                                    // Extract just the date part to avoid timezone issues
-                                    const datePart = n.note_date.split('T')[0].split(' ')[0];
-                                    const [year, month, day] = datePart.split('-');
-                                    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-                                    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-                                } catch(e) {
-                                    return n.note_date || 'Date not set';
-                                }
-                            })()}
-                        </h6>
-                    </div>
-                    <div class="card-body" style="background: #f8f9fa; padding: 20px;">
-                        <!-- PROGRESS NOTE -->
-                        <div class="mb-3">
-                            <h6 class="fw-bold mb-3" style="color: #6f42c1; border-bottom: 2px solid #6f42c1; padding-bottom: 8px;">PROGRESS NOTE</h6>
-                            <div class="row g-3">
-                                <div class="col-md-12">
-                                    <label class="d-block" style="color: #6c757d; font-weight: 600; font-size: 0.9rem;">Progress Note:</label>
-                                    <div style="background: white; padding: 12px; border-radius: 4px; border-left: 3px solid #6f42c1;">
-                                        ${n.progress_note || 'N/A'}
-                                    </div>
+            ${notes.map((n, index) => {
+                // Escape values to prevent XSS
+                const escapeHtml = (text) => {
+                    if (!text) return '';
+                    const div = document.createElement('div');
+                    div.textContent = text;
+                    return div.innerHTML;
+                };
+                
+                const progressDesc = escapeHtml(n.progress_description || '');
+                const procedureName = n.appointment?.service?.service_name || n.appointment?.service?.name || 'N/A';
+                
+                // Format date for display
+                let formattedDate = '';
+                if (n.note_date) {
+                    try {
+                        const datePart = n.note_date.split('T')[0].split(' ')[0];
+                        const [year, month, day] = datePart.split('-');
+                        const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                        formattedDate = date.toLocaleDateString('en-US', { 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                        });
+                    } catch(e) {
+                        formattedDate = n.note_date || 'Date not set';
+                    }
+                }
+
+                return `
+                <div class="card mb-3 progress-notes-view-card" style="border-left: 4px solid #0dcaf0;">
+                    <div class="card-body progress-notes-view-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h6 class="mb-1 progress-notes-view-note-title">Note #${index + 1}</h6>
+                                <small class="progress-notes-view-procedure">Procedure: <strong>${procedureName}</strong></small>
+                            </div>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <label class="progress-notes-view-label">Note Date</label>
+                                <div class="progress-notes-view-content">
+                                    ${formattedDate || 'N/A'}
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label class="progress-notes-view-label">Progress Description</label>
+                                <div class="progress-notes-view-content textarea-content">
+                                    ${progressDesc || 'N/A'}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="progress-notes-view-label">Amount Paid</label>
+                                <div class="progress-notes-view-content">
+                                    ${n.amount_paid ? parseFloat(n.amount_paid).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="progress-notes-view-label">Balance</label>
+                                <div class="progress-notes-view-content">
+                                    ${n.balance ? parseFloat(n.balance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="progress-notes-view-label">Conforme</label>
+                                <div class="progress-notes-view-content">
+                                    ${escapeHtml(n.conforme || '') || 'N/A'}
                                 </div>
                             </div>
                         </div>
-
-                        <!-- ORAL HYGIENE -->
-                        <div class="mb-3">
-                            <h6 class="fw-bold mb-3" style="color: #6f42c1; border-bottom: 2px solid #6f42c1; padding-bottom: 8px;">ORAL HYGIENE</h6>
-                            <div class="row g-3">
-                                <div class="col-md-12">
-                                    <label class="d-block" style="color: #6c757d; font-weight: 600; font-size: 0.9rem;">Oral Hygiene Status:</label>
-                                    <div style="background: white; padding: 12px; border-radius: 4px; border-left: 3px solid #17a2b8;">
-                                        ${n.oral_hygiene || 'N/A'}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- CONFORMED PRACTICES -->
-                        <div class="mb-3">
-                            <h6 class="fw-bold mb-3" style="color: #6f42c1; border-bottom: 2px solid #6f42c1; padding-bottom: 8px;">CONFORMED PRACTICES</h6>
-                            <div class="row g-3">
-                                <div class="col-md-12">
-                                    <label class="d-block" style="color: #6c757d; font-weight: 600; font-size: 0.9rem;">Practices Conformed:</label>
-                                    <div style="background: white; padding: 12px; border-radius: 4px; border-left: 3px solid #28a745;">
-                                        ${n.conformed_practices || 'N/A'}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- ADDITIONAL INFO -->
-                        ${n.created_at ? `
-                        <div class="mt-4 pt-3" style="border-top: 1px solid #dee2e6;">
-                            <small class="text-muted">
-                                <i class="bi bi-clock me-1"></i>Created: ${new Date(n.created_at).toLocaleString('en-US', {
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                })}
-                            </small>
-                        </div>
-                        ` : ''}
                     </div>
                 </div>
-            `).join('')}
+            `;
+            }).join('')}
         </div>
     `;
 }
@@ -2169,31 +3027,75 @@ function renderProgressNotesEditList(notes, recordId) {
         <div class="p-3">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h6 class="mb-0"><i class="bi bi-journal-text me-2"></i>Progress Notes</h6>
-                <button type="button" class="btn btn-sm btn-primary" onclick="showAddNoteForm()">
-                    <i class="bi bi-plus-circle me-1"></i>Add New Note
-                </button>
+                ${canEditPatientRecord ? `
+                    <button type="button" class="btn btn-sm btn-primary" onclick="showAddNoteForm()">
+                        <i class="bi bi-plus-circle me-1"></i>Add New Note
+                    </button>
+                ` : ''}
             </div>
 
             <div id="addNoteFormContainer" class="d-none mb-3">
-                ${renderAddProgressNoteForm(recordId)}
+                ${renderAddProgressNoteForm(recordId, window.currentCompletedAppointments || [])}
             </div>
 
             ${notes.map((n, index) => {
                 // Escape values to prevent XSS and ensure proper rendering
                 const progressDesc = escapeHtml(n.progress_description || '');
+                const procedureName = n.appointment?.service?.service_name || n.appointment?.service?.name || 'N/A';
+                
+                // Format date for HTML date input (YYYY-MM-DD)
+                let formattedDate = '';
+                if (n.note_date) {
+                    try {
+                        // Handle different date formats
+                        let dateObj;
+                        if (typeof n.note_date === 'string') {
+                            // Try to parse the date string
+                            const dateStr = n.note_date.split('T')[0].split(' ')[0]; // Get just the date part
+                            dateObj = new Date(dateStr);
+                        } else {
+                            dateObj = new Date(n.note_date);
+                        }
+                        
+                        if (!isNaN(dateObj.getTime())) {
+                            // Format as YYYY-MM-DD for HTML date input
+                            const year = dateObj.getFullYear();
+                            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                            const day = String(dateObj.getDate()).padStart(2, '0');
+                            formattedDate = `${year}-${month}-${day}`;
+                        } else {
+                            // If parsing fails, try to extract YYYY-MM-DD from string
+                            const match = String(n.note_date).match(/(\d{4}-\d{2}-\d{2})/);
+                            if (match) {
+                                formattedDate = match[1];
+                            }
+                        }
+                    } catch(e) {
+                        console.error('Error formatting date:', e);
+                        // Fallback: try to extract date from string
+                        const match = String(n.note_date).match(/(\d{4}-\d{2}-\d{2})/);
+                        if (match) {
+                            formattedDate = match[1];
+                        }
+                    }
+                }
 
                 return `
                 <div class="card mb-3" style="border-left: 4px solid #${statusColors[n.status] === 'warning' ? 'ffc107' : statusColors[n.status] === 'success' ? '198754' : '0dcaf0'};">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="mb-0" style="color: #0a4275;">Note #${index + 1}</h6>
+                            <div>
+                                <h6 class="mb-0" style="color: #0a4275;">Note #${index + 1}</h6>
+                                <small class="text-muted">Procedure: <strong>${procedureName}</strong></small>
+                            </div>
                             <!-- Delete button removed - Staff cannot delete records -->
                         </div>
                         <form id="noteForm${n.id}_${recordId}" data-note-id="${n.id}">
+                            <input type="hidden" name="appointment_id" value="${n.appointment_id || ''}">
                             <div class="row g-3">
                                 <div class="col-md-12">
                                     <label class="form-label">Note Date</label>
-                                    <input type="date" class="form-control note-date-input" name="note_date" value="${n.note_date || ''}" required>
+                                    <input type="date" class="form-control note-date-input" name="note_date" value="${formattedDate}" required>
                                 </div>
                                 <div class="col-12">
                                     <label class="form-label">Progress Description</label>
@@ -2227,13 +3129,32 @@ function renderProgressNotesEditList(notes, recordId) {
 }
 
 // Add Progress Note Form
-function renderAddProgressNoteForm(recordId) {
+function renderAddProgressNoteForm(recordId, completedAppointments = []) {
+    let procedureOptions = '<option value="">Select Procedure (Required)</option>';
+    
+    if (completedAppointments && completedAppointments.length > 0) {
+        completedAppointments.forEach(appointment => {
+            const serviceName = appointment.service?.service_name || appointment.service?.name || 'N/A';
+            const appointmentDate = appointment.appointment_date ? new Date(appointment.appointment_date).toLocaleDateString() : '';
+            procedureOptions += `<option value="${appointment.id}">${serviceName}${appointmentDate ? ' - ' + appointmentDate : ''}</option>`;
+        });
+    } else {
+        procedureOptions += '<option value="" disabled>No completed procedures found</option>';
+    }
+
     return `
         <div class="card bg-light">
             <div class="card-body">
                 <h6 class="mb-3"><i class="bi bi-plus-circle me-2"></i>Add New Progress Note</h6>
                 <form id="newNoteForm">
                     <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Procedure/Service <span class="text-danger">*</span></label>
+                            <select class="form-select" name="appointment_id" id="appointment_id_select" required>
+                                ${procedureOptions}
+                            </select>
+                            <small class="text-muted">Select the completed procedure this progress note is for</small>
+                        </div>
                         <div class="col-md-12">
                             <label class="form-label">Note Date</label>
                             <input type="date" class="form-control" name="note_date" required>
@@ -2299,13 +3220,30 @@ function printModalContent() {
 }
 
 // Search functionality
-document.getElementById('searchInput').addEventListener('input', function() {
-    const searchTerm = this.value.toLowerCase();
-    document.querySelectorAll('#recordsTableBody tr').forEach(row => {
-        const text = row.textContent.toLowerCase();
-        row.style.display = text.includes(searchTerm) ? '' : 'none';
-    });
-});
+const tableSearchInput = document.getElementById('searchInput');
+if (tableSearchInput) {
+    tableSearchInput.addEventListener('input', debounce(function() {
+        const searchTerm = this.value.trim().toLowerCase();
+
+        if (!searchTerm) {
+            displayPatientGroups(allGroupedPatientRecords);
+            return;
+        }
+
+        const filteredRecords = allGroupedPatientRecords.filter(group => {
+            const combined = [
+                group.patient_name || '',
+                group.username || '',
+                group.patient_number || '',
+                group.treatment || ''
+            ].join(' ').toLowerCase();
+
+            return combined.includes(searchTerm);
+        });
+
+        displayPatientGroups(filteredRecords);
+    }, 200));
+}
 
 // Print form function
 function printForm() {
@@ -2367,13 +3305,6 @@ function initializePatientRecordSearch() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Render initial records passed from the server
-    if (Array.isArray(allRecords) && allRecords.length > 0) {
-        renderPatientRecords(allRecords);
-    } else {
-        renderPatientRecords([]);
-    }
-
     // Date of birth is read-only and auto-filled from user management
     // Age is automatically calculated when birthdate is set
     const dateOfBirthInput = document.getElementById('dateOfBirth');
@@ -2418,11 +3349,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const toggleTreatment = () => {
                 if (treatmentYes.checked) {
                     treatmentContainer.style.display = 'block';
+                    treatmentInput.setAttribute('required', 'required');
                 } else {
                     treatmentContainer.style.display = 'none';
                     treatmentInput.value = '';
+                    treatmentInput.removeAttribute('required');
+                    treatmentInput.style.borderColor = '';
                 }
             };
+            // Clear red border when user starts typing
+            treatmentInput.addEventListener('input', function() {
+                if (this.value.trim()) {
+                    this.style.borderColor = '';
+                }
+            });
             treatmentYes.addEventListener('change', toggleTreatment);
             treatmentNo.addEventListener('change', toggleTreatment);
             toggleTreatment();
@@ -2438,11 +3378,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const toggleIllness = () => {
                 if (illnessYes.checked) {
                     illnessContainer.style.display = 'block';
+                    illnessInput.setAttribute('required', 'required');
                 } else {
                     illnessContainer.style.display = 'none';
                     illnessInput.value = '';
+                    illnessInput.removeAttribute('required');
+                    illnessInput.style.borderColor = '';
                 }
             };
+            // Clear red border when user starts typing
+            illnessInput.addEventListener('input', function() {
+                if (this.value.trim()) {
+                    this.style.borderColor = '';
+                }
+            });
             illnessYes.addEventListener('change', toggleIllness);
             illnessNo.addEventListener('change', toggleIllness);
             toggleIllness();
@@ -2458,11 +3407,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const toggleHospitalized = () => {
                 if (hospitalizedYes.checked) {
                     hospitalizedContainer.style.display = 'block';
+                    hospitalizedInput.setAttribute('required', 'required');
                 } else {
                     hospitalizedContainer.style.display = 'none';
                     hospitalizedInput.value = '';
+                    hospitalizedInput.removeAttribute('required');
+                    hospitalizedInput.style.borderColor = '';
                 }
             };
+            // Clear red border when user starts typing
+            hospitalizedInput.addEventListener('input', function() {
+                if (this.value.trim()) {
+                    this.style.borderColor = '';
+                }
+            });
             hospitalizedYes.addEventListener('change', toggleHospitalized);
             hospitalizedNo.addEventListener('change', toggleHospitalized);
             toggleHospitalized();
@@ -2478,11 +3436,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const toggleDrugs = () => {
                 if (drugsYes.checked) {
                     drugsContainer.style.display = 'block';
+                    drugsInput.setAttribute('required', 'required');
                 } else {
                     drugsContainer.style.display = 'none';
                     drugsInput.value = '';
+                    drugsInput.removeAttribute('required');
+                    drugsInput.style.borderColor = '';
                 }
             };
+            // Clear red border when user starts typing
+            drugsInput.addEventListener('input', function() {
+                if (this.value.trim()) {
+                    this.style.borderColor = '';
+                }
+            });
             drugsYes.addEventListener('change', toggleDrugs);
             drugsNo.addEventListener('change', toggleDrugs);
             toggleDrugs();
@@ -2714,7 +3681,7 @@ function loadAndShowRecordTabs(recordId, activeTab = 'record') {
                     // Populate fields with existing data
                     try { if (typeof populateFormWithData === 'function') populateFormWithData(record); } catch (e) { /* ignore */ }
                     // Make all inputs read-only/disabled inside this tab
-                    makeContainerReadOnly(pr);
+                        makeContainerReadOnly(pr);
                 } else {
                     pr.innerHTML = '<div class="p-3 text-danger">Unable to load patient record.</div>';
                 }
@@ -2732,7 +3699,7 @@ function loadAndShowRecordTabs(recordId, activeTab = 'record') {
                     const latest = list[0] || {};
                     ph.innerHTML = renderMedicalHistoryFormOnly();
                     try { if (typeof populateMedicalHistoryFormWithData === 'function') populateMedicalHistoryFormWithData(ph, latest); } catch (e) { /* ignore */ }
-                    makeContainerReadOnly(ph);
+                        makeContainerReadOnly(ph);
                 } else {
                     // Fallback to view list if no single history exists
                     ph.innerHTML = renderPatientHistoryView([]);
@@ -2743,9 +3710,16 @@ function loadAndShowRecordTabs(recordId, activeTab = 'record') {
         }
 
         try {
+            // Store completed appointments for progress note form
+            if (record && record.completed_appointments) {
+                window.currentCompletedAppointments = record.completed_appointments;
+            } else {
+                window.currentCompletedAppointments = [];
+            }
+            
             const notes = notesRes && (notesRes.data || []);
             if (pn) {
-                pn.innerHTML = renderProgressNotesView(notes || []);
+                    pn.innerHTML = renderProgressNotesView(notes || []);
             }
         } catch (e) {
             if (pn) pn.innerHTML = '<div class="p-3 text-danger">Error rendering progress notes.</div>';
@@ -3040,8 +4014,10 @@ async function savePatientRecordForm(callback) {
             // Show success message
             showNotification('✅ Record saved successfully!', 'success');
 
-            // Reload the records table to show updated data
-            loadPatientRecords();
+            // Reload the page after a short delay to show updated data
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
 
             if (callback) callback();
         } else {
@@ -3066,14 +4042,14 @@ async function savePatientRecordForm(callback) {
 document.addEventListener('DOMContentLoaded', function() {
     const saveBtn = document.getElementById('saveBtn');
     if (saveBtn) {
-        saveBtn.addEventListener('click', function() {
-            if (document.getElementById('patientInfoForm')) {
-                savePatientRecordForm(() => {
-                    // Modal content will auto-refresh after save
-                    // No need to close or reload
-                });
-            }
-        });
+            saveBtn.addEventListener('click', function() {
+                if (document.getElementById('patientInfoForm')) {
+                    savePatientRecordForm(() => {
+                        // Modal content will auto-refresh after save
+                        // No need to close or reload
+                    });
+                }
+            });
     }
 
     // Add Enter key support for forms - trigger save on Ctrl+Enter or Enter in textareas
@@ -3303,9 +4279,11 @@ function selectPatientForRecord(patientData) {
     }
 
     // Auto-populate contact number
-    if (patientData.contact_number) {
+    // Get contact from patientData.contact_number or patientData.phone
+    const contact = patientData.contact_number || patientData.phone || '';
+    if (contact) {
         const contactElement = document.getElementById('contact');
-        if (contactElement) contactElement.value = patientData.contact_number;
+        if (contactElement) contactElement.value = contact;
     }
 
     // Set selected patient ID
@@ -3343,7 +4321,7 @@ function selectPatientForRecord(patientData) {
                             sex: patientData.sex || '',
                             religion: patientData.religion || '',
                             occupation: patientData.occupation || '',
-                            phone: patientData.contact_number || ''
+                            phone: patientData.contact_number || patientData.phone || ''
                         }
                     }
                 };
@@ -3388,7 +4366,7 @@ function selectPatientForRecord(patientData) {
                         sex: patientData.sex || '',
                         religion: patientData.religion || '',
                         occupation: patientData.occupation || '',
-                        phone: patientData.contact_number || ''
+                        phone: patientData.contact_number || patientData.phone || ''
                     }
                 }
             };
@@ -3823,6 +4801,11 @@ function populateFormWithData(record) {
 }
 
 function savePatientRecordFromTab() {
+    // Check access control - only allow if canEditPatientRecord is true
+    if (!canEditPatientRecord) {
+        showNotification('Access denied. You do not have permission to edit patient records.', 'error');
+        return;
+    }
     // Helper function to safely get element value
     const getElementValue = (id) => {
         const element = document.getElementById(id);
@@ -4082,6 +5065,69 @@ function hideAddHistoryForm() {
 }
 
 async function addNewPatientHistory(recordId) {
+    const form = document.getElementById('newHistoryForm');
+    if (!form) {
+        showNotification('Form not found', 'error');
+        return;
+    }
+
+    // Validate conditional fields before showing confirmation
+    const underTreatment = form.querySelector('input[name="under_treatment"]:checked')?.value;
+    const treatmentCondition = form.querySelector('[name="treatment_condition"]')?.value?.trim();
+    
+    const seriousIllness = form.querySelector('input[name="serious_illness"]:checked')?.value;
+    const illnessDetails = form.querySelector('[name="illness_details"]')?.value?.trim();
+    
+    const beenHospitalized = form.querySelector('input[name="been_hospitalized"]:checked')?.value;
+    const hospitalizationReason = form.querySelector('[name="hospitalization_reason"]')?.value?.trim();
+    
+    const takingDrugs = form.querySelector('input[name="taking_drugs"]:checked')?.value;
+    const medications = form.querySelector('[name="medications"]')?.value?.trim();
+
+    // Validate required fields
+    const errors = [];
+    
+    if (underTreatment === 'yes' && !treatmentCondition) {
+        errors.push('Please specify what condition is being treated (Question 2)');
+        const treatmentInput = form.querySelector('[name="treatment_condition"]');
+        if (treatmentInput) {
+            treatmentInput.focus();
+            treatmentInput.style.borderColor = '#dc3545';
+        }
+    }
+    
+    if (seriousIllness === 'yes' && !illnessDetails) {
+        errors.push('Please specify what illness or surgery (Question 3)');
+        const illnessInput = form.querySelector('[name="illness_details"]');
+        if (illnessInput) {
+            illnessInput.focus();
+            illnessInput.style.borderColor = '#dc3545';
+        }
+    }
+    
+    if (beenHospitalized === 'yes' && !hospitalizationReason) {
+        errors.push('Please specify when and why you were hospitalized (Question 4)');
+        const hospitalizedInput = form.querySelector('[name="hospitalization_reason"]');
+        if (hospitalizedInput) {
+            hospitalizedInput.focus();
+            hospitalizedInput.style.borderColor = '#dc3545';
+        }
+    }
+    
+    if (takingDrugs === 'yes' && !medications) {
+        errors.push('Please specify what medications you are taking (Question 5)');
+        const medicationsInput = form.querySelector('[name="medications"]');
+        if (medicationsInput) {
+            medicationsInput.focus();
+            medicationsInput.style.borderColor = '#dc3545';
+        }
+    }
+
+    if (errors.length > 0) {
+        showNotification('Please fill in all required fields:\n' + errors.join('\n'), 'error');
+        return;
+    }
+
     // Show confirmation modal before saving
     const confirmed = await showConfirmModal('Are you sure you want to save this medical history record?', {
         title: 'Confirm Save',
@@ -4094,7 +5140,6 @@ async function addNewPatientHistory(recordId) {
         return; // User cancelled
     }
 
-    const form = document.getElementById('newHistoryForm');
     const formData = new FormData(form);
     const data = {
         patient_record_id: recordId,
@@ -4173,6 +5218,69 @@ async function addNewPatientHistory(recordId) {
 }
 
 async function savePatientHistory(historyId, recordId) {
+    const form = document.getElementById(`historyForm${historyId}`);
+    if (!form) {
+        showNotification('Form not found', 'error');
+        return;
+    }
+
+    // Validate conditional fields before showing confirmation
+    const underTreatment = form.querySelector('input[name="under_treatment"]:checked')?.value;
+    const treatmentCondition = form.querySelector('[name="treatment_condition"]')?.value?.trim();
+    
+    const seriousIllness = form.querySelector('input[name="serious_illness"]:checked')?.value;
+    const illnessDetails = form.querySelector('[name="illness_details"]')?.value?.trim();
+    
+    const beenHospitalized = form.querySelector('input[name="been_hospitalized"]:checked')?.value;
+    const hospitalizationReason = form.querySelector('[name="hospitalization_reason"]')?.value?.trim();
+    
+    const takingDrugs = form.querySelector('input[name="taking_drugs"]:checked')?.value;
+    const medications = form.querySelector('[name="medications"]')?.value?.trim();
+
+    // Validate required fields
+    const errors = [];
+    
+    if (underTreatment === 'yes' && !treatmentCondition) {
+        errors.push('Please specify what condition is being treated (Question 2)');
+        const treatmentInput = form.querySelector('[name="treatment_condition"]');
+        if (treatmentInput) {
+            treatmentInput.focus();
+            treatmentInput.style.borderColor = '#dc3545';
+        }
+    }
+    
+    if (seriousIllness === 'yes' && !illnessDetails) {
+        errors.push('Please specify what illness or surgery (Question 3)');
+        const illnessInput = form.querySelector('[name="illness_details"]');
+        if (illnessInput) {
+            illnessInput.focus();
+            illnessInput.style.borderColor = '#dc3545';
+        }
+    }
+    
+    if (beenHospitalized === 'yes' && !hospitalizationReason) {
+        errors.push('Please specify when and why you were hospitalized (Question 4)');
+        const hospitalizedInput = form.querySelector('[name="hospitalization_reason"]');
+        if (hospitalizedInput) {
+            hospitalizedInput.focus();
+            hospitalizedInput.style.borderColor = '#dc3545';
+        }
+    }
+    
+    if (takingDrugs === 'yes' && !medications) {
+        errors.push('Please specify what medications you are taking (Question 5)');
+        const medicationsInput = form.querySelector('[name="medications"]');
+        if (medicationsInput) {
+            medicationsInput.focus();
+            medicationsInput.style.borderColor = '#dc3545';
+        }
+    }
+
+    if (errors.length > 0) {
+        showNotification('Please fill in all required fields:\n' + errors.join('\n'), 'error');
+        return;
+    }
+
     // Show confirmation modal before saving
     const confirmed = await showConfirmModal('Are you sure you want to save changes to this medical history record?', {
         title: 'Confirm Save',
@@ -4185,7 +5293,6 @@ async function savePatientHistory(historyId, recordId) {
         return; // User cancelled
     }
 
-    const form = document.getElementById(`historyForm${historyId}`);
     const formData = new FormData(form);
     const data = {
         id: historyId,
@@ -4264,8 +5371,8 @@ async function savePatientHistory(historyId, recordId) {
     });
 }
 
-// Delete patient history - DISABLED FOR STAFF (Admin Only)
 async function deletePatientHistory(historyId) {
+    // Staff cannot delete patient history
     showNotification('Access denied. Only administrators can delete patient history records.', 'error');
     return;
 }
@@ -4280,10 +5387,23 @@ function hideAddNoteForm() {
 }
 
 function addNewProgressNote(recordId) {
+    // Check access control - only allow if canEditPatientRecord is true
+    if (!canEditPatientRecord) {
+        showNotification('Access denied. You do not have permission to edit patient records.', 'error');
+        return;
+    }
     const form = document.getElementById('newNoteForm');
     const formData = new FormData(form);
+    
+    const appointmentId = formData.get('appointment_id');
+    if (!appointmentId) {
+        showNotification('Please select a procedure/service for this progress note', 'error');
+        return;
+    }
+    
     const data = {
         patient_record_id: recordId,
+        appointment_id: appointmentId,
         note_date: formData.get('note_date'),
         progress_description: formData.get('progress_description'),
         amount_paid: formData.get('amount_paid'),
@@ -4321,7 +5441,24 @@ function addNewProgressNote(recordId) {
     });
 }
 
-function saveProgressNote(noteId, recordId) {
+async function saveProgressNote(noteId, recordId) {
+    // Check access control - only allow if canEditPatientRecord is true
+    if (!canEditPatientRecord) {
+        showNotification('Access denied. You do not have permission to edit patient records.', 'error');
+        return;
+    }
+    // Show confirmation modal before saving
+    const confirmed = await showConfirmModal('Are you sure you want to save changes to this progress note?', {
+        title: 'Confirm Save',
+        icon: 'check-circle',
+        type: 'success',
+        okText: 'Yes, Save Changes'
+    });
+
+    if (!confirmed) {
+        return; // User cancelled
+    }
+
     const form = document.getElementById(`noteForm${noteId}_${recordId}`);
     if (!form) {
         console.error('Form not found:', `noteForm${noteId}_${recordId}`);
@@ -4333,6 +5470,7 @@ function saveProgressNote(noteId, recordId) {
     const data = {
         id: noteId,
         patient_record_id: recordId,
+        appointment_id: formData.get('appointment_id'),
         note_date: formData.get('note_date'),
         progress_description: formData.get('progress_description'),
         amount_paid: formData.get('amount_paid'),
@@ -4381,8 +5519,8 @@ function saveProgressNote(noteId, recordId) {
     });
 }
 
-// Delete progress note - DISABLED FOR STAFF (Admin Only)
 async function deleteProgressNote(noteId) {
+    // Staff cannot delete progress notes
     showNotification('Access denied. Only administrators can delete progress notes.', 'error');
     return;
 }
@@ -4784,25 +5922,16 @@ function renderExistingHistoryRecords(histories, patientRecordId, userId) {
     `;
 
     histories.forEach((history, index) => {
-        const visitDate = 'Medical History Record';
+        const visitDate = history.visit_date ? new Date(history.visit_date).toLocaleDateString('en-US', {year: 'numeric', month: 'long', day: 'numeric'}) : (history.created_at ? new Date(history.created_at).toLocaleDateString('en-US', {year: 'numeric', month: 'long', day: 'numeric'}) : 'N/A');
 
         html += `
-            <div class="card mb-3" style="border: 2px solid #0d6efd;">
-                <div class="card-header" style="background: linear-gradient(135deg, #e7f1ff 0%, #cfe2ff 100%);">
+            <div class="card mb-4" style="border: 2px solid #0d6efd; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <div class="card-header" style="background: linear-gradient(135deg, #e7f1ff 0%, #cfe2ff 100%); border-bottom: 2px solid #0d6efd;">
                     <div class="d-flex justify-content-between align-items-center">
-                        <strong style="color: #0a4275;"><i class="bi bi-calendar-event me-2"></i>${visitDate}</strong>
-                        <div class="btn-group btn-group-sm">
-                            <button type="button" class="btn btn-primary" onclick="viewHistoryDetails(${history.id})" title="View Details">
-                                <i class="bi bi-eye me-1"></i>View
-                            </button>
-                            <button type="button" class="btn btn-success" onclick="editHistoryRecord(${history.id})" title="Edit">
-                                <i class="bi bi-pencil me-1"></i>Edit
-                            </button>
-                            <!-- Delete button removed - Staff cannot delete records -->
-                        </div>
+                        <strong style="color: #0a4275; font-size: 1rem;"><i class="bi bi-calendar-event me-2"></i>Visit Date: ${visitDate}</strong>
                     </div>
                 </div>
-                <div class="card-body" id="historyDetails${history.id}" style="display: none; background: #f8f9fa;">
+                <div class="card-body" style="background: #f8f9fa; padding: 1.5rem;">
                     <!-- DENTAL HISTORY -->
                     <div class="mb-3">
                         <h6 class="fw-bold mb-3" style="color: #0d6efd; border-bottom: 2px solid #0d6efd; padding-bottom: 8px;">DENTAL HISTORY</h6>
@@ -4853,18 +5982,50 @@ function renderExistingHistoryRecords(histories, patientRecordId, userId) {
                                 <strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">Under medical treatment?</strong>
                                 <span>${history.under_treatment || 'N/A'}</span>
                             </div>
+                            ${history.treatment_condition && history.under_treatment && history.under_treatment.toLowerCase() === 'yes' ? `
+                            <div class="col-md-12">
+                                <div style="padding-left: 1.5rem; border-left: 3px solid #0d6efd; margin-top: 0.5rem;">
+                                    <strong class="d-block" style="color: #6c757d; font-size: 0.9rem; font-style: italic;">If Under Treatment (Yes), Condition:</strong>
+                                    <span>${history.treatment_condition}</span>
+                                </div>
+                            </div>
+                            ` : ''}
                             <div class="col-md-6">
                                 <strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">Serious illness/operation?</strong>
                                 <span>${history.serious_illness || 'no'}</span>
                             </div>
+                            ${history.illness_details && history.serious_illness && history.serious_illness.toLowerCase() === 'yes' ? `
+                            <div class="col-md-12">
+                                <div style="padding-left: 1.5rem; border-left: 3px solid #0d6efd; margin-top: 0.5rem;">
+                                    <strong class="d-block" style="color: #6c757d; font-size: 0.9rem; font-style: italic;">If Serious Illness (Yes), Illness Details:</strong>
+                                    <span>${history.illness_details}</span>
+                                </div>
+                            </div>
+                            ` : ''}
                             <div class="col-md-6">
                                 <strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">Been hospitalized?</strong>
                                 <span>${history.been_hospitalized || 'no'}</span>
                             </div>
+                            ${history.hospitalization_reason && history.been_hospitalized && history.been_hospitalized.toLowerCase() === 'yes' ? `
+                            <div class="col-md-12">
+                                <div style="padding-left: 1.5rem; border-left: 3px solid #0d6efd; margin-top: 0.5rem;">
+                                    <strong class="d-block" style="color: #6c757d; font-size: 0.9rem; font-style: italic;">If Been Hospitalized (Yes), Reason:</strong>
+                                    <span>${history.hospitalization_reason}</span>
+                                </div>
+                            </div>
+                            ` : ''}
                             <div class="col-md-6">
                                 <strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">Taking prescription drugs?</strong>
                                 <span>${history.taking_drugs || 'N/A'}</span>
                             </div>
+                            ${history.medications && history.taking_drugs && history.taking_drugs.toLowerCase() === 'yes' ? `
+                            <div class="col-md-12">
+                                <div style="padding-left: 1.5rem; border-left: 3px solid #0d6efd; margin-top: 0.5rem;">
+                                    <strong class="d-block" style="color: #6c757d; font-size: 0.9rem; font-style: italic;">If Taking Medications (Yes), Medications:</strong>
+                                    <span>${history.medications}</span>
+                                </div>
+                            </div>
+                            ` : ''}
                             <div class="col-md-6">
                                 <strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">Tobacco Use:</strong>
                                 <span>${history.tobacco_use || 'N/A'}</span>
@@ -4879,6 +6040,23 @@ function renderExistingHistoryRecords(histories, patientRecordId, userId) {
                             </div>
                         </div>
                     </div>
+                    
+                    ${history.allergy_anesthesia || history.allergy_sulfa || history.allergy_antibiotics || history.allergy_aspirin || history.allergy_analgesics || history.allergy_latex || history.food_allergy_details || history.other_allergy_details ? `
+                    <!-- ALLERGIES -->
+                    <div class="mb-3">
+                        <h6 class="fw-bold mb-3" style="color: #0d6efd; border-bottom: 2px solid #0d6efd; padding-bottom: 8px;">ALLERGIES</h6>
+                        <div class="row g-3">
+                            ${history.allergy_anesthesia ? `<div class="col-md-6"><strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">Local Anesthesia:</strong><span>Yes</span></div>` : ''}
+                            ${history.allergy_sulfa ? `<div class="col-md-6"><strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">Sulfa Drugs:</strong><span>Yes</span></div>` : ''}
+                            ${history.allergy_antibiotics ? `<div class="col-md-6"><strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">Antibiotics:</strong><span>Yes</span></div>` : ''}
+                            ${history.allergy_aspirin ? `<div class="col-md-6"><strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">Aspirin:</strong><span>Yes</span></div>` : ''}
+                            ${history.allergy_analgesics ? `<div class="col-md-6"><strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">Analgesics:</strong><span>Yes</span></div>` : ''}
+                            ${history.allergy_latex ? `<div class="col-md-6"><strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">Latex:</strong><span>Yes</span></div>` : ''}
+                            ${history.food_allergy_details ? `<div class="col-md-12"><strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">Food Allergies:</strong><span>${history.food_allergy_details}</span></div>` : ''}
+                            ${history.other_allergy_details ? `<div class="col-md-12"><strong class="d-block" style="color: #6c757d; font-size: 0.9rem;">Other Allergies:</strong><span>${history.other_allergy_details}</span></div>` : ''}
+                        </div>
+                    </div>
+                    ` : ''}
 
 
                     <!-- FOR WOMEN -->
@@ -5040,6 +6218,9 @@ function renderMedicalHistoryFormOnly(patientId = null) {
                                 </div>
                             </div>
                             <div class="ps-4 mt-2">
+                                <label class="form-label fw-semibold mb-1" style="font-size: 0.85rem; color: #495057;">
+                                    If yes, what condition is being treated? <span style="color: #dc3545; font-weight: bold;">*</span>
+                                </label>
                                 <input type="text" class="form-control form-control-sm" name="treatment_condition" placeholder="If yes, what condition is being treated?" style="border: 1px solid #000;">
                             </div>
                         </div>
@@ -5058,6 +6239,9 @@ function renderMedicalHistoryFormOnly(patientId = null) {
                                 </div>
                             </div>
                             <div class="ps-4 mt-2">
+                                <label class="form-label fw-semibold mb-1" style="font-size: 0.85rem; color: #495057;">
+                                    If yes, what illness or surgery? <span style="color: #dc3545; font-weight: bold;">*</span>
+                                </label>
                                 <input type="text" class="form-control form-control-sm" name="illness_details" placeholder="If yes, what illness or surgery?" style="border: 1px solid #000;">
                             </div>
                         </div>
@@ -5076,6 +6260,9 @@ function renderMedicalHistoryFormOnly(patientId = null) {
                                 </div>
                             </div>
                             <div class="ps-4 mt-2">
+                                <label class="form-label fw-semibold mb-1" style="font-size: 0.85rem; color: #495057;">
+                                    If yes, when and why? <span style="color: #dc3545; font-weight: bold;">*</span>
+                                </label>
                                 <input type="text" class="form-control form-control-sm" name="hospitalization_reason" placeholder="If yes, when and why?" style="border: 1px solid #000;">
                             </div>
                         </div>
@@ -5094,6 +6281,9 @@ function renderMedicalHistoryFormOnly(patientId = null) {
                                 </div>
                             </div>
                             <div class="ps-4 mt-2">
+                                <label class="form-label fw-semibold mb-1" style="font-size: 0.85rem; color: #495057;">
+                                    If yes, what medications? <span style="color: #dc3545; font-weight: bold;">*</span>
+                                </label>
                                 <input type="text" class="form-control form-control-sm" name="medications" placeholder="If yes, what medications?" style="border: 1px solid #000;">
                             </div>
                         </div>
@@ -5259,7 +6449,6 @@ function renderMedicalHistoryFormOnly(patientId = null) {
                 </div>
             </div>
 
-
             <!-- Action Buttons -->
             <div class="mt-4 pt-3" style="border-top: 2px solid #dee2e6;">
                 <div class="d-flex gap-3 justify-content-end">
@@ -5277,6 +6466,12 @@ function renderMedicalHistoryFormOnly(patientId = null) {
     `;
 
     document.getElementById('medicalHistoryFormContainer').innerHTML = html;
+    
+    // Setup conditional inputs for the form
+    const formContainer = document.getElementById('medicalHistoryForm');
+    if (formContainer) {
+        setupConditionalInputs(formContainer);
+    }
 }
 
 // Clear medical history form
@@ -5316,6 +6511,11 @@ async function clearMedicalHistoryForm(skipConfirmation = false) {
 
 // Save medical history from tab
 async function saveMedicalHistoryFormFromTab() {
+    // Check access control - only allow if canEditPatientRecord is true
+    if (!canEditPatientRecord) {
+        showNotification('Access denied. You do not have permission to edit patient records.', 'error');
+        return;
+    }
     const form = document.getElementById('medicalHistoryForm');
     if (!form) {
         showNotification('Form not found', 'error');
@@ -5336,6 +6536,62 @@ async function saveMedicalHistoryFormFromTab() {
         return;
     }
 
+    // Validate conditional fields before showing confirmation
+    const underTreatment = form.querySelector('input[name="under_treatment"]:checked')?.value;
+    const treatmentCondition = form.querySelector('[name="treatment_condition"]')?.value?.trim();
+    
+    const seriousIllness = form.querySelector('input[name="serious_illness"]:checked')?.value;
+    const illnessDetails = form.querySelector('[name="illness_details"]')?.value?.trim();
+    
+    const beenHospitalized = form.querySelector('input[name="been_hospitalized"]:checked')?.value;
+    const hospitalizationReason = form.querySelector('[name="hospitalization_reason"]')?.value?.trim();
+    
+    const takingDrugs = form.querySelector('input[name="taking_drugs"]:checked')?.value;
+    const medications = form.querySelector('[name="medications"]')?.value?.trim();
+
+    // Validate required fields
+    const errors = [];
+    
+    if (underTreatment === 'yes' && !treatmentCondition) {
+        errors.push('Please specify what condition is being treated (Question 2)');
+        const treatmentInput = form.querySelector('[name="treatment_condition"]');
+        if (treatmentInput) {
+            treatmentInput.focus();
+            treatmentInput.style.borderColor = '#dc3545';
+        }
+    }
+    
+    if (seriousIllness === 'yes' && !illnessDetails) {
+        errors.push('Please specify what illness or surgery (Question 3)');
+        const illnessInput = form.querySelector('[name="illness_details"]');
+        if (illnessInput) {
+            illnessInput.focus();
+            illnessInput.style.borderColor = '#dc3545';
+        }
+    }
+    
+    if (beenHospitalized === 'yes' && !hospitalizationReason) {
+        errors.push('Please specify when and why you were hospitalized (Question 4)');
+        const hospitalizedInput = form.querySelector('[name="hospitalization_reason"]');
+        if (hospitalizedInput) {
+            hospitalizedInput.focus();
+            hospitalizedInput.style.borderColor = '#dc3545';
+        }
+    }
+    
+    if (takingDrugs === 'yes' && !medications) {
+        errors.push('Please specify what medications you are taking (Question 5)');
+        const medicationsInput = form.querySelector('[name="medications"]');
+        if (medicationsInput) {
+            medicationsInput.focus();
+            medicationsInput.style.borderColor = '#dc3545';
+        }
+    }
+
+    if (errors.length > 0) {
+        showNotification('Please fill in all required fields:\n' + errors.join('\n'), 'error');
+        return;
+    }
 
     // Show confirmation modal before saving
     const confirmed = await showConfirmModal('Are you sure you want to save this medical history record?', {
@@ -5521,6 +6777,9 @@ function displayMedicalHistoryForm(patientId, patientName) {
                                 </div>
                             </div>
                             <div class="ps-4 mt-2">
+                                <label class="form-label fw-semibold mb-1" style="font-size: 0.85rem; color: #495057;">
+                                    If yes, what condition is being treated? <span style="color: #dc3545; font-weight: bold;">*</span>
+                                </label>
                                 <input type="text" class="form-control form-control-sm" name="treatment_condition" placeholder="If yes, what condition is being treated?" style="border: 1px solid #000;">
                             </div>
                         </div>
@@ -5539,6 +6798,9 @@ function displayMedicalHistoryForm(patientId, patientName) {
                                 </div>
                             </div>
                             <div class="ps-4 mt-2">
+                                <label class="form-label fw-semibold mb-1" style="font-size: 0.85rem; color: #495057;">
+                                    If yes, what illness or surgery? <span style="color: #dc3545; font-weight: bold;">*</span>
+                                </label>
                                 <input type="text" class="form-control form-control-sm" name="illness_details" placeholder="If yes, what illness or surgery?" style="border: 1px solid #000;">
                             </div>
                         </div>
@@ -5557,6 +6819,9 @@ function displayMedicalHistoryForm(patientId, patientName) {
                                 </div>
                             </div>
                             <div class="ps-4 mt-2">
+                                <label class="form-label fw-semibold mb-1" style="font-size: 0.85rem; color: #495057;">
+                                    If yes, when and why? <span style="color: #dc3545; font-weight: bold;">*</span>
+                                </label>
                                 <input type="text" class="form-control form-control-sm" name="hospitalization_reason" placeholder="If yes, when and why?" style="border: 1px solid #000;">
                             </div>
                         </div>
@@ -5575,6 +6840,9 @@ function displayMedicalHistoryForm(patientId, patientName) {
                                 </div>
                             </div>
                             <div class="ps-4 mt-2">
+                                <label class="form-label fw-semibold mb-1" style="font-size: 0.85rem; color: #495057;">
+                                    If yes, what medications? <span style="color: #dc3545; font-weight: bold;">*</span>
+                                </label>
                                 <input type="text" class="form-control form-control-sm" name="medications" placeholder="If yes, what medications?" style="border: 1px solid #000;">
                             </div>
                         </div>
@@ -5740,7 +7008,6 @@ function displayMedicalHistoryForm(patientId, patientName) {
                 </div>
             </div>
 
-
             <!-- Action Buttons -->
             <div class="col-12 mt-4 mb-3">
                 <button type="button" class="btn btn-primary btn-lg" onclick="saveMedicalHistoryForm()" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); border: none; padding: 10px 24px; font-weight: 600;">
@@ -5759,8 +7026,69 @@ function displayMedicalHistoryForm(patientId, patientName) {
 // Save medical history form
 function saveMedicalHistoryForm() {
     const form = document.getElementById('medicalHistoryForm');
-    const formData = new FormData(form);
+    if (!form) {
+        showNotification('Form not found', 'error');
+        return;
+    }
 
+    // Validate conditional fields before saving
+    const underTreatment = form.querySelector('input[name="under_treatment"]:checked')?.value;
+    const treatmentCondition = form.querySelector('[name="treatment_condition"]')?.value?.trim();
+    
+    const seriousIllness = form.querySelector('input[name="serious_illness"]:checked')?.value;
+    const illnessDetails = form.querySelector('[name="illness_details"]')?.value?.trim();
+    
+    const beenHospitalized = form.querySelector('input[name="been_hospitalized"]:checked')?.value;
+    const hospitalizationReason = form.querySelector('[name="hospitalization_reason"]')?.value?.trim();
+    
+    const takingDrugs = form.querySelector('input[name="taking_drugs"]:checked')?.value;
+    const medications = form.querySelector('[name="medications"]')?.value?.trim();
+
+    // Validate required fields
+    const errors = [];
+    
+    if (underTreatment === 'yes' && !treatmentCondition) {
+        errors.push('Please specify what condition is being treated (Question 2)');
+        const treatmentInput = form.querySelector('[name="treatment_condition"]');
+        if (treatmentInput) {
+            treatmentInput.focus();
+            treatmentInput.style.borderColor = '#dc3545';
+        }
+    }
+    
+    if (seriousIllness === 'yes' && !illnessDetails) {
+        errors.push('Please specify what illness or surgery (Question 3)');
+        const illnessInput = form.querySelector('[name="illness_details"]');
+        if (illnessInput) {
+            illnessInput.focus();
+            illnessInput.style.borderColor = '#dc3545';
+        }
+    }
+    
+    if (beenHospitalized === 'yes' && !hospitalizationReason) {
+        errors.push('Please specify when and why you were hospitalized (Question 4)');
+        const hospitalizedInput = form.querySelector('[name="hospitalization_reason"]');
+        if (hospitalizedInput) {
+            hospitalizedInput.focus();
+            hospitalizedInput.style.borderColor = '#dc3545';
+        }
+    }
+    
+    if (takingDrugs === 'yes' && !medications) {
+        errors.push('Please specify what medications you are taking (Question 5)');
+        const medicationsInput = form.querySelector('[name="medications"]');
+        if (medicationsInput) {
+            medicationsInput.focus();
+            medicationsInput.style.borderColor = '#dc3545';
+        }
+    }
+
+    if (errors.length > 0) {
+        showNotification('Please fill in all required fields:\n' + errors.join('\n'), 'error');
+        return;
+    }
+
+    const formData = new FormData(form);
 
     // Build the data object
     const data = {
@@ -5867,9 +7195,13 @@ function createNewMedicalHistory(patientId) {
 // ========================
 
 let selectedProgressNotePatient = null;
-let currentProgressNoteRecordId = null;
 let progressNoteRows = [];
 let progressNoteRowCounter = 0;
+let progressNoteCompletedAppointments = [];
+let selectedProgressNoteAppointmentId = null;
+let selectedProgressNoteAppointmentLabel = '';
+let selectedProgressNotePatientRecordId = null;
+window.currentCompletedAppointments = window.currentCompletedAppointments || [];
 
 // Display progress note search results
 function displayProgressNoteSearchResults(patients) {
@@ -5921,96 +7253,249 @@ function selectProgressNotePatient(patientId, patientName, username) {
     const sendToInput = document.getElementById('progressNoteSendToPatient');
     if (sendToInput) sendToInput.value = patientName;
 
+    // Reset treatment selection state
+    progressNoteCompletedAppointments = [];
+    selectedProgressNoteAppointmentId = null;
+    selectedProgressNoteAppointmentLabel = '';
+    selectedProgressNotePatientRecordId = null;
+    progressNoteRows = [];
+    progressNoteRowCounter = 0;
+    renderProgressNotesTable();
+    renderProgressNoteTreatmentSelector();
+    updateSelectedProgressTreatmentLabel();
+    updateProgressNotesActionState();
+
     // Load existing progress notes for this patient
     loadProgressNotes(patientId);
 
     showNotification(`Patient ${patientName} selected`, 'success');
 }
 
-// Download progress notes as PDF
-function downloadProgressNotes() {
-    if (!currentProgressNoteRecordId) {
-        showNotification('No patient record selected', 'warning');
-        return;
-    }
-    
-    // Open print-friendly view in new window
-    const printWindow = window.open(`/staff/post-procedural/progress-notes/${currentProgressNoteRecordId}/download`, '_blank');
-    
-    if (printWindow) {
-        showNotification('Opening print-friendly view. Use your browser\'s print function to save as PDF.', 'info');
-    } else {
-        showNotification('Please allow pop-ups to view the printable progress notes.', 'warning');
-    }
-}
-
 // Load existing progress notes for patient
-function loadProgressNotes(patientId) {
-    // First, we need to get or create the patient record by user ID
+function loadProgressNotes(patientId, appointmentId = null) {
     fetch(`/staff/post-procedural/patient-record-by-user/${patientId}`)
         .then(response => response.json())
         .then(data => {
+            progressNoteCompletedAppointments = [];
+            selectedProgressNoteAppointmentId = null;
+            selectedProgressNoteAppointmentLabel = '';
+            selectedProgressNotePatientRecordId = null;
+
             if (data.success && data.data) {
-                const recordId = data.data.id;
-                currentProgressNoteRecordId = recordId;
-                
-                // Show download button
-                const downloadBtn = document.getElementById('downloadProgressNotesBtn');
-                if (downloadBtn) downloadBtn.style.display = 'inline-block';
-                
-                // Now load progress notes for this record
-                fetch(`/staff/post-procedural/progress-notes/${recordId}`)
-                    .then(response => response.json())
-                    .then(notesData => {
-                        if (notesData.success && notesData.data.length > 0) {
-                            showNotification(`✅ Found ${notesData.data.length} existing progress note${notesData.data.length > 1 ? 's' : ''} for this patient. You can add new rows below.`, 'success');
-                            progressNoteRows = notesData.data.map((note, index) => ({
-                                id: note.id,
-                                date: note.note_date,
-                                progressNote: note.progress_description || '',
-                                amountPaid: note.amount_paid || '',
-                                balance: note.balance || '',
-                                conforme: note.conforme || '',
-                                rowId: progressNoteRowCounter++
-                            }));
-                            // Add one empty row for new entry
-                            addProgressNoteRow();
-                            renderProgressNotesTable();
-                        } else {
-                            // No existing notes, start fresh
-                            showNotification('ℹ️ No existing progress notes found. You can create new ones.', 'info');
-                            progressNoteRows = [];
-                            addProgressNoteRow();
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error loading progress notes:', error);
-                        showNotification('⚠️ Could not load progress notes. Starting fresh.', 'warning');
-                        progressNoteRows = [];
-                        addProgressNoteRow();
-                    });
-            } else {
-                // No patient record yet, start fresh
-                showNotification('ℹ️ No patient record found. Creating notes will auto-create a patient record.', 'info');
+                selectedProgressNotePatientRecordId = data.data.id;
+            }
+
+            progressNoteCompletedAppointments = (data.data && data.data.completed_appointments) || data.completed_appointments || [];
+            window.currentCompletedAppointments = progressNoteCompletedAppointments;
+            renderProgressNoteTreatmentSelector();
+
+            if (!progressNoteCompletedAppointments || progressNoteCompletedAppointments.length === 0) {
+                showNotification('ℹ️ No completed treatments found for this patient. Progress notes require at least one completed procedure.', 'info');
                 progressNoteRows = [];
-                addProgressNoteRow();
+                progressNoteRowCounter = 0;
+                renderProgressNotesTable();
+                updateSelectedProgressTreatmentLabel();
+                updateProgressNotesActionState();
+                return;
+            }
+
+            let nextAppointmentId = appointmentId;
+            if (!nextAppointmentId && progressNoteCompletedAppointments.length === 1) {
+                nextAppointmentId = progressNoteCompletedAppointments[0].id;
+            }
+
+            if (nextAppointmentId) {
+                handleProgressNoteTreatmentChange(nextAppointmentId, { skipSelectorUpdate: true });
+            } else {
+                progressNoteRows = [];
+                progressNoteRowCounter = 0;
+                renderProgressNotesTable();
+                updateSelectedProgressTreatmentLabel();
+                updateProgressNotesActionState();
             }
         })
         .catch(error => {
             console.error('Error loading patient record:', error);
             showNotification('❌ Error loading patient record', 'danger');
+            progressNoteCompletedAppointments = [];
+            selectedProgressNoteAppointmentId = null;
+            selectedProgressNoteAppointmentLabel = '';
+            selectedProgressNotePatientRecordId = null;
+            progressNoteRows = [];
+            progressNoteRowCounter = 0;
+            renderProgressNotesTable();
+            renderProgressNoteTreatmentSelector();
+            updateSelectedProgressTreatmentLabel();
+            updateProgressNotesActionState();
+        });
+}
+
+function renderProgressNoteTreatmentSelector() {
+    const container = document.getElementById('progressNoteTreatmentSelector');
+    const select = document.getElementById('progressNoteTreatmentSelect');
+
+    if (!container || !select) return;
+
+    if (!selectedProgressNotePatient) {
+        container.classList.add('d-none');
+        select.innerHTML = '<option value=\"\">Select treatment...</option>';
+        select.value = '';
+        select.disabled = true;
+        return;
+    }
+
+    container.classList.remove('d-none');
+
+    if (!progressNoteCompletedAppointments || progressNoteCompletedAppointments.length === 0) {
+        select.innerHTML = '<option value=\"\">No completed treatments available</option>';
+        select.value = '';
+        select.disabled = true;
+        selectedProgressNoteAppointmentId = null;
+        selectedProgressNoteAppointmentLabel = '';
+        return;
+    }
+
+    select.disabled = false;
+    const options = ['<option value=\"\">Select treatment...</option>'];
+    progressNoteCompletedAppointments.forEach(appointment => {
+        const optionLabel = getProgressNoteTreatmentLabel(appointment);
+        const selected = String(appointment.id) === String(selectedProgressNoteAppointmentId) ? 'selected' : '';
+        options.push(`<option value=\"${appointment.id}\" ${selected}>${optionLabel}</option>`);
+    });
+    select.innerHTML = options.join('');
+
+    if (selectedProgressNoteAppointmentId) {
+        select.value = selectedProgressNoteAppointmentId;
+    }
+
+    select.onchange = (event) => handleProgressNoteTreatmentChange(event.target.value);
+}
+
+function getProgressNoteTreatmentLabel(appointment) {
+    const serviceName = appointment?.service?.service_name || appointment?.service?.name || 'Procedure';
+    const appointmentDate = appointment?.appointment_date ? new Date(appointment.appointment_date).toLocaleDateString() : '';
+    return appointmentDate ? `${serviceName} (${appointmentDate})` : serviceName;
+}
+
+function getProgressNoteTreatmentLabelById(appointmentId) {
+    const appointment = progressNoteCompletedAppointments.find(appt => String(appt.id) === String(appointmentId));
+    return appointment ? getProgressNoteTreatmentLabel(appointment) : 'Selected Procedure';
+}
+
+function handleProgressNoteTreatmentChange(appointmentId, options = {}) {
+    const select = document.getElementById('progressNoteTreatmentSelect');
+
+    if (!appointmentId) {
+        selectedProgressNoteAppointmentId = null;
+        selectedProgressNoteAppointmentLabel = '';
+        if (select && !options.skipSelectorUpdate) {
+            select.value = '';
+        }
+        progressNoteRows = [];
+        progressNoteRowCounter = 0;
+        renderProgressNotesTable();
+        updateSelectedProgressTreatmentLabel();
+        updateProgressNotesActionState();
+        return;
+    }
+
+    selectedProgressNoteAppointmentId = appointmentId;
+    selectedProgressNoteAppointmentLabel = getProgressNoteTreatmentLabelById(appointmentId);
+
+    if (select && !options.skipSelectorUpdate) {
+        select.value = appointmentId;
+    }
+
+    updateSelectedProgressTreatmentLabel();
+    updateProgressNotesActionState();
+
+    if (selectedProgressNotePatientRecordId) {
+        fetchProgressNotesForAppointment(selectedProgressNotePatientRecordId, appointmentId);
+    } else {
+        progressNoteRows = [];
+        progressNoteRowCounter = 0;
+        addProgressNoteRow();
+    }
+}
+
+function fetchProgressNotesForAppointment(recordId, appointmentId) {
+    if (!recordId || !appointmentId) return;
+
+    progressNoteRows = [];
+    progressNoteRowCounter = 0;
+    renderProgressNotesTable();
+
+    fetch(`/staff/post-procedural/progress-notes/${recordId}?appointment_id=${appointmentId}`)
+        .then(response => response.json())
+        .then(notesData => {
+            if (notesData.success && notesData.data.length > 0) {
+                showNotification(`✅ Showing ${notesData.data.length} progress note${notesData.data.length > 1 ? 's' : ''} for the selected treatment.`, 'success');
+                progressNoteRows = notesData.data.map(note => ({
+                    id: note.id,
+                    appointmentId: appointmentId,
+                    date: note.note_date,
+                    progressNote: note.progress_description || '',
+                    amountPaid: note.amount_paid || '',
+                    balance: note.balance || '',
+                    conforme: note.conforme || '',
+                    rowId: progressNoteRowCounter++
+                }));
+                addProgressNoteRow();
+                renderProgressNotesTable();
+            } else {
+                showNotification('ℹ️ No existing progress notes for this treatment. You can create new ones.', 'info');
+                progressNoteRows = [];
+                addProgressNoteRow();
+            }
+        })
+        .catch(error => {
+            console.error('Error loading progress notes:', error);
+            showNotification('⚠️ Could not load progress notes. Starting fresh.', 'warning');
             progressNoteRows = [];
             addProgressNoteRow();
         });
 }
 
+function updateSelectedProgressTreatmentLabel() {
+    const label = document.getElementById('selectedProgressTreatmentLabel');
+    if (!label) return;
+
+    if (!selectedProgressNoteAppointmentId) {
+        label.classList.add('d-none');
+        label.textContent = '';
+    } else {
+        label.classList.remove('d-none');
+        label.textContent = selectedProgressNoteAppointmentLabel || 'Selected Procedure';
+    }
+}
+
+function updateProgressNotesActionState() {
+    const addBtn = document.getElementById('addProgressNoteRowBtn');
+    const sendBtn = document.getElementById('sendProgressNoteBtn');
+    const disabled = !selectedProgressNotePatient || !selectedProgressNoteAppointmentId;
+
+    if (addBtn) addBtn.disabled = disabled;
+    if (sendBtn) sendBtn.disabled = disabled;
+}
+
 // Add new progress note row
 function addProgressNoteRow() {
+    if (!selectedProgressNotePatient) {
+        showNotification('Please select a patient first', 'warning');
+        return;
+    }
+
+    if (!selectedProgressNoteAppointmentId) {
+        showNotification('Please select a completed treatment before adding notes', 'warning');
+        return;
+    }
+
     const rowId = progressNoteRowCounter++;
     const today = new Date().toISOString().split('T')[0];
 
     progressNoteRows.push({
         id: null,
+        appointmentId: selectedProgressNoteAppointmentId,
         date: today,
         progressNote: '',
         amountPaid: '',
@@ -6027,6 +7512,27 @@ function renderProgressNotesTable() {
     const tbody = document.getElementById('progressNotesTableBody');
     let html = '';
 
+    if (!selectedProgressNotePatient) {
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">Select a patient to view or add progress notes.</td></tr>';
+        }
+        return;
+    }
+
+    if (!selectedProgressNoteAppointmentId) {
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">Select a completed treatment to view or create progress notes.</td></tr>';
+        }
+        return;
+    }
+
+    if (progressNoteRows.length === 0) {
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">No progress notes yet for this treatment. Click "Add Row" to create one.</td></tr>';
+        }
+        return;
+    }
+
     progressNoteRows.forEach((row, index) => {
         const isExisting = row.id !== null && row.id !== undefined;
         const rowClass = isExisting ? 'existing-note-row' : 'new-note-row';
@@ -6036,6 +7542,7 @@ function renderProgressNotesTable() {
         
         html += `
             <tr data-row-id="${row.rowId}" data-note-id="${row.id || ''}" class="${rowClass}" style="${bgColor}">
+                <td class="text-center" style="${bgColor}">${index + 1}</td>
                 <td>
                     <input type="date" class="form-control form-control-sm" value="${row.date || ''}"
                            onchange="updateProgressNoteRow(${row.rowId}, 'date', this.value)"
@@ -6115,15 +7622,12 @@ async function deleteProgressNoteRow(rowId) {
 // Clear progress notes form
 function clearProgressNotesForm() {
     selectedProgressNotePatient = null;
-    currentProgressNoteRecordId = null;
-    
-    // Hide download button
-    const downloadBtn = document.getElementById('downloadProgressNotesBtn');
-    if (downloadBtn) downloadBtn.style.display = 'none';
-    
-    // Clear progress notes table
     progressNoteRows = [];
     progressNoteRowCounter = 0;
+    progressNoteCompletedAppointments = [];
+    selectedProgressNoteAppointmentId = null;
+    selectedProgressNoteAppointmentLabel = '';
+    selectedProgressNotePatientRecordId = null;
 
     // Add null checks to prevent errors
     const searchInput = document.getElementById('progressNotePatientSearch');
@@ -6135,10 +7639,10 @@ function clearProgressNotesForm() {
     const sendToInput = document.getElementById('progressNoteSendToPatient');
     if (sendToInput) sendToInput.value = '';
 
-    // Add one empty row to start fresh
-    if (typeof addProgressNoteRow === 'function') {
-    addProgressNoteRow();
-    }
+    renderProgressNoteTreatmentSelector();
+    updateSelectedProgressTreatmentLabel();
+    updateProgressNotesActionState();
+    renderProgressNotesTable();
 }
 
 // Initialize Progress Notes Search (called when Progress Notes tab is clicked)
@@ -6152,10 +7656,7 @@ function initializeProgressNotesSearch() {
 
     console.log('Initializing Progress Notes search...');
 
-    // Add initial row if none exist
-    if (progressNoteRows.length === 0) {
-        addProgressNoteRow();
-    }
+    renderProgressNotesTable();
 
     // Initialize patient search
     const progressNoteSearchInput = document.getElementById('progressNotePatientSearch');
@@ -6207,8 +7708,27 @@ function initializeProgressNotesSearch() {
                 return;
             }
 
+            if (!selectedProgressNoteAppointmentId) {
+                showNotification('Please select a completed treatment before saving progress notes', 'warning');
+                return;
+            }
+
             // Filter out existing notes (those with id) - only send new rows
-            const newRows = progressNoteRows.filter(row => !row.id);
+            const newRows = progressNoteRows
+                .filter(row => !row.id)
+                .map(row => ({
+                    appointmentId: row.appointmentId || selectedProgressNoteAppointmentId,
+                    date: row.date,
+                    progressNote: row.progressNote,
+                    amountPaid: row.amountPaid,
+                    balance: row.balance,
+                    conforme: row.conforme
+                }));
+
+            if (newRows.some(row => !row.appointmentId)) {
+                showNotification('Please select a completed treatment before saving progress notes', 'warning');
+                return;
+            }
             
             // Validate that at least one new row has data
             const hasData = newRows.some(row =>
@@ -6249,9 +7769,6 @@ function initializeProgressNotesSearch() {
 
                 if (data.success) {
                     showNotification('✅ Progress notes saved and sent to patient successfully!', 'success');
-
-                    // Reload records table
-                    loadPatientRecords();
 
                     // Reset form after a delay
                     setTimeout(() => {
@@ -6316,88 +7833,15 @@ function makeContainerEditable(container) {
 // Password verification state
 let isPasswordVerified = false;
 let passwordVerifiedRecordId = null;
-let pendingAction = null; // 'edit_record', 'edit_history', 'edit_notes'
-
-// Open separate edit modal: Patient Record
-function openEditRecordModal(recordId) {
-    if (!recordId || recordId === 'N/A') return;
-    
-    // Check if password is already verified for this record
-    if (isPasswordVerified && passwordVerifiedRecordId === recordId) {
-        openEditRecordModalDirect(recordId);
-        return;
-    }
-    
-    // Show password verification first
-    showPasswordVerificationModal(recordId, 'edit_record');
-}
-
-function openEditRecordModalDirect(recordId) {
-    if (!recordId || recordId === 'N/A') return;
-    window.currentEditingRecordId = recordId;
-
-    const loading = '<div class="text-center p-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 text-muted">Loading Patient Record...</p></div>';
-    const modal = createAndShowModal('editRecordModal', 'Edit Patient Information Record', loading, `
-        <button type="button" class="btn btn-primary" id="save-record-btn">Save Changes</button>
-    `, 'modal-xl');
-
-    fetch(`/staff/post-procedural/patient-record/${recordId}`)
-        .then(r => r.json())
-        .then(res => {
-            const container = document.getElementById('editRecordModal-body');
-            if (res && res.success && res.data) {
-                const record = res.data;
-                if (typeof renderPatientInfoForm === 'function') {
-                    container.innerHTML = renderPatientInfoForm(record);
-                    // Ensure all fields, including notes, are populated
-                    try { if (typeof populateFormWithData === 'function') populateFormWithData(record); } catch(e) { /* no-op */ }
-                } else {
-                    container.innerHTML = '<div class="alert alert-info">Form renderer missing. Please fill from main tab.</div>';
-                }
-                makeContainerEditable(container);
-
-                const saveBtn = document.getElementById('save-record-btn');
-                if (saveBtn && typeof savePatientRecordForm === 'function') {
-                    saveBtn.onclick = async function() {
-                        await savePatientRecordForm(() => {
-                            if (document.activeElement) document.activeElement.blur();
-                            modal.hide();
-                            loadPatientRecords();
-                        });
-                    };
-                }
-            } else {
-                container.innerHTML = '<div class="alert alert-danger">Unable to load patient record.</div>';
-            }
-        })
-        .catch(() => {
-            const container = document.getElementById('editRecordModal-body');
-            if (container) container.innerHTML = '<div class="alert alert-danger">Error loading patient record.</div>';
-        });
-}
-
-// Open view modal with password verification: Patient Record
-function openViewRecordModal(recordId) {
-    if (!recordId || recordId === 'N/A') return;
-    
-    // Check if password is already verified for this record
-    if (isPasswordVerified && passwordVerifiedRecordId === recordId) {
-        // Password already verified, open edit modal directly
-        openEditRecordModal(recordId);
-        return;
-    }
-    
-    // Show password modal
-    showPasswordVerificationModal(recordId, 'edit_record');
-}
+let pendingAction = null; // 'edit_record', 'edit_history', 'edit_notes', 'delete'
 
 // Show password verification modal
-function showPasswordVerificationModal(recordId, action = 'edit_record') {
+function showPasswordVerificationModal(recordId, action) {
     pendingAction = action;
     passwordVerifiedRecordId = null;
     isPasswordVerified = false;
     
-    const actionText = action === 'edit_record' ? 'edit the patient record' : action === 'edit_history' ? 'edit the patient history' : action === 'edit_notes' ? 'edit the progress notes' : 'edit this record';
+    const actionText = action === 'delete' ? 'delete' : action === 'edit_record' ? 'edit the patient record' : action === 'edit_history' ? 'edit the patient history' : action === 'edit_notes' ? 'edit the progress notes' : 'edit this record';
     
     const modalHtml = `
         <div class="modal fade" id="passwordVerificationModal" tabindex="-1" aria-labelledby="passwordVerificationModalLabel" aria-hidden="true">
@@ -6414,12 +7858,17 @@ function showPasswordVerificationModal(recordId, action = 'edit_record') {
                     <div class="modal-body password-modal-body-custom">
                         <p class="password-instruction-text">Please enter your password to ${actionText}.</p>
                         <div class="password-input-wrapper-custom">
-                            <input type="password" class="form-control password-input-field-custom" id="staffPasswordInput" placeholder="Enter your password" autocomplete="current-password">
-                            <div id="staffPasswordError" class="password-error-message"></div>
+                            <div class="input-group">
+                                <input type="password" class="form-control password-input-field-custom" id="adminPasswordInput" placeholder="Enter your password" autocomplete="current-password">
+                                <button class="btn btn-outline-secondary" type="button" id="toggleAdminPasswordInput" aria-label="Show password">
+                                    <i class="bi bi-eye" id="toggleAdminPasswordInputIcon"></i>
+                                </button>
+                            </div>
+                            <div id="adminPasswordError" class="password-error-message"></div>
                         </div>
                     </div>
                     <div class="modal-footer password-modal-footer-custom">
-                        <button type="button" class="btn btn-verify-password-custom" id="verifyStaffPasswordBtn" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important; color: white !important; border: 2px solid #2563eb !important; padding: 0.625rem 1.5rem !important; border-radius: 8px !important; font-weight: 600 !important; transition: all 0.2s ease !important; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important; display: flex !important; align-items: center !important; outline: none !important;">
+                        <button type="button" class="btn btn-verify-password-custom" id="verifyAdminPasswordBtn" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important; color: white !important; border: 2px solid #2563eb !important; padding: 0.625rem 1.5rem !important; border-radius: 8px !important; font-weight: 600 !important; transition: all 0.2s ease !important; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important; display: flex !important; align-items: center !important; outline: none !important;">
                             <i class="bi bi-check-circle me-2"></i>Verify
                         </button>
                     </div>
@@ -6510,23 +7959,51 @@ function showPasswordVerificationModal(recordId, action = 'edit_record') {
         }
     }, 100);
     
+    // Focus on password input
+    setTimeout(() => {
+        document.getElementById('adminPasswordInput').focus();
+    }, 300);
+    
     // Handle verify button click
-    document.getElementById('verifyStaffPasswordBtn').addEventListener('click', function() {
-        verifyStaffPassword(recordId, pendingAction, modal);
+    document.getElementById('verifyAdminPasswordBtn').addEventListener('click', function() {
+        verifyAdminPassword(recordId, action, modal);
     });
     
     // Handle Enter key in password input
-    document.getElementById('staffPasswordInput').addEventListener('keypress', function(e) {
+    // Password toggle for admin password input field
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('#toggleAdminPasswordInput')) {
+            const toggleBtn = document.getElementById('toggleAdminPasswordInput');
+            const passwordInput = document.getElementById('adminPasswordInput');
+            const toggleIcon = document.getElementById('toggleAdminPasswordInputIcon');
+            
+            if (toggleBtn && passwordInput && toggleIcon) {
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    toggleIcon.classList.remove('bi-eye');
+                    toggleIcon.classList.add('bi-eye-slash');
+                    toggleBtn.setAttribute('aria-label', 'Hide password');
+                } else {
+                    passwordInput.type = 'password';
+                    toggleIcon.classList.remove('bi-eye-slash');
+                    toggleIcon.classList.add('bi-eye');
+                    toggleBtn.setAttribute('aria-label', 'Show password');
+                }
+            }
+        }
+    });
+
+    document.getElementById('adminPasswordInput').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
             e.preventDefault();
-            verifyStaffPassword(recordId, pendingAction, modal);
+            verifyAdminPassword(recordId, action, modal);
         }
     });
     
     // Clear password when modal is closed
     document.getElementById('passwordVerificationModal').addEventListener('hidden.bs.modal', function() {
-        const passwordInput = document.getElementById('staffPasswordInput');
-        const passwordError = document.getElementById('staffPasswordError');
+        const passwordInput = document.getElementById('adminPasswordInput');
+        const passwordError = document.getElementById('adminPasswordError');
         if (passwordInput) passwordInput.value = '';
         if (passwordError) {
             passwordError.classList.remove('show');
@@ -6536,11 +8013,11 @@ function showPasswordVerificationModal(recordId, action = 'edit_record') {
     });
 }
 
-// Verify staff password
-function verifyStaffPassword(recordId, action, modal) {
-    const passwordInput = document.getElementById('staffPasswordInput');
-    const passwordError = document.getElementById('staffPasswordError');
-    const verifyBtn = document.getElementById('verifyStaffPasswordBtn');
+// Verify admin password
+function verifyAdminPassword(recordId, action, modal) {
+    const passwordInput = document.getElementById('adminPasswordInput');
+    const passwordError = document.getElementById('adminPasswordError');
+    const verifyBtn = document.getElementById('verifyAdminPasswordBtn');
     
     const password = passwordInput.value.trim();
     
@@ -6588,6 +8065,8 @@ function verifyStaffPassword(recordId, action, modal) {
                 openEditHistoryModalDirect(recordId);
             } else if (action === 'edit_notes') {
                 openEditNotesModalDirect(recordId);
+            } else if (action === 'delete') {
+                removeRecordDirect(recordId);
             }
             
             // Show success notification
@@ -6603,6 +8082,7 @@ function verifyStaffPassword(recordId, action, modal) {
         console.error('Error verifying password:', error);
         passwordError.textContent = error.message || 'An error occurred. Please try again.';
         passwordError.classList.add('show');
+        passwordInput.focus();
     })
     .finally(() => {
         // Re-enable button
@@ -6611,9 +8091,116 @@ function verifyStaffPassword(recordId, action, modal) {
     });
 }
 
+// Open separate edit modal: Patient Record
+function openEditRecordModal(recordId) {
+    if (!recordId || recordId === 'N/A') return;
+    
+    // Check access control - if no edit permission, show view-only modal
+    if (!canEditPatientRecord) {
+        openViewRecordModal(recordId);
+        return;
+    }
+    
+    // Check if password is already verified for this record
+    if (isPasswordVerified && passwordVerifiedRecordId === recordId) {
+        openEditRecordModalDirect(recordId);
+        return;
+    }
+    
+    // Show password verification first
+    showPasswordVerificationModal(recordId, 'edit_record');
+}
+
+function openEditRecordModalDirect(recordId) {
+    if (!recordId || recordId === 'N/A') return;
+    window.currentEditingRecordId = recordId;
+
+    const loading = '<div class="text-center p-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 text-muted">Loading Patient Record...</p></div>';
+    const modal = createAndShowModal('editRecordModal', 'Edit Patient Information Record', loading, `
+        <button type="button" class="btn btn-primary" id="save-record-btn">Save Changes</button>
+    `, 'modal-xl');
+
+    fetch(`/staff/post-procedural/patient-record/${recordId}`)
+        .then(r => r.json())
+        .then(res => {
+            const container = document.getElementById('editRecordModal-body');
+            if (res && res.success && res.data) {
+                const record = res.data;
+                if (typeof renderPatientInfoForm === 'function') {
+                    container.innerHTML = renderPatientInfoForm(record);
+                    // Ensure all fields, including notes, are populated
+                    try { if (typeof populateFormWithData === 'function') populateFormWithData(record); } catch(e) { /* no-op */ }
+                } else {
+                    container.innerHTML = '<div class="alert alert-info">Form renderer missing. Please fill from main tab.</div>';
+                }
+                makeContainerEditable(container);
+
+                const saveBtn = document.getElementById('save-record-btn');
+                if (saveBtn && typeof savePatientRecordForm === 'function') {
+                    saveBtn.onclick = async function() {
+                        await savePatientRecordForm(() => {
+                            if (document.activeElement) document.activeElement.blur();
+                            modal.hide();
+                            loadPatientRecords();
+                        });
+                    };
+                }
+            } else {
+                container.innerHTML = '<div class="alert alert-danger">Unable to load patient record.</div>';
+            }
+        })
+        .catch(() => {
+            const container = document.getElementById('editRecordModal-body');
+            if (container) container.innerHTML = '<div class="alert alert-danger">Error loading patient record.</div>';
+        });
+}
+
+// View-only modal: Patient Record (when access is denied)
+function openViewRecordModal(recordId) {
+    if (!recordId || recordId === 'N/A') return;
+    window.currentEditingRecordId = recordId;
+
+    const loading = '<div class="text-center p-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 text-muted">Loading Patient Record...</p></div>';
+    const modal = createAndShowModal('viewRecordModal', 'View Patient Information Record (Read Only)', loading, '', 'modal-xl');
+
+    fetch(`/staff/post-procedural/patient-record/${recordId}`)
+        .then(r => r.json())
+        .then(res => {
+            const container = document.getElementById('viewRecordModal-body');
+            if (res && res.success && res.data) {
+                const record = res.data;
+                if (typeof renderPatientInfoForm === 'function') {
+                    container.innerHTML = renderPatientInfoForm(record);
+                    try { if (typeof populateFormWithData === 'function') populateFormWithData(record); } catch(e) { /* no-op */ }
+                } else {
+                    container.innerHTML = '<div class="alert alert-info">Form renderer missing.</div>';
+                }
+                // Make form read-only
+                makeContainerReadOnly(container);
+                // Show access denied message
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-warning mb-3';
+                alert.innerHTML = '<i class="bi bi-exclamation-triangle me-2"></i><strong>View Only:</strong> You do not have permission to edit patient records.';
+                container.insertBefore(alert, container.firstChild);
+            } else {
+                container.innerHTML = '<div class="alert alert-danger">Unable to load patient record.</div>';
+            }
+        })
+        .catch(() => {
+            const container = document.getElementById('viewRecordModal-body');
+            if (container) container.innerHTML = '<div class="alert alert-danger">Error loading patient record.</div>';
+    });
+}
+
 // Open separate edit modal: Patient History
 function openEditHistoryModal(recordId) {
     if (!recordId || recordId === 'N/A') return;
+    
+    // Check access control - if no edit permission, show view-only modal
+    if (!canEditPatientRecord) {
+        openViewHistoryModal(recordId);
+        return;
+    }
     
     // Check if password is already verified for this record
     if (isPasswordVerified && passwordVerifiedRecordId === recordId) {
@@ -6703,13 +8290,59 @@ function openEditHistoryModalDirect(recordId) {
         });
 }
 
-// Open separate edit modal: Progress Notes
-function openEditNotesModal(recordId) {
+// View-only modal: Patient History (when access is denied)
+function openViewHistoryModal(recordId) {
     if (!recordId || recordId === 'N/A') return;
+    window.currentEditingRecordId = recordId;
+
+    const loading = '<div class="text-center p-4"><div class="spinner-border text-info" role="status"></div><p class="mt-2 text-muted">Loading Patient History...</p></div>';
+    const modal = createAndShowModal('viewHistoryModal', 'View Patient History (Read Only)', loading, '', 'modal-xl');
+
+    fetch(`/staff/post-procedural/patient-history/${recordId}`)
+        .then(r => r.json())
+        .then(res => {
+            const container = document.getElementById('viewHistoryModal-body');
+            const histories = (res && res.data) ? (Array.isArray(res.data) ? res.data : [res.data]) : [];
+
+            if (histories.length > 0) {
+                if (typeof renderPatientHistoryView === 'function') {
+                    container.innerHTML = renderPatientHistoryView(histories);
+                } else {
+                    container.innerHTML = '<div class="alert alert-info">History renderer missing.</div>';
+                }
+            } else {
+                container.innerHTML = '<div class="alert alert-info">No patient history found.</div>';
+            }
+            // Show access denied message
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-warning mb-3';
+            alert.innerHTML = '<i class="bi bi-exclamation-triangle me-2"></i><strong>View Only:</strong> You do not have permission to edit patient records.';
+            container.insertBefore(alert, container.firstChild);
+        })
+        .catch(() => {
+            const container = document.getElementById('viewHistoryModal-body');
+            if (container) container.innerHTML = '<div class="alert alert-danger">Error loading patient history.</div>';
+        });
+}
+
+// Open separate edit modal: Progress Notes
+function openEditNotesModal(recordId, rowRecordId = null, appointmentId = null, treatment = null) {
+    if (!recordId || recordId === 'N/A') return;
+    
+    // Store the row recordId, appointmentId, and treatment for later use
+    window.currentNotesRowRecordId = rowRecordId || recordId;
+    window.currentNotesAppointmentId = appointmentId;
+    window.currentNotesTreatment = treatment;
+    
+    // Check access control - if no edit permission, show view-only modal
+    if (!canEditPatientRecord) {
+        openViewNotesModal(recordId, appointmentId, treatment);
+        return;
+    }
     
     // Check if password is already verified for this record
     if (isPasswordVerified && passwordVerifiedRecordId === recordId) {
-        openEditNotesModalDirect(recordId);
+        openEditNotesModalDirect(recordId, appointmentId, treatment);
         return;
     }
     
@@ -6717,9 +8350,11 @@ function openEditNotesModal(recordId) {
     showPasswordVerificationModal(recordId, 'edit_notes');
 }
 
-function openEditNotesModalDirect(recordId) {
+function openEditNotesModalDirect(recordId, appointmentId = null, treatment = null) {
     if (!recordId || recordId === 'N/A') return;
     window.currentEditingRecordId = recordId;
+    window.currentNotesAppointmentId = appointmentId || window.currentNotesAppointmentId;
+    window.currentNotesTreatment = treatment || window.currentNotesTreatment;
 
     const formHtml = `
         <style>
@@ -6872,7 +8507,137 @@ function openEditNotesModalDirect(recordId) {
         }
     }, 100);
 
-    // Fetch all progress notes and display them
+    // Get appointmentId and treatment from passed parameters or window variables
+    const rowRecordId = window.currentNotesRowRecordId || recordId;
+    const passedAppointmentId = window.currentNotesAppointmentId || appointmentId;
+    const passedTreatment = window.currentNotesTreatment;
+    
+    // Build URL with appointment_id filter if appointmentId is provided
+    let notesUrl = `/staff/post-procedural/progress-notes/${recordId}`;
+    let finalAppointmentId = passedAppointmentId;
+    
+    if (finalAppointmentId) {
+        notesUrl = `/staff/post-procedural/progress-notes/${recordId}?appointment_id=${finalAppointmentId}`;
+        selectedProgressNoteAppointmentId = finalAppointmentId;
+        
+        // Fetch progress notes with filter first
+        fetch(notesUrl)
+            .then(r => {
+                if (!r.ok) {
+                    throw new Error(`HTTP error! status: ${r.status}`);
+                }
+                return r.json();
+            })
+            .then(res => {
+                console.log('Progress notes response (filtered):', res);
+                let filteredNotes = (res && res.data) ? (Array.isArray(res.data) ? res.data : [res.data]) : [];
+                
+                // Also fetch all notes to get old records without appointment_id
+                fetch(`/staff/post-procedural/progress-notes/${recordId}`)
+                    .then(r2 => r2.json())
+                    .then(res2 => {
+                        const allNotes = (res2 && res2.data) ? (Array.isArray(res2.data) ? res2.data : [res2.data]) : [];
+                        
+                        // Filter old notes that match this treatment but don't have appointment_id
+                        const oldNotes = allNotes.filter(note => {
+                            // Skip notes that already have appointment_id (they're in filteredNotes)
+                            if (note.appointment_id && note.appointment_id !== null) {
+                                return false;
+                            }
+                            // Check if note's appointment service matches the treatment
+                            if (note.appointment && note.appointment.service) {
+                                const noteServiceName = note.appointment.service.service_name || note.appointment.service.name || '';
+                                return noteServiceName === passedTreatment;
+                            }
+                            return false;
+                        });
+                        
+                        // Combine filtered notes with old notes
+                        existingNotes = [...filteredNotes, ...oldNotes];
+                        
+                        // Replace the single form with a list of all notes
+                        const modalBody = document.querySelector('#editNotesModal .modal-body');
+                        if (modalBody && typeof renderProgressNotesEditList === 'function') {
+                            modalBody.innerHTML = renderProgressNotesEditList(existingNotes, recordId);
+                        }
+
+                        console.log('Rendered progress notes:', existingNotes.length, 'notes (', filteredNotes.length, 'filtered +', oldNotes.length, 'old)');
+                    })
+                    .catch(err => {
+                        console.error('Error fetching all notes:', err);
+                        // Fallback to just filtered notes
+                        existingNotes = filteredNotes;
+                        const modalBody = document.querySelector('#editNotesModal .modal-body');
+                        if (modalBody && typeof renderProgressNotesEditList === 'function') {
+                            modalBody.innerHTML = renderProgressNotesEditList(existingNotes, recordId);
+                        }
+                    });
+            })
+            .catch((error) => {
+                console.error('Error fetching progress notes:', error);
+                showNotification('Could not load existing progress notes.', 'info');
+                fetchAllNotes();
+            });
+    } else {
+        // No appointmentId provided, try to get from selected treatment
+        const selectedTreatment = selectedTreatmentsMap[rowRecordId];
+    
+    if (selectedTreatment && selectedTreatment !== 'N/A') {
+        // Get userId from record to find appointment mapping
+        fetch(`/staff/post-procedural/patient-record/${recordId}`)
+                    .then(r => r.json())
+            .then(recordData => {
+                if (recordData.success && recordData.data) {
+                    const userId = recordData.data.user_id;
+                    const treatmentMap = treatmentToAppointmentMap[userId];
+                    
+                    if (treatmentMap && treatmentMap[selectedTreatment]) {
+                            finalAppointmentId = treatmentMap[selectedTreatment].id;
+                            notesUrl = `/staff/post-procedural/progress-notes/${recordId}?appointment_id=${finalAppointmentId}`;
+                            selectedProgressNoteAppointmentId = finalAppointmentId;
+                    }
+                    
+                    // Fetch progress notes with filter
+                    fetch(notesUrl)
+                        .then(r => {
+                            if (!r.ok) {
+                                throw new Error(`HTTP error! status: ${r.status}`);
+                            }
+                            return r.json();
+                        })
+                    .then(res => {
+                            console.log('Progress notes response:', res);
+                        existingNotes = (res && res.data) ? (Array.isArray(res.data) ? res.data : [res.data]) : [];
+
+                            // Replace the single form with a list of all notes
+                        const modalBody = document.querySelector('#editNotesModal .modal-body');
+                        if (modalBody && typeof renderProgressNotesEditList === 'function') {
+                            modalBody.innerHTML = renderProgressNotesEditList(existingNotes, recordId);
+                        }
+
+                            console.log('Rendered filtered progress notes:', existingNotes.length, 'notes');
+                        })
+                        .catch((error) => {
+                            console.error('Error fetching progress notes:', error);
+                            showNotification('Could not load existing progress notes.', 'info');
+                                fetchAllNotes();
+                        });
+                    } else {
+                        fetchAllNotes();
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching patient record:', error);
+                // Fallback to fetching all notes
+                fetchAllNotes();
+            });
+    } else {
+        // No treatment selected, fetch all notes
+        fetchAllNotes();
+        }
+    }
+    
+    function fetchAllNotes() {
     fetch(`/staff/post-procedural/progress-notes/${recordId}`)
         .then(r => {
             if (!r.ok) {
@@ -6896,6 +8661,7 @@ function openEditNotesModalDirect(recordId) {
             console.error('Error fetching progress notes:', error);
             showNotification('Could not load existing progress notes.', 'info');
         });
+    }
 
     // Hide the save button in footer since each note has its own save button
     const saveBtn = document.getElementById('save-notes-btn');
@@ -6923,9 +8689,71 @@ function openEditNotesModalDirect(recordId) {
     }
 }
 
+// View-only modal: Progress Notes (when access is denied)
+function openViewNotesModal(recordId, appointmentId = null, treatment = null) {
+    if (!recordId || recordId === 'N/A') return;
+    window.currentEditingRecordId = recordId;
+    window.currentNotesAppointmentId = appointmentId;
+    window.currentNotesTreatment = treatment;
+
+    const loading = '<div class="text-center p-4"><div class="spinner-border text-secondary" role="status"></div><p class="mt-2 text-muted">Loading Progress Notes...</p></div>';
+    const modal = createAndShowModal('viewNotesModal', 'View Progress Notes (Read Only)', loading, '', 'modal-xl');
+
+    const container = document.getElementById('viewNotesModal-body');
+    
+    // Always fetch ALL notes for the record (no filtering) since this is view-only
+    fetch(`/staff/post-procedural/progress-notes/${recordId}`)
+        .then(r => {
+            if (!r.ok) {
+                throw new Error(`HTTP error! status: ${r.status}`);
+            }
+            return r.json();
+        })
+        .then(res => {
+            console.log('Progress notes response:', res);
+            const notes = (res && res.data) ? (Array.isArray(res.data) ? res.data : [res.data]) : [];
+
+            if (notes.length > 0) {
+                if (typeof renderProgressNotesView === 'function') {
+                    container.innerHTML = renderProgressNotesView(notes);
+                } else {
+                    container.innerHTML = '<div class="alert alert-info">Notes renderer missing.</div>';
+                }
+                // Show access denied message
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-warning mb-3';
+                alert.innerHTML = '<i class="bi bi-exclamation-triangle me-2"></i><strong>View Only:</strong> You do not have permission to edit patient records.';
+                container.insertBefore(alert, container.firstChild);
+            } else {
+                container.innerHTML = '<div class="alert alert-info">No progress notes found.</div>';
+                // Show access denied message even when no notes
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-warning mb-3';
+                alert.innerHTML = '<i class="bi bi-exclamation-triangle me-2"></i><strong>View Only:</strong> You do not have permission to edit patient records.';
+                container.insertBefore(alert, container.firstChild);
+            }
+        })
+        .catch((error) => {
+            console.error('Error fetching progress notes:', error);
+            container.innerHTML = '<div class="alert alert-danger">Error loading progress notes.</div>';
+        });
+}
+
 // Load patient records on page load
 document.addEventListener('DOMContentLoaded', function() {
     loadPatientRecords();
+    
+    // Handle entries per page change
+    const entriesPerPageSelect = document.getElementById('entriesPerPage');
+    if (entriesPerPageSelect) {
+        entriesPerPageSelect.addEventListener('change', function() {
+            const perPage = this.value;
+            const url = new URL(window.location.href);
+            url.searchParams.set('per_page', perPage);
+            url.searchParams.set('page', '1'); // Reset to first page
+            window.location.href = url.toString();
+        });
+    }
 });
 
 </script>
@@ -6961,14 +8789,16 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .post-procedural-table tbody tr {
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid #e9ecef;
     transition: all 0.2s ease;
+    background: white;
 }
 
 .post-procedural-table tbody tr:hover {
-    background: #f8f9ff !important;
+    background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%) !important;
     transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 3px 8px rgba(102, 126, 234, 0.1);
+    border-left: 3px solid #667eea;
 }
 
 .post-procedural-table tbody td {
@@ -7036,6 +8866,12 @@ document.addEventListener('DOMContentLoaded', function() {
     white-space: normal !important;
 }
 
+/* Treatment column (3rd column) - allow wrapping */
+.post-procedural-table tbody td:nth-child(3) {
+    white-space: normal !important;
+    word-wrap: break-word;
+}
+
 .post-procedural-table .badge {
     padding: 0.25rem 0.5rem;
     font-weight: 500;
@@ -7051,27 +8887,79 @@ document.addEventListener('DOMContentLoaded', function() {
     color: white;
 }
 
+/* Treatment Badge Styling */
+.post-procedural-table .treatment-badge {
+    background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%) !important;
+    color: white !important;
+    font-weight: 600;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(32, 201, 151, 0.2);
+    white-space: normal;
+    word-wrap: break-word;
+    max-width: 100%;
+    display: inline-block;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+    line-height: 1.3;
+    transition: all 0.2s ease;
+}
+
+.post-procedural-table .treatment-badge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(32, 201, 151, 0.3);
+}
+
+.post-procedural-table .treatment-badge i {
+    font-size: 0.75rem;
+    margin-right: 0.25rem;
+}
+
+/* Date Column Styling */
+.post-procedural-table tbody td:nth-child(4) {
+    white-space: nowrap;
+}
+
+.post-procedural-table tbody td:nth-child(4) i {
+    color: #6c757d;
+    font-size: 0.75rem;
+    margin-right: 0.25rem;
+}
+
 .post-procedural-table .no-data-badge {
     background: #f8f9fa !important;
     color: #6c757d !important;
     border: 1px solid #dee2e6 !important;
     padding: 0.3rem 0.5rem;
     font-size: 0.7rem;
+    display: inline-block;
+}
+
+.post-procedural-table .no-data-badge::before,
+.post-procedural-table .no-data-badge::after {
+    content: none !important;
+    display: none !important;
+}
+
+.post-procedural-table .no-data-badge i,
+.post-procedural-table .no-data-badge .bi,
+.post-procedural-table .no-data-badge [class*="icon"] {
+    display: none !important;
 }
 
 .post-procedural-table .edit-action-btn {
-    border-radius: 4px;
+    border-radius: 6px;
     font-weight: 500;
-    padding: 0.35rem 0.5rem;
+    padding: 0.4rem 0.6rem;
     transition: all 0.2s ease;
     border-width: 1.5px;
-    font-size: 0.8rem;
-    width: 36px;
-    height: 36px;
+    font-size: 0.85rem;
+    width: 38px;
+    height: 38px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .post-procedural-table .edit-action-btn:hover {
@@ -7094,6 +8982,12 @@ document.addEventListener('DOMContentLoaded', function() {
 .post-procedural-table .edit-action-btn.btn-outline-secondary:hover {
     background: linear-gradient(135deg, #6c757d 0%, #5c636a 100%);
     border-color: #6c757d;
+    color: white;
+}
+
+.post-procedural-table .edit-action-btn.btn-outline-danger:hover {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    border-color: #dc3545;
     color: white;
 }
 
@@ -7139,12 +9033,6 @@ document.addEventListener('DOMContentLoaded', function() {
     .post-procedural-table .edit-action-btn {
         padding: 0.3rem 0.5rem;
         font-size: 0.75rem;
-    }
-
-    .post-procedural-table .edit-action-btn i {
-        margin: 0 !important;
-        font-size: 0.85rem;
-    }
 }
 
 .post-procedural-table .edit-action-btn i {
@@ -7205,6 +9093,18 @@ document.addEventListener('DOMContentLoaded', function() {
     background: var(--dm-input-bg, #0f172a) !important;
     color: var(--dm-text-muted, #94a3b8) !important;
     border-color: var(--dm-border-color, #334155) !important;
+}
+
+[data-theme="dark"] .post-procedural-table .no-data-badge::before,
+[data-theme="dark"] .post-procedural-table .no-data-badge::after {
+    content: none !important;
+    display: none !important;
+}
+
+[data-theme="dark"] .post-procedural-table .no-data-badge i,
+[data-theme="dark"] .post-procedural-table .no-data-badge .bi,
+[data-theme="dark"] .post-procedural-table .no-data-badge [class*="icon"] {
+    display: none !important;
 }
 
 [data-theme="dark"] .post-procedural-table .fw-semibold {
@@ -7661,4 +9561,3 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 </style>
 @endsection
-

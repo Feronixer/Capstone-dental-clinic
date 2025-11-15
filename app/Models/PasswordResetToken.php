@@ -49,7 +49,7 @@ class PasswordResetToken extends Model
     public static function createOrUpdate($email)
     {
         $token = self::generateToken();
-        $expiresAt = Carbon::now()->addMinutes(15); // Token expires in 15 minutes
+        $expiresAt = Carbon::now()->addMinutes(30); // Token expires in 30 minutes
 
         return self::updateOrCreate(
             ['email' => $email],

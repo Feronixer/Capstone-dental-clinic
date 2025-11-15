@@ -1391,20 +1391,6 @@
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="price" class="form-label fw-semibold">
-                                <i class="bi bi-currency-peso text-success me-2"></i>Price <span class="text-danger">*</span>
-                            </label>
-                            <div class="input-group input-group-lg">
-                                <span class="input-group-text bg-light fw-bold">₱</span>
-                                <input type="number" class="form-control" id="price" name="price"
-                                       step="0.01" min="0" placeholder="0.00" required>
-                            </div>
-                            <small class="form-text text-muted">
-                                <i class="bi bi-info-circle me-1"></i>Enter the service price in Philippine Peso
-                            </small>
-                        </div>
-
-                        <div class="col-md-6 mb-3">
                             <label for="default_duration_minutes" class="form-label fw-semibold">
                                 <i class="bi bi-clock text-info me-2"></i>Duration (minutes) <span class="text-danger">*</span>
                             </label>
@@ -1499,20 +1485,6 @@
                     </div>
 
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="edit_price" class="form-label fw-semibold">
-                                <i class="bi bi-currency-peso text-success me-2"></i>Price <span class="text-danger">*</span>
-                            </label>
-                            <div class="input-group input-group-lg">
-                                <span class="input-group-text bg-light fw-bold">₱</span>
-                                <input type="number" class="form-control" id="edit_price" name="price"
-                                       step="0.01" min="0" placeholder="0.00" required>
-                            </div>
-                            <small class="form-text text-muted">
-                                <i class="bi bi-info-circle me-1"></i>Enter the service price in Philippine Peso
-                            </small>
-                        </div>
-
                         <div class="col-md-6 mb-3">
                             <label for="edit_default_duration_minutes" class="form-label fw-semibold">
                                 <i class="bi bi-clock text-info me-2"></i>Duration (minutes) <span class="text-danger">*</span>
@@ -1781,7 +1753,7 @@ document.getElementById('isWholeDay')?.addEventListener('change', function() {
 document.getElementById('dateEnd')?.addEventListener('change', function() {
     const dateStart = document.getElementById('dateStart').value;
     if (dateStart && this.value && this.value < dateStart) {
-        alert('End date cannot be before start date');
+        showWarningModal('End date cannot be before start date');
         this.value = '';
     }
 });
@@ -1905,7 +1877,6 @@ function editService(id) {
     document.getElementById('edit_service_id').value = service.id;
     document.getElementById('edit_service_name').value = service.service_name;
     document.getElementById('edit_icon_class').value = service.icon_class || '';
-    document.getElementById('edit_price').value = service.price;
     document.getElementById('edit_default_duration_minutes').value = service.default_duration_minutes;
     document.getElementById('edit_description').value = service.description;
 
@@ -2025,7 +1996,19 @@ function showToast(message, type = 'info') {
 }
 
 // Save Mail Template Function
-function saveMailTemplate(type) {
+async function saveMailTemplate(type) {
+    // Show confirmation modal before saving
+    const confirmed = await showConfirmModal('Are you sure you want to save changes to this mail template?', {
+        title: 'Confirm Save',
+        icon: 'check-circle',
+        type: 'success',
+        okText: 'Yes, Save Changes'
+    });
+
+    if (!confirmed) {
+        return; // User cancelled
+    }
+
     const textarea = document.querySelector(`[data-type="${type}"]`);
     if (!textarea) {
         showToast('Template textarea not found', 'error');
@@ -3091,6 +3074,149 @@ editService = function(id) {
 
 [data-theme="dark"] .email-preview-header i {
     color: white !important;
+}
+</style>
+
+<!-- Generic Warning Modal -->
+<div class="modal fade" id="genericWarningModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                <h5 class="modal-title text-white">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Warning
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-4">
+                    <div class="mx-auto mb-3" style="width: 80px; height: 80px; background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-exclamation-triangle-fill text-warning" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <p class="text-muted mb-0" id="genericWarningMessage"></p>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-warning" data-bs-dismiss="modal">
+                    <i class="bi bi-check-circle me-1"></i>OK
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Generic Warning Modal Function
+function showWarningModal(message) {
+    const modal = new bootstrap.Modal(document.getElementById('genericWarningModal'));
+    document.getElementById('genericWarningMessage').textContent = message;
+    modal.show();
+}
+
+// Generic Confirmation Modal Function
+function showConfirmModal(message, options = {}) {
+    return new Promise((resolve) => {
+        const title = options.title || 'Confirm Action';
+        const icon = options.icon || 'question-circle';
+        const type = options.type || 'primary';
+        const okText = options.okText || 'Yes, Continue';
+        const cancelText = options.cancelText || 'Cancel';
+
+        // Create modal HTML if it doesn't exist
+        let modalElement = document.getElementById('genericConfirmModal');
+        if (!modalElement) {
+            modalElement = document.createElement('div');
+            modalElement.id = 'genericConfirmModal';
+            modalElement.className = 'modal fade';
+            modalElement.innerHTML = `
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header border-0 pb-0" style="background: linear-gradient(135deg, ${type === 'danger' ? '#ef4444, #dc2626' : type === 'success' ? '#10b981, #059669' : '#3b82f6, #2563eb'});">
+                            <h5 class="modal-title text-white">
+                                <i class="bi bi-${icon}-fill me-2"></i>${title}
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body text-center py-4">
+                            <div class="mb-4">
+                                <div class="mx-auto mb-3" style="width: 80px; height: 80px; background: linear-gradient(135deg, ${type === 'danger' ? '#fee2e2, #fecaca' : type === 'success' ? '#d1fae5, #a7f3d0' : '#dbeafe, #bfdbfe'}); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                    <i class="bi bi-${icon}-fill text-${type === 'danger' ? 'danger' : type === 'success' ? 'success' : 'primary'}" style="font-size: 2.5rem;"></i>
+                                </div>
+                                <p class="text-muted mb-0" id="genericConfirmMessage" style="font-size: 1.1rem; white-space: pre-line;"></p>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 pt-0">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">${cancelText}</button>
+                            <button type="button" class="btn btn-${type === 'danger' ? 'danger' : type === 'success' ? 'success' : 'primary'}" id="genericConfirmOkBtn">${okText}</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modalElement);
+        }
+
+        // Set message
+        document.getElementById('genericConfirmMessage').textContent = message;
+
+        // Remove old event listeners
+        const okBtn = document.getElementById('genericConfirmOkBtn');
+        const newOkBtn = okBtn.cloneNode(true);
+        okBtn.parentNode.replaceChild(newOkBtn, okBtn);
+
+        // Add event listeners
+        const modal = new bootstrap.Modal(modalElement);
+        
+        newOkBtn.addEventListener('click', function() {
+            modal.hide();
+            resolve(true);
+        });
+
+        modalElement.addEventListener('hidden.bs.modal', function() {
+            resolve(false);
+        }, { once: true });
+
+        modal.show();
+    });
+}
+</script>
+
+<style>
+/* Dark Mode Styles for Generic Modals */
+[data-theme="dark"] #genericWarningModal .modal-content,
+[data-theme="dark"] #genericErrorModal .modal-content,
+[data-theme="dark"] #genericInfoModal .modal-content,
+[data-theme="dark"] #genericConfirmModal .modal-content {
+    background-color: #1e293b !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] #genericWarningModal .modal-body,
+[data-theme="dark"] #genericErrorModal .modal-body,
+[data-theme="dark"] #genericInfoModal .modal-body,
+[data-theme="dark"] #genericConfirmModal .modal-body {
+    background-color: #1e293b !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] #genericWarningModal .modal-footer,
+[data-theme="dark"] #genericErrorModal .modal-footer,
+[data-theme="dark"] #genericInfoModal .modal-footer,
+[data-theme="dark"] #genericConfirmModal .modal-footer {
+    background-color: #1e293b !important;
+    border-top: 1px solid #334155 !important;
+}
+
+[data-theme="dark"] #genericWarningModal .text-muted,
+[data-theme="dark"] #genericErrorModal .text-muted,
+[data-theme="dark"] #genericInfoModal .text-muted,
+[data-theme="dark"] #genericConfirmModal .text-muted {
+    color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] #genericWarningModal #genericWarningMessage,
+[data-theme="dark"] #genericErrorModal #genericErrorMessage,
+[data-theme="dark"] #genericInfoModal #genericInfoMessage,
+[data-theme="dark"] #genericConfirmModal #genericConfirmMessage {
+    color: #cbd5e1 !important;
 }
 </style>
 

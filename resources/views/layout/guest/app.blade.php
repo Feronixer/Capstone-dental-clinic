@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>ToothTalk JValera - @yield('title', 'Premium Dental Care')</title>
+    <title>ToothTalk - @yield('title', 'Premium Dental Care')</title>
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="{{ asset('images/logo4.png') }}">
     <link rel="shortcut icon" type="image/png" href="{{ asset('images/logo4.png') }}">
@@ -46,8 +46,28 @@
             text-decoration: none;
         }
 
+        .logo-text-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
         .logo span {
             font-weight: 800;
+        }
+
+        .clinic-subtitle {
+            font-size: 0.8rem;
+            opacity: 1;
+            color: #1976D2;
+            font-weight: 600;
+            margin-top: 1px;
+            line-height: 1.2;
+            display: block !important;
+            letter-spacing: 0.01em;
+            white-space: nowrap;
         }
 
         .logo-img {
@@ -530,6 +550,14 @@
                 width: 100%;
             }
 
+            .logo {
+                font-size: 1.3rem;
+            }
+
+            .clinic-subtitle {
+                font-size: 0.7rem !important;
+            }
+
             .nav-links {
                 display: none;
             }
@@ -697,7 +725,10 @@
     <nav class="navbar">
         <a href="{{ url('/') }}" class="logo">
             <img src="{{ asset('images/logo4.png') }}" alt="ToothTalk" class="logo-img">
-            <span>Tooth<span style="color: #26a69a;">Talk</span></span>
+            <div class="logo-text-wrapper">
+                <span>Tooth<span style="color: #26a69a;">Talk</span></span>
+                <span class="clinic-subtitle">JValera Dental Clinic</span>
+            </div>
         </a>
         <div class="nav-links">
             <a href="{{ url('/') }}" class="nav-btn {{ request()->is('/') ? 'primary' : 'secondary' }}">
@@ -728,7 +759,10 @@
         <div class="mobile-menu-header">
             <div class="logo" style="gap: 0.5rem; font-size: 1.1rem;">
                 <img src="{{ asset('images/logo4.png') }}" alt="ToothTalk" class="logo-img" style="width:40px;height:40px;">
-                <span>Tooth<span style="color:#26a69a;">Talk</span></span>
+                <div class="logo-text-wrapper">
+                    <span>Tooth<span style="color:#26a69a;">Talk</span></span>
+                    <span class="clinic-subtitle" style="font-size: 0.7rem;">JValera Dental Clinic</span>
+                </div>
             </div>
             <button id="guestMenuClose" class="mobile-menu-close" aria-label="Close menu">
                 <span class="burger-icon" id="guestMenuCloseIcon">

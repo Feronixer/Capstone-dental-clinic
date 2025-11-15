@@ -437,13 +437,33 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Blocked times are still shown as event items (not hidden) for visibility
                     let remainingSlots = Math.max(0, maxVisible - eventItems.length);
                     let hiddenBlockedCount = 0;
+                    
+                    // Get current time (use server time if available, otherwise client time)
+                    const now = typeof getServerTime === 'function' ? getServerTime() : new Date();
+                    
                     dayBlockedTimes.forEach(function(blocked) {
                         if (remainingSlots <= 0) {
                             hiddenBlockedCount++;
                             return;
                         }
-                        const startTime = new Date(blocked.start_datetime);
-                        const endTime = new Date(blocked.end_datetime);
+                        
+                        // Filter out past blocked times
+                        if (!blocked || !blocked.start_datetime || !blocked.end_datetime) {
+                            hiddenBlockedCount++;
+                            return;
+                        }
+                        
+                        const endTime = parseLocalDateTime(blocked.end_datetime);
+                        if (!endTime || isNaN(endTime.getTime()) || endTime < now) {
+                            hiddenBlockedCount++;
+                            return;
+                        }
+                        
+                        const startTime = parseLocalDateTime(blocked.start_datetime);
+                        if (!startTime || isNaN(startTime.getTime())) {
+                            hiddenBlockedCount++;
+                            return;
+                        }
                         // Check if it's a full day closure (00:00 to 23:59)
                         const isFullDayClosure = startTime.getHours() === 0 && startTime.getMinutes() === 0 &&
                                                  endTime.getHours() === 23 && endTime.getMinutes() === 59;
@@ -737,11 +757,22 @@ document.addEventListener('DOMContentLoaded', function() {
             day: 'numeric'
         });
         
+        // Get current time (use server time if available, otherwise client time)
+        const now = typeof getServerTime === 'function' ? getServerTime() : new Date();
+        
+        // Filter out past blocked times
+        const activeBlockedTimes = (blockedTimes || []).filter(function(blocked) {
+            if (!blocked || !blocked.start_datetime || !blocked.end_datetime) return false;
+            const endTime = parseLocalDateTime(blocked.end_datetime);
+            if (!endTime || isNaN(endTime.getTime())) return false;
+            return endTime >= now;
+        });
+        
         // Check if day is fully booked
-        const isFullyBooked = checkIfDayIsFullyBooked(dateStr, appointments, blockedTimes);
+        const isFullyBooked = checkIfDayIsFullyBooked(dateStr, appointments, activeBlockedTimes);
         
         // Check if there's a full day closure (clinic closed)
-        const hasFullDayClosure = blockedTimes && blockedTimes.length > 0 && blockedTimes.some(function(blocked) {
+        const hasFullDayClosure = activeBlockedTimes && activeBlockedTimes.length > 0 && activeBlockedTimes.some(function(blocked) {
             if (!blocked || !blocked.start_datetime || !blocked.end_datetime) return false;
             const startTime = parseLocalDateTime(blocked.start_datetime);
             const endTime = parseLocalDateTime(blocked.end_datetime);
@@ -779,7 +810,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="day-appointments-list">
         `;
         
-        if (appointments.length === 0 && blockedTimes.length === 0) {
+        if (appointments.length === 0 && activeBlockedTimes.length === 0) {
             modalContent += '<div class="text-center text-muted py-4">No appointments scheduled for this day.</div>';
         } else {
             // Show appointments
@@ -840,7 +871,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             // Show blocked times
-            blockedTimes.forEach(function(blocked) {
+            activeBlockedTimes.forEach(function(blocked) {
                 const blockStart = parseLocalDateTime(blocked.start_datetime);
                 const blockEnd = parseLocalDateTime(blocked.end_datetime);
                 
@@ -1015,9 +1046,20 @@ document.addEventListener('DOMContentLoaded', function() {
     function getBlockedTimesForDate(dateStr) {
         if (!window.blockedTimes) return [];
 
+        // Get current time (use server time if available, otherwise client time)
+        const now = typeof getServerTime === 'function' ? getServerTime() : new Date();
+
         return window.blockedTimes.filter(function(blocked) {
+            if (!blocked || !blocked.start_datetime || !blocked.end_datetime) return false;
+            
             const blockedDate = blocked.start_datetime.split(' ')[0];
-            return blockedDate === dateStr;
+            if (blockedDate !== dateStr) return false;
+            
+            // Filter out past blocked times - only show if end_datetime is in the future
+            const endTime = parseLocalDateTime(blocked.end_datetime);
+            if (!endTime || isNaN(endTime.getTime())) return false;
+            
+            return endTime >= now;
         });
     }
 
@@ -1977,10 +2019,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 return aptHours === hour;
             });
 
+            // Get current time (use server time if available, otherwise client time)
+            const now = typeof getServerTime === 'function' ? getServerTime() : new Date();
+            
             // Get blocked times for this hour (including full-day closures that should show at 8 AM)
             const hourBlockedTimes = dayBlockedTimes.filter(blocked => {
-                const startTime = new Date(blocked.start_datetime);
-                const endTime = new Date(blocked.end_datetime);
+                if (!blocked || !blocked.start_datetime || !blocked.end_datetime) return false;
+                
+                const startTime = parseLocalDateTime(blocked.start_datetime);
+                const endTime = parseLocalDateTime(blocked.end_datetime);
+                if (!startTime || !endTime || isNaN(startTime.getTime()) || isNaN(endTime.getTime())) return false;
+                
+                // Filter out past blocked times - only show if end_datetime is in the future
+                if (endTime < now) return false;
+                
                 // Check if it's a full day closure
                 const isFullDayClosure = startTime.getHours() === 0 && startTime.getMinutes() === 0 &&
                                          endTime.getHours() === 23 && endTime.getMinutes() === 59;

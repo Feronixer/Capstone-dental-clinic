@@ -453,7 +453,7 @@
     <!-- Statistics Cards -->
     <div class="row mb-4 g-3">
         <!-- Total Patient Load -->
-        <div class="col-xl-3 col-lg-6 col-md-6">
+        <div class="col-xl col-lg-4 col-md-6">
             <div class="card border-0 shadow-sm h-100 stat-card" style="border-top: 3px solid #0d6efd;">
                 <div class="card-body p-3">
                     <div class="d-flex align-items-center">
@@ -466,7 +466,6 @@
                         <div class="ms-3 flex-grow-1">
                             <p class="text-muted mb-1 small text-uppercase fw-semibold" style="letter-spacing: 0.5px; font-size: 0.7rem;">Patient Load</p>
                             <h3 class="fw-bold mb-0" style="font-size: clamp(1.25rem, 2.5vw, 1.75rem); color: #0d6efd; line-height: 1.2;">{{ $totalPatients }}</h3>
-                            <small class="text-muted" style="font-size: 0.75rem;">Active patients</small>
                         </div>
                     </div>
                 </div>
@@ -474,7 +473,7 @@
         </div>
 
         <!-- Today's Appointments -->
-        <div class="col-xl-3 col-lg-6 col-md-6">
+        <div class="col-xl col-lg-4 col-md-6">
             <div class="card border-0 shadow-sm h-100 stat-card" style="border-top: 3px solid #0dcaf0;">
                 <div class="card-body p-3">
                     <div class="d-flex align-items-center">
@@ -487,7 +486,6 @@
                         <div class="ms-3 flex-grow-1">
                             <p class="text-muted mb-1 small text-uppercase fw-semibold" style="letter-spacing: 0.5px; font-size: 0.7rem;">Today's Schedule</p>
                             <h3 class="fw-bold mb-0" style="font-size: clamp(1.25rem, 2.5vw, 1.75rem); color: #0dcaf0; line-height: 1.2;">{{ $todayAppointments }}</h3>
-                            <small class="text-muted" style="font-size: 0.75rem;">Appointments to manage</small>
                         </div>
                     </div>
                 </div>
@@ -495,7 +493,7 @@
         </div>
 
         <!-- Total Appointments -->
-        <div class="col-xl-3 col-lg-6 col-md-6">
+        <div class="col-xl col-lg-4 col-md-6">
             <div class="card border-0 shadow-sm h-100 stat-card" style="border-top: 3px solid #198754;">
                 <div class="card-body p-3">
                     <div class="d-flex align-items-center">
@@ -508,7 +506,6 @@
                         <div class="ms-3 flex-grow-1">
                             <p class="text-muted mb-1 small text-uppercase fw-semibold" style="letter-spacing: 0.5px; font-size: 0.7rem;">Total Appointments</p>
                             <h3 class="fw-bold mb-0" style="font-size: clamp(1.25rem, 2.5vw, 1.75rem); color: #198754; line-height: 1.2;">{{ $totalAppointments }}</h3>
-                            <small class="text-muted" style="font-size: 0.75rem;">All time</small>
                         </div>
                     </div>
                 </div>
@@ -516,7 +513,7 @@
         </div>
 
         <!-- Pending Actions -->
-        <div class="col-xl-3 col-lg-6 col-md-6">
+        <div class="col-xl col-lg-4 col-md-6">
             <div class="card border-0 shadow-sm h-100 stat-card" style="border-top: 3px solid #6c757d;">
                 <div class="card-body p-3">
                     <div class="d-flex align-items-center">
@@ -529,7 +526,27 @@
                         <div class="ms-3 flex-grow-1">
                             <p class="text-muted mb-1 small text-uppercase fw-semibold" style="letter-spacing: 0.5px; font-size: 0.7rem;">Pending</p>
                             <h3 class="fw-bold mb-0" style="font-size: clamp(1.25rem, 2.5vw, 1.75rem); color: #6c757d; line-height: 1.2;">{{ $pendingAppointments }}</h3>
-                            <small class="text-muted" style="font-size: 0.75rem;">Need confirmation</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cancelled Appointments -->
+        <div class="col-xl col-lg-4 col-md-6">
+            <div class="card border-0 shadow-sm h-100 stat-card" style="border-top: 3px solid #8B4513;">
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center stat-icon-wrapper"
+                                 style="width: 50px; height: 50px; background: linear-gradient(135deg, #8B4513 0%, #6B3410 100%); box-shadow: 0 3px 10px rgba(139, 69, 19, 0.25);">
+                                <i class="bi bi-x-circle-fill text-white" style="font-size: 1.5rem;"></i>
+                            </div>
+                        </div>
+                        <div class="ms-3 flex-grow-1">
+                            <p class="text-muted mb-1 small text-uppercase fw-semibold" style="letter-spacing: 0.5px; font-size: 0.7rem;">Cancelled</p>
+                            <p class="text-muted mb-1 small text-uppercase fw-semibold" style="letter-spacing: 0.5px; font-size: 0.7rem;">Appointments</p>
+                            <h3 class="fw-bold mb-0" style="font-size: clamp(1.25rem, 2.5vw, 1.75rem); color: #8B4513; line-height: 1.2;">{{ $cancelledAppointments }}</h3>
                         </div>
                     </div>
                 </div>

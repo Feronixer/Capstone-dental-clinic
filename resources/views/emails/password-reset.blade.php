@@ -88,13 +88,13 @@
         <div class="verification-code">
             <h3>Your Verification Code</h3>
             <div class="code">{{ $token }}</div>
-            <p><strong>This code will expire in 15 minutes.</strong></p>
+            <p><strong>This code will expire in 30 minutes.</strong></p>
         </div>
 
         <div class="warning">
             <strong>⚠️ Security Notice:</strong>
             <ul>
-                <li>This code is valid for 15 minutes only</li>
+                <li>This code is valid for 30 minutes only</li>
                 <li>Do not share this code with anyone</li>
                 <li>If you didn't request this reset, please ignore this email</li>
                 <li>For security reasons, this code can only be used once</li>

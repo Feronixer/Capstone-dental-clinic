@@ -14,6 +14,9 @@ use Carbon\Carbon;
 use App\Services\MailService;
 use App\Services\NotificationService;
 use Illuminate\Support\Facades\Auth;
+use App\Events\AppointmentCreated;
+use App\Events\AppointmentUpdated;
+use App\Events\AppointmentDeleted;
 // use Maatwebsite\Excel\Facades\Excel; // Removed - using CSV export instead
 
 class AppointmentController extends Controller
@@ -39,8 +42,25 @@ class AppointmentController extends Controller
         $patients = $this->getPatientsForView();
         $staff = $this->getStaffForView();
         $services = $this->getServicesForView();
+        
+        // Get Patient role for user management modal
+        $patientRole = \App\Models\Role::where('role', 'Patient')
+            ->orderBy('id', 'asc')
+            ->first();
+        $roles = $patientRole ? collect([$patientRole]) : collect([]);
 
-        return view("staff.appointment", compact('appointments', 'blockedTimes', 'patients', 'staff', 'services', 'currentMonth', 'currentYear'));
+        return view("staff.appointment", compact(
+            'appointments',
+            'blockedTimes',
+            'patients',
+            'staff',
+            'services',
+            'roles',
+            'currentMonth',
+            'currentYear',
+            'startDate',
+            'endDate'
+        ));
     }
 
     private function cleanupExpiredBlockedTimes(): void
@@ -60,7 +80,7 @@ class AppointmentController extends Controller
 
         if ($this->isInvalidDate($requestedDate, $serverNow, $requestedMonth, $requestedYear)) {
             return redirect()->route('staff-appointment', ['view' => request('view', 'month')])
-                ->with('error', 'Invalid date detected. Showing current month.');
+                ->with('error', 'Selected date is outside the supported range (past 12 months to future 24 months). Showing current month.');
         }
 
         $startDate = Carbon::create($requestedYear, $requestedMonth, 1)->startOfMonth()->subMonth();
@@ -72,16 +92,16 @@ class AppointmentController extends Controller
     private function isInvalidDate(Carbon $requestedDate, Carbon $serverNow, int $requestedMonth, int $requestedYear): bool
     {
         $maxFutureDate = $serverNow->copy()->addYears(2);
-        $suspiciousFutureDate = $serverNow->copy()->addDays(7);
         $minPastDate = $serverNow->copy()->subYear();
 
-        if (($requestedDate->gt($suspiciousFutureDate) && $requestedDate->month != $serverNow->month) ||
-            $requestedDate->gt($maxFutureDate) ||
-            $requestedDate->lt($minPastDate)) {
+        if ($requestedDate->gt($maxFutureDate) || $requestedDate->lt($minPastDate)) {
             \Log::warning('Invalid date requested', [
                 'requested_month' => $requestedMonth,
                 'requested_year' => $requestedYear,
-                'server_date' => $serverNow->format('Y-m-d H:i:s')
+                'server_date' => $serverNow->format('Y-m-d H:i:s'),
+                'max_future_allowed' => $maxFutureDate->format('Y-m-d'),
+                'min_past_allowed' => $minPastDate->format('Y-m-d'),
+                'days_difference' => $serverNow->diffInDays($requestedDate, false)
             ]);
             return true;
         }
@@ -94,7 +114,7 @@ class AppointmentController extends Controller
     private function getAppointmentsForView(Carbon $startDate, Carbon $endDate)
     {
         return Appointment::whereBetween('start_datetime', [$startDate, $endDate])
-            ->whereNotIn('status', ['blocked'])
+            ->whereNotIn('status', ['blocked', 'Cancelled'])
             ->with(['patient.info', 'service'])
             ->get()
             ->map(function($appointment) {
@@ -215,6 +235,7 @@ class AppointmentController extends Controller
         $end = Carbon::parse($request->end, 'Asia/Manila');
 
         $appointments = Appointment::whereBetween('start_datetime', [$start, $end])
+            ->where('status', '!=', 'Cancelled')
             ->with(['patient.info', 'service'])
             ->get()
             ->map(function($appointment) {
@@ -226,6 +247,54 @@ class AppointmentController extends Controller
             });
 
         return response()->json($appointments);
+    }
+
+    /**
+     * Get calendar data (appointments and blocked times) for a specific date range.
+     */
+    public function calendarData(Request $request): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'start' => 'required|date',
+                'end' => 'required|date',
+            ]);
+
+            $startDate = Carbon::parse($validated['start'], 'Asia/Manila')->startOfDay();
+            $endDate = Carbon::parse($validated['end'], 'Asia/Manila')->endOfDay();
+
+            if ($endDate->lt($startDate)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'The end date must be greater than or equal to the start date.',
+                ], 422);
+            }
+
+            $appointments = $this->getAppointmentsForView($startDate, $endDate)->values()->all();
+            $blockedTimes = $this->getBlockedTimesForView($startDate, $endDate)->values()->all();
+
+            return response()->json([
+                'success' => true,
+                'appointments' => $appointments,
+                'blocked_times' => $blockedTimes,
+                'range' => [
+                    'start' => $startDate->format('Y-m-d'),
+                    'end' => $endDate->format('Y-m-d'),
+                ],
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid date range supplied.',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Error fetching staff calendar data:', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load calendar data.'
+            ], 500);
+        }
     }
 
     /**
@@ -354,6 +423,16 @@ class AppointmentController extends Controller
                 ], 422);
             }
 
+            // Validate same-day procedure combinations
+            $sameDayValidation = $this->validateSameDayProcedureCombinations($request->patient_id, $request->service_id, $startDateTime);
+            if (!$sameDayValidation['valid']) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $sameDayValidation['message'],
+                    'errors' => ['service_id' => [$sameDayValidation['message']]]
+                ], 422);
+            }
+
             if ($overlappingAppointment) {
                 return response()->json([
                     'success' => false,
@@ -377,6 +456,18 @@ class AppointmentController extends Controller
             $appointment = Appointment::create($appointmentData);
 
             \Log::info('Appointment created successfully:', ['id' => $appointment->id]);
+
+            // Broadcast appointment created event
+            try {
+                $event = new AppointmentCreated(
+                    $appointment->fresh(['patient.info', 'service']),
+                    Auth::guard('staff')->id()
+                );
+                event($event);
+                \App\Http\Controllers\BroadcastController::storeEvent('appointment.created', $event->broadcastWith());
+            } catch (\Exception $e) {
+                \Log::error('Failed to broadcast appointment created event:', ['error' => $e->getMessage()]);
+            }
 
             // Log activity
             ActivityLog::log(
@@ -620,6 +711,20 @@ class AppointmentController extends Controller
             
             $oldValues = $appointment->toArray();
             $appointment->update($appointmentData);
+            $appointment->refresh();
+
+            // Broadcast appointment updated event
+            try {
+                $event = new AppointmentUpdated(
+                    $appointment->fresh(['patient.info', 'service']),
+                    $isRescheduling ? 'rescheduled' : 'updated',
+                    Auth::guard('staff')->id()
+                );
+                event($event);
+                \App\Http\Controllers\BroadcastController::storeEvent('appointment.updated', $event->broadcastWith());
+            } catch (\Exception $e) {
+                \Log::error('Failed to broadcast appointment updated event:', ['error' => $e->getMessage()]);
+            }
 
             // Log activity
             ActivityLog::log(
@@ -860,6 +965,20 @@ class AppointmentController extends Controller
             }
             
             $appointment->update($updateData);
+            $appointment->refresh();
+
+            // Broadcast appointment updated event
+            try {
+                $event = new AppointmentUpdated(
+                    $appointment->fresh(['patient.info', 'service']),
+                    'status_changed',
+                    Auth::guard('staff')->id()
+                );
+                event($event);
+                \App\Http\Controllers\BroadcastController::storeEvent('appointment.updated', $event->broadcastWith());
+            } catch (\Exception $e) {
+                \Log::error('Failed to broadcast appointment status updated event:', ['error' => $e->getMessage()]);
+            }
 
             // Log activity
             ActivityLog::log(
@@ -1468,5 +1587,39 @@ class AppointmentController extends Controller
         } catch (\Exception $e) {
             \Log::error('Error auto-cancelling stale pending appointments:', ['error' => $e->getMessage()]);
         }
+    }
+
+    /**
+     * Validate that the same procedure cannot be booked twice on the same day
+     */
+    private function validateSameDayProcedureCombinations($patientId, $serviceId, $startDateTime)
+    {
+        // If no service is selected, allow it (might be a custom reason_for_visit)
+        if (!$serviceId) {
+            return ['valid' => true, 'message' => ''];
+        }
+
+        // Get all appointments for this patient on the same day (excluding cancelled)
+        $sameDay = Carbon::parse($startDateTime)->startOfDay();
+        $sameDayEnd = Carbon::parse($startDateTime)->endOfDay();
+
+        $existingAppointment = Appointment::where('patient_id', $patientId)
+            ->where('service_id', $serviceId)
+            ->where('status', '!=', 'Cancelled')
+            ->whereBetween('start_datetime', [$sameDay, $sameDayEnd])
+            ->first();
+
+        // If patient already has the same procedure booked on this day, prevent booking
+        if ($existingAppointment) {
+            $service = Service::find($serviceId);
+            $serviceName = $service ? $service->service_name : 'this procedure';
+            
+            return [
+                'valid' => false,
+                'message' => "You cannot book the same procedure ({$serviceName}) twice on the same day."
+            ];
+        }
+
+        return ['valid' => true, 'message' => ''];
     }
 }
