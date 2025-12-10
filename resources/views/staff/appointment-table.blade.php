@@ -110,10 +110,10 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
-                    <!-- Table Controls (Show Entry & Search) -->
+                    <!-- Table Controls (Show Entry, Sort Order & Search) -->
                     <div class="table-controls mb-3">
                         <div class="row g-3 align-items-center">
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label for="per_page" class="form-label fw-medium mb-0">
                                     <i class="bi bi-list-ul me-1"></i>Show:
                                 </label>
@@ -126,7 +126,16 @@
                                 </select>
                                 <span class="ms-2">entries</span>
                             </div>
-                            <div class="col-md-8 text-end">
+                            <div class="col-md-3">
+                                <label for="sort_order" class="form-label fw-medium mb-0">
+                                    <i class="bi bi-sort-down me-1"></i>Sort:
+                                </label>
+                                <select class="form-select table-control-select" id="sort_order" name="sort_order" onchange="updateSortOrder(this.value)">
+                                    <option value="desc" {{ (request('sort_order', 'desc') == 'desc') ? 'selected' : '' }}>Newest to Oldest</option>
+                                    <option value="asc" {{ (request('sort_order', 'desc') == 'asc') ? 'selected' : '' }}>Oldest to Newest</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 text-end">
                                 <label for="search" class="form-label fw-medium mb-0">
                                     <i class="bi bi-search me-1"></i>Search:
                                 </label>
@@ -468,6 +477,17 @@ function performSearch() {
     window.location.href = url.toString();
 }
 
+function updateSortOrder(value) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('sort_order', value);
+    url.searchParams.set('page', '1'); // Reset to first page
+    // Preserve current sort_by if it exists, otherwise use default
+    if (!url.searchParams.has('sort_by')) {
+        url.searchParams.set('sort_by', 'start_datetime');
+    }
+    window.location.href = url.toString();
+}
+
 function renderActiveFilters() {
     const container = document.getElementById('activeFilters');
     if (!container) return;
@@ -501,6 +521,12 @@ function initializeSorting() {
     const params = new URLSearchParams(window.location.search);
     const currentSort = params.get('sort_by');
     const currentOrder = params.get('sort_order') || 'desc';
+
+    // Update sort order dropdown to reflect current order
+    const sortOrderSelect = document.getElementById('sort_order');
+    if (sortOrderSelect) {
+        sortOrderSelect.value = currentOrder;
+    }
 
     // Update sort icons based on current sort
     document.querySelectorAll('.sortable-header').forEach(header => {

@@ -6,18 +6,18 @@
     <!-- Header Section -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div>
-                    <h1 class="h2 text-dark fw-bold mb-2">Appointments Table</h1>
+            <div class="appointment-header d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+                <div class="header-text text-start">
+                    <h1 class="h2 text-dark fw-bold mb-1">Appointments Table</h1>
                     <p class="text-muted mb-0">
                         {{ $appointments->count() }} appointment(s) found
                     </p>
                 </div>
-                <div class="d-flex gap-2">
-                    <a href="{{ route('admin-appointment') }}" class="btn btn-outline-secondary">
+                <div class="header-actions d-flex gap-2">
+                    <a href="{{ route('admin-appointment') }}" class="btn btn-outline-secondary header-action-btn">
                         <i class="bi bi-calendar3 me-1"></i>Calendar View
                     </a>
-                    <a href="{{ route('admin-appointment.export-excel', request()->all()) }}" class="btn btn-success">
+                    <a href="{{ route('admin-appointment.export-excel', request()->all()) }}" class="btn btn-success header-action-btn">
                         <i class="bi bi-file-earmark-excel me-1"></i>Export to Excel
                     </a>
                 </div>
@@ -32,13 +32,12 @@
                 <div class="card-header bg-white border-bottom">
                     <h5 class="mb-0 text-primary fw-bold"><i class="bi bi-funnel me-2"></i>Filter Options</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body py-2">
                 <form method="GET" action="{{ route('admin-appointment.table') }}" id="filterForm">
-                    <div class="row g-3">
-                        <div class="col-lg-3 col-md-6">
-                            <label for="status" class="form-label fw-medium"><i class="bi bi-flag me-1"></i>Status</label>
-                            <div class="select-wrapper">
-                            <select class="form-select modern-select" id="status" name="status">
+                    <div class="d-flex flex-wrap align-items-center gap-1 filters-row">
+                        <div class="filter-item">
+                            <label for="status" class="form-label fw-medium mb-1 small"><i class="bi bi-flag me-1"></i>Status</label>
+                            <select class="form-select modern-select compact-select" id="status" name="status">
                                 <option value="all" {{ request('status') == 'all' || !request('status') ? 'selected' : '' }}>All ({{ $statusCounts['all'] ?? 0 }})</option>
                                 <option value="Pending" {{ request('status') == 'Pending' ? 'selected' : '' }}>Pending ({{ $statusCounts['Pending'] ?? 0 }})</option>
                                 <option value="Confirmed" {{ request('status') == 'Confirmed' ? 'selected' : '' }}>Confirmed ({{ $statusCounts['Confirmed'] ?? 0 }})</option>
@@ -46,57 +45,46 @@
                                 <option value="Cancelled" {{ request('status') == 'Cancelled' ? 'selected' : '' }}>Cancelled ({{ $statusCounts['Cancelled'] ?? 0 }})</option>
                                 <option value="Missed" {{ request('status') == 'Missed' ? 'selected' : '' }}>Missed ({{ $statusCounts['Missed'] ?? 0 }})</option>
                             </select>
-                            </div>
                         </div>
 
-                        <div class="col-lg-3 col-md-6">
-                            <label for="rescheduled" class="form-label fw-medium"><i class="bi bi-arrow-repeat me-1"></i>Rescheduled</label>
-                            <div class="select-wrapper">
-                            <select class="form-select modern-select" id="rescheduled" name="rescheduled">
+                        <div class="filter-item">
+                            <label for="rescheduled" class="form-label fw-medium mb-1 small"><i class="bi bi-arrow-repeat me-1"></i>Rescheduled</label>
+                            <select class="form-select modern-select compact-select" id="rescheduled" name="rescheduled">
                                 <option value="all" {{ request('rescheduled') == 'all' || !request('rescheduled') ? 'selected' : '' }}>All</option>
                                 <option value="yes" {{ request('rescheduled') == 'yes' ? 'selected' : '' }}>Yes ({{ $rescheduledCount ?? 0 }})</option>
                                 <option value="no" {{ request('rescheduled') == 'no' ? 'selected' : '' }}>No</option>
                             </select>
-                            </div>
                         </div>
 
-                        <div class="col-lg-3 col-md-6">
-                            <label for="emergency" class="form-label fw-medium"><i class="bi bi-exclamation-triangle me-1"></i>Emergency</label>
-                            <div class="select-wrapper">
-                            <select class="form-select modern-select" id="emergency" name="emergency">
+                        <div class="filter-item">
+                            <label for="emergency" class="form-label fw-medium mb-1 small"><i class="bi bi-exclamation-triangle me-1"></i>Emergency</label>
+                            <select class="form-select modern-select compact-select" id="emergency" name="emergency">
                                 <option value="all" {{ request('emergency') == 'all' || !request('emergency') ? 'selected' : '' }}>All</option>
                                 <option value="yes" {{ request('emergency') == 'yes' ? 'selected' : '' }}>Yes ({{ $emergencyCount ?? 0 }})</option>
                                 <option value="no" {{ request('emergency') == 'no' ? 'selected' : '' }}>No</option>
                             </select>
-                            </div>
                         </div>
 
-                        <div class="col-lg-3 col-md-6">
-                            <label for="month" class="form-label fw-medium"><i class="bi bi-calendar-month me-1"></i>Month</label>
-                            <div class="select-wrapper">
-                            <select class="form-select modern-select" id="month" name="month">
+                        <div class="filter-item">
+                            <label for="month" class="form-label fw-medium mb-1 small"><i class="bi bi-calendar-month me-1"></i>Month</label>
+                            <select class="form-select modern-select compact-select" id="month" name="month">
                                 <option value="all" {{ request('month') == 'all' || !request('month') ? 'selected' : '' }}>All</option>
                                 @foreach($availableMonths ?? [] as $monthOption)
                                     <option value="{{ $monthOption['value'] }}" {{ request('month') == $monthOption['value'] ? 'selected' : '' }}>{{ $monthOption['label'] }}</option>
                                 @endforeach
                             </select>
-                            </div>
                         </div>
-                    </div>
 
-                    <div class="row g-3 mt-1">
-                        <div class="col-md-8">
-                            <div class="active-filters" id="activeFilters"></div>
-                        </div>
-                        <div class="col-md-4 text-end">
-                            <button type="button" class="btn btn-outline-secondary btn-modern me-2" onclick="resetFilters()">
-                                <i class="bi bi-arrow-clockwise me-2"></i>Reset
+                        <div class="filter-actions ms-auto">
+                            <button type="button" class="btn btn-outline-secondary btn-sm me-2" onclick="resetFilters()">
+                                <i class="bi bi-arrow-clockwise me-1"></i>Reset
                             </button>
-                            <button type="button" class="btn btn-primary btn-modern" onclick="document.getElementById('filterForm').submit();">
-                                <i class="bi bi-funnel-fill me-2"></i>Apply Filters
+                            <button type="button" class="btn btn-primary btn-sm" onclick="document.getElementById('filterForm').submit();">
+                                <i class="bi bi-funnel-fill me-1"></i>Apply Filters
                             </button>
                         </div>
                     </div>
+                    <div class="active-filters mt-2" id="activeFilters"></div>
                 </form>
                 </div>
             </div>
@@ -108,10 +96,10 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
-                    <!-- Table Controls (Show Entry & Search) -->
+                    <!-- Table Controls (Show Entry, Sort Order & Search) -->
                     <div class="table-controls mb-3">
                         <div class="row g-3 align-items-center">
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label for="per_page" class="form-label fw-medium mb-0">
                                     <i class="bi bi-list-ul me-1"></i>Show:
                                 </label>
@@ -124,7 +112,16 @@
                                 </select>
                                 <span class="ms-2">entries</span>
                             </div>
-                            <div class="col-md-8 text-end">
+                            <div class="col-md-3">
+                                <label for="sort_order_table" class="form-label fw-medium mb-0">
+                                    <i class="bi bi-sort-down me-1"></i>Sort:
+                                </label>
+                                <select class="form-select table-control-select" id="sort_order_table" name="sort_order_table" onchange="updateSortOrder(this.value)">
+                                    <option value="desc" {{ (request('sort_order', 'desc') == 'desc') ? 'selected' : '' }}>Newest to Oldest</option>
+                                    <option value="asc" {{ (request('sort_order', 'desc') == 'asc') ? 'selected' : '' }}>Oldest to Newest</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 text-end">
                                 <label for="search" class="form-label fw-medium mb-0">
                                     <i class="bi bi-search me-1"></i>Search:
                                 </label>
@@ -139,7 +136,7 @@
                         </div>
                     </div>
 
-                    <div class="table-responsive">
+                    <div class="table-responsive mobile-table-scroll">
                         <table class="table table-hover appointment-table" id="appointmentsTable">
                             <thead>
                                 <tr>
@@ -657,6 +654,17 @@ function performSearch() {
     window.location.href = url.toString();
 }
 
+function updateSortOrder(value) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('sort_order', value);
+    url.searchParams.set('page', '1'); // Reset to first page
+    // Preserve current sort_by if it exists, otherwise use default
+    if (!url.searchParams.has('sort_by')) {
+        url.searchParams.set('sort_by', 'start_datetime');
+    }
+    window.location.href = url.toString();
+}
+
 function renderActiveFilters() {
     const container = document.getElementById('activeFilters');
     if (!container) return;
@@ -684,12 +692,27 @@ function renderActiveFilters() {
             container.appendChild(pill);
         }
     });
+    
+    // Show sort order only if it's not the default (desc = newest to oldest)
+    const sortOrder = params.get('sort_order');
+    if (sortOrder === 'asc') {
+        const pill = document.createElement('span');
+        pill.className = 'filter-pill';
+        pill.textContent = 'Sort: Oldest to Newest';
+        container.appendChild(pill);
+    }
 }
 
 function initializeSorting() {
     const params = new URLSearchParams(window.location.search);
     const currentSort = params.get('sort_by');
     const currentOrder = params.get('sort_order') || 'desc';
+
+    // Update sort order dropdown to reflect current order
+    const sortOrderSelect = document.getElementById('sort_order_table');
+    if (sortOrderSelect) {
+        sortOrderSelect.value = currentOrder;
+    }
 
     // Update sort icons based on current sort
     document.querySelectorAll('.sortable-header').forEach(header => {
@@ -810,7 +833,7 @@ function initializeSorting() {
     -ms-appearance: none !important;
     font-size: 0.9rem;
     cursor: pointer;
-    width: 100%;
+    width: 150px;
     position: relative;
     z-index: 1;
 }
@@ -1624,6 +1647,72 @@ function showErrorModal(message) {
 [data-theme="dark"] #genericInfoModal #genericInfoMessage,
 [data-theme="dark"] #genericConfirmModal #genericConfirmMessage {
     color: #cbd5e1 !important;
+}
+
+/* Mobile Responsive Styles for Appointments Table */
+@media (max-width: 768px) {
+    /* Ensure proper spacing on mobile */
+    .container-fluid.px-4.py-4 {
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+    }
+
+    /* Header buttons stack on mobile */
+    .d-flex.justify-content-between.align-items-center .d-flex.gap-2 {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .d-flex.justify-content-between.align-items-center .d-flex.gap-2 .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Filter form adjustments */
+    .filters-section .row.g-3 > div {
+        margin-bottom: 1rem;
+        
+    }
+
+    /* Active filters section */
+    .active-filters {
+        margin-bottom: 1rem;
+    }
+
+    /* Table controls stack vertically */
+    .table-controls .row.g-3.align-items-center {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+
+    .table-controls .col-md-3,
+    .table-controls .col-md-6 {
+        width: 100% !important;
+        margin-bottom: 1rem;
+    }
+
+    .table-controls .col-md-6.text-end {
+        text-align: left !important;
+    }
+}
+
+@media (max-width: 576px) {
+    /* Extra small screens */
+    .container-fluid.px-4.py-4 {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+
+    /* Smaller text on very small screens */
+    h1.h2 {
+        font-size: 1.25rem !important;
+    }
+
+    /* Compact buttons */
+    .btn {
+        font-size: 0.8125rem;
+        padding: 0.45rem 0.65rem;
+    }
 }
 </style>
 

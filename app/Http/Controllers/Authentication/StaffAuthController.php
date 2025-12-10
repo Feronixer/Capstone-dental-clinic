@@ -48,7 +48,7 @@ class StaffAuthController extends Controller
 
         if (!$user) {
             return back()->withErrors([
-                'error' => 'Invalid staff credentials. Please check your email/username and password.',
+                'error' => 'Account does not exist. Please check your email/username.',
             ])->withInput($request->only('email_username'));
         }
 
@@ -92,7 +92,7 @@ class StaffAuthController extends Controller
         }
 
         return back()->withErrors([
-            'error' => 'Invalid staff credentials. Please check your email/username and password.',
+            'error' => 'Wrong credentials. Please check your password.',
         ])->withInput($request->only('email_username'));
     }
 
@@ -140,6 +140,13 @@ class StaffAuthController extends Controller
         if (!Hash::check($request->current_password, $user->password)) {
             return back()->withErrors([
                 'current_password' => 'The current password is incorrect.',
+            ]);
+        }
+
+        // Check if new password is the same as old password
+        if (Hash::check($request->new_password, $user->password)) {
+            return back()->withErrors([
+                'new_password' => 'The new password must be different from your current password.',
             ]);
         }
 
@@ -302,6 +309,13 @@ class StaffAuthController extends Controller
 
         if (!$user) {
             return redirect()->route('staff.password.forgot')->withErrors(['error' => 'Staff account not found.']);
+        }
+
+        // Check if new password is the same as old password
+        if (Hash::check($request->password, $user->password)) {
+            return back()->withErrors([
+                'password' => 'The new password must be different from your current password.',
+            ]);
         }
 
         // Update password

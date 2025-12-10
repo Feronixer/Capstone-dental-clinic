@@ -10702,6 +10702,7 @@ window.patientAppointments = Array.isArray(appointmentsData) ? appointmentsData 
 window.allAppointments = Array.isArray(allAppointmentsData) ? allAppointmentsData : Object.values(allAppointmentsData || []);
 window.blockedTimes = Array.isArray(blockedTimesData) ? blockedTimesData : Object.values(blockedTimesData || []);
 
+
 // Debug: Verify data is loaded AFTER processing
 console.log('=== BLADE TEMPLATE: Processed Data ===');
 console.log('window.patientAppointments:', window.patientAppointments ? window.patientAppointments.length : 0, 'appointments');
@@ -13326,7 +13327,12 @@ document.addEventListener('DOMContentLoaded', function() {
             return `${h}:${pad2(m)} ${ap}`;
         };
 
-        const allAppointments = Array.isArray(window.allAppointments) ? window.allAppointments : [];
+        // Filter cancelled appointments - they should not appear in calendar
+        const allAppointments = (Array.isArray(window.allAppointments) ? window.allAppointments : [])
+            .filter(apt => {
+                const status = (apt.status || '').toString().toLowerCase();
+                return status !== 'cancelled';
+            });
         if (!allAppointments.length) return; // Early return if no appointments data
 
         const allItems = grids.flatMap(grid => Array.from(grid.querySelectorAll('.event-item')));
@@ -13358,7 +13364,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const startMinutes = parseDisplayTimeToMinutes(current);
             if (startMinutes === null) return;
 
-            // Find matching appointment
+            // Find matching appointment (already filtered for cancelled above)
             const candidates = allAppointments.filter((apt) => {
                 const s = toLocal(apt.start_datetime);
                 if (!(s instanceof Date) || isNaN(s)) return false;
@@ -13426,7 +13432,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const startMinutes = parseDisplayTimeToMinutes(current);
             if (startMinutes === null) return;
 
+            // Filter cancelled appointments - they should not appear in calendar
             const candidates = allAppointments.filter((apt) => {
+                const status = (apt.status || '').toString().toLowerCase();
+                if (status === 'cancelled') return false;
                 const s = toLocal(apt.start_datetime);
                 return s instanceof Date && !isNaN(s) && periodInfo.start <= s && s <= periodInfo.end;
             });
@@ -13701,6 +13710,13 @@ document.addEventListener('DOMContentLoaded', function() {
     function createAppointmentElement(appointmentData) {
         if (!appointmentData || !appointmentData.id || !appointmentData.start_datetime) {
             console.error('[Patient Real-Time] Cannot create appointment element - missing data');
+            return;
+        }
+
+        // Do not create elements for cancelled appointments - they should not appear in calendar
+        const status = (appointmentData.status || 'Pending').toString().toLowerCase();
+        if (status === 'cancelled') {
+            console.log('[Patient Real-Time] Skipping cancelled appointment element creation');
             return;
         }
 
@@ -14025,11 +14041,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const upcomingList = document.getElementById('upcomingAppointments');
         if (!upcomingList || !window.patientAppointments) return;
 
-        // Clear existing items (except empty state)
-        const existingItems = upcomingList.querySelectorAll('.upcoming-item');
+        // Clear existing items including empty states
+        const existingItems = upcomingList.querySelectorAll('.upcoming-item, .empty-state');
         existingItems.forEach(item => item.remove());
 
-        // Get upcoming appointments (future appointments - include all statuses so cancelled ones are removed)
+        // Get upcoming appointments (future appointments - exclude cancelled, completed, and missed)
         const now = new Date();
         const upcoming = window.patientAppointments
             .filter(apt => {
@@ -14037,14 +14053,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const aptDate = parseLocalDateTimeForUpdate(apt.start_datetime);
                 if (!aptDate || isNaN(aptDate.getTime())) return false;
                 const status = (apt.status || 'Pending').toLowerCase();
-                // Include pending, confirmed, and also cancelled (so they can be removed from list)
-                // But exclude completed and missed
-                return aptDate >= now && (status === 'pending' || status === 'confirmed' || status === 'cancelled');
-            })
-            .filter(apt => {
-                // Filter out cancelled from display (they should be removed, not shown)
-                const status = (apt.status || 'Pending').toLowerCase();
-                return status !== 'cancelled';
+                // Only include pending and confirmed appointments (cancelled are filtered on backend)
+                return aptDate >= now && (status === 'pending' || status === 'confirmed');
             })
             .sort((a, b) => {
                 const dateA = parseLocalDateTimeForUpdate(a.start_datetime);
@@ -14054,11 +14064,15 @@ document.addEventListener('DOMContentLoaded', function() {
             .slice(0, 15); // Limit to 15
 
         if (upcoming.length === 0) {
-            // Show empty state
-            const emptyState = document.createElement('div');
-            emptyState.className = 'text-center text-muted py-3 empty-state';
-            emptyState.innerHTML = '<i class="bi bi-calendar-x mb-2"></i><p class="mb-0">No upcoming appointments</p>';
-            upcomingList.appendChild(emptyState);
+            // Check if empty state already exists to avoid duplicates
+            const existingEmptyState = upcomingList.querySelector('.empty-state');
+            if (!existingEmptyState) {
+                // Show empty state
+                const emptyState = document.createElement('div');
+                emptyState.className = 'text-center text-muted py-3 empty-state';
+                emptyState.innerHTML = '<i class="bi bi-calendar-x mb-2"></i><p class="mb-0">No upcoming appointments</p>';
+                upcomingList.appendChild(emptyState);
+            }
             return;
         }
 

@@ -22,6 +22,10 @@ class AdminAuthController extends Controller
     {
         // Check if user is already authenticated as an ADMIN
         if (Auth::guard('admin')->check()) {
+            $isMobile = session('is_mobile_device', false);
+            if ($isMobile) {
+                return redirect()->route('admin-notification')->with('info', 'You are already logged in.');
+            }
             return redirect()->route('admin-dashboard')->with('info', 'You are already logged in.');
         }
 
@@ -47,7 +51,7 @@ class AdminAuthController extends Controller
 
         if (!$user) {
             return back()->withErrors([
-                'error' => 'Invalid admin credentials. Please check your email/username and password.',
+                'error' => 'Account does not exist. Please check your email/username.',
             ])->withInput($request->only('email_username'));
         }
 
@@ -60,6 +64,11 @@ class AdminAuthController extends Controller
 
         // Verify password manually and then authenticate
         if (Hash::check($request->password, $user->password)) {
+            // Detect mobile device
+            $userAgent = $request->userAgent();
+            $isMobile = $this->isMobileDevice($userAgent);
+            session(['is_mobile_device' => $isMobile]);
+
             // Manually log in the user using the admin guard
             Auth::guard('admin')->login($user);
             $request->session()->regenerate();
@@ -71,13 +80,20 @@ class AdminAuthController extends Controller
             }
 
             // Log successful admin login
-            \Log::info("Administrator '{$user->username}' logged in successfully");
+            $deviceType = $isMobile ? 'mobile' : 'desktop';
+            \Log::info("Administrator '{$user->username}' logged in successfully from {$deviceType} device");
 
-            return redirect()->route('admin-dashboard')->with('success', 'Welcome back, Administrator!');
+            if ($isMobile) {
+                return redirect()->route('admin-notification')
+                    ->with('success', 'Welcome back, Administrator! Note: Some features are limited on mobile devices.');
+            }
+
+            return redirect()->route('admin-dashboard')
+                ->with('success', 'Welcome back, Administrator!');
         }
 
         return back()->withErrors([
-            'error' => 'Invalid credentials. Please try again.',
+            'error' => 'Wrong credentials. Please check your password.',
         ])->withInput($request->only('email_username'));
     }
 
@@ -125,6 +141,13 @@ class AdminAuthController extends Controller
         if (!Hash::check($request->current_password, $user->password)) {
             return back()->withErrors([
                 'current_password' => 'The current password is incorrect.',
+            ]);
+        }
+
+        // Check if new password is the same as old password
+        if (Hash::check($request->new_password, $user->password)) {
+            return back()->withErrors([
+                'new_password' => 'The new password must be different from your current password.',
             ]);
         }
 
@@ -286,6 +309,13 @@ class AdminAuthController extends Controller
             ]);
         }
 
+        // Check if new password is the same as old password
+        if (Hash::check($request->password, $user->password)) {
+            return back()->withErrors([
+                'password' => 'The new password must be different from your current password.',
+            ]);
+        }
+
         $user->password = Hash::make($request->password);
         $user->save();
 
@@ -351,8 +381,43 @@ class AdminAuthController extends Controller
         // Set session flag to notify other tabs via localStorage
         $request->session()->put('admin_logout_flag', time());
 
+        // Clear mobile device session flag
+        $request->session()->forget('is_mobile_device');
+
         // Redirect to admin login portal
         return redirect()->route('admin.login')->with('success', 'You have been logged out successfully.');
+    }
+
+    /**
+     * Check if the user agent indicates a mobile device
+     */
+    private function isMobileDevice(?string $userAgent): bool
+    {
+        if (empty($userAgent)) {
+            return false;
+        }
+
+        // Common mobile device patterns
+        $mobilePatterns = [
+            'Mobile',
+            'Android',
+            'iPhone',
+            'iPad',
+            'iPod',
+            'BlackBerry',
+            'Windows Phone',
+            'Opera Mini',
+            'IEMobile',
+            'Mobile Safari',
+        ];
+
+        foreach ($mobilePatterns as $pattern) {
+            if (stripos($userAgent, $pattern) !== false) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
 

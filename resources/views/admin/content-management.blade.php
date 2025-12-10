@@ -193,6 +193,7 @@
     </div>
 </div>
 
+@if(!$isMobile)
 <!-- Services Section (Compact Grid Table - st-*) -->
 <div class="row mb-3">
         <div class="col-12">
@@ -253,7 +254,9 @@
             </div>
         </div>
     </div>
+@endif
 
+@if(!$isMobile)
     <!-- Patient Mail Settings Section -->
     <div class="row mb-3">
         <div class="col-12">
@@ -2493,6 +2496,7 @@ function showConfirmModal(message, options = {}) {
         </div>
     </div>
 </div>
+@endif
 
 <style>
 /* Dark Mode Styles for Generic Modals */

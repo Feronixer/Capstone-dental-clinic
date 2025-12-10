@@ -48,7 +48,7 @@ class AuthController extends Controller
 
         if (!$user) {
             return back()->withErrors([
-                'error' => 'The provided credentials do not match our records.',
+                'error' => 'Account does not exist. Please check your email/username.',
             ])->withInput($request->only('email_username'));
         }
 
@@ -88,8 +88,8 @@ class AuthController extends Controller
         }
 
         return back()->withErrors([
-            'error' => 'The provided credentials do not match our records.',
-        ]);
+            'error' => 'Wrong credentials. Please check your password.',
+        ])->withInput($request->only('email_username'));
     }
 
     /**
@@ -137,6 +137,19 @@ class AuthController extends Controller
                     ], 422);
                 }
                 return back()->withErrors($e->errors());
+            }
+
+            // Check if new password is the same as old password before sending code
+            if (Hash::check($request->new_password, $user->password)) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'The new password must be different from your current password.'
+                    ], 422);
+                }
+                return back()->withErrors([
+                    'new_password' => 'The new password must be different from your current password.',
+                ]);
             }
 
             try {
@@ -233,6 +246,19 @@ class AuthController extends Controller
             'new_password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
             'new_password.confirmed' => 'Password confirmation does not match.',
         ]);
+
+        // Check if new password is the same as old password
+        if (Hash::check($request->new_password, $user->password)) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'The new password must be different from your current password.'
+                ], 422);
+            }
+            return back()->withErrors([
+                'new_password' => 'The new password must be different from your current password.',
+            ]);
+        }
 
         // Update password and reset must_change_password flag
         $user->password = Hash::make($request->new_password);
@@ -427,6 +453,13 @@ class AuthController extends Controller
 
         if (!$user) {
             return redirect()->route('password.forgot')->withErrors(['error' => 'User not found.']);
+        }
+
+        // Check if new password is the same as old password
+        if (Hash::check($request->password, $user->password)) {
+            return back()->withErrors([
+                'password' => 'The new password must be different from your current password.',
+            ]);
         }
 
         // Update password

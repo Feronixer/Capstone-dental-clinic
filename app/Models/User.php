@@ -59,6 +59,7 @@ class User extends Authenticatable
         'password',
         'profile_picture',
         'must_change_password',
+        'chat_disabled',
     ];
 
     /**
@@ -82,6 +83,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'must_change_password' => 'boolean',
+            'chat_disabled' => 'boolean',
         ];
     }
 }

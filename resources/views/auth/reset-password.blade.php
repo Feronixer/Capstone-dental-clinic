@@ -119,7 +119,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Password validation and strength indicator
-    const passwordInput = document.getElementById('password');
     if (passwordInput) {
         passwordInput.addEventListener('input', function() {
             const password = this.value;

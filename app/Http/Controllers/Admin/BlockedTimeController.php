@@ -727,4 +727,171 @@ class BlockedTimeController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get future block off time dates (partial blocks).
+     */
+    public function getFutureBlockOffTimeDates()
+    {
+        try {
+            $now = Carbon::now('Asia/Manila');
+            $todayStart = Carbon::today('Asia/Manila')->startOfDay();
+
+            // Get all blocked times and filter in PHP to handle timezone issues
+            $blockedTimes = BlockedTime::where('end_datetime', '>=', $todayStart)
+                ->get();
+
+            $dateMap = []; // Track dates and their IDs
+            foreach ($blockedTimes as $bt) {
+                // Convert to Asia/Manila timezone for comparison
+                $start = Carbon::parse($bt->start_datetime)->setTimezone('Asia/Manila');
+                $end = Carbon::parse($bt->end_datetime)->setTimezone('Asia/Manila');
+                
+                // Check if it's NOT a full-day closure (partial block)
+                $isSameDate = $start->format('Y-m-d') === $end->format('Y-m-d');
+                $startsAtMidnight = $start->format('H:i:s') === '00:00:00';
+                $endsAt2359 = $end->format('H:i') === '23:59';
+                $isFutureOrToday = $end->format('Y-m-d') >= $todayStart->format('Y-m-d');
+                
+                // It's a partial block if:
+                // - It's today or in the future AND
+                // - (NOT same date OR NOT starts at midnight OR NOT ends at 23:59)
+                $isPartialBlock = $isFutureOrToday && (!$isSameDate || !$startsAtMidnight || !$endsAt2359);
+                
+                if ($isPartialBlock) {
+                    $dateKey = $start->format('Y-m-d');
+                    if (!isset($dateMap[$dateKey])) {
+                        $dateMap[$dateKey] = [
+                            'date' => $dateKey,
+                            'ids' => [],
+                            'formatted' => $start->format('M d, Y')
+                        ];
+                    }
+                    $dateMap[$dateKey]['ids'][] = $bt->id;
+                }
+            }
+
+            // Convert map to array and sort
+            $blockOffTimeDates = array_values($dateMap);
+            usort($blockOffTimeDates, function($a, $b) {
+                return strcmp($a['date'], $b['date']);
+            });
+
+            return response()->json([
+                'success' => true,
+                'dates' => $blockOffTimeDates
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error getting future block off time dates:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Error getting future block off time dates: ' . $e->getMessage(),
+                'dates' => []
+            ], 500);
+        }
+    }
+
+    /**
+     * Clear specific block off time dates.
+     */
+    public function clearSpecificBlockOffTime(Request $request)
+    {
+        try {
+            $request->validate([
+                'dates' => 'required|array|min:1',
+                'dates.*' => 'required|date_format:Y-m-d'
+            ]);
+
+            $dates = $request->dates;
+            $todayStart = Carbon::today('Asia/Manila')->startOfDay();
+
+            // Clean up any expired blocked times first
+            $this->cleanupExpiredBlockedTimes();
+
+            // Get all blocked times and filter for the specific dates
+            $allBlockedTimes = BlockedTime::where('end_datetime', '>=', $todayStart)->get();
+
+            $blockedTimesToDelete = [];
+            foreach ($allBlockedTimes as $bt) {
+                // Convert to Asia/Manila timezone for comparison
+                $start = Carbon::parse($bt->start_datetime)->setTimezone('Asia/Manila');
+                $end = Carbon::parse($bt->end_datetime)->setTimezone('Asia/Manila');
+                
+                // Check if it's NOT a full-day closure (partial block)
+                $isSameDate = $start->format('Y-m-d') === $end->format('Y-m-d');
+                $startsAtMidnight = $start->format('H:i:s') === '00:00:00';
+                $endsAt2359 = $end->format('H:i') === '23:59';
+                $dateKey = $start->format('Y-m-d');
+                
+                // It's a partial block if:
+                // - (NOT same date OR NOT starts at midnight OR NOT ends at 23:59)
+                $isPartialBlock = (!$isSameDate || !$startsAtMidnight || !$endsAt2359);
+                
+                // Check if this date is in the list of dates to clear
+                if ($isPartialBlock && in_array($dateKey, $dates)) {
+                    $blockedTimesToDelete[] = $bt;
+                }
+            }
+
+            \Log::info('Clear specific block off time - Found blocked times', [
+                'count' => count($blockedTimesToDelete),
+                'requested_dates' => $dates,
+                'ids' => array_map(function($bt) { return $bt->id; }, $blockedTimesToDelete)
+            ]);
+
+            $deletedCount = 0;
+
+            foreach ($blockedTimesToDelete as $blockedTime) {
+                \Log::info('Processing blocked time for deletion', [
+                    'id' => $blockedTime->id,
+                    'start' => $blockedTime->start_datetime->format('Y-m-d H:i:s'),
+                    'end' => $blockedTime->end_datetime->format('Y-m-d H:i:s'),
+                    'title' => $blockedTime->title
+                ]);
+
+                $blockedTimeData = [
+                    'id' => $blockedTime->id,
+                    'title' => $blockedTime->title,
+                    'start_datetime' => $blockedTime->start_datetime->format('Y-m-d H:i:s'),
+                    'end_datetime' => $blockedTime->end_datetime->format('Y-m-d H:i:s'),
+                    'duration_minutes' => $blockedTime->duration_minutes,
+                    'notes' => $blockedTime->notes,
+                ];
+
+                if ($blockedTime->delete()) {
+                    $deletedCount++;
+
+                    try {
+                        $event = new BlockedTimeUpdated($blockedTimeData, 'deleted');
+                        event($event);
+                        \App\Http\Controllers\BroadcastController::storeEvent('blocked-time.updated', $event->broadcastWith());
+                    } catch (\Exception $e) {
+                        \Log::error('Failed to broadcast blocked time deleted event:', ['error' => $e->getMessage()]);
+                    }
+                } else {
+                    \Log::warning('Failed to delete blocked time', ['id' => $blockedTime->id]);
+                }
+            }
+
+            \Log::info("Cleared {$deletedCount} specific block off time(s)");
+
+            return response()->json([
+                'success' => true,
+                'message' => "Successfully cleared {$deletedCount} block off time(s)",
+                'deleted_count' => $deletedCount
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error clearing specific block off times:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Error clearing specific block off times: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

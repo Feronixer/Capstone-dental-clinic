@@ -348,6 +348,14 @@ class AccountManagementController extends Controller
             'confirm_password.same' => 'The confirm password and password must match.',
         ]);
 
+        // Check if new password is the same as old password
+        if (Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'The new password must be different from the patient\'s current password.',
+            ], 422);
+        }
+
         $user->update([
             'password' => bcrypt($request->password),
         ]);
@@ -357,6 +365,50 @@ class AccountManagementController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Patient password has been updated successfully.',
+        ]);
+    }
+
+    /**
+     * Check if username, email, or phone number already exists
+     */
+    public function checkDuplicates(Request $request)
+    {
+        $request->validate([
+            'username' => 'nullable|string',
+            'email' => 'nullable|email',
+            'phone' => 'nullable|string',
+        ]);
+
+        $duplicates = [];
+
+        // Check username
+        if ($request->has('username') && $request->username) {
+            $usernameExists = User::where('username', $request->username)->exists();
+            if ($usernameExists) {
+                $duplicates['username'] = 'This username is already taken.';
+            }
+        }
+
+        // Check email
+        if ($request->has('email') && $request->email) {
+            $emailExists = User::where('email', $request->email)->exists();
+            if ($emailExists) {
+                $duplicates['email'] = 'This email address is already registered.';
+            }
+        }
+
+        // Check phone number
+        if ($request->has('phone') && $request->phone) {
+            $phoneExists = UserInfo::where('phone', $request->phone)->exists();
+            if ($phoneExists) {
+                $duplicates['phone'] = 'This phone number is already registered.';
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'has_duplicates' => count($duplicates) > 0,
+            'duplicates' => $duplicates
         ]);
     }
 }

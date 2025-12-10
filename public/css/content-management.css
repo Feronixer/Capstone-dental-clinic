@@ -466,6 +466,27 @@ body.staff-body:has(.navigation-bar-container:hover) main {
     margin-left: 260px !important;
 }
 
+/* Mobile Responsive - Admin/Staff Main Content */
+@media (max-width: 768px) {
+    body.admin-body main,
+    body.staff-body main {
+        margin-left: 0 !important;
+        width: 100vw !important;
+        max-width: 100vw !important;
+        padding-top: 4rem; /* Space for hamburger button */
+    }
+
+    /* When mobile menu is open, main content stays full width */
+    body.mobile-menu-open.admin-body main,
+    body.mobile-menu-open.staff-body main,
+    body.mobile-menu-open .admin-body main,
+    body.mobile-menu-open .staff-body main {
+        margin-left: 0 !important;
+        width: 100vw !important;
+        max-width: 100vw !important;
+    }
+}
+
 /* Collapsible navigation sidebar - default collapsed */
 body.admin-body .navigation-bar-container,
 body.staff-body .navigation-bar-container {

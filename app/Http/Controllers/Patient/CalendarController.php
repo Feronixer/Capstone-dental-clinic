@@ -62,7 +62,9 @@ class CalendarController extends Controller
 
     private function getPatientAppointments(int $patientId): array
     {
+        // Filter cancelled appointments - they should not appear in calendar but are still saved in database
         $appointments = Appointment::where('patient_id', $patientId)
+            ->where('status', '!=', 'Cancelled')
             ->with(['service'])
             ->orderBy('start_datetime', 'asc')
             ->get();

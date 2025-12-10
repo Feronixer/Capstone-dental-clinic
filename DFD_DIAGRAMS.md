@@ -73,14 +73,43 @@ flowchart TD
     Staff[Staff]
     System[TOOTHTALK SYSTEM]
     
-    Patient -->|Personal Info<br/>Appointment Request<br/>Feedback<br/>Chatbot Inquiries<br/>Chat Messages<br/>Login Credentials| System
-    System -->|Notifications<br/>Records<br/>Appointment Details<br/>Services Info<br/>Announcements<br/>Chatbot Responses<br/>Chat Messages| Patient
+    Patient -->|Authentication<br/>Login Credentials| System
+    Patient -->|Appointment Management<br/>Appointment Requests| System
+    Patient -->|Personal Information<br/>Profile Updates| System
+    Patient -->|Communication<br/>Chat Messages, Chatbot Inquiries| System
+    Patient -->|Feedback<br/>Ratings, Comments| System
     
-    Admin -->|Appointment Updates<br/>Patient Records<br/>Login Credentials<br/>Content Updates<br/>User Management<br/>Staff Access Control<br/>Chatbot Management<br/>Chat Messages| System
-    System -->|Notifications<br/>Appointment Details<br/>Patient Records<br/>Analytics & Reports<br/>Chatbot Configuration<br/>Chat Messages| Admin
+    System -->|Notifications<br/>Alerts, Reminders| Patient
+    System -->|Records<br/>Medical Records, History| Patient
+    System -->|Appointment Information<br/>Details, Calendar| Patient
+    System -->|Content<br/>Services Info, Announcements| Patient
+    System -->|Communication<br/>Chat Messages, Chatbot Responses| Patient
     
-    Staff -->|Schedule Updates<br/>Follow-ups<br/>Patient Records<br/>Login Credentials<br/>Content Updates<br/>Chatbot Management<br/>Chat Messages| System
-    System -->|Notifications<br/>Appointment Details<br/>Patient Information<br/>Chatbot Configuration<br/>Chat Messages| Staff
+    Admin -->|Authentication<br/>Login Credentials| System
+    Admin -->|Appointment Management<br/>Updates, Approvals| System
+    Admin -->|Patient Management<br/>Patient Records| System
+    Admin -->|User Management<br/>User Accounts, Staff Access Control| System
+    Admin -->|Content Management<br/>Content Updates, Chatbot Management| System
+    Admin -->|Communication<br/>Chat Messages| System
+    
+    System -->|Notifications<br/>Alerts, Requests| Admin
+    System -->|Appointment Information<br/>Schedules, Details| Admin
+    System -->|Patient Records<br/>Medical History, Treatment Plans| Admin
+    System -->|Analytics & Reports<br/>Dashboard, Activity Logs| Admin
+    System -->|Content Configuration<br/>Chatbot Settings, FAQ| Admin
+    System -->|Communication<br/>Chat Messages| Admin
+    
+    Staff -->|Authentication<br/>Login Credentials| System
+    Staff -->|Appointment Management<br/>Schedule Updates, Time Blocking| System
+    Staff -->|Patient Care<br/>Follow-ups, Patient Records| System
+    Staff -->|Content Management<br/>Content Updates, Chatbot Management| System
+    Staff -->|Communication<br/>Chat Messages| System
+    
+    System -->|Notifications<br/>Alerts, Appointment Requests| Staff
+    System -->|Appointment Information<br/>Schedules, Calendar| Staff
+    System -->|Patient Information<br/>Demographics, Records| Staff
+    System -->|Content Configuration<br/>Chatbot Settings, FAQ| Staff
+    System -->|Communication<br/>Chat Messages| Staff
 ```
 
 ### ASCII Diagram Representation
@@ -90,20 +119,17 @@ flowchart TD
 │   Patient   │
 └──────┬──────┘
        │
-       │ Personal Info
-       │ Appointment Request
-       │ Feedback
-       │ Chatbot Inquiries
-       │ Chat Messages
-       │ Login Credentials
+       │ Authentication (Login Credentials)
+       │ Appointment Management (Appointment Requests)
+       │ Personal Information (Profile Updates)
+       │ Communication (Chat Messages, Chatbot Inquiries)
+       │ Feedback (Ratings, Comments)
        │
-       │ Notifications
-       │ Records
-       │ Appointment Details
-       │ Services Info
-       │ Announcements
-       │ Chatbot Responses
-       │ Chat Messages
+       │ Notifications (Alerts, Reminders)
+       │ Records (Medical Records, History)
+       │ Appointment Information (Details, Calendar)
+       │ Content (Services Info, Announcements)
+       │ Communication (Chat Messages, Chatbot Responses)
        │
        ▼
 ┌─────────────────────────────────────────────────────────┐
@@ -114,21 +140,19 @@ flowchart TD
 └─────────────────────────────────────────────────────────┘
        ▲
        │
-       │ Appointment Updates
-       │ Patient Records
-       │ Login Credentials
-       │ Content Updates
-       │ User Management
-       │ Staff Access Control
-       │ Chatbot Management
-       │ Chat Messages
+       │ Authentication (Login Credentials)
+       │ Appointment Management (Updates, Approvals)
+       │ Patient Management (Patient Records)
+       │ User Management (User Accounts, Staff Access Control)
+       │ Content Management (Content Updates, Chatbot Management)
+       │ Communication (Chat Messages)
        │
-       │ Notifications
-       │ Appointment Details
-       │ Patient Records
-       │ Analytics & Reports
-       │ Chatbot Configuration
-       │ Chat Messages
+       │ Notifications (Alerts, Requests)
+       │ Appointment Information (Schedules, Details)
+       │ Patient Records (Medical History, Treatment Plans)
+       │ Analytics & Reports (Dashboard, Activity Logs)
+       │ Content Configuration (Chatbot Settings, FAQ)
+       │ Communication (Chat Messages)
        │
 ┌──────┴──────┐
 │  Dentist/   │
@@ -137,19 +161,17 @@ flowchart TD
 
        ▲
        │
-       │ Schedule Updates
-       │ Follow-ups
-       │ Patient Records
-       │ Login Credentials
-       │ Content Updates
-       │ Chatbot Management
-       │ Chat Messages
+       │ Authentication (Login Credentials)
+       │ Appointment Management (Schedule Updates, Time Blocking)
+       │ Patient Care (Follow-ups, Patient Records)
+       │ Content Management (Content Updates, Chatbot Management)
+       │ Communication (Chat Messages)
        │
-       │ Notifications
-       │ Appointment Details
-       │ Patient Information
-       │ Chatbot Configuration
-       │ Chat Messages
+       │ Notifications (Alerts, Appointment Requests)
+       │ Appointment Information (Schedules, Calendar)
+       │ Patient Information (Demographics, Records)
+       │ Content Configuration (Chatbot Settings, FAQ)
+       │ Communication (Chat Messages)
        │
 ┌──────┴──────┐
 │    Staff    │
@@ -159,49 +181,42 @@ flowchart TD
 ### Data Flow Notation
 
 **Patient ↔ ToothTalk System:**
-- Patient -> Personal Info -> ToothTalk System
-- Patient -> Appointment Request -> ToothTalk System
-- Patient -> Feedback -> ToothTalk System
-- Patient -> Chatbot Inquiries -> ToothTalk System
-- Patient -> Chat Messages -> ToothTalk System
-- Patient -> Login Credentials -> ToothTalk System
-- ToothTalk System -> Notifications -> Patient
-- ToothTalk System -> Records -> Patient
-- ToothTalk System -> Appointment Details -> Patient
-- ToothTalk System -> Services Info -> Patient
-- ToothTalk System -> Announcements -> Patient
-- ToothTalk System -> Chatbot Responses -> Patient
-- ToothTalk System -> Chat Messages -> Patient
+- Patient -> Authentication (Login Credentials) -> ToothTalk System
+- Patient -> Appointment Management (Appointment Requests) -> ToothTalk System
+- Patient -> Personal Information (Profile Updates) -> ToothTalk System
+- Patient -> Communication (Chat Messages, Chatbot Inquiries) -> ToothTalk System
+- Patient -> Feedback (Ratings, Comments) -> ToothTalk System
+- ToothTalk System -> Notifications (Alerts, Reminders) -> Patient
+- ToothTalk System -> Records (Medical Records, History) -> Patient
+- ToothTalk System -> Appointment Information (Details, Calendar) -> Patient
+- ToothTalk System -> Content (Services Info, Announcements) -> Patient
+- ToothTalk System -> Communication (Chat Messages, Chatbot Responses) -> Patient
 
 **Dentist/Administrator ↔ ToothTalk System:**
-- Dentist/Administrator -> Appointment Updates -> ToothTalk System
-- Dentist/Administrator -> Patient Records -> ToothTalk System
-- Dentist/Administrator -> Login Credentials -> ToothTalk System
-- Dentist/Administrator -> Content Updates -> ToothTalk System
-- Dentist/Administrator -> User Management -> ToothTalk System
-- Dentist/Administrator -> Staff Access Control -> ToothTalk System
-- Dentist/Administrator -> Chatbot Management -> ToothTalk System
-- Dentist/Administrator -> Chat Messages -> ToothTalk System
-- ToothTalk System -> Notifications -> Dentist/Administrator
-- ToothTalk System -> Appointment Details -> Dentist/Administrator
-- ToothTalk System -> Patient Records -> Dentist/Administrator
-- ToothTalk System -> Analytics & Reports -> Dentist/Administrator
-- ToothTalk System -> Chatbot Configuration -> Dentist/Administrator
-- ToothTalk System -> Chat Messages -> Dentist/Administrator
+- Dentist/Administrator -> Authentication (Login Credentials) -> ToothTalk System
+- Dentist/Administrator -> Appointment Management (Updates, Approvals) -> ToothTalk System
+- Dentist/Administrator -> Patient Management (Patient Records) -> ToothTalk System
+- Dentist/Administrator -> User Management (User Accounts, Staff Access Control) -> ToothTalk System
+- Dentist/Administrator -> Content Management (Content Updates, Chatbot Management) -> ToothTalk System
+- Dentist/Administrator -> Communication (Chat Messages) -> ToothTalk System
+- ToothTalk System -> Notifications (Alerts, Requests) -> Dentist/Administrator
+- ToothTalk System -> Appointment Information (Schedules, Details) -> Dentist/Administrator
+- ToothTalk System -> Patient Records (Medical History, Treatment Plans) -> Dentist/Administrator
+- ToothTalk System -> Analytics & Reports (Dashboard, Activity Logs) -> Dentist/Administrator
+- ToothTalk System -> Content Configuration (Chatbot Settings, FAQ) -> Dentist/Administrator
+- ToothTalk System -> Communication (Chat Messages) -> Dentist/Administrator
 
 **Staff ↔ ToothTalk System:**
-- Staff -> Schedule Updates -> ToothTalk System
-- Staff -> Follow-ups -> ToothTalk System
-- Staff -> Patient Records -> ToothTalk System
-- Staff -> Login Credentials -> ToothTalk System
-- Staff -> Content Updates -> ToothTalk System
-- Staff -> Chatbot Management -> ToothTalk System
-- Staff -> Chat Messages -> ToothTalk System
-- ToothTalk System -> Notifications -> Staff
-- ToothTalk System -> Appointment Details -> Staff
-- ToothTalk System -> Patient Information -> Staff
-- ToothTalk System -> Chatbot Configuration -> Staff
-- ToothTalk System -> Chat Messages -> Staff
+- Staff -> Authentication (Login Credentials) -> ToothTalk System
+- Staff -> Appointment Management (Schedule Updates, Time Blocking) -> ToothTalk System
+- Staff -> Patient Care (Follow-ups, Patient Records) -> ToothTalk System
+- Staff -> Content Management (Content Updates, Chatbot Management) -> ToothTalk System
+- Staff -> Communication (Chat Messages) -> ToothTalk System
+- ToothTalk System -> Notifications (Alerts, Appointment Requests) -> Staff
+- ToothTalk System -> Appointment Information (Schedules, Calendar) -> Staff
+- ToothTalk System -> Patient Information (Demographics, Records) -> Staff
+- ToothTalk System -> Content Configuration (Chatbot Settings, FAQ) -> Staff
+- ToothTalk System -> Communication (Chat Messages) -> Staff
 
 ### Description
 
@@ -209,11 +224,11 @@ flowchart TD
 
 This DFD Level 0 represents the Context Process of the ToothTalk System for JValera Dental Clinic, illustrating high-level data flows between three external entities (Patient, Dentist/Administrator, Staff) and the central ToothTalk System.
 
-The Patient entity sends personal information, appointment requests (new, rescheduling, walk-in), feedback and ratings, chatbot inquiries, chat messages, and login credentials. The system provides notifications, medical records (dental history, progress notes, post-procedural forms), appointment details and calendar information, services information and announcements, chatbot responses, and chat messages.
+The Patient entity sends authentication data (login credentials), appointment management requests (appointment requests), personal information (profile updates), communication data (chat messages, chatbot inquiries), and feedback (ratings, comments) to the system. The system responds with notifications (alerts, reminders), records (medical records, history), appointment information (details, calendar), content (services info, announcements), and communication (chat messages, chatbot responses).
 
-The Dentist/Administrator entity sends appointment updates (approvals, cancellations, modifications), patient records (clinical notes, treatment plans), login credentials, content updates (announcements, services, events), user management operations, staff access control configurations, chatbot management (FAQ, settings), and chat messages. The system provides notifications, appointment schedules, patient records and treatment history, analytics and reports (dashboard statistics, activity logs), chatbot configuration, and chat messages.
+The Dentist/Administrator entity sends authentication data (login credentials), appointment management data (updates, approvals), patient management data (patient records), user management operations (user accounts, staff access control), content management data (content updates, chatbot management), and communication data (chat messages) to the system. The system responds with notifications (alerts, requests), appointment information (schedules, details), patient records (medical history, treatment plans), analytics and reports (dashboard, activity logs), content configuration (chatbot settings, FAQ), and communication (chat messages).
 
-The Staff entity sends schedule updates (appointment scheduling, time blocking), follow-ups, patient records (updates, medical history, progress notes), login credentials, content updates (announcements, services), chatbot management, and chat messages. The system provides notifications, appointment schedules, patient information (demographics, contact info, basic records), chatbot configuration, and chat messages.
+The Staff entity sends authentication data (login credentials), appointment management data (schedule updates, time blocking), patient care data (follow-ups, patient records), content management data (content updates, chatbot management), and communication data (chat messages) to the system. The system responds with notifications (alerts, appointment requests), appointment information (schedules, calendar), patient information (demographics, records), content configuration (chatbot settings, FAQ), and communication (chat messages).
 
 The ToothTalk system serves as the central processing unit managing all interactions, maintaining data integrity, security, and workflow coordination across all user roles with appropriate access controls and data protection.
 
@@ -605,64 +620,92 @@ flowchart TD
 **Process 2 - Dashboard:**
 - Staff -> Access -> S2 Dashboard
 - S2 Dashboard -> View Analytics & Report -> Staff
-- S2 Dashboard <- Analytics & Report Data Information <- D1 Toothtalk_db
+- S2 Dashboard <- Analytics & Report Data <- D1 Toothtalk_db
 
-**Process 3 - Content Management System:**
-- Staff -> CRUD Operation -> S3 Content Management System
-- Staff -> View List & Setting -> S3 Content Management System
-- S3 Content Management System -> View List & Setting -> Staff
-- S3 Content Management System -> Edited Content -> Staff
-- S3 Content Management System <- View List & Setting Stored <- D1 Toothtalk_db
-- S3 Content Management System -> Edited Content -> D1 Toothtalk_db
+**Process 3 - Patient Records Access:**
+- Staff -> Search Patients -> S3 Patient Records Access
+- Staff -> View Patient Records -> S3 Patient Records Access
+- Staff -> Export Records -> S3 Patient Records Access
+- S3 Patient Records Access -> Patient Records -> Staff
+- S3 Patient Records Access -> Patient Details -> Staff
+- S3 Patient Records Access <- Patient Records Data <- D1 Toothtalk_db
 
-**Process 4 - Appointment:**
-- Staff -> CRUD Operation -> S4 Appointment
-- Staff -> Scheduled Patient Calendar -> S4 Appointment
-- S4 Appointment -> Scheduled Patient Calendar -> Staff
-- S4 Appointment -> Edited Appointment, Block of Time -> Staff
-- S4 Appointment <- Scheduled Patient Calendar <- D1 Toothtalk_db
-- S4 Appointment -> Edited Appointment, Block of Time -> D1 Toothtalk_db
+**Process 4 - Post-Procedural Forms:**
+- Staff -> CRUD Operations -> S4 Post-Procedural Forms
+- Staff -> Manage Forms & Records -> S4 Post-Procedural Forms
+- S4 Post-Procedural Forms -> Form Records -> Staff
+- S4 Post-Procedural Forms -> Patient Histories -> Staff
+- S4 Post-Procedural Forms -> Progress Notes -> Staff
+- S4 Post-Procedural Forms <- Post-Procedural Data <- D1 Toothtalk_db
+- S4 Post-Procedural Forms -> Post-Procedural Data -> D1 Toothtalk_db
 
-**Process 5 - Post-Procedure Forms:**
-- Staff -> CRUD Operation -> S5 Post-Procedure Forms
-- Staff -> List of Form Layout & Records -> S5 Post-Procedure Forms
-- S5 Post-Procedure Forms -> List of Form Layout & Records -> Staff
-- S5 Post-Procedure Forms -> Edited Form -> Staff
-- S5 Post-Procedure Forms <- List of Form Layout & Records <- D1 Toothtalk_db
-- S5 Post-Procedure Forms -> List of Form Layout & Records -> D1 Toothtalk_db
+**Process 5 - Appointment:**
+- Staff -> CRUD Operations -> S5 Appointment
+- Staff -> Manage Appointments -> S5 Appointment
+- S5 Appointment -> Appointment Calendar -> Staff
+- S5 Appointment -> Appointment Details -> Staff
+- S5 Appointment <- Appointment Data <- D1 Toothtalk_db
+- S5 Appointment -> Appointment Data -> D1 Toothtalk_db
 
-**Process 6 - Patient Records:**
-- Staff -> CRUD Operation -> S6 Patient Records
-- Staff -> View Patient Information -> S6 Patient Records
-- S6 Patient Records -> Patient Records -> Staff
-- S6 Patient Records -> Medical/Dental History -> Staff
-- S6 Patient Records -> Progress Notes -> Staff
-- S6 Patient Records <- Patient & Staff Data Stored <- D1 Toothtalk_db
-- S6 Patient Records -> Patient & Staff Data Stored -> D1 Toothtalk_db
+**Process 6 - Blocked Time:**
+- Staff -> Block Time Slots -> S6 Blocked Time
+- Staff -> Manage Clinic Hours -> S6 Blocked Time
+- S6 Blocked Time -> Blocked Time Schedule -> Staff
+- S6 Blocked Time <- Blocked Time Data <- D1 Toothtalk_db
+- S6 Blocked Time -> Blocked Time Data -> D1 Toothtalk_db
 
-**Process 7 - User Management:**
-- Staff -> CRUD Operation -> S7 User Management
-- Staff -> View Patient Accounts -> S7 User Management
-- S7 User Management -> Patient Account Info -> Staff
-- S7 User Management -> Added/Edited Patient -> Staff
-- S7 User Management <- Patient Account Data <- D1 Toothtalk_db
-- S7 User Management -> Patient Account Data -> D1 Toothtalk_db
+**Process 7 - Content Management:**
+- Staff -> CRUD Operations -> S7 Content Management
+- Staff -> Manage Content -> S7 Content Management
+- S7 Content Management -> Announcements -> Staff
+- S7 Content Management -> Services -> Staff
+- S7 Content Management -> Events -> Staff
+- S7 Content Management -> Mail Templates -> Staff
+- S7 Content Management <- Content Management Data <- D1 Toothtalk_db
+- S7 Content Management -> Content Management Data -> D1 Toothtalk_db
 
-**Process 8 - Notification:**
-- Staff -> View/Read -> S8 Notification
-- Staff -> Approve/Deny Requests -> S8 Notification
-- S8 Notification -> Notifications -> Staff
-- S8 Notification -> Appointment Requests -> Staff
-- S8 Notification <- Notification Triggers <- D1 Toothtalk_db
-- S8 Notification -> Notification Status Updates -> D1 Toothtalk_db
+**Process 8 - ToothTalk Management:**
+- Staff -> Manage FAQ -> S8 ToothTalk Management
+- Staff -> Configure Settings -> S8 ToothTalk Management
+- S8 ToothTalk Management -> Chatbot Settings -> Staff
+- S8 ToothTalk Management -> FAQ Entries -> Staff
+- S8 ToothTalk Management <- Chatbot Data <- D1 Toothtalk_db
+- S8 ToothTalk Management -> Chatbot Data -> D1 Toothtalk_db
 
-**Process 9 - Chatbot:**
-- Staff -> Update/Delete -> S9 Chatbot
-- Staff -> Pre-Generated Prompt -> S9 Chatbot
-- S9 Chatbot -> Pre-Generated Prompt -> Staff
-- S9 Chatbot -> Save Edited Version -> Staff
-- S9 Chatbot <- Pre-Generated Prompt <- D1 Toothtalk_db
-- S9 Chatbot -> Save Edited Version -> D1 Toothtalk_db
+**Process 9 - Account Management:**
+- Staff -> CRUD Operations -> S9 Account Management
+- Staff -> Manage Patient Accounts -> S9 Account Management
+- S9 Account Management -> Patient Account Info -> Staff
+- S9 Account Management <- Patient Account Data <- D1 Toothtalk_db
+- S9 Account Management -> Patient Account Data -> D1 Toothtalk_db
+
+**Process 10 - Notification:**
+- Staff -> View/Read -> S10 Notification
+- Staff -> Approve/Deny Requests -> S10 Notification
+- S10 Notification -> Notifications -> Staff
+- S10 Notification -> Appointment Requests -> Staff
+- S10 Notification <- Notification Data <- D1 Toothtalk_db
+- S10 Notification -> Notification Status Updates -> D1 Toothtalk_db
+
+**Process 11 - Profile:**
+- Staff -> Edit Profile -> S11 Profile
+- Staff -> Update Password -> S11 Profile
+- S11 Profile -> Updated Profile -> Staff
+- S11 Profile <- Staff Profile Data <- D1 Toothtalk_db
+- S11 Profile -> Staff Profile Data -> D1 Toothtalk_db
+
+**Process 12 - Chat:**
+- Staff -> Manage Conversations -> S12 Chat
+- Staff -> Send Messages -> S12 Chat
+- S12 Chat -> Chat Messages -> Staff
+- S12 Chat -> Conversations -> Staff
+- S12 Chat <- Chat Data <- D1 Toothtalk_db
+- S12 Chat -> Chat Data -> D1 Toothtalk_db
+
+**Process 13 - Feedback:**
+- Staff -> View Feedback -> S13 Feedback
+- S13 Feedback -> Feedback Reports -> Staff
+- S13 Feedback <- Feedback Data <- D1 Toothtalk_db
 
 ### ASCII Diagram Representation
 
@@ -695,79 +738,115 @@ flowchart TD
      │                             │
      │                             ▼
      │                    ┌─────────────────┐
-     │                    │ 3. Content      │
-     │                    │  Management     │
-     │                    │    System      │
+     │                    │ 3. Patient      │
+     │                    │  Records Access │
      │                    └────────┬────────┘
      │                             │
-     │ CRUD Operation              │
-     │ View List & Setting         │
-     │                    View List & Setting
-     │                    Edited Content
+     │ Search Patients             │
+     │ View Patient Records        │
+     │ Export Records              │
+     │                    Patient Records
+     │                    Patient Details
      │                             │
      │                             ▼
      │                    ┌─────────────────┐
-     │                    │ 4. Appointment  │
-     │                    └────────┬────────┘
-     │                             │
-     │ CRUD Operation              │
-     │ Scheduled Patient Calendar  │
-     │                    Scheduled Patient Calendar
-     │                    Edited Appointment, Block of Time
-     │                             │
-     │                             ▼
-     │                    ┌─────────────────┐
-     │                    │ 5. Post-Procedure│
+     │                    │ 4. Post-Procedural│
      │                    │     Forms       │
      │                    └────────┬────────┘
      │                             │
-     │ CRUD Operation              │
-     │ List of Form Layout & Records│
-     │                    List of Form Layout & Records
-     │                    Edited Form
-     │                             │
-     │                             ▼
-     │                    ┌─────────────────┐
-     │                    │ 6. Patient      │
-     │                    │    Records     │
-     │                    └────────┬────────┘
-     │                             │
-     │ CRUD Operation              │
-     │ View Patient Information    │
-     │                    Patient Records
-     │                    Medical/Dental History
+     │ CRUD Operations             │
+     │ Manage Forms & Records      │
+     │                    Form Records
+     │                    Patient Histories
      │                    Progress Notes
      │                             │
      │                             ▼
      │                    ┌─────────────────┐
-     │                    │ 7. User         │
-     │                    │  Management    │
+     │                    │ 5. Appointment  │
      │                    └────────┬────────┘
      │                             │
-     │ CRUD Operation              │
-     │ View Patient Accounts       │
-     │                    Patient Account Info
-     │                    Added/Edited Patient
+     │ CRUD Operations             │
+     │ Manage Appointments         │
+     │                    Appointment Calendar
+     │                    Appointment Details
      │                             │
      │                             ▼
      │                    ┌─────────────────┐
-     │                    │ 8. Notification │
+     │                    │ 6. Blocked Time │
      │                    └────────┬────────┘
      │                             │
-     │ View/Read                    │
-     │ Approve/Deny Requests        │
+     │ Block Time Slots            │
+     │ Manage Clinic Hours         │
+     │                    Blocked Time Schedule
+     │                             │
+     │                             ▼
+     │                    ┌─────────────────┐
+     │                    │ 7. Content      │
+     │                    │  Management     │
+     │                    └────────┬────────┘
+     │                             │
+     │ CRUD Operations             │
+     │ Manage Content              │
+     │                    Announcements, Services
+     │                    Events, Mail Templates
+     │                             │
+     │                             ▼
+     │                    ┌─────────────────┐
+     │                    │ 8. ToothTalk    │
+     │                    │  Management     │
+     │                    └────────┬────────┘
+     │                             │
+     │ Manage FAQ                  │
+     │ Configure Settings          │
+     │                    Chatbot Settings
+     │                    FAQ Entries
+     │                             │
+     │                             ▼
+     │                    ┌─────────────────┐
+     │                    │ 9. Account      │
+     │                    │  Management     │
+     │                    └────────┬────────┘
+     │                             │
+     │ CRUD Operations             │
+     │ Manage Patient Accounts     │
+     │                    Patient Account Info
+     │                             │
+     │                             ▼
+     │                    ┌─────────────────┐
+     │                    │ 10. Notification│
+     │                    └────────┬────────┘
+     │                             │
+     │ View/Read                   │
+     │ Approve/Deny Requests       │
      │                    Notifications
      │                    Appointment Requests
      │                             │
      │                             ▼
      │                    ┌─────────────────┐
-     │                    │  9. Chatbot     │
+     │                    │ 11. Profile    │
      │                    └────────┬────────┘
      │                             │
-     │ Update/Delete               │
-     │ Pre-Generated Prompt        │
-     │                    Pre-Generated Prompt
-     │                    Save Edited Version
+     │ Edit Profile                │
+     │ Update Password             │
+     │                    Updated Profile
+     │                             │
+     │                             ▼
+     │                    ┌─────────────────┐
+     │                    │ 12. Chat        │
+     │                    └────────┬────────┘
+     │                             │
+     │ Manage Conversations        │
+     │ Send Messages               │
+     │                    Chat Messages
+     │                    Conversations
+     │                             │
+     │                             ▼
+     │                    ┌─────────────────┐
+     │                    │ 13. Feedback    │
+     │                    └────────┬────────┘
+     │                             │
+     │ View Feedback               │
+     │                    Feedback Reports
      │                             │
      │                             │
      │                    ┌────────┴────────┐
@@ -778,17 +857,18 @@ flowchart TD
      │
      │ Data Store Interactions:
      │ - Access Rights (Login ↔ DB)
-     │ - Analytics & Report Data Information (Dashboard ↔ DB)
-     │ - View List & Setting Stored (Content Management ↔ DB)
-     │ - Edited Content (Content Management ↔ DB)
-     │ - Scheduled Patient Calendar (Appointment ↔ DB)
-     │ - Edited Appointment, Block of Time (Appointment ↔ DB)
-     │ - List of Form Layout & Records (Post-Procedure Forms ↔ DB)
-     │ - Patient & Staff Data Stored (Patient Records ↔ DB)
-     │ - Patient Account Data (User Management ↔ DB)
-     │ - Notification Triggers (Notification ↔ DB)
-     │ - Pre-Generated Prompt (Chatbot ↔ DB)
-     │ - Save Edited Version (Chatbot ↔ DB)
+     │ - Analytics & Report Data (Dashboard ↔ DB)
+     │ - Patient Records Data (Patient Records Access ↔ DB)
+     │ - Post-Procedural Data (Post-Procedural Forms ↔ DB)
+     │ - Appointment Data (Appointment ↔ DB)
+     │ - Blocked Time Data (Blocked Time ↔ DB)
+     │ - Content Management Data (Content Management ↔ DB)
+     │ - Chatbot Data (ToothTalk Management ↔ DB)
+     │ - Patient Account Data (Account Management ↔ DB)
+     │ - Notification Data (Notification ↔ DB)
+     │ - Staff Profile Data (Profile ↔ DB)
+     │ - Chat Data (Chat ↔ DB)
+     │ - Feedback Data (Feedback ↔ DB)
 ```
 
 ### Description

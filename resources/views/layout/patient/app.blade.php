@@ -175,27 +175,17 @@
         @media (max-width: 768px) {
             .scroll-to-top-btn {
                 right: 20px;
-                bottom: 90px;
+                bottom: 88px;
                 width: 45px;
                 height: 45px;
                 font-size: 1.1rem;
             }
         }
 
-        @media (max-width: 576px) {
-            .scroll-to-top-btn {
-                right: 16px;
-                bottom: 100px;
-                width: 40px;
-                height: 40px;
-                font-size: 1rem;
-            }
-        }
-        
         @media (max-width: 480px) {
             .scroll-to-top-btn {
                 right: 16px;
-                bottom: 100px;
+                bottom: 80px;
                 width: 40px;
                 height: 40px;
                 font-size: 1rem;

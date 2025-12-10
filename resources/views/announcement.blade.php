@@ -1345,9 +1345,14 @@ document.addEventListener('keydown', function(e) {
 @media (max-width: 768px) {
     .chatbot-widget {
         right: 16px;
-        bottom: 92px;
+        bottom: 88px;
         width: calc(100vw - 32px);
         max-width: 340px;
+    }
+    
+    .chatbot-toggle-btn {
+        right: 20px;
+        bottom: 20px;
     }
 
     .chatbot-messages {
@@ -1359,8 +1364,8 @@ document.addEventListener('keydown', function(e) {
     .chatbot-toggle-btn {
         right: 16px;
         bottom: 16px;
-        width: 56px;
-        height: 56px;
+        width: 52px;
+        height: 52px;
     }
 
     .chatbot-widget { 

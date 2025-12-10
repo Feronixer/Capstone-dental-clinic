@@ -84,29 +84,126 @@
 }
 
 @media (max-width: 768px) {
+    /* Header Section - Mobile */
+    .container-fluid.px-4.py-4 {
+        padding: 1rem 0.75rem !important;
+    }
+
+.appointment-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 1rem;
+}
+
+.appointment-header .header-actions {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.appointment-header .header-actions .btn {
+    flex: 1;
+    min-width: auto;
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+}
+
+    h1.h2 {
+        font-size: 1.5rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    /* Table Controls - Mobile */
+    .table-controls {
+        padding: 0.75rem !important;
+    }
+
+    .table-controls .row.g-3 {
+        flex-direction: column;
+        gap: 1rem !important;
+    }
+
+    .table-controls .col-md-3,
+    .table-controls .col-md-6 {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .table-controls .col-md-6.text-end {
+        text-align: left !important;
+    }
+
+    .table-controls .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .table-controls .table-control-select {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-left: 0 !important;
+        margin-top: 0.25rem;
+    }
+
+    .table-controls span {
+        display: inline-block;
+        margin-left: 0.5rem;
+    }
+
+    .search-input-wrapper {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-left: 0 !important;
+        margin-top: 0.25rem;
+    }
+
+    /* Table - Mobile */
     .table-responsive {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
+        border-radius: 10px;
     }
 
     .appointment-table {
         min-width: 800px;
+        font-size: 0.8125rem;
     }
 
-    .appointment-table thead th,
+    .appointment-table thead th {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.75rem;
+        white-space: nowrap;
+    }
+
     .appointment-table tbody td {
-        padding: 0.5rem 0.375rem;
+        padding: 0.75rem 0.5rem;
         font-size: 0.8125rem;
     }
 
     .appointment-table .patient-cell strong,
     .appointment-table .datetime-cell strong {
         font-size: 0.875rem;
+        display: block;
     }
 
     .appointment-table .patient-cell small,
     .appointment-table .datetime-cell small {
         font-size: 0.75rem;
+        display: block;
+        margin-top: 0.25rem;
+    }
+
+    .appointment-table .badge {
+        padding: 0.375rem 0.5rem;
+        font-size: 0.75rem;
+        white-space: nowrap;
+    }
+
+    .appointment-table .view-appointment {
+        padding: 0.375rem 0.5rem;
+        font-size: 0.75rem;
+        white-space: nowrap;
     }
 
     /* Stack filters vertically on mobile */
@@ -116,19 +213,93 @@
 }
 
 @media (max-width: 576px) {
+    /* Header - Extra Small */
+    .container-fluid.px-4.py-4 {
+        padding: 0.75rem 0.5rem !important;
+    }
+
+    h1.h2 {
+        font-size: 1.25rem !important;
+    }
+
+    .d-flex.justify-content-between.align-items-center .btn {
+        font-size: 0.8125rem;
+        padding: 0.45rem 0.65rem;
+    }
+
+    /* Filters - Extra Small */
+    .filters-section .card-body {
+        padding: 0.75rem 0.5rem !important;
+    }
+
+    .filters-section .form-label {
+        font-size: 0.8125rem;
+    }
+
+    .filters-section .form-select {
+        font-size: 0.8125rem;
+        padding: 0.45rem 0.65rem;
+    }
+
+    .filters-section .btn-modern {
+        font-size: 0.8125rem;
+        padding: 0.45rem 0.65rem;
+        min-width: 100px;
+    }
+
+    /* Table Controls - Extra Small */
+    .table-controls {
+        padding: 0.5rem !important;
+    }
+
+    .table-controls .form-label {
+        font-size: 0.8125rem;
+    }
+
+    .table-control-select {
+        font-size: 0.8125rem;
+        padding: 0.45rem 2rem 0.45rem 0.65rem;
+    }
+
+    .table-search-input {
+        font-size: 0.8125rem;
+        padding: 0.45rem 2.5rem 0.45rem 0.65rem;
+    }
+
+    /* Table - Extra Small */
     .appointment-table {
         min-width: 900px;
         font-size: 0.75rem;
     }
 
-    .appointment-table thead th,
+    .appointment-table thead th {
+        padding: 0.5rem 0.375rem;
+        font-size: 0.7rem;
+    }
+
     .appointment-table tbody td {
-        padding: 0.5rem 0.25rem;
+        padding: 0.5rem 0.375rem;
+        font-size: 0.75rem;
+    }
+
+    .appointment-table .patient-cell strong,
+    .appointment-table .datetime-cell strong {
+        font-size: 0.8125rem;
+    }
+
+    .appointment-table .patient-cell small,
+    .appointment-table .datetime-cell small {
+        font-size: 0.7rem;
+    }
+
+    .appointment-table .badge {
+        padding: 0.3rem 0.45rem;
+        font-size: 0.7rem;
     }
 
     .appointment-table .view-appointment {
-        padding: 0.375rem 0.5rem;
-        font-size: 0.875rem;
+        padding: 0.3rem 0.45rem;
+        font-size: 0.7rem;
     }
 
     /* Hide less important columns on very small screens */
@@ -149,6 +320,127 @@
 
 .card-body {
     padding: 1.25rem 1.25rem 1rem;
+}
+
+.appointment-header {
+    align-items: center;
+}
+
+.appointment-header .header-actions .btn {
+    min-width: 140px;
+}
+
+/* Compact Filter Section - Single Row Layout */
+.filters-section .card-body {
+    padding: 0.75rem 1rem !important;
+}
+
+.filters-section .filters-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 1rem;
+}
+
+
+.filters-section .filter-item {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 180px;
+    min-width: 160px;
+    max-width: calc(25% - 1rem);
+}
+
+.filters-section .filter-item .form-label {
+    margin-bottom: 0.25rem !important;
+    font-size: 0.8125rem !important;
+    white-space: nowrap;
+}
+
+.filters-section .compact-select {
+    font-size: 0.875rem !important;
+    padding: 0.4rem 2rem 0.4rem 0.65rem !important;
+    height: auto !important;
+    width: 100%;
+    border-radius: 6px;
+}
+
+.filters-section .filter-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+}
+
+.filters-section .filter-actions .btn {
+    white-space: nowrap;
+    font-size: 0.875rem;
+    padding: 0.4rem 0.75rem;
+    margin-top: 2rem;
+}
+
+.filters-section .active-filters {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Mobile table scroll wrapper */
+.mobile-table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.5rem;
+    touch-action: pan-x;
+}
+
+.mobile-table-scroll::-webkit-scrollbar {
+    height: 8px;
+}
+
+.mobile-table-scroll::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.15);
+    border-radius: 8px;
+}
+
+.mobile-table-scroll::-webkit-scrollbar-thumb {
+    background: rgba(59, 130, 246, 0.85);
+    border-radius: 8px;
+    border: 1px solid rgba(15, 23, 42, 0.4);
+}
+
+.mobile-table-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(59, 130, 246, 1);
+}
+
+@media (max-width: 768px) {
+    .mobile-table-scroll table {
+        min-width: 1100px;
+    }
+
+    .mobile-table-scroll table th,
+    .mobile-table-scroll table td {
+        white-space: nowrap;
+    }
+}
+
+@media (min-width: 769px) {
+    .table-responsive {
+        border-radius: 15px;
+        overflow: hidden;
+    }
+}
+
+.table-responsive.mobile-table-scroll {
+    overflow-x: auto !important;
+    overflow-y: hidden;
+    border-radius: 15px;
+    padding-bottom: 0.5rem;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
+}
+
+.table-responsive.mobile-table-scroll #appointmentsTable {
+    min-width: 1100px;
 }
 
 .filters-toolbar {

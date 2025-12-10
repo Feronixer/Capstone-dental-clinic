@@ -1,5 +1,17 @@
+<!-- Mobile Hamburger Menu Button -->
+<button class="mobile-menu-toggle" id="adminMobileMenuToggle" aria-label="Open menu">
+    <span class="burger-icon">
+        <span></span>
+        <span></span>
+        <span></span>
+    </span>
+</button>
+
+<!-- Mobile Menu Backdrop -->
+<div class="mobile-menu-backdrop" id="adminMobileMenuBackdrop" aria-hidden="true"></div>
+
 <aside class="navigation-bar-container" id="sidebar">
-    <!-- Toggle Button -->
+    <!-- Desktop Toggle Button (Hidden on mobile) -->
     <button class="sidebar-toggle-btn" id="sidebarToggle" aria-label="Toggle sidebar">
         <i class="bi bi-chevron-left"></i>
     </button>
@@ -42,6 +54,10 @@
                 <span>Main</span>
             </div>
             <ul class="nav-menu-list">
+                @php
+                    $isMobile = session('is_mobile_device', false);
+                @endphp
+                @if(!$isMobile)
                 <li class="{{ request()->routeIs('admin-dashboard') ? 'active' : '' }}">
                     <a href="{{ route('admin-dashboard') }}" class="nav-item-link">
                         <div class="nav-icon-wrapper">
@@ -53,6 +69,7 @@
                         @endif
                     </a>
                 </li>
+                @endif
                 <li class="{{ request()->routeIs('admin-appointment') ? 'active' : '' }}">
                     <a href="{{ route('admin-appointment') }}" class="nav-item-link">
                         <div class="nav-icon-wrapper">
@@ -64,6 +81,7 @@
                         @endif
                     </a>
                 </li>
+                @if(!$isMobile)
                 <li class="{{ request()->routeIs('admin-account-management') ? 'active' : '' }}">
                     <a href="{{ route('admin-account-management') }}" class="nav-item-link">
                         <div class="nav-icon-wrapper">
@@ -75,6 +93,7 @@
                         @endif
                     </a>
                 </li>
+                @endif
                 <li class="{{ request()->routeIs('admin-staff-access-control') ? 'active' : '' }}">
                     <a href="{{ route('admin-staff-access-control') }}" class="nav-item-link">
                         <div class="nav-icon-wrapper">
@@ -97,6 +116,7 @@
                         @endif
                     </a>
                 </li>
+                @if(!$isMobile)
                 <li class="{{ request()->routeIs('admin-post-procedural') ? 'active' : '' }}">
                     <a href="{{ route('admin-post-procedural') }}" class="nav-item-link">
                         <div class="nav-icon-wrapper">
@@ -119,6 +139,7 @@
                         @endif
                     </a>
                 </li>
+                @endif
             </ul>
         </div>
 
@@ -129,6 +150,7 @@
                 <span>Settings</span>
             </div>
             <ul class="nav-menu-list">
+                @if(!$isMobile)
                 <li class="{{ request()->routeIs('admin-chat') ? 'active' : '' }}">
                     <a href="{{ route('admin-chat') }}" class="nav-item-link">
                         <div class="nav-icon-wrapper">
@@ -141,6 +163,7 @@
                         @endif
                     </a>
                 </li>
+                @endif
                 <li class="{{ request()->routeIs('admin-notification') ? 'active' : '' }}">
                     <a href="{{ route('admin-notification') }}" class="nav-item-link">
                         <div class="nav-icon-wrapper">
@@ -155,6 +178,7 @@
                         @endif
                     </a>
                 </li>
+                @if(!$isMobile)
                 <li class="{{ request()->routeIs('admin-activity-logs*') ? 'active' : '' }}">
                     <a href="{{ route('admin-activity-logs') }}" class="nav-item-link">
                         <div class="nav-icon-wrapper">
@@ -166,6 +190,7 @@
                         @endif
                     </a>
                 </li>
+                @endif
                 <li>
                     <a href="#" class="nav-item-link dark-mode-toggle-btn" onclick="toggleDarkMode(); return false;" title="Toggle Dark Mode">
                         <div class="nav-icon-wrapper">
@@ -253,12 +278,89 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Sidebar hover is handled by CSS - no JavaScript needed
     
+    // Mobile Menu Toggle Functionality
+    const mobileMenuToggle = document.getElementById('adminMobileMenuToggle');
+    const mobileMenuBackdrop = document.getElementById('adminMobileMenuBackdrop');
+    const sidebar = document.getElementById('sidebar');
+
+    function openMobileMenu() {
+        document.body.classList.add('mobile-menu-open');
+        mobileMenuToggle.classList.add('fixed-open');
+        mobileMenuBackdrop.classList.add('active');
+        mobileMenuBackdrop.setAttribute('aria-hidden', 'false');
+        sidebar.setAttribute('aria-hidden', 'false');
+        // Prevent body scroll when menu is open
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeMobileMenu() {
+        document.body.classList.remove('mobile-menu-open');
+        mobileMenuToggle.classList.remove('fixed-open');
+        mobileMenuBackdrop.classList.remove('active');
+        mobileMenuBackdrop.setAttribute('aria-hidden', 'true');
+        sidebar.setAttribute('aria-hidden', 'true');
+        // Restore body scroll
+        document.body.style.overflow = '';
+    }
+
+    if (mobileMenuToggle) {
+        mobileMenuToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (document.body.classList.contains('mobile-menu-open')) {
+                closeMobileMenu();
+            } else {
+                openMobileMenu();
+            }
+        });
+    }
+
+    if (mobileMenuBackdrop) {
+        mobileMenuBackdrop.addEventListener('click', function() {
+            closeMobileMenu();
+        });
+    }
+
+    // Close mobile menu when clicking on a nav link (on mobile)
+    const navLinks = document.querySelectorAll('.navigation-bar-container .nav-item-link, .navigation-bar-container .nav-logout-btn');
+    navLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            if (window.innerWidth <= 768) {
+                closeMobileMenu();
+            }
+        });
+    });
+
+    // Close mobile menu on window resize if it's larger than mobile
+    window.addEventListener('resize', function() {
+        if (window.innerWidth > 768 && document.body.classList.contains('mobile-menu-open')) {
+            closeMobileMenu();
+        }
+    });
+
+    // Handle escape key to close mobile menu
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && document.body.classList.contains('mobile-menu-open')) {
+            closeMobileMenu();
+        }
+    });
+    
     // Chat unread count polling
     let chatUnreadInterval = null;
     
     async function updateChatUnreadCount() {
         try {
             const response = await fetch('{{ route("admin-chat.unread-count") }}');
+            
+            // Check if response is OK and content type is JSON
+            if (!response.ok) {
+                return; // Silently fail if endpoint returns error
+            }
+            
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                return; // Silently fail if response is not JSON
+            }
+            
             const data = await response.json();
             const badge = document.getElementById('admin-chat-badge');
             
@@ -271,7 +373,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         } catch (error) {
-            console.error('Error fetching chat unread count:', error);
+            // Silently handle errors - don't log to console to avoid noise
         }
     }
     
@@ -331,9 +433,94 @@ document.addEventListener('DOMContentLoaded', function() {
     /* Preserve current state during theme switch - just disable transitions */
     /* Don't override hover state, just prevent animations */
 
-    /* Sidebar Toggle Button - Hidden when using hover */
+    /* Sidebar Toggle Button - Hidden when using hover, visible on desktop */
     .sidebar-toggle-btn {
         display: none;
+    }
+
+    /* Mobile Hamburger Menu Toggle Button */
+    .mobile-menu-toggle {
+        display: none;
+        position: fixed;
+        top: 1rem;
+        left: 1rem;
+        z-index: 1001;
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #003B46 0%, #07575B 100%);
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(0, 59, 70, 0.4);
+        transition: all 0.3s ease;
+    }
+
+    .mobile-menu-toggle:hover {
+        background: linear-gradient(135deg, #07575B 0%, #003B46 100%);
+        transform: scale(1.05);
+    }
+
+    .mobile-menu-toggle.fixed-open {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    }
+
+    .mobile-menu-toggle.fixed-open:hover {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    }
+
+    /* Burger Icon */
+    .burger-icon {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        width: 24px;
+        height: 18px;
+        position: relative;
+    }
+
+    .burger-icon span {
+        display: block;
+        width: 100%;
+        height: 3px;
+        background: white;
+        border-radius: 2px;
+        transition: all 0.3s ease;
+    }
+
+    .mobile-menu-toggle.fixed-open .burger-icon span:nth-child(1) {
+        transform: rotate(45deg) translate(8px, 8px);
+    }
+
+    .mobile-menu-toggle.fixed-open .burger-icon span:nth-child(2) {
+        opacity: 0;
+    }
+
+    .mobile-menu-toggle.fixed-open .burger-icon span:nth-child(3) {
+        transform: rotate(-45deg) translate(7px, -7px);
+    }
+
+    /* Mobile Menu Backdrop */
+    .mobile-menu-backdrop {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+    }
+
+    .mobile-menu-backdrop.active {
+        opacity: 1;
+        visibility: visible;
     }
 
     /* Collapsed State - Default collapsed */
@@ -886,30 +1073,91 @@ document.addEventListener('DOMContentLoaded', function() {
 
     /* Responsive Design */
     @media (max-width: 768px) {
+        /* Show mobile hamburger button */
+        .mobile-menu-toggle {
+            display: flex;
+        }
+
+        /* Show mobile backdrop */
+        .mobile-menu-backdrop {
+            display: block;
+        }
+
+        /* Hide desktop toggle button */
+        .sidebar-toggle-btn {
+            display: none !important;
+        }
+
+        /* Sidebar hidden by default on mobile */
         .navigation-bar-container {
-            width: var(--nav-expanded-width) !important;
-            min-width: var(--nav-expanded-width) !important;
-            max-width: var(--nav-expanded-width) !important;
+            width: 0 !important;
+            min-width: 0 !important;
+            max-width: 0 !important;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease, width 0.3s ease, min-width 0.3s ease, max-width 0.3s ease;
+            overflow: hidden;
         }
 
-        .navigation-bar-container:not(:hover):not(:focus-within) .nav-section-label,
-        .navigation-bar-container:not(:hover):not(:focus-within) .nav-section-label span,
-        .navigation-bar-container:not(:hover):not(:focus-within) .nav-section-label i,
-        .navigation-bar-container:not(:hover):not(:focus-within) .nav-item-text,
-        .navigation-bar-container:not(:hover):not(:focus-within) .user-profile-info {
-            opacity: 1;
-            max-width: 100%;
-            max-height: none;
+        /* Sidebar visible when mobile menu is open */
+        body.mobile-menu-open .navigation-bar-container {
+            width: 280px !important;
+            min-width: 280px !important;
+            max-width: 280px !important;
+            transform: translateX(0);
         }
 
-        .navigation-bar-container:not(:hover):not(:focus-within) .nav-item-link,
-        .navigation-bar-container:not(:hover):not(:focus-within) .nav-logout-btn,
-        .navigation-bar-container:not(:hover):not(:focus-within) .user-profile-link {
-            justify-content: flex-start;
-            gap: 0.55rem;
-            padding: 0.45rem 0.75rem;
-            margin: 0 0.45rem;
-            text-align: left;
+        /* Always show text on mobile when sidebar is open */
+        body.mobile-menu-open .navigation-bar-container .nav-section-label,
+        body.mobile-menu-open .navigation-bar-container .nav-section-label span,
+        body.mobile-menu-open .navigation-bar-container .nav-section-label i,
+        body.mobile-menu-open .navigation-bar-container .nav-item-text,
+        body.mobile-menu-open .navigation-bar-container .user-profile-info {
+            opacity: 1 !important;
+            max-width: 100% !important;
+            max-height: none !important;
+        }
+
+        body.mobile-menu-open .navigation-bar-container .nav-item-link,
+        body.mobile-menu-open .navigation-bar-container .nav-logout-btn,
+        body.mobile-menu-open .navigation-bar-container .user-profile-link {
+            justify-content: flex-start !important;
+            gap: 0.55rem !important;
+            padding: 0.45rem 0.75rem !important;
+            margin: 0 0.45rem !important;
+            text-align: left !important;
+        }
+
+        body.mobile-menu-open .navigation-bar-container .user-profile-link {
+            justify-content: flex-start !important;
+            padding: 0.45rem 0.5rem !important;
+        }
+
+        body.mobile-menu-open .navigation-bar-container .nav-section-label {
+            justify-content: flex-start !important;
+            padding: 0.35rem 0.75rem !important;
+        }
+
+        body.mobile-menu-open .navigation-bar-container .nav-section-label i {
+            margin-right: 0.5rem !important;
+        }
+
+        body.mobile-menu-open .navigation-bar-container .nav-active-indicator {
+            opacity: 1 !important;
+        }
+
+        /* Disable hover effects on mobile */
+        .navigation-bar-container:hover {
+            width: 0 !important;
+            min-width: 0 !important;
+            max-width: 0 !important;
+            transform: translateX(-100%);
+        }
+
+        body.mobile-menu-open .navigation-bar-container:hover {
+            width: 280px !important;
+            min-width: 280px !important;
+            max-width: 280px !important;
+            transform: translateX(0);
         }
 
         .nav-item-link,
@@ -938,9 +1186,30 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    /* Tablet and smaller desktop adjustments */
+    @media (min-width: 769px) and (max-width: 1024px) {
+        .mobile-menu-toggle {
+            display: none;
+        }
+    }
+
     /* Dark Mode Support */
     [data-theme="dark"] .nav-section-label {
         color: rgba(255, 255, 255, 0.5);
+    }
+
+    /* Dark Mode for Mobile Menu Toggle */
+    [data-theme="dark"] .mobile-menu-toggle {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    }
+
+    [data-theme="dark"] .mobile-menu-toggle:hover {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    }
+
+    [data-theme="dark"] .mobile-menu-backdrop {
+        background: rgba(0, 0, 0, 0.7);
     }
 
     [data-theme="dark"] .nav-item-link,

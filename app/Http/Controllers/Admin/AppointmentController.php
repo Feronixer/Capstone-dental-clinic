@@ -113,6 +113,7 @@ class AppointmentController extends Controller
      */
     private function getAppointmentsForView(Carbon $startDate, Carbon $endDate)
     {
+        // Filter cancelled appointments on backend for performance (they're still in database, just not shown in calendar)
         return Appointment::whereBetween('start_datetime', [$startDate, $endDate])
             ->whereNotIn('status', ['blocked', 'Cancelled'])
             ->with(['patient.info', 'service'])
@@ -234,8 +235,9 @@ class AppointmentController extends Controller
         $start = Carbon::parse($request->start, 'Asia/Manila');
         $end = Carbon::parse($request->end, 'Asia/Manila');
 
+        // Filter cancelled appointments on backend for performance (they're still in database, just not shown in calendar)
         $appointments = Appointment::whereBetween('start_datetime', [$start, $end])
-            ->where('status', '!=', 'Cancelled')
+            ->whereNotIn('status', ['blocked', 'Cancelled'])
             ->with(['patient.info', 'service'])
             ->get()
             ->map(function($appointment) {

@@ -828,6 +828,16 @@
                     return;
                 }
 
+                // Prevent multiple clicks
+                if (verifyCodeBtn.disabled) {
+                    return;
+                }
+
+                const btn = this;
+                const originalText = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Verifying...';
+
                 const formData = new FormData();
                 formData.append('verification_code', code);
                 formData.append('verify_code', 'true');
@@ -867,6 +877,8 @@
                         verificationCodeInput.classList.add('is-invalid');
                         verificationCodeError.textContent = data.message || 'Invalid verification code';
                         verificationCodeError.style.display = 'block';
+                        btn.disabled = false;
+                        btn.innerHTML = originalText;
                     }
                 })
                 .catch(error => {
@@ -874,6 +886,8 @@
                     verificationCodeInput.classList.add('is-invalid');
                     verificationCodeError.textContent = error.message || 'Error verifying code. Please try again.';
                     verificationCodeError.style.display = 'block';
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
                 });
             });
         }

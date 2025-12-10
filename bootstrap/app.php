@@ -13,6 +13,10 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->redirectUsersTo('/login');
+        $middleware->alias([
+            'detect.mobile' => \App\Http\Middleware\DetectMobileDevice::class,
+            'restrict.admin.mobile' => \App\Http\Middleware\RestrictAdminMobileAccess::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

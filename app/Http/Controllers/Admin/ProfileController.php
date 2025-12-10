@@ -218,6 +218,14 @@ class ProfileController extends Controller
             'new_password' => 'required|string|min:8|confirmed',
         ]);
 
+        // Check if new password is the same as old password
+        if (Hash::check($request->new_password, $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The new password must be different from your current password.'
+            ], 422);
+        }
+
         // Update password
         $user->update([
             'password' => Hash::make($request->new_password)

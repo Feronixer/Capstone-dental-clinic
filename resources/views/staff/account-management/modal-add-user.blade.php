@@ -798,6 +798,131 @@
 [data-theme="dark"] .password-toggle-btn:focus {
     color: #60a5fa;
 }
+
+/* Enhanced Validation Notification Styles */
+.validation-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    min-width: 350px;
+    max-width: 500px;
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(220, 53, 69, 0.4);
+    color: #ffffff;
+    opacity: 0;
+    transform: translateX(400px);
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    overflow: hidden;
+}
+
+.validation-notification.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.validation-notification-header {
+    padding: 1rem 1.25rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.validation-notification-header strong {
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+.validation-notification-header i {
+    font-size: 1.1rem;
+    color: #ffd700;
+}
+
+.validation-notification-body {
+    padding: 1rem 1.25rem;
+}
+
+.validation-error-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    border-left: 3px solid #ffd700;
+    transition: all 0.2s ease;
+}
+
+.validation-error-item:last-child {
+    margin-bottom: 0;
+}
+
+.validation-error-item:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateX(4px);
+}
+
+.validation-error-item i {
+    font-size: 1rem;
+    color: #ffd700;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.validation-error-item span {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #ffffff;
+}
+
+.btn-close-white {
+    filter: brightness(0) invert(1);
+    opacity: 0.9;
+}
+
+.btn-close-white:hover {
+    opacity: 1;
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .validation-notification {
+    background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+    box-shadow: 0 8px 24px rgba(220, 38, 38, 0.5);
+}
+
+[data-theme="dark"] .validation-notification-header {
+    background: rgba(0, 0, 0, 0.3);
+    border-bottom-color: rgba(255, 255, 255, 0.15);
+}
+
+[data-theme="dark"] .validation-error-item {
+    background: rgba(0, 0, 0, 0.2);
+    border-left-color: #fbbf24;
+}
+
+[data-theme="dark"] .validation-error-item:hover {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .validation-notification {
+        min-width: 280px;
+        max-width: calc(100vw - 40px);
+        right: 20px;
+        left: 20px;
+        transform: translateY(-100px);
+    }
+    
+    .validation-notification.show {
+        transform: translateY(0);
+    }
+}
 </style>
 
 <script>
@@ -889,19 +1014,86 @@ document.addEventListener('DOMContentLoaded', function() {
         updateProgress();
     }
 
+    // Show validation notification
+    function showValidationNotification(errors) {
+        // Remove existing notification if any
+        const existingNotification = document.getElementById('step-validation-notification');
+        if (existingNotification) {
+            existingNotification.remove();
+        }
+
+        // Create notification element with enhanced styling
+        const notification = document.createElement('div');
+        notification.id = 'step-validation-notification';
+        notification.className = 'validation-notification';
+        notification.setAttribute('role', 'alert');
+        
+        // Get error icons based on error message
+        function getErrorIcon(error) {
+            if (error.toLowerCase().includes('username')) {
+                return '<i class="bi bi-person-x-fill me-2"></i>';
+            } else if (error.toLowerCase().includes('email')) {
+                return '<i class="bi bi-envelope-x-fill me-2"></i>';
+            } else if (error.toLowerCase().includes('phone')) {
+                return '<i class="bi bi-telephone-x-fill me-2"></i>';
+            } else if (error.toLowerCase().includes('password')) {
+                return '<i class="bi bi-shield-exclamation me-2"></i>';
+            } else {
+                return '<i class="bi bi-exclamation-circle-fill me-2"></i>';
+            }
+        }
+        
+        let errorList = '';
+        errors.forEach(error => {
+            errorList += `<div class="validation-error-item">
+                ${getErrorIcon(error)}
+                <span>${error}</span>
+            </div>`;
+        });
+        
+        notification.innerHTML = `
+            <div class="validation-notification-header">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <strong>Please fix the following errors:</strong>
+                </div>
+                <button type="button" class="btn-close btn-close-white" onclick="this.closest('.validation-notification').remove()" aria-label="Close"></button>
+            </div>
+            <div class="validation-notification-body">
+                ${errorList}
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Trigger animation
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 10);
+        
+        // Auto-remove after 8 seconds
+        setTimeout(() => {
+            if (notification && notification.parentNode) {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    if (notification && notification.parentNode) {
+                        notification.remove();
+                    }
+                }, 300);
+            }
+        }, 8000);
+    }
+
     // Validate current step
     function validateStep(step) {
         const currentFormStep = formSteps[step - 1];
         const requiredFields = currentFormStep.querySelectorAll('[required], .form-control[required], .form-select[required]');
         let isValid = true;
+        const errors = [];
 
-        requiredFields.forEach(field => {
-            if (!field.value || field.value.trim() === '') {
-                field.classList.add('is-invalid');
-                isValid = false;
-            } else {
-                field.classList.remove('is-invalid');
-            }
+        // Clear previous invalid states
+        currentFormStep.querySelectorAll('.is-invalid').forEach(field => {
+            field.classList.remove('is-invalid');
         });
 
         // Special validation for step 1
@@ -913,23 +1105,50 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (!username.value || !username.value.trim()) {
                 username.classList.add('is-invalid');
+                errors.push('Username is required');
                 isValid = false;
+            } else {
+                // Validate username format (letters, numbers, underscores, hyphens only)
+                const usernameRegex = /^[A-Za-z0-9_-]+$/;
+                if (!usernameRegex.test(username.value.trim())) {
+                    username.classList.add('is-invalid');
+                    errors.push('Username may only contain letters, numbers, underscores (_), and hyphens (-)');
+                    isValid = false;
+                }
             }
+
             // Check if role is selected and not the disabled placeholder option
             const selectedRoleOption = role.options[role.selectedIndex];
             if (!role.value || role.value === '' || selectedRoleOption.disabled) {
                 role.classList.add('is-invalid');
+                errors.push('Role must be selected');
                 isValid = false;
             } else {
                 role.classList.remove('is-invalid');
             }
-            if (!email.value || !email.value.trim() || !email.value.includes('@')) {
+
+            if (!email.value || !email.value.trim()) {
                 email.classList.add('is-invalid');
+                errors.push('Email address is required');
+                isValid = false;
+            } else if (!email.value.includes('@') || !email.value.includes('.')) {
+                email.classList.add('is-invalid');
+                errors.push('Please enter a valid email address');
                 isValid = false;
             }
+
             if (!phone.value || !phone.value.trim()) {
                 phone.classList.add('is-invalid');
+                errors.push('Phone number is required');
                 isValid = false;
+            } else {
+                // Validate phone format (must start with 09 and be 11 digits)
+                const phoneRegex = /^09\d{9}$/;
+                if (!phoneRegex.test(phone.value.trim())) {
+                    phone.classList.add('is-invalid');
+                    errors.push('Phone number must start with 09 and be 11 digits long');
+                    isValid = false;
+                }
             }
         }
 
@@ -942,18 +1161,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (!firstName.value || !firstName.value.trim()) {
                 firstName.classList.add('is-invalid');
+                errors.push('First name is required');
                 isValid = false;
             }
             if (!lastName.value || !lastName.value.trim()) {
                 lastName.classList.add('is-invalid');
+                errors.push('Last name is required');
                 isValid = false;
             }
             if (!gender.value || gender.value === '') {
                 gender.classList.add('is-invalid');
+                errors.push('Gender must be selected');
                 isValid = false;
             }
             if (!birthday.value || birthday.value === '') {
                 birthday.classList.add('is-invalid');
+                errors.push('Birthday is required');
                 isValid = false;
             }
         }
@@ -965,23 +1188,104 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (!password.value || password.value.length < 8) {
                 password.classList.add('is-invalid');
+                errors.push('Password must be at least 8 characters long');
                 isValid = false;
             }
-            if (!confirmPassword.value || confirmPassword.value !== password.value) {
+            if (!confirmPassword.value) {
                 confirmPassword.classList.add('is-invalid');
+                errors.push('Please confirm your password');
+                isValid = false;
+            } else if (confirmPassword.value !== password.value) {
+                confirmPassword.classList.add('is-invalid');
+                errors.push('Passwords do not match');
                 isValid = false;
             }
+        }
+
+        // Show notification if there are errors
+        if (!isValid && errors.length > 0) {
+            showValidationNotification(errors);
         }
 
         return isValid;
     }
 
+    // Validate step with duplicate checking (for step 1)
+    async function validateStepWithDuplicates(step) {
+        // First do basic validation
+        if (!validateStep(step)) {
+            return false;
+        }
+
+        // If basic validation passes, check for duplicates
+        if (step === 1) {
+            const username = document.getElementById('floatingUsername').value.trim();
+            const email = document.getElementById('floatingEmail').value.trim();
+            const phone = document.getElementById('floatingPhone').value.trim();
+
+            try {
+                const response = await fetch('/staff/account-management/check-duplicates', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        email: email,
+                        phone: phone
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.has_duplicates) {
+                    const duplicateErrors = [];
+                    const usernameField = document.getElementById('floatingUsername');
+                    const emailField = document.getElementById('floatingEmail');
+                    const phoneField = document.getElementById('floatingPhone');
+
+                    if (data.duplicates.username) {
+                        usernameField.classList.add('is-invalid');
+                        duplicateErrors.push(data.duplicates.username);
+                    }
+                    if (data.duplicates.email) {
+                        emailField.classList.add('is-invalid');
+                        duplicateErrors.push(data.duplicates.email);
+                    }
+                    if (data.duplicates.phone) {
+                        phoneField.classList.add('is-invalid');
+                        duplicateErrors.push(data.duplicates.phone);
+                    }
+
+                    showValidationNotification(duplicateErrors);
+                    return false;
+                }
+            } catch (error) {
+                console.error('Error checking duplicates:', error);
+                showValidationNotification(['Error checking for duplicates. Please try again.']);
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     // Next button click
-    btnNext.addEventListener('click', function() {
-        if (validateStep(currentStep)) {
-            if (currentStep < totalSteps) {
+    btnNext.addEventListener('click', async function() {
+        // For step 1, check duplicates before validating
+        if (currentStep === 1) {
+            const isValid = await validateStepWithDuplicates(currentStep);
+            if (isValid && currentStep < totalSteps) {
                 currentStep++;
                 showStep(currentStep);
+            }
+        } else {
+            if (validateStep(currentStep)) {
+                if (currentStep < totalSteps) {
+                    currentStep++;
+                    showStep(currentStep);
+                }
             }
         }
     });

@@ -2379,12 +2379,14 @@ async function loadNotifications() {
 
         // Check if unread count increased (new notification)
         const currentUnreadCount = data.unread_count || 0;
-        if (typeof previousUnreadCount !== 'undefined' && currentUnreadCount > previousUnreadCount) {
+        // Only play sound if there are truly new notifications (has_new flag) AND count increased
+        // This prevents sound from playing when switching tabs or on initial load
+        if (data.has_new && typeof previousUnreadCount !== 'undefined' && currentUnreadCount > previousUnreadCount) {
             // New notification received - play sound
             playNotificationSound();
             
             // Show browser notification if permission granted
-            if (Notification.permission === 'granted' && data.has_new) {
+            if (Notification.permission === 'granted') {
                 const newNotif = data.notifications && data.notifications[0];
                 if (newNotif) {
                     new Notification(newNotif.title, {

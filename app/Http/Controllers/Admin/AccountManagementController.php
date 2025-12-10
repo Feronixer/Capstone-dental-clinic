@@ -21,11 +21,15 @@ class AccountManagementController extends Controller
     {
         $users = $this->getFilteredUsers($request);
         // Get only the 3 valid roles: Admin, Staff, Patient
-        $roles = Role::whereIn('role', ['Admin', 'Staff', 'Patient'])
-            ->orderBy('id', 'asc')
-            ->get()
-            ->unique('role')
-            ->values();
+        // Fetch each role explicitly to ensure all three are included
+        $adminRole = Role::where('role', 'Admin')->first();
+        $staffRole = Role::where('role', 'Staff')->first();
+        $patientRole = Role::where('role', 'Patient')->first();
+        
+        $roles = collect([]);
+        if ($adminRole) $roles->push($adminRole);
+        if ($staffRole) $roles->push($staffRole);
+        if ($patientRole) $roles->push($patientRole);
 
         if ($request->ajax()) {
             return response()->json([
@@ -245,6 +249,13 @@ class AccountManagementController extends Controller
         ]);
 
         if ($request->filled('password')) {
+            // Check if new password is the same as old password
+            if (Hash::check($request->password, $user->password)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'The new password must be different from the user\'s current password.'
+                ], 422);
+            }
             $user->update([
                 'password' => bcrypt($request->password),
             ]);
@@ -366,6 +377,15 @@ class AccountManagementController extends Controller
         ]);
 
         $user = User::findOrFail($id);
+        
+        // Check if new password is the same as old password
+        if (Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'The new password must be different from the user\'s current password.',
+            ], 422);
+        }
+
         $user->update([
             'password' => bcrypt($request->password),
         ]);
@@ -373,6 +393,50 @@ class AccountManagementController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Password has been updated successfully.',
+        ]);
+    }
+
+    /**
+     * Check if username, email, or phone number already exists
+     */
+    public function checkDuplicates(Request $request)
+    {
+        $request->validate([
+            'username' => 'nullable|string',
+            'email' => 'nullable|email',
+            'phone' => 'nullable|string',
+        ]);
+
+        $duplicates = [];
+
+        // Check username
+        if ($request->has('username') && $request->username) {
+            $usernameExists = User::where('username', $request->username)->exists();
+            if ($usernameExists) {
+                $duplicates['username'] = 'This username is already taken.';
+            }
+        }
+
+        // Check email
+        if ($request->has('email') && $request->email) {
+            $emailExists = User::where('email', $request->email)->exists();
+            if ($emailExists) {
+                $duplicates['email'] = 'This email address is already registered.';
+            }
+        }
+
+        // Check phone number
+        if ($request->has('phone') && $request->phone) {
+            $phoneExists = UserInfo::where('phone', $request->phone)->exists();
+            if ($phoneExists) {
+                $duplicates['phone'] = 'This phone number is already registered.';
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'has_duplicates' => count($duplicates) > 0,
+            'duplicates' => $duplicates
         ]);
     }
 

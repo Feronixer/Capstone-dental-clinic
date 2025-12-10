@@ -234,8 +234,9 @@ class AppointmentController extends Controller
         $start = Carbon::parse($request->start, 'Asia/Manila');
         $end = Carbon::parse($request->end, 'Asia/Manila');
 
+        // Filter cancelled appointments - they should not appear in calendar but are still saved in database
         $appointments = Appointment::whereBetween('start_datetime', [$start, $end])
-            ->where('status', '!=', 'Cancelled')
+            ->whereNotIn('status', ['blocked', 'Cancelled'])
             ->with(['patient.info', 'service'])
             ->get()
             ->map(function($appointment) {
@@ -826,13 +827,7 @@ class AppointmentController extends Controller
                 return redirect()->route('staff-appointment')->with('error', 'Cannot cancel rescheduled appointments. The original appointment was already cancelled when it was rescheduled.');
             }
 
-            // Prevent cancelling confirmed appointments
-            if ($appointment->status === 'Confirmed') {
-                if (request()->ajax() || request()->wantsJson()) {
-                    return response()->json(['success' => false, 'message' => 'Cannot cancel confirmed appointments.']);
-                }
-                return redirect()->route('staff-appointment')->with('error', 'Cannot cancel confirmed appointments.');
-            }
+            // Allow cancelling confirmed appointments (removed restriction)
 
             $oldStatus = $appointment->status;
             \Log::info('Cancelling appointment:', ['appointment_id' => $appointment->id, 'old_status' => $oldStatus]);

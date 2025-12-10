@@ -43,7 +43,7 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn-custom-primary w-100 mb-3">
+                <button type="submit" class="btn-custom-primary w-100 mb-3" id="verifyCodeBtn">
                     <i class="bi bi-check-circle me-2"></i>Verify Code
                 </button>
 
@@ -70,21 +70,44 @@
 // Auto-focus and format verification code input
 document.addEventListener('DOMContentLoaded', function() {
     const codeInput = document.querySelector('input[name="verification_code"]');
+    const verifyCodeBtn = document.getElementById('verifyCodeBtn');
+    const form = document.querySelector('form[action="{{ route("staff.password.reset.verify") }}"]');
+    let isSubmitting = false;
 
-    codeInput.addEventListener('input', function(e) {
-        // Only allow numbers
-        e.target.value = e.target.value.replace(/[^0-9]/g, '');
-
-        // Auto-submit when 6 digits are entered
-        if (e.target.value.length === 6) {
+    // Handle form submission
+    if (form && verifyCodeBtn) {
+        form.addEventListener('submit', function(e) {
+            // Prevent multiple submissions
+            if (isSubmitting) {
+                e.preventDefault();
+                return false;
+            }
+            
+            isSubmitting = true;
+            const originalText = verifyCodeBtn.innerHTML;
+            verifyCodeBtn.disabled = true;
+            verifyCodeBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Verifying...';
+            
+            // Re-enable after 5 seconds as fallback
             setTimeout(() => {
-                e.target.form.submit();
-            }, 300);
-        }
-    });
+                if (isSubmitting) {
+                    isSubmitting = false;
+                    verifyCodeBtn.disabled = false;
+                    verifyCodeBtn.innerHTML = originalText;
+                }
+            }, 5000);
+        });
+    }
 
-    // Focus on the input
-    codeInput.focus();
+    if (codeInput) {
+        codeInput.addEventListener('input', function(e) {
+            // Only allow numbers
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+        });
+
+        // Focus on the input
+        codeInput.focus();
+    }
 });
 </script>
 @endsection

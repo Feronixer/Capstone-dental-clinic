@@ -8,9 +8,12 @@ use App\Models\ChatConversation;
 use App\Models\ChatCensoredWord;
 use App\Models\ChatMessage;
 use App\Models\ChatbotSetting;
+use App\Models\User;
 use App\Services\ChatCensorshipService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
@@ -102,6 +105,7 @@ class ChatController extends Controller
                 return [
                     'id' => $conversation->id,
                     'patient_id' => $conversation->patient_id,
+                    'patient_chat_disabled' => (bool) ($conversation->patient->chat_disabled ?? false),
                     'patient_name' => $conversation->patient->info 
                         ? $conversation->patient->info->first_name . ' ' . $conversation->patient->info->last_name 
                         : $conversation->patient->username,
@@ -361,6 +365,57 @@ class ChatController extends Controller
             'success' => true,
             'status' => $conversation->status,
         ]);
+    }
+
+    /**
+     * Enable or disable live chat for a specific patient.
+     */
+    public function togglePatientChat(Request $request, $patientId)
+    {
+        // Only staff who can respond to chat can toggle patient access
+        if (!$this->can('respond_to_chat')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You do not have permission to update chat access.'
+            ], 403);
+        }
+
+        $request->validate([
+            'chat_disabled' => 'required|boolean',
+        ]);
+
+        $staff = Auth::guard('staff')->user();
+        if (!$staff) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized',
+            ], 401);
+        }
+
+        $patient = User::findOrFail($patientId);
+        $isDisabled = $request->boolean('chat_disabled');
+        $patient->chat_disabled = $isDisabled;
+        if (!$isDisabled) {
+            // Clear any previous enable request once re-enabled
+            if (Schema::hasColumn('users', 'chat_enable_requested_at')) {
+                $patient->chat_enable_requested_at = null;
+            }
+            Cache::forget($this->requestCacheKey($patient->id));
+        }
+        $patient->save();
+
+        return response()->json([
+            'success' => true,
+            'chat_disabled' => (bool) $patient->chat_disabled,
+            'message' => $patient->chat_disabled
+                ? 'Live chat has been disabled for this patient.'
+                : 'Live chat has been enabled for this patient.',
+        ]);
+    }
+
+    private function requestCacheKey(int $patientId): string
+    {
+        return 'chat_enable_request_block_' . $patientId;
     }
 
     /**
@@ -659,5 +714,6 @@ class ChatController extends Controller
             'is_online' => $isOnline,
         ]);
     }
+
 }
 

@@ -63,6 +63,7 @@
     /* Responsive - Mobile (768px) */
     --login-mobile-container-padding: 0.5rem 0.75rem;
     --login-mobile-container-padding-top: 0.75rem;
+    --login-mobile-container-padding-bottom: 0.75rem;
     --login-mobile-card-max-height-offset: 1.5rem;
     --login-mobile-card-margin: 0.25rem;
     --login-mobile-content-padding: 1.25rem 1rem;
@@ -79,6 +80,7 @@
     /* Responsive - Small Mobile (480px) */
     --login-small-container-padding: 0.4rem;
     --login-small-container-padding-top: 0.5rem;
+    --login-small-container-padding-bottom: 0.5rem;
     --login-small-card-border-radius: 0.5rem;
     --login-small-card-max-height-offset: 0.8rem;
     --login-small-card-margin: 0.2rem;
@@ -1329,6 +1331,42 @@ footer {
     max-width: calc(100vw - 260px);
 }
 
+/* Mobile Responsive - Admin/Staff Main Content */
+@media (max-width: 768px) {
+    /* Override desktop styles for mobile - use high specificity */
+    .admin-body main,
+    .staff-body main,
+    body.admin-body main,
+    body.staff-body main {
+        margin-left: 0 !important;
+        width: 100vw !important;
+        max-width: 100vw !important;
+        padding-top: 4rem !important; /* Space for hamburger button */
+    }
+
+    /* Override hover state on mobile */
+    .admin-body:has(.navigation-bar-container:hover) main,
+    .staff-body:has(.navigation-bar-container:hover) main,
+    body.admin-body:has(.navigation-bar-container:hover) main,
+    body.staff-body:has(.navigation-bar-container:hover) main {
+        margin-left: 0 !important;
+        width: 100vw !important;
+        max-width: 100vw !important;
+    }
+
+    /* When mobile menu is open, main content stays full width */
+    body.mobile-menu-open .admin-body main,
+    body.mobile-menu-open .staff-body main,
+    body.mobile-menu-open.admin-body main,
+    body.mobile-menu-open.staff-body main,
+    .mobile-menu-open .admin-body main,
+    .mobile-menu-open .staff-body main {
+        margin-left: 0 !important;
+        width: 100vw !important;
+        max-width: 100vw !important;
+    }
+}
+
 /* Staff Panel - Same as Admin */
 .staff-body {
     display: flex;
@@ -1712,20 +1750,36 @@ footer {
 /* Mobile devices */
 @media screen and (max-width: 768px) {
     .login-container {
+        height: 100vh;
+        height: 100dvh;
         min-height: 100vh;
         min-height: 100dvh;
-        padding: var(--login-mobile-container-padding);
-        justify-content: flex-start;
-        padding-top: var(--login-mobile-container-padding-top);
+        padding: 0 0.75rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        position: relative;
     }
     
     .login-card {
         max-height: none;
         max-height: calc(100dvh - var(--login-mobile-card-max-height-offset));
-        margin-top: var(--login-mobile-card-margin);
-        margin-bottom: var(--login-mobile-card-margin);
+        margin: 0 auto;
         background-color: #ffffff !important;
         flex-direction: column;
+        flex-shrink: 0;
+    }
+    
+    .login-container > p {
+        position: absolute;
+        bottom: 0.5rem;
+        left: 50%;
+        transform: translateX(-50%);
+        width: calc(100% - 1.5rem);
+        text-align: center;
+        margin: 0;
+        padding: 0;
     }
     
     .login-card-content {
@@ -1831,16 +1885,35 @@ footer {
 /* Extra small devices (phones in portrait) */
 @media screen and (max-width: 480px) {
     .login-container {
-        padding: var(--login-small-container-padding);
-        padding-top: var(--login-small-container-padding-top);
+        height: 100vh;
+        height: 100dvh;
+        min-height: 100vh;
+        min-height: 100dvh;
+        padding: 0 0.4rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        position: relative;
     }
     
     .login-card {
         border-radius: var(--login-small-card-border-radius);
         max-height: calc(100dvh - var(--login-small-card-max-height-offset));
         background-color: #ffffff !important;
-        margin-top: var(--login-small-card-margin);
-        margin-bottom: var(--login-small-card-margin);
+        margin: 0 auto;
+        flex-shrink: 0;
+    }
+    
+    .login-container > p {
+        position: absolute;
+        bottom: 0.5rem;
+        left: 50%;
+        transform: translateX(-50%);
+        width: calc(100% - 0.8rem);
+        text-align: center;
+        margin: 0;
+        padding: 0;
     }
     
     .login-card-content {
@@ -1916,10 +1989,13 @@ footer {
 @media screen and (max-width: 768px) and (orientation: landscape) {
     .login-container {
         padding: var(--login-landscape-container-padding);
+        justify-content: center;
+        align-items: center;
     }
     
     .login-card {
         max-height: calc(100dvh - var(--login-landscape-card-max-height-offset));
+        margin: auto;
     }
     
     .login-card-content {

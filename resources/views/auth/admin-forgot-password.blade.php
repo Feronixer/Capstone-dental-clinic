@@ -36,7 +36,7 @@
                     @enderror
                 </div>
 
-                <button type="submit" class="btn-custom-primary w-100 mb-3 bg-primary border-primary">
+                <button type="submit" class="btn-custom-primary w-100 mb-3 bg-primary border-primary" id="sendCodeBtn">
                     <i class="bi bi-envelope me-2"></i>Send Verification Code
                 </button>
 
@@ -57,5 +57,35 @@
         &copy; {{ date('Y') }} JValera Dental Clinic. All rights reserved.
     </p>
 </section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form[action="{{ route("admin.password.reset.send") }}"]');
+    const sendCodeBtn = document.getElementById('sendCodeBtn');
+    
+    if (form && sendCodeBtn) {
+        form.addEventListener('submit', function(e) {
+            // Prevent multiple submissions
+            if (sendCodeBtn.disabled) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // Show loading state
+            const originalText = sendCodeBtn.innerHTML;
+            sendCodeBtn.disabled = true;
+            sendCodeBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Sending...';
+            
+            // Re-enable button after 5 seconds as fallback (in case form doesn't submit)
+            setTimeout(() => {
+                if (sendCodeBtn.disabled) {
+                    sendCodeBtn.disabled = false;
+                    sendCodeBtn.innerHTML = originalText;
+                }
+            }, 5000);
+        });
+    }
+});
+</script>
 @endsection
 

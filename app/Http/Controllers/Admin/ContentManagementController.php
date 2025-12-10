@@ -19,11 +19,12 @@ class ContentManagementController extends Controller
      */
     public function index()
     {
+        $isMobile = session('is_mobile_device', false);
         $announcement = Announcement::first();
         $services = Service::orderBy('id')->get();
         $mailTemplates = MailTemplate::all()->keyBy('type');
 
-        return view("admin.content-management", compact('announcement', 'services', 'mailTemplates'));
+        return view("admin.content-management", compact('announcement', 'services', 'mailTemplates', 'isMobile'));
     }
 
     /**

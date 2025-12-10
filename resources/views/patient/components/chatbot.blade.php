@@ -108,9 +108,9 @@
         right: 24px !important;
         left: auto !important;
         bottom: 92px !important;
-        width: 20vw;
-        min-width: 300px;
-        max-width: calc(85vw - 24px);
+        width: 360px;
+        min-width: 320px;
+        max-width: 420px;
         height: 500px;
         min-height: 400px;
         max-height: calc(100vh - 120px);
@@ -126,15 +126,6 @@
         opacity: 0;
         transform: translateY(20px) scale(0.9);
         /* Transition removed - using animations instead to prevent conflicts */
-    }
-    
-    /* Desktop: Increase chatbot width */
-    @media (min-width: 769px) {
-        .chatbot-widget {
-            width: 25vw;
-            min-width: 340px;
-            max-width: calc(90vw - 24px);
-        }
     }
     
     .chatbot-widget.resizing {
@@ -495,6 +486,171 @@
         flex-shrink: 0;
     }
 
+    .chatbot-request {
+    margin-bottom: 10px;
+    background: #f1f5f9;
+    border: 1px solid #d0d7e2;
+    border-radius: 10px;
+    padding: 12px;
+    }
+
+    .chatbot-request .request-title {
+        margin: 0;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .chatbot-request .request-subtitle {
+        margin: 4px 0 8px;
+        color: #475569;
+        font-size: 0.9rem;
+    }
+
+    .chatbot-request textarea {
+        width: 100%;
+        border-radius: 8px;
+    border: 1px solid #cbd5e1;
+        padding: 8px 10px;
+        resize: vertical;
+        font-size: 0.95rem;
+    background: #f8fafc;
+    }
+
+    .chatbot-request .request-btn {
+        margin-top: 8px;
+        width: 100%;
+    }
+
+.chatbot-request .request-feedback {
+    margin-top: 6px;
+    font-size: 0.9rem;
+}
+
+[data-theme="dark"] .chatbot-request {
+    background: #111827;
+    border-color: #1f2937;
+}
+
+[data-theme="dark"] .chatbot-request .request-title {
+    color: #e5e7eb;
+}
+
+[data-theme="dark"] .chatbot-request .request-subtitle {
+    color: #cbd5e1;
+}
+
+[data-theme="dark"] .chatbot-request textarea {
+    background: #0f172a;
+    color: #e5e7eb;
+    border-color: #334155;
+}
+
+.chatbot-request .request-cancel-btn {
+    margin-top: 6px;
+    width: 100%;
+    background: #e2e8f0;
+    border: 1px solid #cbd5e1;
+    color: #0f172a;
+}
+
+.chatbot-request .request-cancel-btn:hover {
+    background: #cbd5e1;
+}
+
+    .chatbot-request .request-feedback {
+        margin-top: 6px;
+        font-size: 0.9rem;
+    }
+
+.chatbot-request-toggle {
+    margin: 6px 0 10px;
+}
+
+.request-toggle-btn {
+    width: 100%;
+    background: #2563eb;
+    border: 1px solid #1d4ed8;
+    color: #f8fafc;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.request-toggle-btn:hover {
+    background: #1d4ed8;
+}
+
+.request-toggle-btn:disabled,
+.request-toggle-btn[disabled] {
+        background: #e2e8f0;
+        border-color: #cbd5e1;
+        color: #94a3b8;
+    cursor: not-allowed;
+    box-shadow: none;
+    pointer-events: none;
+}
+
+.request-toggle-btn:disabled:hover,
+.request-toggle-btn[disabled]:hover {
+        background: #e2e8f0;
+        border-color: #cbd5e1;
+        color: #94a3b8;
+}
+
+[data-theme="dark"] .chatbot-request {
+    background: #0f172a;
+    border-color: #1e293b;
+}
+
+[data-theme="dark"] .chatbot-request .request-title {
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .chatbot-request .request-subtitle {
+    color: #cbd5e1;
+}
+
+[data-theme="dark"] .chatbot-request textarea {
+    background: #111827;
+    color: #e2e8f0;
+    border-color: #334155;
+}
+
+[data-theme="dark"] .request-toggle-btn {
+    background: #1d4ed8;
+    border-color: #1e3a8a;
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .request-toggle-btn:hover {
+    background: #1e3a8a;
+}
+
+[data-theme="dark"] .request-toggle-btn:disabled,
+[data-theme="dark"] .request-toggle-btn[disabled] {
+        background: #2b3442;
+    border-color: #334155;
+    color: #6b7280;
+    cursor: not-allowed;
+    box-shadow: none;
+    pointer-events: none;
+}
+
+[data-theme="dark"] .request-toggle-btn:disabled:hover,
+[data-theme="dark"] .request-toggle-btn[disabled]:hover {
+        background: #2b3442;
+        border-color: #334155;
+        color: #6b7280;
+}
+
+[data-theme="dark"] .chatbot-request .request-cancel-btn {
+    background: #1f2937;
+    border-color: #334155;
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .chatbot-request .request-cancel-btn:hover {
+    background: #111827;
+}
+
     .chatbot-input input[type="text"] {
         flex: 1;
         padding: 10px 12px;
@@ -575,8 +731,8 @@
         }
         
         .chatbot-toggle-btn:not(.dragged) {
-            right: 16px !important;
-            bottom: 16px !important;
+            right: 20px !important;
+            bottom: 20px !important;
             width: 56px;
             height: 56px;
         }
@@ -636,16 +792,16 @@
 
     @media (max-width: 480px) {
         .chatbot-widget {
-            right: 12px !important;
-            left: 12px !important;
+            right: 16px !important;
+            left: 16px !important;
             bottom: 80px !important;
-            max-width: calc(100vw - 24px);
+            max-width: calc(100vw - 32px);
             border-radius: 12px;
         }
         
         .chatbot-toggle-btn:not(.dragged) {
-            right: 12px !important;
-            bottom: 12px !important;
+            right: 16px !important;
+            bottom: 16px !important;
             width: 52px;
             height: 52px;
             opacity: 0.9;
@@ -1095,12 +1251,34 @@
     }
 
     /* Adjust position when scroll-to-top button present */
-    .scroll-to-top-btn + #chatbot-toggle.chatbot-toggle-btn {
-        bottom: 90px;
-    }
+    @media (min-width: 769px) {
+        .scroll-to-top-btn + #chatbot-toggle.chatbot-toggle-btn {
+            bottom: 90px;
+        }
 
-    .scroll-to-top-btn + #chatbot-toggle.chatbot-toggle-btn + .chatbot-widget {
-        bottom: 158px;
+        .scroll-to-top-btn + #chatbot-toggle.chatbot-toggle-btn + .chatbot-widget {
+            bottom: 158px;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .scroll-to-top-btn + #chatbot-toggle.chatbot-toggle-btn {
+            bottom: 20px;
+        }
+
+        .scroll-to-top-btn + #chatbot-toggle.chatbot-toggle-btn + .chatbot-widget {
+            bottom: 88px;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .scroll-to-top-btn + #chatbot-toggle.chatbot-toggle-btn {
+            bottom: 16px;
+        }
+
+        .scroll-to-top-btn + #chatbot-toggle.chatbot-toggle-btn + .chatbot-widget {
+            bottom: 80px;
+        }
     }
 
     /* Image Modal for Chatbot Attachments */
@@ -1222,6 +1400,23 @@
     <div class="chatbot-body">
         <div id="chatbot-messages" class="chatbot-messages" aria-live="polite"></div>
         <div class="chips" id="chatbot-chips"></div>
+        <div class="chatbot-request-toggle" id="chatbot-request-toggle" style="display:none;">
+            <button class="send-btn request-toggle-btn" id="chatbot-request-open">
+                <i class="bi bi-envelope-open me-1"></i> Request chat access
+            </button>
+        </div>
+        <div class="chatbot-request" id="chatbot-enable-request" style="display:none;">
+            <p class="request-title">Request to re-enable live chat</p>
+            <p class="request-subtitle">Tell us why:</p>
+            <textarea id="chatbot-request-reason" rows="3" maxlength="500" placeholder="Example: I need to follow up on my treatment plan."></textarea>
+            <button id="chatbot-request-submit" class="send-btn request-btn" aria-label="Request enable">
+                <i class="bi bi-send-fill me-1"></i> Send request
+            </button>
+            <button id="chatbot-request-cancel" class="send-btn request-cancel-btn" type="button">
+                Cancel
+            </button>
+            <div class="request-feedback text-success" id="chatbot-request-feedback" style="display:none;"></div>
+        </div>
         <div class="chatbot-input" id="chatbot-input-container" style="display:none;">
             <input id="chatbot-input" type="text" placeholder="Ask about services, hours, pricing..." autocomplete="off" />
             <button id="chatbot-send" class="send-btn" aria-label="Send message">
@@ -1710,10 +1905,10 @@
                 // Chatbot is on right, place scroll-to-top in lower right
                 if (window.innerWidth <= 480) {
                     scrollToTopBtn.style.right = '16px';
-                    scrollToTopBtn.style.bottom = '100px';
-                } else if (window.innerWidth <= 576) {
-                    scrollToTopBtn.style.right = '16px';
-                    scrollToTopBtn.style.bottom = '100px';
+                    scrollToTopBtn.style.bottom = '80px';
+                } else if (window.innerWidth <= 768) {
+                    scrollToTopBtn.style.right = '20px';
+                    scrollToTopBtn.style.bottom = '88px';
                 } else {
                     scrollToTopBtn.style.right = '24px';
                     scrollToTopBtn.style.bottom = '100px';
@@ -1942,8 +2137,12 @@
         let chatOnlineStatus = true;
         let chatCensorshipEnabled = false;
         let onlineStatusInterval = null;
+        let chatDisabledForPatient = false;
+        let requestFormOpened = false;
+        let requestAlreadySent = false;
         let isWidgetOpening = false;
         let isWidgetClosing = false;
+        const DISABLED_NOTICE_KEY = 'chatbot-disabled-notice';
         // Use Maps to store messages with unique keys to prevent duplicates
         const liveChatMessagesMap = new Map(); // key -> message object
         const faqMessagesMap = new Map(); // key -> message object
@@ -1990,6 +2189,13 @@
                 }
                 const data = await response.json();
                 const wasOnline = chatOnlineStatus;
+                chatDisabledForPatient = !!data.chat_disabled;
+                requestAlreadySent = !!(data.chat_enable_requested ?? data.chat_enable_requested_at);
+                if (!chatDisabledForPatient) {
+                    // Reset request state once chat is re-enabled
+                    requestAlreadySent = false;
+                    clearDisabledNotice();
+                }
                 chatOnlineStatus = data.is_online !== undefined ? data.is_online : true;
                 chatCensorshipEnabled = data.censorship_enabled !== undefined ? data.censorship_enabled : chatCensorshipEnabled;
                 
@@ -2005,7 +2211,7 @@
                 
                 // Always update input and send button state when in live-chat mode
                 if (currentMode === 'live-chat') {
-                    updateChatInputState(chatOnlineStatus);
+                    updateChatInputState(chatOnlineStatus && !chatDisabledForPatient);
                 }
             } catch (error) {
                 console.error('Error checking online status:', error);
@@ -2017,10 +2223,34 @@
             }
         }
 
+        function getStoredDisabledNotice() {
+            try {
+                const raw = localStorage.getItem(DISABLED_NOTICE_KEY);
+                if (!raw) return null;
+                const parsed = JSON.parse(raw);
+                if (parsed && parsed.timestamp && parsed.text) return parsed;
+            } catch (_) {}
+            return null;
+        }
+
+        function storeDisabledNotice(text, timestamp) {
+            try {
+                localStorage.setItem(DISABLED_NOTICE_KEY, JSON.stringify({ text, timestamp }));
+            } catch (_) {}
+        }
+
+        function clearDisabledNotice() {
+            try {
+                localStorage.removeItem(DISABLED_NOTICE_KEY);
+            } catch (_) {}
+        }
+
         function updateChatInputState(isOnline) {
             const inputEl = document.getElementById('chatbot-input');
             const sendBtn = document.getElementById('chatbot-send');
             const inputContainer = document.getElementById('chatbot-input-container');
+            const requestContainer = document.getElementById('chatbot-enable-request');
+            const requestToggle = document.getElementById('chatbot-request-toggle');
             
             // Only update if we're in live-chat mode and input container is visible
             if (currentMode !== 'live-chat' || !inputContainer || inputContainer.style.display === 'none') {
@@ -2028,9 +2258,13 @@
             }
             
             if (inputEl) {
-                inputEl.disabled = !isOnline;
-                if (!isOnline) {
-                    inputEl.placeholder = 'Chat is currently offline. Please try again later.';
+                const disabledForPatient = chatDisabledForPatient && currentMode === 'live-chat';
+                const shouldDisable = !isOnline || disabledForPatient;
+                inputEl.disabled = shouldDisable;
+                if (shouldDisable) {
+                    inputEl.placeholder = disabledForPatient
+                        ? 'Live chat has been disabled for your account.'
+                        : 'Chat is currently offline. Please try again later.';
                     inputEl.value = ''; // Clear any text
                 } else {
                     inputEl.placeholder = 'Type your message for the clinic...';
@@ -2038,28 +2272,157 @@
             }
             
             if (sendBtn) {
-                sendBtn.disabled = !isOnline;
+                sendBtn.disabled = !isOnline || chatDisabledForPatient;
+            }
+
+            // If chat is enabled, reset request state
+            if (!chatDisabledForPatient) {
+                requestFormOpened = false;
+            }
+
+            // Show request toggle/panel when disabled for patient
+            if (requestContainer) {
+                const showRequest = chatDisabledForPatient && requestFormOpened && !requestAlreadySent;
+                requestContainer.style.display = showRequest ? 'block' : 'none';
+            }
+            if (requestToggle) {
+                const showToggle = chatDisabledForPatient && !requestFormOpened && !requestAlreadySent;
+                requestToggle.style.display = showToggle ? 'block' : 'none';
+                const btn = requestToggle.querySelector('button');
+                if (btn) {
+                    if (requestAlreadySent) {
+                        btn.setAttribute('disabled', 'disabled');
+                    } else {
+                        btn.removeAttribute('disabled');
+                    }
+                }
             }
             
             // Show/hide offline message
-            if (!isOnline) {
+            if (!isOnline || chatDisabledForPatient) {
                 const existingOfflineMsg = Array.from(messagesEl.children).find(wrapper => {
                     const msgDiv = wrapper.querySelector('.message.bot');
-                    return msgDiv && msgDiv.textContent.includes('Chat is currently offline');
+                    return msgDiv && (msgDiv.textContent.includes('Chat is currently offline') || msgDiv.textContent.includes('disabled for your account'));
                 });
                 
                 if (!existingOfflineMsg) {
-                    addMessage('Chat is currently offline. Our staff will be back online soon. Please try again later.', 'bot', null, new Date().toISOString());
+                    const offlineText = chatDisabledForPatient
+                        ? 'Live chat has been disabled for your account. Please contact the clinic if you need assistance.'
+                        : 'Chat is currently offline. Our staff will be back online soon. Please try again later.';
+                    let timestamp = new Date().toISOString();
+                    if (chatDisabledForPatient) {
+                        const stored = getStoredDisabledNotice();
+                        if (stored && stored.text === offlineText) {
+                            timestamp = stored.timestamp;
+                        } else {
+                            storeDisabledNotice(offlineText, timestamp);
+                        }
+                    }
+                    addMessage(offlineText, 'bot', null, timestamp);
+                } else if (chatDisabledForPatient) {
+                    // Ensure stored notice exists for persistence on refresh
+                    const msgDiv = existingOfflineMsg.querySelector('.message.bot');
+                    const stored = getStoredDisabledNotice();
+                    if (!stored && msgDiv) {
+                        storeDisabledNotice(msgDiv.textContent.trim(), existingOfflineMsg.getAttribute('data-timestamp') || new Date().toISOString());
+                    }
                 }
             } else {
                 // Remove offline message when going online
                 const offlineMsgs = Array.from(messagesEl.children).filter(wrapper => {
                     const msgDiv = wrapper.querySelector('.message.bot');
-                    return msgDiv && msgDiv.textContent.includes('Chat is currently offline');
+                    return msgDiv && (msgDiv.textContent.includes('Chat is currently offline') || msgDiv.textContent.includes('disabled for your account'));
                 });
                 offlineMsgs.forEach(wrapper => wrapper.remove());
+                clearDisabledNotice();
             }
         }
+
+    function openRequestForm() {
+        if (requestAlreadySent) return;
+        requestFormOpened = true;
+        const requestContainer = document.getElementById('chatbot-enable-request');
+        const requestToggle = document.getElementById('chatbot-request-toggle');
+        const bodyEl = document.querySelector('#chatbot .chatbot-body');
+        if (requestToggle) requestToggle.style.display = 'none';
+        if (requestContainer) {
+            requestContainer.style.display = 'block';
+            const reasonEl = document.getElementById('chatbot-request-reason');
+            reasonEl?.focus();
+        }
+        if (bodyEl) {
+            // Scroll to bottom to reveal the full form
+            bodyEl.scrollTop = bodyEl.scrollHeight;
+        }
+        updateChatInputState(chatOnlineStatus && !chatDisabledForPatient);
+    }
+
+    async function sendEnableRequest() {
+        const reasonEl = document.getElementById('chatbot-request-reason');
+        const feedbackEl = document.getElementById('chatbot-request-feedback');
+        const submitBtn = document.getElementById('chatbot-request-submit');
+        if (!reasonEl || !submitBtn) return;
+
+        const reason = (reasonEl.value || '').trim();
+        if (reason.length < 10) {
+            if (feedbackEl) {
+                feedbackEl.style.display = 'block';
+                feedbackEl.classList.remove('text-success');
+                feedbackEl.classList.add('text-danger');
+                feedbackEl.textContent = 'Please provide a reason (at least 10 characters).';
+            }
+            return;
+        }
+
+        submitBtn.disabled = true;
+        if (feedbackEl) feedbackEl.style.display = 'none';
+
+        try {
+            const response = await fetch('{{ route("patient-chat.request-enable") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ reason })
+            });
+
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+                throw new Error(data.message || 'Failed to send request.');
+            }
+
+            reasonEl.value = '';
+            requestAlreadySent = true;
+            requestFormOpened = false;
+            const requestContainer = document.getElementById('chatbot-enable-request');
+            const requestToggle = document.getElementById('chatbot-request-toggle');
+            if (requestContainer) requestContainer.style.display = 'none';
+            if (requestToggle) {
+                requestToggle.style.display = 'block';
+                const btn = requestToggle.querySelector('button');
+                if (btn) {
+                    btn.setAttribute('disabled', 'disabled');
+                }
+            }
+            if (feedbackEl) {
+                feedbackEl.style.display = 'block';
+                feedbackEl.classList.remove('text-danger');
+                feedbackEl.classList.add('text-success');
+                feedbackEl.textContent = data.message || 'Request sent.';
+            }
+        } catch (error) {
+            if (feedbackEl) {
+                feedbackEl.style.display = 'block';
+                feedbackEl.classList.remove('text-success');
+                feedbackEl.classList.add('text-danger');
+                feedbackEl.textContent = error.message || 'Failed to send request.';
+            }
+        } finally {
+            submitBtn.disabled = false;
+        }
+    }
 
         // Start polling for online status
         function startOnlineStatusPolling() {
@@ -2743,6 +3106,9 @@
                 const response = await fetch('{{ route("patient-chat.conversation") }}');
                 const data = await response.json();
                 conversationId = data.conversation_id;
+                chatDisabledForPatient = !!data.chat_disabled;
+                // Update UI with latest disabled state
+                updateChatInputState(chatOnlineStatus && !chatDisabledForPatient);
                 titleEl.textContent = 'Live Chat';
                 await loadMessages();
                 startPolling();
@@ -3700,6 +4066,36 @@
             }
         });
 
+        const requestSubmitBtn = document.getElementById('chatbot-request-submit');
+        requestSubmitBtn?.addEventListener('click', (e) => {
+            e.preventDefault();
+            sendEnableRequest();
+        });
+
+        const requestOpenBtn = document.getElementById('chatbot-request-open');
+        requestOpenBtn?.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (requestAlreadySent || requestOpenBtn.disabled) return;
+            openRequestForm();
+        });
+
+        const requestCancelBtn = document.getElementById('chatbot-request-cancel');
+        requestCancelBtn?.addEventListener('click', (e) => {
+            e.preventDefault();
+            requestFormOpened = false;
+            const requestContainer = document.getElementById('chatbot-enable-request');
+            const requestToggle = document.getElementById('chatbot-request-toggle');
+            const reasonEl = document.getElementById('chatbot-request-reason');
+            const feedbackEl = document.getElementById('chatbot-request-feedback');
+            if (requestContainer) requestContainer.style.display = 'none';
+            if (requestToggle && !requestAlreadySent) {
+                requestToggle.style.display = 'block';
+            }
+            if (reasonEl) reasonEl.value = '';
+            if (feedbackEl) feedbackEl.style.display = 'none';
+            updateChatInputState(chatOnlineStatus && !chatDisabledForPatient);
+        });
+
         tabLiveChat?.addEventListener('click', () => switchTab('live-chat'));
         tabFaqs?.addEventListener('click', () => switchTab('faqs'));
 
@@ -3715,6 +4111,17 @@
     async function updatePatientChatUnreadCount() {
         try {
             const response = await fetch('{{ route("patient-chat.unread-count") }}');
+            
+            // Check if response is OK and content type is JSON
+            if (!response.ok) {
+                return; // Silently fail if endpoint returns error
+            }
+            
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                return; // Silently fail if response is not JSON
+            }
+            
             const data = await response.json();
             const badge = document.getElementById('patient-chat-badge');
             
@@ -3727,7 +4134,7 @@
                 }
             }
         } catch (error) {
-            console.error('Error fetching patient chat unread count:', error);
+            // Silently handle errors - don't log to console to avoid noise
         }
     }
     

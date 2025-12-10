@@ -6,9 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\ChatConversation;
 use App\Models\ChatMessage;
 use App\Models\ChatbotSetting;
+use App\Models\ActivityLog;
+use App\Models\Notification;
+use App\Models\User;
 use App\Services\ChatCensorshipService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
 
 class ChatController extends Controller
 {
@@ -18,6 +23,7 @@ class ChatController extends Controller
     public function getConversation()
     {
         $patientId = Auth::id();
+        $patient = Auth::user();
         
         $conversation = ChatConversation::where('patient_id', $patientId)
             ->where('status', '!=', 'closed')
@@ -33,6 +39,7 @@ class ChatController extends Controller
         return response()->json([
             'conversation_id' => $conversation->id,
             'status' => $conversation->status,
+            'chat_disabled' => (bool) ($patient?->chat_disabled ?? false),
         ]);
     }
 
@@ -82,6 +89,14 @@ class ChatController extends Controller
      */
     public function sendMessage(Request $request)
     {
+        $patient = Auth::user();
+        if ($patient && $patient->chat_disabled) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Live chat has been disabled for your account. Please contact the clinic for assistance.',
+            ], 403);
+        }
+
         // Check if chat is online
         $setting = ChatbotSetting::first();
         $isOnline = $setting ? $setting->is_online : true;
@@ -167,11 +182,115 @@ class ChatController extends Controller
     {
         $setting = ChatbotSetting::first();
         $isOnline = $setting ? $setting->is_online : true;
+        $patient = Auth::user();
+        $isDisabledForPatient = (bool) ($patient?->chat_disabled ?? false);
+        $requested = false;
+        if ($patient) {
+            if (Schema::hasColumn('users', 'chat_enable_requested_at')) {
+                $requested = (bool) $patient->chat_enable_requested_at;
+            } else {
+                $requested = Cache::get($this->requestCacheKey($patient->id), false);
+            }
+        }
 
         return response()->json([
-            'is_online' => $isOnline,
+            'is_online' => $isOnline && !$isDisabledForPatient,
             'censorship_enabled' => $setting ? (bool) $setting->censorship_enabled : false,
+            'chat_disabled' => $isDisabledForPatient,
+            'chat_enable_requested_at' => $patient?->chat_enable_requested_at,
+            'chat_enable_requested' => $requested,
         ]);
+    }
+
+    /**
+     * Allow patient to request enabling live chat when disabled.
+     */
+    public function requestEnable(Request $request)
+    {
+        $request->validate([
+            'reason' => 'required|string|min:10|max:500',
+        ]);
+
+        $patient = Auth::user();
+        if (!$patient) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized',
+            ], 401);
+        }
+
+        $cacheKey = $this->requestCacheKey($patient->id);
+
+        // Prevent duplicate requests within the same disabled session
+        if (Schema::hasColumn('users', 'chat_enable_requested_at')) {
+            if ($patient->chat_enable_requested_at) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You already sent a request. Please wait for the team to review it.',
+                ], 429);
+            }
+        } elseif (Cache::get($cacheKey)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You already sent a request. Please wait for the team to review it.',
+            ], 429);
+        }
+
+        // Log the request for staff/admin to review
+        ActivityLog::log(
+            'request',
+            'live_chat',
+            'Patient requested chat re-enable: "' . $request->reason . '"',
+            $patient->id,
+            'User',
+            $patient->id,
+            [
+                'patient_id' => $patient->id,
+                'patient_email' => $patient->email,
+                'patient_name' => $patient->info?->first_name . ' ' . $patient->info?->last_name,
+                'reason' => $request->reason,
+            ]
+        );
+
+        // Notify admins and staff
+        $adminsAndStaff = User::query()
+            ->whereIn('role_id', [1, 2])
+            ->get();
+
+        foreach ($adminsAndStaff as $recipient) {
+            Notification::create([
+                'user_id' => $recipient->id,
+                'type' => Notification::TYPE_GENERAL,
+                'title' => 'Chat access request',
+                'message' => 'Patient ' . ($patient->info?->first_name . ' ' . $patient->info?->last_name ?: $patient->username) . ' requested chat re-enable.',
+                'icon' => 'bi-envelope-open',
+                'data' => [
+                    'patient_id' => $patient->id,
+                    'patient_email' => $patient->email,
+                    'reason' => $request->reason,
+                ],
+                'is_read' => false,
+            ]);
+        }
+
+        // Mark that the patient requested enable if column exists
+        if (Schema::hasColumn('users', 'chat_enable_requested_at')) {
+            $patient->chat_enable_requested_at = now();
+            $patient->save();
+        } else {
+            // Fallback to cache if column is missing; cleared when re-enabled
+            Cache::put($cacheKey, true, now()->addDays(7));
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Request sent. Our team will review and enable chat if appropriate.',
+        ]);
+    }
+
+    private function requestCacheKey(int $patientId): string
+    {
+        return 'chat_enable_request_block_' . $patientId;
     }
 }
 

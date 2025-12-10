@@ -76,6 +76,16 @@
                             <small class="text-white-50" id="chat-status-text">Choose a conversation to start</small>
                         </div>
                     </div>
+                    <div id="chat-actions" style="display: none;" class="d-flex align-items-center gap-2">
+                        <div class="patient-chat-toggle-pill" id="patient-chat-toggle-wrap" style="display: none;">
+                            <button type="button" class="pill-option" id="patient-chat-enable" title="Enable chat for this patient">
+                                <span class="pill-label">Enable</span>
+                            </button>
+                            <button type="button" class="pill-option" id="patient-chat-disable" title="Disable chat for this patient">
+                                <span class="pill-label">Disable</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 <div class="card-body p-0 chat-body">
                     <div id="chat-messages" class="chat-messages-container">
@@ -204,6 +214,8 @@ function escapeHtml(text) {
 let currentConversationId = null;
 let pollingInterval = null;
 let lastMessageId = null;
+let currentPatientId = null;
+let currentPatientChatDisabled = false;
 
 // Expose pollingInterval to window for access control handler
 // We'll update window.pollingInterval whenever pollingInterval changes
@@ -231,6 +243,7 @@ async function loadOnlineStatus() {
         const data = await response.json();
         chatOnlineStatus = data.is_online;
         updateToggleUI(chatOnlineStatus);
+        updatePatientChatToggleUI();
     } catch (error) {
         console.error('Error loading online status:', error);
     }
@@ -281,6 +294,7 @@ async function toggleOnlineStatus(isOnline) {
             chatOnlineStatus = data.is_online;
             updateToggleUI(chatOnlineStatus);
             console.log('Status toggled successfully:', chatOnlineStatus ? 'Online' : 'Offline');
+            updatePatientChatToggleUI();
         } else {
             throw new Error(data.message || 'Failed to toggle status');
         }
@@ -667,7 +681,9 @@ async function loadConversations() {
         listEl.innerHTML = data.conversations.map(conv => `
             <div class="conversation-item p-3 border-bottom cursor-pointer" 
                  data-conversation-id="${conv.id}"
-                 onclick="selectConversation(${conv.id}, '${conv.patient_name}', '${conv.patient_email}')">
+                 data-patient-id="${conv.patient_id}"
+                 data-patient-chat-disabled="${conv.patient_chat_disabled ? '1' : '0'}"
+                 onclick="selectConversation(${conv.id}, '${conv.patient_name}', '${conv.patient_email}', ${conv.patient_id}, ${conv.patient_chat_disabled ? 'true' : 'false'})">
                 <div class="d-flex align-items-start gap-3">
                     <div class="conversation-avatar">
                         <div class="avatar-circle ${conv.unread_count > 0 ? 'has-unread' : ''}">${conv.patient_name.charAt(0).toUpperCase()}</div>
@@ -757,13 +773,22 @@ function getLastSenderBadge(senderType, senderName, lastMessageText = null, hasA
     </div>`;
 }
 
-async function selectConversation(id, patientName, patientEmail) {
+async function selectConversation(id, patientName, patientEmail, patientId, patientChatDisabled = false) {
     currentConversationId = id;
+    currentPatientId = patientId || null;
+    currentPatientChatDisabled = !!patientChatDisabled;
     const initial = patientName.charAt(0).toUpperCase();
     document.getElementById('chat-patient-name').innerHTML = `<i class="bi bi-person-fill me-2"></i>${patientName}`;
-    document.getElementById('chat-status-text').textContent = patientEmail;
+    document.getElementById('chat-status-text').textContent = patientChatDisabled
+        ? `${patientEmail} • Chat disabled`
+        : patientEmail;
     document.getElementById('chat-avatar-header').innerHTML = `<div class="avatar-circle-small">${initial}</div>`;
     document.getElementById('chat-input-container').style.display = 'block';
+    const actions = document.getElementById('chat-actions');
+    if (actions) {
+        actions.style.display = 'flex';
+    }
+    updatePatientChatToggleUI();
     
     // Update active state
     document.querySelectorAll('.conversation-item').forEach(el => {
@@ -782,6 +807,92 @@ async function selectConversation(id, patientName, patientEmail) {
     
     await loadMessages(id);
     startPolling();
+}
+
+function updatePatientChatToggleUI() {
+    const toggleWrap = document.getElementById('patient-chat-toggle-wrap');
+    const enableBtn = document.getElementById('patient-chat-enable');
+    const disableBtn = document.getElementById('patient-chat-disable');
+    if (!toggleWrap) return;
+
+    toggleWrap.style.display = currentPatientId ? 'flex' : 'none';
+
+    const globallyOffline = !chatOnlineStatus;
+
+    if (!currentPatientId) {
+        if (enableBtn) {
+            enableBtn.disabled = true;
+            enableBtn.classList.remove('pill-active-enable', 'pill-active-disable');
+        }
+        if (disableBtn) {
+            disableBtn.disabled = true;
+            disableBtn.classList.remove('pill-active-enable', 'pill-active-disable');
+        }
+        return;
+    }
+
+    if (enableBtn) enableBtn.disabled = globallyOffline;
+    if (disableBtn) disableBtn.disabled = globallyOffline;
+
+    if (globallyOffline) {
+        toggleWrap.setAttribute('title', 'Live chat is offline');
+    } else {
+        toggleWrap.removeAttribute('title');
+    }
+
+    const isDisabled = currentPatientChatDisabled;
+    if (enableBtn) {
+        enableBtn.classList.toggle('pill-active-enable', !isDisabled);
+    }
+    if (disableBtn) {
+        disableBtn.classList.toggle('pill-active-disable', isDisabled);
+    }
+}
+
+async function togglePatientChatAccess(desiredDisabled = null) {
+    if (!currentPatientId) return;
+
+    const enableBtn = document.getElementById('patient-chat-enable');
+    const disableBtn = document.getElementById('patient-chat-disable');
+
+    const nextDisabled = desiredDisabled !== null ? desiredDisabled : !currentPatientChatDisabled;
+    if (enableBtn) enableBtn.disabled = true;
+    if (disableBtn) disableBtn.disabled = true;
+
+    try {
+        const response = await fetch(`{{ url('/staff/chat/patients') }}/${currentPatientId}/toggle`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ chat_disabled: nextDisabled })
+        });
+
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || 'Failed to update chat access.');
+        }
+
+        currentPatientChatDisabled = !!data.chat_disabled;
+        const statusTextEl = document.getElementById('chat-status-text');
+        if (statusTextEl) {
+            const currentText = statusTextEl.textContent || '';
+            const emailPart = currentText.split(' • ')[0];
+            statusTextEl.textContent = currentPatientChatDisabled
+                ? `${emailPart} • Chat disabled`
+                : emailPart;
+        }
+        updatePatientChatToggleUI();
+        showInfoModal(data.message || 'Chat access updated.');
+    } catch (error) {
+        console.error('Error toggling patient chat access:', error);
+        showErrorModal(error.message || 'Failed to update chat access.');
+    } finally {
+        if (enableBtn) enableBtn.disabled = false;
+        if (disableBtn) disableBtn.disabled = false;
+    }
 }
 
 async function loadMessages(conversationId) {
@@ -1305,6 +1416,8 @@ document.getElementById('send-message-btn').addEventListener('click', sendMessag
 document.getElementById('chat-input').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') sendMessage();
 });
+document.getElementById('patient-chat-enable')?.addEventListener('click', () => togglePatientChatAccess(false));
+document.getElementById('patient-chat-disable')?.addEventListener('click', () => togglePatientChatAccess(true));
 
 // Click a message bubble to reveal who sent it
 document.getElementById('chat-messages').addEventListener('click', function(e) {
@@ -1467,6 +1580,68 @@ setInterval(loadConversations, 10000); // Refresh list every 10 seconds
     display: flex;
     align-items: center;
     gap: 0.75rem;
+}
+
+.patient-chat-toggle-pill {
+    display: inline-flex;
+    align-items: center;
+    background: #ffffff;
+    border: 2px solid #cbd5e1;
+    border-radius: 999px;
+    overflow: hidden;
+    padding: 1px;
+    gap: 2px;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+}
+
+.patient-chat-toggle-pill .pill-option {
+    border: none;
+    padding: 0.55rem 1.2rem;
+    font-weight: 700;
+    font-size: 0.95rem;
+    border-radius: 999px;
+    transition: all 0.2s ease;
+    color: #111827;
+}
+
+.patient-chat-toggle-pill .pill-option:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.pill-active-enable {
+    background: #22c55e;
+    color: #f8fafc !important;
+    box-shadow: inset 0 0 0 2px #14532d;
+}
+
+.pill-active-disable {
+    background: #ef4444;
+    color: #f8fafc !important;
+    box-shadow: inset 0 0 0 2px #7f1d1d;
+}
+
+/* Dark mode adjustments */
+.patient-chat-toggle-pill .pill-option:not(.pill-active-enable):not(.pill-active-disable) {
+    background: transparent;
+}
+
+[data-theme="dark"] .patient-chat-toggle-pill {
+    background:rgb(0, 0, 0);
+    border-color: #cbd5e1;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.32);
+}
+
+[data-theme="dark"] .pill-active-enable {
+    background: #22c55e;
+    box-shadow: inset 0 0 0 2px #cbd5e1;
+    color: #f8fafc !important;
+}
+
+[data-theme="dark"] .pill-active-disable {
+    background: #ef4444;
+    box-shadow: inset 0 0 0 2px #cbd5e1;
+    color: #f8fafc !important;
 }
 
 .chat-censor-label {

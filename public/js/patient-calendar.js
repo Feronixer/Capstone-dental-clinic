@@ -970,7 +970,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Get appointments for a specific date (includes both patient's own and other patients' appointments)
     function getAppointmentsForDate(dateStr) {
         // Use allAppointments as primary source (includes all appointments with is_own_appointment flag)
         const allApts = [];

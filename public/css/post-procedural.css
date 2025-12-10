@@ -303,6 +303,34 @@
     color: #93c5fd !important;
 }
 
+/* Dark Mode Treatment Selector */
+[data-theme="dark"] #progressNoteTreatmentSelector {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(245, 158, 11, 0.15) 100%) !important;
+    border-color: rgba(251, 191, 36, 0.4) !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] #progressNoteTreatmentSelector strong {
+    color: #fbbf24 !important;
+}
+
+[data-theme="dark"] #progressNoteTreatmentSelector .text-muted {
+    color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] #progressNoteTreatmentSelector .form-select {
+    background: var(--dm-input-bg, #0f172a) !important;
+    border-color: rgba(251, 191, 36, 0.4) !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] #progressNoteTreatmentSelector .form-select:focus {
+    background: var(--dm-input-bg, #0f172a) !important;
+    border-color: #fbbf24 !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 0 0.2rem rgba(251, 191, 36, 0.25) !important;
+}
+
 [data-theme="dark"] #progress-notes-section .card[style*="background: linear-gradient"] {
     background: linear-gradient(135deg, var(--dm-card-bg) 0%, var(--dm-bg-secondary) 100%) !important;
 }

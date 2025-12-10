@@ -45,9 +45,9 @@ class StaffDashboard extends Controller
             $query->where('role_id', 3);
         })->count();
 
-        // Get today's appointments count
+        // Get today's appointments count (only active appointments)
         $todayAppointments = Appointment::whereDate('start_datetime', Carbon::today())
-            ->where('status', '!=', 'blocked')
+            ->whereIn('status', ['Pending', 'Confirmed', 'Completed'])
             ->count();
 
         // Get pending appointments count

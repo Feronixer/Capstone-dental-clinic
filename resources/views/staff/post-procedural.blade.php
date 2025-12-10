@@ -742,6 +742,18 @@ function displayPatientGroups(patientGroups) {
     const totalRecords = allGroupedPatientRecords.length;
     const hasFilter = totalRecords > 0 && patientGroups.length < totalRecords;
 
+    // Calculate total treatment rows from ALL patient groups (for accurate pagination)
+    let totalTreatmentRows = 0;
+    allGroupedPatientRecords.forEach((group) => {
+        const userId = group.user_id;
+        const patientTreatments = treatmentsMap[userId] || [];
+        if (patientTreatments.length === 0) {
+            totalTreatmentRows += 1; // One row for N/A treatment
+        } else {
+            totalTreatmentRows += patientTreatments.length; // One row per treatment
+        }
+    });
+
     // Expand patient groups into treatment rows (one row per treatment)
     const treatmentRows = [];
     let rowIndex = 0;
@@ -801,7 +813,18 @@ function displayPatientGroups(patientGroups) {
                 </td>
             </tr>
         `;
-        updateRecordsSummary(0, totalRecords, hasFilter);
+        // Calculate total treatment rows for accurate pagination
+        let totalTreatmentRows = 0;
+        allGroupedPatientRecords.forEach((group) => {
+            const userId = group.user_id;
+            const patientTreatments = treatmentsMap[userId] || [];
+            if (patientTreatments.length === 0) {
+                totalTreatmentRows += 1;
+            } else {
+                totalTreatmentRows += patientTreatments.length;
+            }
+        });
+        updateRecordsSummary(0, totalTreatmentRows, hasFilter);
         return;
     }
 
@@ -928,7 +951,7 @@ function displayPatientGroups(patientGroups) {
         `;
     }).join('');
 
-    updateRecordsSummary(treatmentRows.length, totalRecords, hasFilter);
+    updateRecordsSummary(treatmentRows.length, totalTreatmentRows, hasFilter);
     
     // Build treatment-to-appointment mapping and update notes column after map is built
     setTimeout(async () => {
@@ -4213,10 +4236,10 @@ function selectPatientForRecord(patientData) {
         if (formattedBirthdate) {
             dateOfBirthElement.value = formattedBirthdate;
 
-            // Calculate age
-            const today = new Date();
-            const birthDate = new Date(birthdate);
+            // Calculate age from the formatted date
+            const birthDate = new Date(formattedBirthdate);
             if (!isNaN(birthDate.getTime())) {
+                const today = new Date();
                 let age = today.getFullYear() - birthDate.getFullYear();
                 const monthDiff = today.getMonth() - birthDate.getMonth();
                 if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
@@ -4306,23 +4329,106 @@ function selectPatientForRecord(patientData) {
                 showNotification('Existing patient record loaded successfully!', 'success');
             } else {
                 // No existing record - set up for new record
+                // Use userInfo from API response if available, otherwise fall back to patientData
+                const userInfo = data.userInfo || {};
+                
+                // Merge userInfo with patientData to get all available information
+                const mergedInfo = {
+                    home_address: userInfo.home_address || patientData.home_address || '',
+                    birthdate: userInfo.birthdate || patientData.birthdate || '',
+                    date_of_birth: userInfo.birthdate || patientData.birthdate || '',
+                    sex: userInfo.sex || patientData.sex || '',
+                    religion: userInfo.religion || patientData.religion || '',
+                    occupation: userInfo.occupation || patientData.occupation || '',
+                    contact: userInfo.phone || userInfo.contact_number || patientData.contact_number || patientData.phone || '',
+                    first_name: userInfo.first_name || firstName,
+                    last_name: userInfo.last_name || lastName,
+                    middle_name: userInfo.middle_name || ''
+                };
+                
+                // Populate form fields with merged user info
+                if (mergedInfo.home_address) {
+                    const homeAddressEl = document.getElementById('homeAddress');
+                    if (homeAddressEl) homeAddressEl.value = mergedInfo.home_address;
+                }
+                
+                // Handle date of birth and age calculation
+                const dateOfBirthEl = document.getElementById('dateOfBirth');
+                if (dateOfBirthEl) {
+                    let dateValue = '';
+                    if (mergedInfo.date_of_birth) {
+                        const formattedDate = formatDateForInput(mergedInfo.date_of_birth);
+                        if (formattedDate) {
+                            dateOfBirthEl.value = formattedDate;
+                            dateValue = formattedDate;
+                        }
+                    } else if (dateOfBirthEl.value) {
+                        // Use existing value if already set
+                        dateValue = dateOfBirthEl.value;
+                    }
+                    
+                    // Calculate age from date value
+                    if (dateValue) {
+                        const birthDate = new Date(dateValue);
+                        if (!isNaN(birthDate.getTime())) {
+                            const today = new Date();
+                            let age = today.getFullYear() - birthDate.getFullYear();
+                            const monthDiff = today.getMonth() - birthDate.getMonth();
+                            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                                age--;
+                            }
+                            const ageEl = document.getElementById('age');
+                            if (ageEl) {
+                                ageEl.value = age;
+                            }
+                        }
+                    }
+                }
+                
+                if (mergedInfo.sex) {
+                    const sexEl = document.getElementById('sex');
+                    if (sexEl) {
+                        const formattedSex = mergedInfo.sex.charAt(0).toUpperCase() + mergedInfo.sex.slice(1).toLowerCase();
+                        let finalSex = formattedSex;
+                        if (formattedSex.toLowerCase() === 'male' || formattedSex.toLowerCase() === 'm') {
+                            finalSex = 'Male';
+                        } else if (formattedSex.toLowerCase() === 'female' || formattedSex.toLowerCase() === 'f') {
+                            finalSex = 'Female';
+                        }
+                        sexEl.value = finalSex;
+                        const sexHiddenEl = document.getElementById('sex_hidden');
+                        if (sexHiddenEl) sexHiddenEl.value = finalSex;
+                    }
+                }
+                
+                if (mergedInfo.religion) {
+                    const religionEl = document.getElementById('religion');
+                    if (religionEl) religionEl.value = mergedInfo.religion;
+                }
+                
+                if (mergedInfo.occupation) {
+                    const occupationEl = document.getElementById('occupation');
+                    if (occupationEl) occupationEl.value = mergedInfo.occupation;
+                }
+                
+                // Populate contact field
+                if (mergedInfo.contact) {
+                    const contactEl = document.getElementById('contact');
+                    if (contactEl) {
+                        contactEl.value = mergedInfo.contact;
+                        // Ensure contact field is visible (remove any hidden styles)
+                        contactEl.style.backgroundColor = '';
+                        contactEl.style.color = '';
+                    }
+                }
+                
                 currentPatientRecord = {
                     id: null, // New record
                     user_id: patientData.id,
                     user: {
                         id: patientData.id,
                         username: username,
-                        info: {
-                            first_name: firstName,
-                            last_name: lastName,
-                            middle_name: '',
-                            home_address: patientData.home_address || '',
-                            birthdate: patientData.birthdate || '',
-                            sex: patientData.sex || '',
-                            religion: patientData.religion || '',
-                            occupation: patientData.occupation || '',
-                            phone: patientData.contact_number || patientData.phone || ''
-                        }
+                        info: mergedInfo
                     }
                 };
 
@@ -4350,7 +4456,7 @@ function selectPatientForRecord(patientData) {
         })
         .catch(error => {
             console.error('Error fetching patient record:', error);
-            // Fallback to new record setup
+            // Fallback to new record setup - form fields are already populated from initial patientData
             currentPatientRecord = {
                 id: null,
                 user_id: patientData.id,
@@ -7969,29 +8075,31 @@ function showPasswordVerificationModal(recordId, action) {
         verifyAdminPassword(recordId, action, modal);
     });
     
-    // Handle Enter key in password input
     // Password toggle for admin password input field
-    document.addEventListener('click', function(e) {
-        if (e.target.closest('#toggleAdminPasswordInput')) {
-            const toggleBtn = document.getElementById('toggleAdminPasswordInput');
-            const passwordInput = document.getElementById('adminPasswordInput');
-            const toggleIcon = document.getElementById('toggleAdminPasswordInputIcon');
+    const toggleBtn = document.getElementById('toggleAdminPasswordInput');
+    const passwordInput = document.getElementById('adminPasswordInput');
+    const toggleIcon = document.getElementById('toggleAdminPasswordInputIcon');
+    
+    if (toggleBtn && passwordInput && toggleIcon) {
+        toggleBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             
-            if (toggleBtn && passwordInput && toggleIcon) {
-                if (passwordInput.type === 'password') {
-                    passwordInput.type = 'text';
-                    toggleIcon.classList.remove('bi-eye');
-                    toggleIcon.classList.add('bi-eye-slash');
-                    toggleBtn.setAttribute('aria-label', 'Hide password');
-                } else {
-                    passwordInput.type = 'password';
-                    toggleIcon.classList.remove('bi-eye-slash');
-                    toggleIcon.classList.add('bi-eye');
-                    toggleBtn.setAttribute('aria-label', 'Show password');
-                }
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('bi-eye');
+                toggleIcon.classList.add('bi-eye-slash');
+                toggleBtn.setAttribute('aria-label', 'Hide password');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('bi-eye-slash');
+                toggleIcon.classList.add('bi-eye');
+                toggleBtn.setAttribute('aria-label', 'Show password');
             }
-        }
-    });
+        });
+    }
+    
+    // Handle Enter key in password input
 
     document.getElementById('adminPasswordInput').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {

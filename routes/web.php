@@ -86,7 +86,7 @@ Route::middleware(['auth:admin,staff,web'])->group(function(): void{
 });
 
 // Admin Routes - Only accessible by admin guard (role_id = 1)
-Route::middleware(['auth:admin'])->group(function(): void{
+Route::middleware(['auth:admin', 'detect.mobile', 'restrict.admin.mobile'])->group(function(): void{
     //Admin Routes
     Route::post('/admin/verify-inactivity-password', [AdminAuthController::class, 'verifyInactivityPassword'])->name('admin.verify-inactivity-password');
     Route::get('/admin/dashboard', [AdminDashboardController::class,'index'])->name('admin-dashboard');
@@ -94,6 +94,7 @@ Route::middleware(['auth:admin'])->group(function(): void{
 
     Route::get('/admin/account-management', [AccountManagementController::class,'index'])->name('admin-account-management');
     Route::post('/admin/account-management', [AccountManagementController::class,'store']);
+    Route::post('/admin/account-management/check-duplicates', [AccountManagementController::class,'checkDuplicates'])->name('admin-account-management.check-duplicates');
     Route::put('/admin/account-management/users/{user}', [AccountManagementController::class,'update'])->name('users.update');
     Route::get('/admin/account-management/users/{id}', [AccountManagementController::class, 'show'])->name('users.show');
     Route::delete('/admin/account-management/users/{id}', [AccountManagementController::class, 'destroy'])->name('users.delete');
@@ -130,7 +131,9 @@ Route::middleware(['auth:admin'])->group(function(): void{
     Route::post('/admin/blocked-time/future/clinic-closed/clear', [App\Http\Controllers\Admin\BlockedTimeController::class, 'clearFutureClinicClosed'])->name('admin-blocked-time.clinic-closed.clear');
     Route::post('/admin/blocked-time/future/clinic-closed/clear-specific', [App\Http\Controllers\Admin\BlockedTimeController::class, 'clearSpecificClinicClosed'])->name('admin-blocked-time.clinic-closed.clear-specific');
     Route::get('/admin/blocked-time/future/block-off-time/count', [App\Http\Controllers\Admin\BlockedTimeController::class, 'getFutureBlockOffTimeCount'])->name('admin-blocked-time.block-off-time.count');
+    Route::get('/admin/blocked-time/future/block-off-time/dates', [App\Http\Controllers\Admin\BlockedTimeController::class, 'getFutureBlockOffTimeDates'])->name('admin-blocked-time.block-off-time.dates');
     Route::post('/admin/blocked-time/future/block-off-time/clear', [App\Http\Controllers\Admin\BlockedTimeController::class, 'clearFutureBlockOffTime'])->name('admin-blocked-time.block-off-time.clear');
+    Route::post('/admin/blocked-time/future/block-off-time/clear-specific', [App\Http\Controllers\Admin\BlockedTimeController::class, 'clearSpecificBlockOffTime'])->name('admin-blocked-time.block-off-time.clear-specific');
       Route::get('/admin/content-management', [ContentManagementController::class,'index'])->name('admin-content-management');
       Route::get('/admin/announcement-archives', [ContentManagementController::class,'announcementArchives'])->name('admin-announcement-archives');
       Route::delete('/admin/announcement-archives/{id}', [ContentManagementController::class,'deleteArchive'])->name('admin-announcement-archives.delete');
@@ -198,12 +201,14 @@ Route::middleware(['auth:admin'])->group(function(): void{
     Route::get('/admin/chat/unread-count', [App\Http\Controllers\Admin\ChatController::class, 'getUnreadCount'])->name('admin-chat.unread-count');
     Route::post('/admin/chat/toggle-online-status', [App\Http\Controllers\Admin\ChatController::class, 'toggleOnlineStatus'])->name('admin-chat.toggle-online-status');
     Route::get('/admin/chat/online-status', [App\Http\Controllers\Admin\ChatController::class, 'getOnlineStatus'])->name('admin-chat.online-status');
+    Route::post('/admin/chat/patients/{patient}/toggle', [App\Http\Controllers\Admin\ChatController::class, 'togglePatientChat'])->name('admin-chat.patient.toggle');
     Route::post('/admin/chat/toggle-censorship', [App\Http\Controllers\Admin\ChatController::class, 'toggleCensorship'])->name('admin-chat.toggle-censorship');
     Route::get('/admin/chat/censorship-status', [App\Http\Controllers\Admin\ChatController::class, 'getCensorshipStatus'])->name('admin-chat.censorship-status');
     Route::get('/admin/chat/blocklist', [App\Http\Controllers\Admin\ChatController::class, 'getBlocklist'])->name('admin-chat.blocklist.index');
     Route::post('/admin/chat/blocklist', [App\Http\Controllers\Admin\ChatController::class, 'addBlocklistWord'])->name('admin-chat.blocklist.store');
     Route::post('/admin/chat/blocklist/save', [App\Http\Controllers\Admin\ChatController::class, 'saveBlocklist'])->name('admin-chat.blocklist.save');
     Route::delete('/admin/chat/blocklist/{word}', [App\Http\Controllers\Admin\ChatController::class, 'removeBlocklistWord'])->name('admin-chat.blocklist.destroy');
+    Route::get('/admin/chat/requests', [App\Http\Controllers\Admin\ChatController::class, 'getAccessRequests'])->name('admin-chat.requests');
 
     // Admin Feedback Routes
     Route::get('/admin/feedback', [App\Http\Controllers\Admin\FeedbackController::class, 'index'])->name('admin-feedback');
@@ -305,6 +310,7 @@ Route::middleware(['auth:staff', \App\Http\Middleware\LogStaffActivity::class])-
     // Staff Account Management Routes (Patient accounts only)
     Route::get('/staff/account-management', [StaffAccountManagementController::class,'index'])->name('staff-account-management');
     Route::post('/staff/account-management', [StaffAccountManagementController::class,'store']);
+    Route::post('/staff/account-management/check-duplicates', [StaffAccountManagementController::class,'checkDuplicates'])->name('staff-account-management.check-duplicates');
     Route::put('/staff/account-management/users/{user}', [StaffAccountManagementController::class,'update'])->name('staff.users.update');
     Route::get('/staff/account-management/users/{id}', [StaffAccountManagementController::class, 'show'])->name('staff.users.show');
     Route::delete('/staff/account-management/users/{id}', [StaffAccountManagementController::class, 'destroy'])->name('staff.users.delete');
@@ -334,7 +340,9 @@ Route::middleware(['auth:staff', \App\Http\Middleware\LogStaffActivity::class])-
     Route::post('/staff/blocked-time/future/clinic-closed/clear', [App\Http\Controllers\Staff\BlockedTimeController::class, 'clearFutureClinicClosed'])->name('staff-blocked-time.clinic-closed.clear');
     Route::post('/staff/blocked-time/future/clinic-closed/clear-specific', [App\Http\Controllers\Staff\BlockedTimeController::class, 'clearSpecificClinicClosed'])->name('staff-blocked-time.clinic-closed.clear-specific');
     Route::get('/staff/blocked-time/future/block-off-time/count', [App\Http\Controllers\Staff\BlockedTimeController::class, 'getFutureBlockOffTimeCount'])->name('staff-blocked-time.block-off-time.count');
+    Route::get('/staff/blocked-time/future/block-off-time/dates', [App\Http\Controllers\Staff\BlockedTimeController::class, 'getFutureBlockOffTimeDates'])->name('staff-blocked-time.block-off-time.dates');
     Route::post('/staff/blocked-time/future/block-off-time/clear', [App\Http\Controllers\Staff\BlockedTimeController::class, 'clearFutureBlockOffTime'])->name('staff-blocked-time.block-off-time.clear');
+    Route::post('/staff/blocked-time/future/block-off-time/clear-specific', [App\Http\Controllers\Staff\BlockedTimeController::class, 'clearSpecificBlockOffTime'])->name('staff-blocked-time.block-off-time.clear-specific');
 
       // Staff Content Management Routes (No delete permission for services)
       Route::get('/staff/content-management', [App\Http\Controllers\Staff\ContentManagementController::class,'index'])->name('staff-content-management');
@@ -377,6 +385,7 @@ Route::middleware(['auth:staff', \App\Http\Middleware\LogStaffActivity::class])-
     Route::get('/staff/chat/unread-count', [App\Http\Controllers\Staff\ChatController::class, 'getUnreadCount'])->name('staff-chat.unread-count');
     Route::post('/staff/chat/toggle-online-status', [App\Http\Controllers\Staff\ChatController::class, 'toggleOnlineStatus'])->name('staff-chat.toggle-online-status');
     Route::get('/staff/chat/online-status', [App\Http\Controllers\Staff\ChatController::class, 'getOnlineStatus'])->name('staff-chat.online-status');
+    Route::post('/staff/chat/patients/{patient}/toggle', [App\Http\Controllers\Staff\ChatController::class, 'togglePatientChat'])->name('staff-chat.patient.toggle');
     Route::post('/staff/chat/toggle-censorship', [App\Http\Controllers\Staff\ChatController::class, 'toggleCensorship'])->name('staff-chat.toggle-censorship');
     Route::get('/staff/chat/censorship-status', [App\Http\Controllers\Staff\ChatController::class, 'getCensorshipStatus'])->name('staff-chat.censorship-status');
     Route::get('/staff/chat/blocklist', [App\Http\Controllers\Staff\ChatController::class, 'getBlocklist'])->name('staff-chat.blocklist.index');
@@ -475,6 +484,7 @@ Route::middleware(['auth:web'])->group(function(): void{
     Route::post('/patient/chat/send', [App\Http\Controllers\Patient\ChatController::class, 'sendMessage'])->name('patient-chat.send');
     Route::get('/patient/chat/unread-count', [App\Http\Controllers\Patient\ChatController::class, 'getUnreadCount'])->name('patient-chat.unread-count');
     Route::get('/patient/chat/online-status', [App\Http\Controllers\Patient\ChatController::class, 'getOnlineStatus'])->name('patient-chat.online-status');
+    Route::post('/patient/chat/enable-request', [App\Http\Controllers\Patient\ChatController::class, 'requestEnable'])->name('patient-chat.request-enable');
 
     // Patient Logout Route
     Route::post('/logout', [AuthController::class,'logout'])->name('logout');

@@ -127,6 +127,24 @@
     border-color: rgba(255, 87, 87, 1);
 }
 
+.profile-action-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.profile-action-btn #changePasswordBtnLoader {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-action-btn #changePasswordBtnLoader .spinner-border-sm {
+    width: 0.875rem;
+    height: 0.875rem;
+    border-width: 0.15em;
+}
+
 /* Profile Details */
 .profile-details-area {
     padding: 1.25rem;
@@ -207,20 +225,30 @@
 }
 
 .detail-block input.readonly-input,
-.detail-block select.readonly-input {
-    background: #e3f2fd;
-    border-color: #1976D2;
-    color: #000000;
-    cursor: not-allowed;
+.detail-block select.readonly-input,
+.detail-block input[readonly],
+.detail-block select[disabled] {
+    background: #e9ecef !important;
+    background-color: #e9ecef !important;
+    border-color: #adb5bd !important;
+    color: #6c757d !important;
+    cursor: not-allowed !important;
+    opacity: 0.7;
 }
 
 .detail-block input.readonly-input:hover,
 .detail-block select.readonly-input:hover,
 .detail-block input.readonly-input:focus,
-.detail-block select.readonly-input:focus {
-    background: #e3f2fd;
-    border-color: #1976D2;
-    box-shadow: none;
+.detail-block select.readonly-input:focus,
+.detail-block input[readonly]:hover,
+.detail-block select[disabled]:hover,
+.detail-block input[readonly]:focus,
+.detail-block select[disabled]:focus {
+    background: #e9ecef !important;
+    background-color: #e9ecef !important;
+    border-color: #adb5bd !important;
+    box-shadow: none !important;
+    cursor: not-allowed !important;
 }
 
 .detail-block input:hover,
@@ -859,20 +887,30 @@
 [data-theme="dark"] input[readonly],
 [data-theme="dark"] input[readonly][style*="background: #f5f5f5"],
 [data-theme="dark"] .detail-block input.readonly-input,
-[data-theme="dark"] .detail-block select.readonly-input {
-    background: var(--dm-bg-tertiary, #334155) !important;
-    border-color: var(--dm-border-color, #475569) !important;
-    color: var(--dm-text-muted, #94a3b8) !important;
+[data-theme="dark"] .detail-block select.readonly-input,
+[data-theme="dark"] .detail-block input[readonly],
+[data-theme="dark"] .detail-block select[disabled] {
+    background: #1e293b !important;
+    background-color: #1e293b !important;
+    border-color: #475569 !important;
+    color: #64748b !important;
     cursor: not-allowed !important;
+    opacity: 0.6;
 }
 
 [data-theme="dark"] .detail-block input.readonly-input:hover,
 [data-theme="dark"] .detail-block select.readonly-input:hover,
 [data-theme="dark"] .detail-block input.readonly-input:focus,
-[data-theme="dark"] .detail-block select.readonly-input:focus {
-    background: var(--dm-bg-tertiary, #334155) !important;
-    border-color: var(--dm-border-color, #475569) !important;
+[data-theme="dark"] .detail-block select.readonly-input:focus,
+[data-theme="dark"] .detail-block input[readonly]:hover,
+[data-theme="dark"] .detail-block select[disabled]:hover,
+[data-theme="dark"] .detail-block input[readonly]:focus,
+[data-theme="dark"] .detail-block select[disabled]:focus {
+    background: #1e293b !important;
+    background-color: #1e293b !important;
+    border-color: #475569 !important;
     box-shadow: none !important;
+    cursor: not-allowed !important;
 }
 
 /* Select dropdown options dark mode */
@@ -1146,7 +1184,12 @@ html, body {
                     {{ $userInfo ? trim($userInfo->first_name . ' ' . $userInfo->last_name) : $user->name }}
                 </h2>
 
-                <button class="profile-action-btn" onclick="window.location.href='{{ route('password.change') }}'">Change Password</button>
+                <button class="profile-action-btn" id="changePasswordBtn">
+                    <span id="changePasswordBtnText">Change Password</span>
+                    <span id="changePasswordBtnLoader" style="display: none;">
+                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Loading...
+                    </span>
+                </button>
                 <form method="POST" action="{{ route('patient.logout') }}">
                     @csrf
                     <button type="submit" class="profile-action-btn logout">Log Out</button>
@@ -1244,6 +1287,32 @@ document.addEventListener('DOMContentLoaded', function() {
         attributes: true,
         attributeFilter: ['data-theme']
     });
+
+    // Handle Change Password button with loading state
+    const changePasswordBtn = document.getElementById('changePasswordBtn');
+    const changePasswordBtnText = document.getElementById('changePasswordBtnText');
+    const changePasswordBtnLoader = document.getElementById('changePasswordBtnLoader');
+    
+    if (changePasswordBtn) {
+        changePasswordBtn.addEventListener('click', function(e) {
+            // Prevent multiple clicks
+            if (changePasswordBtn.disabled) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // Show loading state
+            changePasswordBtn.disabled = true;
+            changePasswordBtnText.style.display = 'none';
+            changePasswordBtnLoader.style.display = 'inline';
+            
+            // Add minimum delay to show loading state (800ms)
+            setTimeout(function() {
+                // Navigate to password change page
+                window.location.href = '{{ route("password.change") }}';
+            }, 800);
+        });
+    }
 
     const profileForm = document.getElementById('profileForm');
     const birthdayInput = document.getElementById('birthday');

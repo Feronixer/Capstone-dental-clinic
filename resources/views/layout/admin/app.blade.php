@@ -76,33 +76,45 @@
             scrollbar-color: #2196F3 var(--dm-bg-secondary, #1e293b);
         }
 
-        /* Inactivity Blur Styles */
-        body.inactive-blur {
-            position: relative;
+        /* Inactivity Blur Styles - Disabled on Mobile */
+        @media (min-width: 769px) {
+            body.inactive-blur {
+                position: relative;
+            }
+
+            body.inactive-blur::before {
+                content: '';
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                backdrop-filter: blur(30px);
+                -webkit-backdrop-filter: blur(30px);
+                z-index: 99998;
+                pointer-events: none;
+            }
+
+            body.inactive-blur > *:not(.inactivity-password-modal) {
+                filter: blur(30px);
+                transition: filter 0.5s ease;
+                pointer-events: none;
+                user-select: none;
+            }
+
+            body.inactive-blur > *:not(.inactivity-password-modal) * {
+                pointer-events: none;
+            }
         }
 
-        body.inactive-blur::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            z-index: 99998;
-            pointer-events: none;
-        }
-
-        body.inactive-blur > *:not(.inactivity-password-modal) {
-            filter: blur(30px);
-            transition: filter 0.5s ease;
-            pointer-events: none;
-            user-select: none;
-        }
-
-        body.inactive-blur > *:not(.inactivity-password-modal) * {
-            pointer-events: none;
+        /* Disable blur on mobile */
+        @media (max-width: 768px) {
+            body.inactive-blur {
+                filter: none !important;
+            }
+            body.inactive-blur > * {
+                filter: none !important;
+            }
         }
 
         /* Password modal should not be blurred and always on top */
@@ -429,6 +441,16 @@
             // Check if we're on admin portal
             const isAdminPortal = window.location.pathname.startsWith('/admin/');
             if (!isAdminPortal) return;
+
+            // Check if device is mobile - disable inactivity features on mobile
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+            if (isMobile) {
+                // Clear any existing blur state on mobile
+                document.body.classList.remove('inactive-blur');
+                localStorage.removeItem('admin_inactivity_blurred');
+                localStorage.removeItem('admin_inactivity_locked');
+                return; // Exit early - don't initialize inactivity features on mobile
+            }
 
             let inactivityTimer;
             let passwordTimer;

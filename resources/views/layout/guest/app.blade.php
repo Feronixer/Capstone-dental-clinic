@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>ToothTalk - @yield('title', 'Premium Dental Care')</title>
     <!-- Favicon -->
@@ -141,6 +141,7 @@
             width: 320px;
             max-width: 85vw;
             height: 100vh;
+            height: 100dvh; /* Dynamic viewport height - accounts for system navigation */
             background: #ffffff;
             box-shadow: -4px 0 30px rgba(0,0,0,0.2);
             z-index: 10001;
@@ -702,17 +703,17 @@
         @media (max-width: 768px) {
             .scroll-to-top-btn {
                 right: 20px;
-                bottom: 90px;
+                bottom: 88px;
                 width: 45px;
                 height: 45px;
                 font-size: 1.1rem;
             }
         }
 
-        @media (max-width: 576px) {
+        @media (max-width: 480px) {
             .scroll-to-top-btn {
                 right: 16px;
-                bottom: 75px;
+                bottom: 80px;
                 width: 40px;
                 height: 40px;
                 font-size: 1rem;
@@ -894,7 +895,9 @@
                 backdrop.setAttribute('aria-hidden','false');
                 toggleIcon?.classList.add('open');
                 closeIcon?.classList.add('open');
-                document.body.style.overflow = 'hidden'; // lock page scroll under menu
+                // lock page scroll under menu
+                document.body.style.overflow = 'hidden';
+                document.documentElement.style.overflow = 'hidden';
                 // pin toggle on top
                 toggle?.classList.add('fixed-open');
                 toggle?.setAttribute('aria-label','Close menu');
@@ -907,7 +910,9 @@
                 backdrop.setAttribute('aria-hidden','true');
                 toggleIcon?.classList.remove('open');
                 closeIcon?.classList.remove('open');
-                document.body.style.overflow = ''; // restore scroll
+                // restore scroll
+                document.body.style.overflow = '';
+                document.documentElement.style.overflow = '';
                 toggle?.classList.remove('fixed-open');
                 toggle?.setAttribute('aria-label','Open menu');
             }

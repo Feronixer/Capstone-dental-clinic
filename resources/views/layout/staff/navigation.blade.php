@@ -263,6 +263,17 @@ document.addEventListener('DOMContentLoaded', function() {
     async function updateChatUnreadCount() {
         try {
             const response = await fetch('{{ route("staff-chat.unread-count") }}');
+            
+            // Check if response is OK and content type is JSON
+            if (!response.ok) {
+                return; // Silently fail if endpoint returns error
+            }
+            
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                return; // Silently fail if response is not JSON
+            }
+            
             const data = await response.json();
             const badge = document.getElementById('staff-chat-badge');
             
@@ -275,7 +286,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         } catch (error) {
-            console.error('Error fetching chat unread count:', error);
+            // Silently handle errors - don't log to console to avoid noise
         }
     }
     

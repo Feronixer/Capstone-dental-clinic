@@ -154,6 +154,34 @@
         margin-bottom: 1rem;
     }
 
+    .hero-title .no-time {
+        white-space: nowrap;
+        display: inline-block;
+    }
+
+    .patient-login-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.7rem;
+        background: #2196F3;
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 30px;
+        border: none;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        margin-bottom: 3rem;
+    }
+
+    .patient-login-btn:hover {
+        background: #1976D2;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(33, 150, 243, 0.3);
+    }
+
     /* Hero Card */
     .hero-card {
         flex: 1;
@@ -698,7 +726,7 @@
             padding: 2rem;
             margin-bottom: 1.5rem;
             gap: 2rem;
-            overflow: visible;
+            justify-content: center;
         }
 
         .hero-content {
@@ -712,9 +740,7 @@
             max-width: 100%;
         }
 
-        .hero-title { 
-            font-size: 50px; 
-        }
+        .hero-title { font-size: 42px; }
 
         .main-card {
             min-height: 420px;
@@ -765,9 +791,9 @@
         .hero-section {
             flex-direction: row; /* keep side-by-side at 768px */
             padding: 1.5rem 1rem;
-            gap: 1rem;
+            gap: 1.5rem;
             align-items: flex-start;
-            overflow: visible;
+            justify-content: center;
         }
 
         .hero-content {
@@ -791,12 +817,28 @@
 
         .hero-title {
             font-size: 72px;
-            margin-bottom: 1rem;
         }
 
-        .hero-description {
-            font-size: 1rem;
-            margin-bottom: 1.5rem;
+        .patient-login-btn {
+            margin-bottom: 2rem;
+            width: 100%;
+            max-width: 100%;
+            justify-content: center;
+        }
+
+        .login-buttons {
+            width: 100%;
+        }
+
+        .login-btn {
+            width: 100%;
+            max-width: 100%;
+            justify-content: center;
+        }
+
+        .staff-admin-section {
+            width: 100%;
+            align-items: flex-start;
         }
 
         .main-card {
@@ -849,6 +891,9 @@
         }
         .feature-card.top { top: 0.75rem !important; right: 0.75rem !important; }
         .feature-card.bottom { bottom: 2.25rem !important; right: 0.75rem !important; }
+
+        .login-buttons { flex-direction: column; align-items: flex-start; }
+        .login-btn { font-size: 0.98rem; padding: 0.85rem 1.6rem; border-radius: 28px; }
 
         .services-section {
             padding: 3rem 1rem;
@@ -915,6 +960,108 @@
         .services-empty-state p {
             font-size: 0.9rem;
         }
+    }
+
+    /* Stack hero vertically on medium-small screens */
+    @media (max-width: 640px) {
+        .hero-section {
+            flex-direction: column;
+            gap: 5rem;
+            margin-bottom: 7rem;
+            align-items: stretch;
+        }
+
+        .hero-content {
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .hero-card {
+            width: 100%;
+            max-width: 100%;
+            padding: 0.5rem;
+        }
+
+        .card-title {
+            position: absolute;
+            left: 1rem;
+            bottom: -2.5rem;
+            width: calc(100% - 2rem);
+            text-align: left;
+            font-size: 1.5rem;
+        }            
+
+        /* Keep cards absolutely positioned on right side */
+        .feature-card { 
+            position: absolute !important;
+            max-width: 200px;
+            padding: 0.85rem 0.9rem;
+            box-shadow: 0 8px 22px rgba(0,0,0,0.12);
+            z-index: 10;
+        }
+        .feature-card.top { top: 0.5rem !important; right: -0.5rem !important; }
+        .feature-card.bottom { bottom: 8rem !important; right: -0.5rem !important; }
+        .feature-text h4 { font-size: 0.95rem; }
+        .feature-text p { font-size: 0.8rem; }
+    }            
+    
+    /* Extra-small phones - keep absolute positioning like tablet */
+    @media (max-width: 576px) {
+        .hero-section {
+            padding: 1rem 0.75rem;
+            gap: 5rem;
+        }
+
+        .hero-content {
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .hero-card { 
+            padding: 0.25rem; 
+            width: 100%;
+            max-width: 100%;
+        }
+        
+        .hero-title {
+            font-size: 52px;
+        }
+        
+        .main-card { 
+            min-height: 320px; 
+            padding: 1rem 1rem 2rem;
+            position: relative;
+            overflow: visible;
+            width: 100%;
+        }
+        .main-card-image { 
+            position: absolute;
+            top: 50%;
+            left: 60%;
+            transform: translate(-50%, -50%);
+            width: 135%;
+            max-width: none;
+            height: auto;
+            min-height: 100%;
+            object-fit: cover;
+            opacity: 1;
+            z-index: 1;
+            filter: brightness(1) contrast(1) drop-shadow(0 8px 24px rgba(128, 128, 128, 0.25));
+            pointer-events: none;
+            mix-blend-mode: normal;
+        }
+        /* Keep cards absolutely positioned on right side */
+        .feature-card { 
+            position: absolute !important;
+            max-width: 200px;
+            padding: 0.85rem 0.9rem;
+            box-shadow: 0 8px 22px rgba(0,0,0,0.12);
+            z-index: 10;
+        }
+        .feature-card.top { top: 0.5rem !important; right: -0.5rem !important; }
+        .feature-card.bottom { bottom: 7rem !important; right: -0.5rem !important; }
+        .feature-text h4 { font-size: 0.95rem; }
+        .feature-text p { font-size: 0.8rem; }
     }
     
     @media (max-width: 480px) {
@@ -1769,23 +1916,25 @@
     <div class="hero-content">
         <div class="badge">
             <i class="bi bi-stars"></i>
-            Welcome Back, @if(auth()->user()->info){{ trim(auth()->user()->info->first_name . ' ' . auth()->user()->info->last_name) }}@else{{ auth()->user()->name ?? 'User' }}@endif!
+            Premium Dental Care since 2024
         </div>
 
         <h1 class="hero-title">
-            Have confidence<br>in your <span class="highlight">SMILE</span><br>in no time!
+            Have confidence<br>in your <span class="highlight">SMILE</span><br><span class="no-time">in no time!</span>
         </h1>
 
         <p class="hero-description">
-            Experience world-class dental care with cutting-edge technology and a compassionate team dedicated to your oral health and beautiful smile.
+            Become our patient today! Our clinic staff will register you, and keep you updated with your dental needs.
         </p>
+
+        {{-- Staff/Admin links removed for security --}}
     </div>
 
     <!-- Right Card -->
     <div class="hero-card">
         <div class="main-card">
             <img src="{{ asset('images/clinic.png') }}" alt="Dental Clinic" class="main-card-image">
-            
+
             <div class="feature-card top">
                 <div class="feature-icon">
                     <i class="bi bi-heart-pulse-fill"></i>
@@ -1968,12 +2117,12 @@
                     isSwipeProcessing = true;
                     
                     // Determine swipe direction
-                    if (deltaX < 0) {
-                        // Swipe left - rotate left (counter-clockwise)
-                        scrollServices('prev');
-                    } else {
-                        // Swipe right - rotate right (clockwise)
+                    if (deltaX > 0) {
+                        // Swipe right - go to next
                         scrollServices('next');
+                    } else {
+                        // Swipe left - go to previous
+                        scrollServices('prev');
                     }
                     
                     // Reset flag after animation completes (fallback timeout)
@@ -2117,8 +2266,11 @@
             while (diff < -180) diff += 360;
             
             // Smooth interpolation with adaptive speed
-            // Use faster speed for button clicks (0.3) than hover (0.2) for better responsiveness
-            const animationSpeed = hoveredCardIndex !== null ? 0.2 : 0.3;
+            // Faster on mobile for swipes, slower for hover
+            const isMobile = window.innerWidth <= 768;
+            const animationSpeed = hoveredCardIndex !== null 
+                ? 0.2  // Hover: keep smooth
+                : (isMobile ? 0.55 : 0.4);  // Mobile swipes: faster, desktop: medium
             rotationAngle += diff * animationSpeed;
             
             // Check if we're close enough to target
@@ -4294,8 +4446,20 @@ function loadPendingFeedbackCount() {
     /* Fix for mobile browsers with address bar */
     @media (max-width: 768px) {
         .chatbot-widget {
+            right: 16px !important;
+            left: 16px !important;
+            width: auto !important;
+            max-width: calc(100vw - 32px);
+            bottom: 88px !important;
             max-height: calc(100vh - 100px);
             max-height: calc(100dvh - 100px); /* Dynamic viewport height */
+        }
+        
+        .chatbot-toggle-btn:not(.dragged) {
+            right: 20px !important;
+            bottom: 20px !important;
+            width: 56px;
+            height: 56px;
         }
         
         .chatbot-messages {
@@ -4323,6 +4487,21 @@ function loadPendingFeedbackCount() {
     }
 
     @media (max-width: 480px) {
+        .chatbot-widget {
+            right: 16px !important;
+            left: 16px !important;
+            width: auto !important;
+            max-width: calc(100vw - 32px);
+            bottom: 80px !important;
+        }
+        
+        .chatbot-toggle-btn:not(.dragged) {
+            right: 16px !important;
+            bottom: 16px !important;
+            width: 52px;
+            height: 52px;
+        }
+        
         .chatbot-input input[type="text"] {
             font-size: 16px !important; /* Prevents zoom on iOS */
         }

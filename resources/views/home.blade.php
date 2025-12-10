@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
@@ -126,7 +126,7 @@
             gap: 1rem;
         }
 
-        /* Hamburger (mobile) */
+        /* Hamburger Menu Styles - Match announcement.blade.php */
         .menu-toggle {
             display: none;
             width: 44px;
@@ -139,7 +139,7 @@
             justify-content: center;
             font-size: 1.25rem;
             cursor: pointer;
-            z-index: 10002; /* above drawer */
+            z-index: 10002;
         }
 
         /* When menu is open, pin the toggle above everything */
@@ -157,6 +157,9 @@
             position: relative;
             width: 22px;
             height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .burger-icon .bar {
             position: absolute;
@@ -175,7 +178,6 @@
         .burger-icon.open .bar:nth-child(2) { opacity: 0; }
         .burger-icon.open .bar:nth-child(3) { top: 7px; transform: rotate(-45deg); }
 
-
         .mobile-menu-overlay {
             position: fixed;
             top: 0;
@@ -183,13 +185,14 @@
             width: 320px;
             max-width: 85vw;
             height: 100vh;
+            height: 100dvh; /* Dynamic viewport height - accounts for system navigation */
             background: #ffffff;
             box-shadow: -4px 0 30px rgba(0,0,0,0.2);
             z-index: 10001;
             transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             flex-direction: column;
-            overflow-y: auto; /* allow scrolling within menu */
+            overflow-y: auto;
             padding-bottom: env(safe-area-inset-bottom, 0);
             padding-top: env(safe-area-inset-top, 0);
             pointer-events: none;
@@ -200,14 +203,22 @@
             pointer-events: auto;
         }
 
+        .mobile-menu-backdrop {
+            pointer-events: none;
+        }
+
+        .mobile-menu-backdrop.active {
+            pointer-events: auto;
+        }
+
         .mobile-menu-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 1rem;
-            background: #ffffff; /* white header near logo */
+            background: #ffffff;
             color: #1976D2;
-            position: sticky; /* keep header fixed while scrolling menu */
+            position: sticky;
             top: 0;
             z-index: 2;
             box-shadow: 0 1px 0 rgba(0,0,0,0.06);
@@ -217,14 +228,20 @@
             width: 36px;
             height: 36px;
             border-radius: 8px;
-            background: rgba(255,255,255,0.2);
+            background: rgba(33, 150, 243, 0.1);
             border: none;
-            color: #fff;
+            color: #1976D2;
             font-size: 1.1rem;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .mobile-menu-close:hover {
+            background: rgba(33, 150, 243, 0.2);
+            color: #2196F3;
         }
 
         .mobile-nav { 
@@ -240,7 +257,7 @@
             gap: 0.75rem;
             padding: 0.9rem 1rem;
             border-radius: 12px;
-            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%); /* match brand blue */
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
             color: #ffffff;
             text-decoration: none;
             transition: transform 0.15s ease, box-shadow 0.15s ease;
@@ -310,18 +327,16 @@
         .mobile-menu-backdrop {
             position: fixed;
             inset: 0;
-            background: rgba(15, 23, 42, 0.5); /* darker but see-through */
+            background: rgba(15, 23, 42, 0.5);
             backdrop-filter: blur(1px);
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.25s ease, visibility 0.25s ease;
-            z-index: 10000;
-            pointer-events: none;
+            z-index: 9999; /* Behind the menu-toggle (10002) and overlay (10001) */
         }
         .mobile-menu-backdrop.active {
             opacity: 1;
             visibility: visible;
-            pointer-events: auto;
         }
 
         .nav-btn {
@@ -734,7 +749,16 @@
             .logo { flex: 1; font-size: 1.3rem; }
             .clinic-subtitle { font-size: 0.7rem !important; }
             .nav-links { display: none; }
-            .menu-toggle { display: inline-flex; margin-left: auto; }
+            .menu-toggle {
+                display: inline-flex !important;
+                margin-left: auto;
+                position: relative;
+                pointer-events: auto;
+                -webkit-tap-highlight-color: transparent;
+                user-select: none;
+                visibility: visible !important;
+                opacity: 1 !important;
+            }
 
             .hero-section {
                 flex-direction: row; /* keep side-by-side at 768px */
@@ -1597,17 +1621,17 @@
         @media (max-width: 768px) {
             .scroll-to-top-btn {
                 right: 20px;
-                bottom: 90px;
+                bottom: 88px;
                 width: 45px;
                 height: 45px;
                 font-size: 1.1rem;
             }
         }
 
-        @media (max-width: 576px) {
+        @media (max-width: 480px) {
             .scroll-to-top-btn {
                 right: 16px;
-                bottom: 75px;
+                bottom: 80px;
                 width: 40px;
                 height: 40px;
                 font-size: 1rem;
@@ -1946,8 +1970,8 @@
             }
             
             .chatbot-toggle-btn {
-                right: 16px !important;
-                bottom: 16px !important;
+                right: 20px !important;
+                bottom: 20px !important;
                 width: 56px;
                 height: 56px;
             }
@@ -1994,16 +2018,16 @@
 
         @media (max-width: 480px) {
             .chatbot-widget {
-                right: 12px !important;
-                left: 12px !important;
+                right: 16px !important;
+                left: 16px !important;
                 bottom: 80px !important;
-                max-width: calc(100vw - 24px);
+                max-width: calc(100vw - 32px);
                 border-radius: 12px;
             }
             
             .chatbot-toggle-btn {
-                right: 12px !important;
-                bottom: 12px !important;
+                right: 16px !important;
+                bottom: 16px !important;
                 width: 52px;
                 height: 52px;
                 opacity: 0.9;
@@ -2329,8 +2353,8 @@
                 About Us
             </a>
         </div>
-        <button id="homeMenuToggle" class="menu-toggle" aria-label="Open menu">
-            <span class="burger-icon" id="homeMenuToggleIcon">
+        <button id="guestMenuToggle" class="menu-toggle" aria-label="Open menu">
+            <span class="burger-icon" id="guestMenuToggleIcon">
                 <span class="bar"></span>
                 <span class="bar"></span>
                 <span class="bar"></span>
@@ -2339,8 +2363,8 @@
     </nav>
 
     <!-- Mobile Menu -->
-    <div id="homeMenuBackdrop" class="mobile-menu-backdrop" aria-hidden="true"></div>
-    <div id="homeMobileMenu" class="mobile-menu-overlay" aria-hidden="true">
+    <div id="guestMenuBackdrop" class="mobile-menu-backdrop" aria-hidden="true"></div>
+    <div id="guestMobileMenu" class="mobile-menu-overlay" aria-hidden="true">
         <div class="mobile-menu-header">
             <div class="logo" style="gap: 0.5rem; font-size: 1.1rem;">
                 <img src="{{ asset('images/logo4.png') }}" alt="ToothTalk" class="logo-img" style="width:40px;height:40px;">
@@ -2349,12 +2373,8 @@
                     <span class="clinic-subtitle" style="font-size: 0.7rem;">JValera Dental Clinic</span>
                 </div>
             </div>
-            <button id="homeMenuClose" class="mobile-menu-close" aria-label="Close menu">
-                <span class="burger-icon" id="homeMenuCloseIcon">
-                    <span class="bar"></span>
-                    <span class="bar"></span>
-                    <span class="bar"></span>
-                </span>
+            <button id="guestMenuClose" class="mobile-menu-close" aria-label="Close menu">
+                <i class="bi bi-x-lg"></i>
             </button>
         </div>
         <nav class="mobile-nav">
@@ -2505,6 +2525,13 @@
         let scrollTargetRotationAngle = null;
         let isScrollingAnimated = false;
         
+        // Touch/swipe variables
+        let touchStartX = 0;
+        let touchEndX = 0;
+        let touchStartY = 0;
+        let touchEndY = 0;
+        const minSwipeDistance = 50; // Minimum distance for a swipe
+        
         function getRadius() {
             // Responsive radius based on screen size
             const width = window.innerWidth;
@@ -2532,6 +2559,13 @@
                 card.addEventListener('mouseenter', () => lockCardToCenter(index));
                 card.addEventListener('mouseleave', () => unlockCard());
             });
+            
+            // Add touch/swipe support for mobile
+            const carouselWrapper = carousel.closest('.services-carousel-wrapper');
+            if (carouselWrapper) {
+                carouselWrapper.addEventListener('touchstart', handleTouchStart, { passive: true });
+                carouselWrapper.addEventListener('touchend', handleTouchEnd, { passive: false });
+            }
             
             // Handle window resize
             let resizeTimeout;
@@ -2659,8 +2693,11 @@
                 while (diff < -180) diff += 360;
                 
                 // Smooth interpolation with adaptive speed
-                // Use faster speed for button clicks (0.3) than hover (0.2) for better responsiveness
-                const animationSpeed = hoveredCardIndex !== null ? 0.2 : 0.3;
+                // Faster on mobile for swipes, slower for hover
+                const isMobile = window.innerWidth <= 768;
+                const animationSpeed = hoveredCardIndex !== null 
+                    ? 0.2  // Hover: keep smooth
+                    : (isMobile ? 0.55 : 0.4);  // Mobile swipes: faster, desktop: medium
                 rotationAngle += diff * animationSpeed;
                 
                 // Check if we're close enough to target
@@ -2787,6 +2824,46 @@
             
             isScrollingAnimated = true;
             startUpdateLoop(); // Ensure the main update loop is running to animate the scroll
+        }
+        
+        // Touch/swipe handlers for mobile
+        function handleTouchStart(e) {
+            const touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+        }
+        
+        function handleTouchEnd(e) {
+            if (!touchStartX || !touchStartY) return;
+            
+            const touch = e.changedTouches[0];
+            touchEndX = touch.clientX;
+            touchEndY = touch.clientY;
+            
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = touchEndY - touchStartY;
+            const absDeltaX = Math.abs(deltaX);
+            const absDeltaY = Math.abs(deltaY);
+            
+            // Check if it's a horizontal swipe (more horizontal than vertical)
+            if (absDeltaX > absDeltaY && absDeltaX > minSwipeDistance) {
+                // Prevent default to avoid scrolling the page
+                e.preventDefault();
+                
+                if (deltaX > 0) {
+                    // Swipe right - go to next
+                    scrollServices('next');
+                } else {
+                    // Swipe left - go to previous
+                    scrollServices('prev');
+                }
+            }
+            
+            // Reset touch coordinates
+            touchStartX = 0;
+            touchStartY = 0;
+            touchEndX = 0;
+            touchEndY = 0;
         }
         
         // Initialize on page load
@@ -3682,45 +3759,54 @@
     @endif
 
     <script>
-        // Mobile menu toggle for homepage
+        // Mobile menu toggle for guest pages
         (function(){
-            const toggle = document.getElementById('homeMenuToggle');
-            const closeBtn = document.getElementById('homeMenuClose');
-            const menu = document.getElementById('homeMobileMenu');
-            const backdrop = document.getElementById('homeMenuBackdrop');
-            const toggleIcon = document.getElementById('homeMenuToggleIcon');
-            const closeIcon = document.getElementById('homeMenuCloseIcon');
+            const toggle = document.getElementById('guestMenuToggle');
+            const closeBtn = document.getElementById('guestMenuClose');
+            const menu = document.getElementById('guestMobileMenu');
+            const backdrop = document.getElementById('guestMenuBackdrop');
+            const toggleIcon = document.getElementById('guestMenuToggleIcon');
+            
             function openMenu(){
                 menu.classList.add('active');
                 menu.setAttribute('aria-hidden','false');
                 backdrop.classList.add('active');
                 backdrop.setAttribute('aria-hidden','false');
                 toggleIcon?.classList.add('open');
-                closeIcon?.classList.add('open');
-                document.body.style.overflow = 'hidden'; // lock page scroll under menu
+                // lock page scroll under menu
+                document.body.style.overflow = 'hidden';
+                document.documentElement.style.overflow = 'hidden';
                 // pin toggle on top
                 toggle?.classList.add('fixed-open');
                 toggle?.setAttribute('aria-label','Close menu');
             }
+            
             function closeMenu(){
                 menu.classList.remove('active');
                 menu.setAttribute('aria-hidden','true');
                 backdrop.classList.remove('active');
                 backdrop.setAttribute('aria-hidden','true');
                 toggleIcon?.classList.remove('open');
-                closeIcon?.classList.remove('open');
-                document.body.style.overflow = ''; // restore scroll
+                // restore scroll
+                document.body.style.overflow = '';
+                document.documentElement.style.overflow = '';
                 toggle?.classList.remove('fixed-open');
                 toggle?.setAttribute('aria-label','Open menu');
             }
+            
             toggle?.addEventListener('click', function(e){
                 e.stopPropagation();
                 if (menu.classList.contains('active')) closeMenu(); else openMenu();
             });
+            
             closeBtn?.addEventListener('click', function(){ closeMenu(); });
+            
             document.addEventListener('click', function(e){
-                if (menu.classList.contains('active') && !menu.contains(e.target) && e.target !== toggle) { closeMenu(); }
+                if (menu.classList.contains('active') && !menu.contains(e.target) && e.target !== toggle) { 
+                    closeMenu(); 
+                }
             });
+            
             backdrop?.addEventListener('click', closeMenu);
         })();
 

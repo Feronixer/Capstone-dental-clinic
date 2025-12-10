@@ -37,23 +37,7 @@
                                     </form>
                                 </div>
 
-                                <!-- Filter by Role -->
-                                <div class="control-item control-item-filter">
-                                    <div class="control-form">
-                                        <label class="control-label">
-                                            <i class="bi bi-funnel me-1 text-primary"></i>Filter by Role
-                                        </label>
-                                        <select id="filter-role" name="role" class="form-select form-select-sm">
-                                            <option value="">All Roles</option>
-                                    @foreach ($roles as $role)
-                                        <option value="{{ $role->id }}" {{ request('role') == $role->id ? 'selected' : '' }}>
-                                            {{ $role->role }}
-                                        </option>
-                                    @endforeach
-                                        </select>
-                                    </div>
-                                </div>
-
+                                
                                 <!-- Search -->
                                 <div class="control-item control-item-search">
                                     <div class="control-form">
@@ -176,6 +160,43 @@
             <div class="modal-footer enhanced-password-footer">
                 <button type="button" class="btn btn-primary btn-verify-password" id="editPasswordVerifyBtnStaff">
                     <i class="bi bi-check-circle me-2"></i>Verify
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Staff Confirm Password Modal for Save Changes -->
+<div class="modal fade" id="staffConfirmModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content enhanced-password-modal">
+            <div class="modal-header enhanced-password-header">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-shield-lock me-2"></i>Confirm with Password
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body enhanced-password-body">
+                <p class="text-muted mb-3">
+                    <i class="bi bi-info-circle me-2"></i>Please enter your password to confirm this action.
+                </p>
+                <div class="mb-3">
+                    <label for="staffConfirmPassword" class="form-label fw-semibold">
+                        <i class="bi bi-key me-1"></i>Your Password
+                    </label>
+                    <div class="input-group">
+                        <input type="password" class="form-control" id="staffConfirmPassword" autocomplete="current-password" required placeholder="Enter your password">
+                        <button class="btn btn-outline-secondary" type="button" id="toggleStaffConfirmPassword" aria-label="Show password">
+                            <i class="bi bi-eye" id="toggleStaffConfirmPasswordIcon"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="text-danger small" id="staffConfirmError" style="display:none;"></div>
+            </div>
+            <div class="modal-footer enhanced-password-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary btn-verify-password" id="staffConfirmSubmitBtn">
+                    <i class="bi bi-check-circle me-2"></i>Confirm
                 </button>
             </div>
         </div>
@@ -1441,6 +1462,7 @@ $(document).ready(function () {
             data: $.param(dataArray),
             success: function(response){
                 modal.hide();
+                $('#editUserModal').modal('hide');
                 showToast('success', response.message);
                 fetchUsers("{{ route('staff-account-management') }}");
             },
@@ -1857,6 +1879,26 @@ $(document).ready(function () {
             const toggleBtn = document.getElementById('toggleEditPasswordVerifyStaff');
             const passwordInput = document.getElementById('editPasswordVerifyStaff');
             const toggleIcon = document.getElementById('toggleEditPasswordVerifyStaffIcon');
+            
+            if (toggleBtn && passwordInput && toggleIcon) {
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    toggleIcon.classList.remove('bi-eye');
+                    toggleIcon.classList.add('bi-eye-slash');
+                    toggleBtn.setAttribute('aria-label', 'Hide password');
+                } else {
+                    passwordInput.type = 'password';
+                    toggleIcon.classList.remove('bi-eye-slash');
+                    toggleIcon.classList.add('bi-eye');
+                    toggleBtn.setAttribute('aria-label', 'Show password');
+                }
+            }
+        }
+
+        if (e.target.closest('#toggleStaffConfirmPassword')) {
+            const toggleBtn = document.getElementById('toggleStaffConfirmPassword');
+            const passwordInput = document.getElementById('staffConfirmPassword');
+            const toggleIcon = document.getElementById('toggleStaffConfirmPasswordIcon');
             
             if (toggleBtn && passwordInput && toggleIcon) {
                 if (passwordInput.type === 'password') {
